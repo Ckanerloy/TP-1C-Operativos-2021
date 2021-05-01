@@ -9,6 +9,6 @@
 #include<readline/readline.h>
 
 t_log* iniciar_logger();
-t_config* leer_config();
+t_config* crear_config();
 
 #endif /* DISCORDIADOR_H_ */

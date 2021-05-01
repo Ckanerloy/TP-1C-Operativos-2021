@@ -3,8 +3,7 @@
 int main(void) {
 	puts("!!!Hello World!!!");
 
-	t_config* config = leer_config();
-
+	t_config* config = crear_config();
 
 	char* IP_MI_RAM = config_get_string_value(config, "IP_MI_RAM_HQ");
 	char* PUERTO_MI_RAM = config_get_string_value(config, "PUERTO_MI_RAM_HQ");
@@ -35,8 +34,9 @@ t_log* iniciar_logger(void)
 	return log_create("discordiador.log", "TP0", 1, LOG_LEVEL_INFO);
 }
 
-t_config* leer_config(void)
+t_config* crear_config(void)
 {
 	return config_create("discordiador.config");
 }
+
 
