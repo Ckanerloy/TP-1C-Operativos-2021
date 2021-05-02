@@ -17,13 +17,13 @@ int main(void) {
 	puts(IP_MONGO_STORE);
 	puts(PUERTO_MONGO_STORE);
 
-	// int conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
-	// int conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+	int conexion_cliente_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+	int conexion_cliente_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 
 	config_destroy(config);
 
-	//close(conexion_mi_ram);
-	//close(conexion_mongo_store);
+	close(conexion_cliente_mi_ram);
+	close(conexion_cliente_mongo_store);
 	return EXIT_SUCCESS;
 }
 
