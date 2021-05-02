@@ -1,8 +1,8 @@
-#include "utilsMiRAM.h"
+#include "utilsMongo-Store.h"
 
 t_config* crear_config(void)
 {
-	return config_create("Mi-RAM.config");
+	return config_create("Mongo-Store.config");
 }
 /*
 char* obtenerPuerto(void) {

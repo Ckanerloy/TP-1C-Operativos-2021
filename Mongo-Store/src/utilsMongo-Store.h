@@ -1,5 +1,5 @@
-#ifndef UTILSMIRAM_H_
-#define UTILSMIRAM_H_
+#ifndef UTILSMONGO_STORE_H_
+#define UTILSMONGO_STORE_H_
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -13,7 +13,7 @@
 
 
 #define IP "127.0.0.1"
-#define PUERTO "5001"
+#define PUERTO "5002"
 
 
 typedef enum
@@ -36,4 +36,4 @@ void* recibir_buffer(int* size, int socket_cliente);
 void recibir_mensaje(int socket_cliente);
 t_list* recibir_paquete(int socket_cliente);
 
-#endif /* UTILSMIRAM_H_ */
+#endif /* UTILSMONGO_STORE_H_ */

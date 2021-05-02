@@ -8,9 +8,12 @@ int main(void)
 	}
 
 	logger = log_create("log.log", "Servidor", 1, LOG_LEVEL_DEBUG);
-	char* PUERTO = config_get_string_value(config, "PUERTO");
+	//config = crear_config();
+	//char* PUERTO = config_get_string_value(config, "PUERTO");
 
-	int server_fd = iniciar_servidor(PUERTO);
+	//char* PUERTO = obtenerPuerto();
+
+	int server_fd = iniciar_servidor();
 	log_info(logger, "Servidor listo para recibir al cliente");
 	int cliente_fd = esperar_cliente(server_fd);
 
@@ -30,11 +33,14 @@ int main(void)
 			break;
 		case -1:
 			log_error(logger, "el cliente se desconecto. Terminando servidor");
+			//config_destroy(config);
 			return EXIT_FAILURE;
 		default:
 			log_warning(logger, "Operacion desconocida. No quieras meter la pata");
 			break;
 		}
 	}
+
+	//config_destroy(config);
 	return EXIT_SUCCESS;
 }
