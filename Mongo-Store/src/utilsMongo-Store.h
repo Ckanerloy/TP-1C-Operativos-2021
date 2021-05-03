@@ -13,7 +13,7 @@
 
 
 #define IP "127.0.0.1"
-#define PUERTO "5002"
+//#define PUERTO "5002"
 
 
 typedef enum
@@ -28,8 +28,7 @@ t_config* config;
 t_config* crear_config(void);
 
 char* obtenerPuerto(void);
-//int iniciar_servidor(char* PUERTO);
-int iniciar_servidor(void);
+int iniciar_servidor(char* PUERTO);
 int esperar_cliente(int socket_servidor);
 int recibir_operacion(int socket_cliente);
 void* recibir_buffer(int* size, int socket_cliente);

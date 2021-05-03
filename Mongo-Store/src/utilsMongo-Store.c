@@ -2,16 +2,16 @@
 
 t_config* crear_config(void)
 {
-	return config_create("Mongo-Store.config");
+	return config_create("/home/utnso/tp-2021-1c-UTNIX/Mongo-Store/Mongo-Store.config");
 }
-/*
+
 char* obtenerPuerto(void) {
 	config = crear_config();
 	char* PUERTO = config_get_string_value(config, "PUERTO");
 	return PUERTO;
 }
-*/
-int iniciar_servidor(void)
+
+int iniciar_servidor(char* PUERTO)
 {
 	int socket_servidor;
 

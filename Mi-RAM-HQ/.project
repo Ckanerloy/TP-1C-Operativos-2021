@@ -3,6 +3,7 @@
 	<name>Mi-RAM</name>
 	<comment></comment>
 	<projects>
+		<project>commons</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

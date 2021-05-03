@@ -14,11 +14,12 @@ int main(void) {
 	char* IP_MONGO_STORE = config_get_string_value(config, "IP_I_MONGO_STORE");
 	char* PUERTO_MONGO_STORE = config_get_string_value(config, "PUERTO_I_MONGO_STORE");
 
-	puts(IP_MI_RAM);
-	puts(PUERTO_MI_RAM);
 
-	puts(IP_MONGO_STORE);
-	puts(PUERTO_MONGO_STORE);
+	//puts(IP_MI_RAM);
+	//puts(PUERTO_MI_RAM);
+
+	//puts(IP_MONGO_STORE);
+	//puts(PUERTO_MONGO_STORE);
 
 	while(1) {
 		puts("> Indique con quien se quiere comunicar:");
@@ -31,23 +32,29 @@ int main(void) {
 			conexion_cliente_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
 
+			leido = readline(">");
+			while(strcmp(leido,"EXIT") != 0){
+				leido = readline(">");
+			}
+
 			close(conexion_cliente_mi_ram);
 		}
 		else if(strcmp(leido, "2") == 0 ){
-			conexion_cliente_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+			conexion_cliente_mongo_store = crear_conexion(IP_MONGO_STORE,PUERTO_MONGO_STORE);
+
 
 
 			close(conexion_cliente_mongo_store);
 		}
 		else{
-			puts("Cerrando el servidor.");
+			puts("Cerrando el programa.");
 			config_destroy(config);
 			return EXIT_SUCCESS;
 		}
 	}
 
 
-	config_destroy(config);
+
 
 	//close(conexion_cliente_mi_ram);
 	//close(conexion_cliente_mongo_store);
@@ -63,7 +70,7 @@ t_log* iniciar_logger(void)
 
 t_config* crear_config(void)
 {
-	return config_create("discordiador.config");
+	return config_create("/home/utnso/tp-2021-1c-UTNIX/Discordiador/discordiador.config");
 }
 
 
