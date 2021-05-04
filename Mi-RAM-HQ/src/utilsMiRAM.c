@@ -1,12 +1,8 @@
 #include "utilsMiRAM.h"
 
-t_config* crear_config(void)
-{
-	return config_create("/home/utnso/tp-2021-1c-UTNIX/Mi-RAM-HQ/Mi-RAM.config");
-}
 
 char* obtenerPuerto(void) {
-	config = crear_config();
+	config = config_create(CONFIG_PATH);
 	char* PUERTO = config_get_string_value(config, "PUERTO");
 	return PUERTO;
 }

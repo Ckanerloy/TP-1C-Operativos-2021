@@ -8,8 +8,6 @@ int main(void)
 	}
 
 	logger = log_create("log.log", "Servidor", 1, LOG_LEVEL_DEBUG);
-	config = crear_config();
-	//char* PUERTO = config_get_string_value(config, "PUERTO");
 
 	char* PUERTO = obtenerPuerto();
 

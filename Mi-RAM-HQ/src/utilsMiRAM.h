@@ -11,10 +11,8 @@
 #include<commons/collections/list.h>
 #include<string.h>
 
-
 #define IP "127.0.0.1"
-//#define PUERTO "5001"
-
+#define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mi-RAM-HQ/Mi-RAM.config"
 
 typedef enum
 {
@@ -25,11 +23,8 @@ typedef enum
 t_log* logger;
 t_config* config;
 
-t_config* crear_config(void);
-
 char* obtenerPuerto(void);
 int iniciar_servidor(char* PUERTO);
-//int iniciar_servidor(void);
 int esperar_cliente(int socket_servidor);
 int recibir_operacion(int socket_cliente);
 void* recibir_buffer(int* size, int socket_cliente);

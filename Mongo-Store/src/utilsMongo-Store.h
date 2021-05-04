@@ -11,10 +11,8 @@
 #include<commons/collections/list.h>
 #include<string.h>
 
-
 #define IP "127.0.0.1"
-//#define PUERTO "5002"
-
+#define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mongo-Store/Mongo-Store.config"
 
 typedef enum
 {
@@ -24,8 +22,6 @@ typedef enum
 
 t_log* logger;
 t_config* config;
-
-t_config* crear_config(void);
 
 char* obtenerPuerto(void);
 int iniciar_servidor(char* PUERTO);
