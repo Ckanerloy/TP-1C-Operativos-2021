@@ -28,6 +28,29 @@ typedef struct
 } t_paquete;
 
 
+typedef enum
+{
+	INICIAR_PATOTA,
+	LISTAR_TRIPULANTES,
+	EXPULSAR_TRIPULANTE,
+	INICIAR_PLANIFICACION,
+	PAUSAR_PLANIFICACION,
+	OBTENER_BITACORA
+}codigo_operacion;
+
+
+typedef enum
+{
+	GENERAR_OXIGENO,
+	CONSUMIR_OXIGENO,
+	GENERAR_COMIDA,
+	CONSUMIR_COMIDA,
+	GENERAR_BASURA,
+	DESCARTAR_BASURA
+}codigo_tarea;
+
+
+
 int crear_conexion(char* ip, char* puerto);
 void enviar_mensaje(char* mensaje, int socket_cliente);
 void crear_buffer(t_paquete* paquete);
