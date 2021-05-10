@@ -1,27 +1,50 @@
 #ifndef DISCORDIADOR_H_
 #define DISCORDIADOR_H_
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<commons/log.h>
-#include<commons/string.h>
-#include<commons/config.h>
-#include<readline/readline.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <commons/log.h>
+#include <commons/string.h>
+#include <commons/config.h>
+#include <readline/readline.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 #include "utilsDiscordiador.h"
 
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Discordiador/discordiador.config"
 
+char** parser_consola;
+uint32_t operacion;
+
+// Conexiones
 char* IP_MI_RAM;
 char* PUERTO_MI_RAM;
 char* IP_MONGO_STORE;
 char* PUERTO_MONGO_STORE;
+int conexion_mongo_store;
+int conexion_mi_ram;
 
+int32_t conexion_socket;
+
+// Semaforos
+sem_t* comando_para_ejecutar;
+sem_t* sabotaje;
+
+// Hilos
+pthread_t hilo_consola;
+pthread_t hilo_sabotaje;
+
+// Config
 t_config* config;
 
+// Logger
+t_log* logger;
 
 t_log* iniciar_logger();
-void obtenerDatosDeConfig(char*);
+void obtener_datos_de_config(char*);
+void obtener_orden_input(char*);
+void estar_atento_por_sabotaje(void);
 t_paquete* armar_paquete(void);
 
 #endif /* DISCORDIADOR_H_ */

@@ -20,6 +20,24 @@ typedef enum
 	PAQUETE
 }op_code;
 
+
+// Patota Control Block (PCB)
+typedef struct {
+	uint32_t id_patota;
+	void* direccion_tareas;
+}pcb;
+
+
+// Tripulante Control Block (TCB)
+typedef struct {
+	uint32_t id_tripulante;
+	char estado_tripulante;
+	uint32_t posicion_x;
+	uint32_t posicion_y;
+	uint32_t id_proxima_instruccion;
+}tcb;
+
+
 t_log* logger;
 t_config* config;
 
