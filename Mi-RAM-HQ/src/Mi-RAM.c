@@ -9,9 +9,9 @@ int main(void)
 
 	logger = log_create("log.log", "Servidor", 1, LOG_LEVEL_DEBUG);
 
-	char* PUERTO = obtenerPuerto();
+	char* PUERTO = obtenerPuerto(CONFIG_PATH);
 
-	int server_fd = iniciar_servidor(PUERTO);
+	int server_fd = iniciar_servidor(IP, PUERTO);
 	log_info(logger, "Servidor listo para recibir al cliente");
 	int cliente_fd = esperar_cliente(server_fd);
 

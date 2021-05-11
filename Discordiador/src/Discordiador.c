@@ -16,10 +16,10 @@ int main(void) {
 		//pthread_create(&hilo_sabotaje, NULL, (void*)estar_atento_por_sabotaje, NULL);
 		//pthread_detach(hilo_sabotaje);
 
-
 		sem_wait(comando_para_ejecutar);
 		pthread_create(&hilo_consola, NULL,(void*)obtener_orden_input, NULL);
 		pthread_detach(hilo_consola);
+
 
 
 	}

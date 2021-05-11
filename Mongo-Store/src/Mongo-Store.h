@@ -8,6 +8,9 @@
 #include<commons/config.h>
 #include<readline/readline.h>
 
-#include "utilsMongo-Store.h"
+#include "utils/sockets.h"
+
+#define IP "127.0.0.1"
+#define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mongo-Store/Mongo-Store.config"
 
 #endif /* MONGO_STORE_H_ */
