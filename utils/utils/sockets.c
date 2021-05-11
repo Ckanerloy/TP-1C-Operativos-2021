@@ -1,7 +1,85 @@
 #include "sockets.h"
 
 
-// Funciones para un módulo Cliente
+// FUNCIONES PARA MANEJAR CONEXIONES, SERVIDORES
+int crear_conexion(char *ip, char* puerto)
+{
+	struct addrinfo hints;
+	struct addrinfo *server_info = malloc(sizeof(struct addrinfo));
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	getaddrinfo(ip, puerto, &hints, &server_info);
+
+	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
+
+	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1) {
+		printf("Error al intentar conectarse.\n");
+		socket_cliente = -1;
+	}
+	freeaddrinfo(server_info);
+
+	return socket_cliente;
+}
+
+
+void cerrar_conexion(int socket) {
+	close(socket);
+}
+
+
+int iniciar_servidor(char* IP, char* PUERTO)
+{
+	int socket_servidor;
+	int activo = 1;
+
+	t_log* logger;
+
+    struct addrinfo hints, *servinfo, *p;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    getaddrinfo(IP, PUERTO, &hints, &servinfo);
+
+    for (p=servinfo; p != NULL; p = p->ai_next)
+    {
+        if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+            continue;
+
+        setsockopt(socket_servidor, SOL_SOCKET, SO_REUSEADDR, &activo,sizeof(activo));
+
+        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
+            close(socket_servidor);
+            continue;
+        }
+        break;
+    }
+
+	listen(socket_servidor, SOMAXCONN);
+
+    freeaddrinfo(servinfo);
+
+    log_trace(logger, "Listo para escuchar a mi cliente");
+
+    return socket_servidor;
+}
+
+
+
+
+
+
+
+
+
+
+
 void* serializar_paquete(t_paquete* paquete, int bytes)
 {
 	void * magic = malloc(bytes);
@@ -16,32 +94,6 @@ void* serializar_paquete(t_paquete* paquete, int bytes)
 
 	return magic;
 }
-
-
-int crear_conexion(char *ip, char* puerto)
-{
-	struct addrinfo hints;
-	struct addrinfo *server_info;
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-
-	getaddrinfo(ip, puerto, &hints, &server_info);
-
-	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
-
-	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
-		return -1;
-		//printf("error");
-
-	freeaddrinfo(server_info);
-
-	return socket_cliente;
-}
-
-
 
 void enviar_mensaje(char* mensaje, int socket_cliente)
 {
@@ -113,55 +165,22 @@ void eliminar_paquete(t_paquete* paquete)
 
 
 
-// Funciones para un módulo Servidor
-char* obtenerPuerto(char* PATH) {
-	config = config_create(PATH);
-	char* PUERTO = config_get_string_value(config, "PUERTO");
-	return PUERTO;
-}
 
-int iniciar_servidor(char* IP, char* PUERTO)
-{
-	int socket_servidor;
 
-    struct addrinfo hints, *servinfo, *p;
 
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
 
-    getaddrinfo(IP, PUERTO, &hints, &servinfo);
-
-    for (p=servinfo; p != NULL; p = p->ai_next)
-    {
-        if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
-            continue;
-
-        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
-            close(socket_servidor);
-            continue;
-        }
-        break;
-    }
-
-	listen(socket_servidor, SOMAXCONN);
-
-    freeaddrinfo(servinfo);
-
-    log_trace(logger, "Listo para escuchar a mi cliente");
-
-    return socket_servidor;
-}
 
 int esperar_cliente(int socket_servidor)
 {
 	struct sockaddr_in dir_cliente;
+	t_log* logger;
+
 	int tam_direccion = sizeof(struct sockaddr_in);
 
 	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
 	log_info(logger, "Se conecto un cliente!");
+	puts("Se conecto un cliente!");
 
 	return socket_cliente;
 }
@@ -178,6 +197,10 @@ int recibir_operacion(int socket_cliente)
 	}
 }
 
+
+
+
+
 void* recibir_buffer(int* size, int socket_cliente)
 {
 	void * buffer;
@@ -192,6 +215,8 @@ void* recibir_buffer(int* size, int socket_cliente)
 void recibir_mensaje(int socket_cliente)
 {
 	int size;
+	t_log* logger;
+
 	char* buffer = recibir_buffer(&size, socket_cliente);
 	log_info(logger, "Me llego el mensaje %s", buffer);
 	free(buffer);

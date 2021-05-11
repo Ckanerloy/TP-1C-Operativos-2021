@@ -147,6 +147,13 @@ void obtener_orden_input(char* comando_entrada) {
 				// CONECTA CON MI RAM HQ Y LO ELIMINA DE MEMORIA
 					// - TAMBIEN LO ELIMINA DEL MAPA
 				// CODIGO DE LA FUNCION
+
+			    if(conexion_mi_ram != -1) {
+			    	t_paquete* paquete = armar_paquete();
+			    	enviar_paquete(paquete, conexion_mi_ram);
+
+			    	close(conexion_mi_ram);
+			    }
 			break;
 		default:
 				// CODIGO POR DEFAULT, o sea si no pudo hacer nada, o quiero terminar

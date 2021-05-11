@@ -2,6 +2,8 @@
 
 int main(void)
 {
+	t_config* config = crear_config(CONFIG_PATH);
+
 	void iterator(char* value)
 	{
 		printf("%s\n", value);
@@ -9,7 +11,7 @@ int main(void)
 
 	logger = log_create("log.log", "Servidor", 1, LOG_LEVEL_DEBUG);
 
-	char* PUERTO = obtenerPuerto(CONFIG_PATH);
+	char* PUERTO = obtenerPuerto(config, CONFIG_PATH);
 
 	int server_fd = iniciar_servidor(IP, PUERTO);
 	log_info(logger, "Servidor listo para recibir al cliente");

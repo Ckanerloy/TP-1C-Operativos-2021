@@ -2,14 +2,15 @@
 
 int main(void)
 {
+	t_config* config = crear_config(CONFIG_PATH);
+	t_log* logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
+
 	void iterator(char* value)
 	{
 		printf("%s\n", value);
 	}
 
-	logger = log_create("log.log", "Servidor", 1, LOG_LEVEL_DEBUG);
-
-	char* PUERTO = obtenerPuerto(CONFIG_PATH);
+	char* PUERTO = obtenerPuerto(config, CONFIG_PATH);
 
 	int server_fd = iniciar_servidor(IP, PUERTO);
 	log_info(logger, "Servidor listo para recibir al cliente");
@@ -31,7 +32,7 @@ int main(void)
 			break;
 		case -1:
 			log_error(logger, "el cliente se desconecto. Terminando servidor");
-			config_destroy(config);
+			liberarMemoria(config, logger);
 			return EXIT_FAILURE;
 		default:
 			log_warning(logger, "Operacion desconocida. No quieras meter la pata");
@@ -39,6 +40,9 @@ int main(void)
 		}
 	}
 
-	config_destroy(config);
+	// CUANDO SE CONECTA CON EL DISCORDIADOR, SE CONECTA EN UN HILO
+
+
+	liberarMemoria(config, logger);
 	return EXIT_SUCCESS;
 }
