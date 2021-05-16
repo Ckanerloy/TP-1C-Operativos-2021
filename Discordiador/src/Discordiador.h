@@ -27,6 +27,7 @@ int conexion_mongo_store;
 int conexion_mi_ram;
 
 int32_t conexion_socket;
+int32_t conexion_sabotaje;
 
 // Semaforos
 sem_t* comando_para_ejecutar;

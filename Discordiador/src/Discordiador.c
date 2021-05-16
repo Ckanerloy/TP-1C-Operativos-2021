@@ -5,7 +5,9 @@ int main(void) {
 	obtener_datos_de_config(CONFIG_PATH);
 
 	comando_para_ejecutar = malloc(sizeof(sem_t));
+	sabotaje = malloc(sizeof(sem_t));
 
+	sem_init(sabotaje, 0, 1);
 	sem_init(comando_para_ejecutar, 0, 1);
 
 	while(1) {
@@ -14,14 +16,14 @@ int main(void) {
 		// Conexion de escucha con MongoStore?  POR SABOTAJE
 		//sem_wait(sabotaje);
 		//pthread_create(&hilo_sabotaje, NULL, (void*)estar_atento_por_sabotaje, NULL);
-		//pthread_detach(hilo_sabotaje);
+
 
 		sem_wait(comando_para_ejecutar);
 		pthread_create(&hilo_consola, NULL,(void*)obtener_orden_input, NULL);
-		pthread_detach(hilo_consola);
 
 
-
+		pthread_detach(hilo_sabotaje);
+		//pthread_detach(hilo_consola);
 	}
 
 		/*if(strcmp(leido, "1") == 0 ){
@@ -86,12 +88,7 @@ void obtener_orden_input(char* comando_entrada) {
 
 
 	 char* cadena_ingresada = NULL;
-	 uint32_t switcher;
 		//respuesta_ok_error* estructuraRespuesta;
-
-	 int32_t conexion_socket;
-	 int32_t tamanio_a_guardar = 0;
-	 uint32_t exito = 0;
 	 size_t longitud = 0;
 
 	 printf("Inserte orden:\n");
@@ -119,27 +116,84 @@ void obtener_orden_input(char* comando_entrada) {
 	switch(operacion) {
 
 		case INICIAR_PLANIFICACION:
-				puts("Iniciando planificacion");
-				puts("-----------------------------------------------------------------------------------------------------------------");
-				conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
-				// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
-					// - SE COMUNICA CON MI RAM HQ CON EL METODO INICIAR_TRIPULANTE
-				// LOS TRIPULANTES ESTAN DEFINIDOS POR HILO -> CADA HILO IRIA A UNA COLA
-				// CODIGO DE LA FUNCION
+
+			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
+			// LOS TRIPULANTES ESTAN DEFINIDOS POR HILO -> CADA HILO IRIA A UNA COLA
+			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO EXECUTE
+
 			break;
 		case PAUSAR_PLANIFICACION:
-				puts("SE PAUSO LA PLANIFICACION");
-				puts("ZZZ ZZZ ZZZ ZZZ ZZZ ZZZ ZZZ ZZZ ");
-				// CODIGO DE LA FUNCION
+
+			// PAUSA LA PLANIFICACION DE LOS TRIPULANTES, ES DECIR TODOS EN PAUSA? o se mete algun WAIT(signal)
+			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO BLOCK I/O
+
 			break;
 		case INICIAR_PATOTA:
-				// CODIGO DE LA FUNCION
+
+			// El primer argumento es la cantidad de tripulantes
+			// El segundo argumento es la ubicacion del archivo de tareas para cada patota
+			// A partir del tercer argumento, es la posicion inicial de cada tripulante
+
+			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
+
+			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
+				printf("Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA [CantidadTripulantes] [Ubicación txt Tareas]\n");
+				break;
+			}
+
+			strcat(parser_consola[2],"\0");
+
+			// Me conecto con el modulo Mi RAM HQ
+			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
+			// Primero reservo la memoria de lo que le voy a enviar, y acto seguido le guardo la "data"
+			patota* mensaje_patota = malloc(sizeof(patota));
+			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
+			mensaje_patota->tamanio_tareas = strlen(parser_consola[2] + 1);
+			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
+
+			// TE DEBO COMO OBTENER LA POSICION DE CADA TRIPULANTE
+			//Primero tengo que saber cuantas posiciones de tripulantes estan inicializados
+			// una vez sabiendo esa cantidad, puedo incializar un vector para meter en las primeras N posiciones la ubicacion de esos tripulantes
+			// en el caso que no esten inicializados, se toman por defecto 0|0
+
+			// enviar_mensaje(EL DATO A ENVIAR, LA FUNCION QUE ESTOY USANDO PARA ENVIAR, EL SOCKET A ENVIAR);
+			// enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
+
+
+			free(mensaje_patota->cantidad_tripulantes);
+			free(mensaje_patota->archivo_tareas);
+			free(mensaje_patota);
+			close(conexion_mi_ram);
 			break;
+
 		case LISTAR_TRIPULANTES:
-				// CODIGO DE LA FUNCION
+
+			// Escucharia al modulo Mi RAM, y este ultimo le envia toda una lista para mostrar en pantalla de acuerdo a este orden
+			// Estado de la Nave:  DD/MM/AAAA  HH:MM:SS
+			// Tripulante: N	Patota: P	Status: E
+			// N: Id de tripulante
+			// P: Id de la patota
+			// E: Estado del tripulante
+
 			break;
 		case OBTENER_BITACORA:
-				// CODIGO DE LA FUNCION
+
+			if(parser_consola[1] == NULL) {
+				printf("Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA [ID_TRIPULANTE].\n");
+				break;
+			}
+
+			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+
+			bitacora* mensaje_bitacora = malloc(sizeof(bitacora));
+			mensaje_bitacora->id_tripulante = atoi(parser_consola[1]);
+			// OBTENGO EL ID DEL TRIPULANTE PARA PEDIRLE LA BITACORA
+
+			// Consulta con Mongo Store y le pasa la bitacora del tripulante pasado por parametro
+			// Y tambien tengo que escuchar al modulo Mongo Store, para recibir la lista y mostrarla? (IDEM como LISTAR_TRIPULANTES
+
+			close(conexion_mongo_store);
 			break;
 		case EXPULSAR_TRIPULANTE:
 				// ELIMINA EL TRIPULANTE DEL HILO DEL DISCORDIADOR
@@ -148,14 +202,10 @@ void obtener_orden_input(char* comando_entrada) {
 					// - TAMBIEN LO ELIMINA DEL MAPA
 				// CODIGO DE LA FUNCION
 
-			    if(conexion_mi_ram != -1) {
-			    	t_paquete* paquete = armar_paquete();
-			    	enviar_paquete(paquete, conexion_mi_ram);
-
-			    	close(conexion_mi_ram);
-			    }
+			    close(conexion_mi_ram);
 			break;
 		default:
+			printf("No se reconoce ese comando. Por favor, ingrese un comando válido.\n");
 				// CODIGO POR DEFAULT, o sea si no pudo hacer nada, o quiero terminar
 			break;
 		}
@@ -164,6 +214,8 @@ void obtener_orden_input(char* comando_entrada) {
 
 void estar_atento_por_sabotaje(){
 
+	//conexion_mongo_store = crear_conexion(IP_MONGO_STORE,PUERTO_MONGO_STORE);
+	conexion_sabotaje = iniciar_servidor(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 	// SABOTAJE -> BLOQUEAR A TODOS LOS TRIPULANTES
 }
 

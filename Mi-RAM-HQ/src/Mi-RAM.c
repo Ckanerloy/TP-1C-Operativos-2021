@@ -22,8 +22,9 @@ int main(void)
 		int cod_op = recibir_operacion(cliente_fd);
 		switch(cod_op)
 		{
-		case MENSAJE:
-			recibir_mensaje(cliente_fd);
+		case RECIBIR_PATOTA:
+			// Recibe la patota de parte del discordiador
+			// Y prepara cada patota como un PROCESO, y cada tripulante como un HILO
 			break;
 		case PAQUETE:
 			lista = recibir_paquete(cliente_fd);

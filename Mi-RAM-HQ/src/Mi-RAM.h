@@ -10,26 +10,12 @@
 
 #include "utils/sockets.h"
 #include "utils/loader.h"
+#include "utils/estructuras.h"
 
 #define IP "127.0.0.1"
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mi-RAM-HQ/Mi-RAM.config"
 
 
-// Patota Control Block (PCB)
-typedef struct {
-	uint32_t id_patota;
-	void* direccion_tareas;
-}pcb;
-
-
-// Tripulante Control Block (TCB)
-typedef struct {
-	uint32_t id_tripulante;
-	char estado_tripulante;
-	uint32_t posicion_x;
-	uint32_t posicion_y;
-	uint32_t id_proxima_instruccion;
-}tcb;
-
+// Tamaño del TCB = 17 bytes
 
 #endif /* MI_RAM_H_ */
