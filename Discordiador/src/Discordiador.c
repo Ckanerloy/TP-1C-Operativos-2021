@@ -227,7 +227,7 @@ void arreglar_sabotaje() {
 
 
 t_paquete* armar_paquete() {
-	t_paquete* paquete = crear_paquete();
+	t_paquete* paquete;
 
 	char* leido = readline(">Ingrese un valor: ");
 

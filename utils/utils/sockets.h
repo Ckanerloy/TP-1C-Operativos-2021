@@ -11,25 +11,9 @@
 #include "commons/log.h"
 #include "commons/config.h"
 #include "commons/collections/list.h"
+#include "estructuras.h"
 
 
-typedef enum
-{
-	MENSAJE,
-	PAQUETE
-}op_code;
-
-typedef struct
-{
-	int size;
-	void* stream;
-} t_buffer;
-
-typedef struct
-{
-	op_code codigo_operacion;
-	t_buffer* buffer;
-} t_paquete;
 
 
 t_log* logger;
@@ -55,4 +39,6 @@ void* recibir_buffer(int* size, int socket_cliente);
 void recibir_mensaje(int socket_cliente);
 t_list* recibir_paquete(int socket_cliente);
 
+
+void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, int bytes);
 #endif /* UTILS_SOCKETS_H_ */

@@ -80,42 +80,6 @@ int iniciar_servidor(char* IP, char* PUERTO)
 
 
 
-void* serializar_paquete(t_paquete* paquete, int bytes)
-{
-	void * magic = malloc(bytes);
-	int desplazamiento = 0;
-
-	memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(int));
-	desplazamiento+= sizeof(int);
-	memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(int));
-	desplazamiento+= sizeof(int);
-	memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
-	desplazamiento+= paquete->buffer->size;
-
-	return magic;
-}
-
-void enviar_mensaje(char* mensaje, int socket_cliente)
-{
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-
-	paquete->codigo_operacion = MENSAJE;
-	paquete->buffer = malloc(sizeof(t_buffer));
-	paquete->buffer->size = strlen(mensaje) + 1;
-	paquete->buffer->stream = malloc(paquete->buffer->size);
-	memcpy(paquete->buffer->stream, mensaje, paquete->buffer->size);
-
-	int bytes = paquete->buffer->size + 2*sizeof(int);
-
-	void* a_enviar = serializar_paquete(paquete, bytes);
-
-	send(socket_cliente, a_enviar, bytes, 0);
-
-	free(a_enviar);
-	eliminar_paquete(paquete);
-}
-
-
 void crear_buffer(t_paquete* paquete)
 {
 	paquete->buffer = malloc(sizeof(t_buffer));
@@ -123,14 +87,6 @@ void crear_buffer(t_paquete* paquete)
 	paquete->buffer->stream = NULL;
 }
 
-
-t_paquete* crear_paquete(void)
-{
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-	paquete->codigo_operacion = PAQUETE;
-	crear_buffer(paquete);
-	return paquete;
-}
 
 
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio)
@@ -212,15 +168,7 @@ void* recibir_buffer(int* size, int socket_cliente)
 	return buffer;
 }
 
-void recibir_mensaje(int socket_cliente)
-{
-	int size;
-	t_log* logger;
 
-	char* buffer = recibir_buffer(&size, socket_cliente);
-	log_info(logger, "Me llego el mensaje %s", buffer);
-	free(buffer);
-}
 
 t_list* recibir_paquete(int socket_cliente)
 {
@@ -244,4 +192,121 @@ t_list* recibir_paquete(int socket_cliente)
 	return valores;
 	return NULL;
 }
+
+
+
+void enviar_mensaje(void* mensaje, codigo_operacion operacion, int conexion) {
+	t_paquete* paquete = malloc(sizeof(t_paquete));
+	paquete->buffer = malloc(sizeof(t_buffer));
+	uint32_t tamanio_paquete = 0;
+
+	void* paquete_serializado = serializar_paquete(paquete, mensaje, operacion, &tamanio_paquete);
+
+	bytesEnviados(send(socket, paquete_serializado, tamanio_paquete, 0));
+
+	eliminar_paquete(paquete);
+	free(paquete_serializado);
+}
+
+
+
+// Serializaciones
+
+
+void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, uint32_t tamanio_paquete)
+{
+
+	uint32_t tamanio_preparado = 0;
+	paquete->op_code = operacion;
+
+	void* buffer_serializar;
+
+
+	switch(operacion) {
+
+		case INICIAR_PATOTA:
+			tamanio_preparado = serializar_paquete_por_patota(paquete, mensaje);
+			break;
+		default:
+			printf("404 operacion NOT FOUND.\n");
+			break;
+	}
+
+	buffer_serializar = malloc(tamanio_preparado);
+	uint32_t desplazamiento = 0;
+
+	memcpy(buffer_serializar + desplazamiento, &(paquete->op_code), sizeof(paquete->op_code));
+	desplazamiento+= sizeof(paquete->op_code);
+
+	memcpy(buffer_serializar + desplazamiento, &(paquete->buffer->size), sizeof(paquete->buffer->size));
+	desplazamiento+= sizeof(paquete->buffer->size);
+
+	memcpy(buffer_serializar + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
+	desplazamiento+= paquete->buffer->size;
+
+	(*tamanio_paquete) = tamanio_preparado;
+
+	return buffer_serializar;
+}
+
+
+uint32_t serializar_paquete_por_patota(t_paquete* paquete, patota* mensaje) {
+
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
+
+	uint32_t size = 0;
+		uint32_t desplazamiento = 0;
+		uint32_t pesoDeElementosAEnviar = 0;
+
+		if(strlen(estructura->nombreRestaurante) != estructura->largoNombreRestaurante){
+				   printf("Error en la serializacion de longitudes, sos pollo\n");
+				   return -1;
+				}
+
+		if(strlen(estructura->nombrePlato) != estructura->largoNombrePlato){
+				   printf("Error en la serializacion de longitudes, sos pollo\n");
+				   return -1;
+				}
+
+
+		 //reservo memoria ESPECIFICAMENTE para el buffer de bytes (payload) que mi querido paquete va a contener
+		t_buffer* buffer = malloc(sizeof(t_buffer));
+		buffer->size = sizeof(uint32_t)*4
+					 + strlen(estructura->nombreRestaurante)+1
+					 + strlen(estructura->nombrePlato)+1;
+
+		void* streamAuxiliar = malloc(buffer->size);
+
+		//meto el largo del nombre del Restaurante
+		memcpy(streamAuxiliar + desplazamiento, &(estructura->largoNombreRestaurante), sizeof(estructura->largoNombreRestaurante));
+		desplazamiento += sizeof(estructura->largoNombreRestaurante);
+
+		//meto el nombre del restaurante
+		memcpy(streamAuxiliar + desplazamiento, estructura->nombreRestaurante, estructura->largoNombreRestaurante+1);
+		desplazamiento += estructura->largoNombreRestaurante+1;
+
+		//meto la ID del pedido
+		memcpy(streamAuxiliar + desplazamiento, &(estructura->idPedido), sizeof(estructura->idPedido));
+		desplazamiento += sizeof(estructura->idPedido);
+
+		//meto el largo del nombre del plato a agregar al pedido
+		memcpy(streamAuxiliar + desplazamiento, &(estructura->largoNombrePlato), sizeof(estructura->largoNombrePlato));
+		desplazamiento += sizeof(estructura->largoNombrePlato);
+
+		//meto el nombre del plato a agregar al pedido
+		memcpy(streamAuxiliar + desplazamiento, estructura->nombrePlato, estructura->largoNombrePlato+1);
+		desplazamiento += estructura->largoNombrePlato+1;
+
+		//meto la cantidad de platos a agregar al pedido
+		memcpy(streamAuxiliar + desplazamiento, &(estructura->cantidadPlatos), sizeof(estructura->cantidadPlatos));
+		desplazamiento += sizeof(estructura->cantidadPlatos);
+
+		//controlo que el desplazamiento sea = al peso de lo que mando
+		pesoDeElementosAEnviar = sizeof(estructura->largoNombreRestaurante) + estructura->largoNombreRestaurante+1 + sizeof(estructura->idPedido) + sizeof(estructura->largoNombrePlato) + estructura->largoNombrePlato+1 + sizeof(estructura->cantidadPlatos);
+
+
+}
+
+
 

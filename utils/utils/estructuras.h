@@ -11,7 +11,6 @@ typedef enum
 	INICIAR_PLANIFICACION,
 	PAUSAR_PLANIFICACION,
 	OBTENER_BITACORA,
-
 	RECIBIR_PATOTA
 }codigo_operacion;
 
@@ -26,17 +25,39 @@ typedef enum
 	DESCARTAR_BASURA
 }codigo_tarea;
 
+
 typedef struct {
 	uint32_t cantidad_tripulantes;
 	char* archivo_tareas;
 	uint32_t tamanio_tareas;
-	uint32_t posicion_tripulantes[];
-	uint32_t tamanio_posiciones;
+	// Faltaria el vector para la posicion de los tripulantes
+	// y el tamaño de dicho vector
 } patota;
+
 
 typedef struct {
 	uint32_t id_tripulante;
 } bitacora;
+
+
+
+
+
+typedef struct
+{
+	int size;
+	void* stream;
+} t_buffer;
+
+typedef struct
+{
+	codigo_operacion op_code;
+	t_buffer* buffer;
+} t_paquete;
+
+
+
+
 
 // Patota Control Block (PCB)
 typedef struct {

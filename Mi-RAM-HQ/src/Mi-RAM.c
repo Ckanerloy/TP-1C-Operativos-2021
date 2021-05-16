@@ -26,7 +26,7 @@ int main(void)
 			// Recibe la patota de parte del discordiador
 			// Y prepara cada patota como un PROCESO, y cada tripulante como un HILO
 			break;
-		case PAQUETE:
+		case EXPULSAR_TRIPULANTE:
 			lista = recibir_paquete(cliente_fd);
 			printf("Me llegaron los siguientes valores:\n");
 			list_iterate(lista, (void*) iterator);
