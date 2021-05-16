@@ -48,5 +48,6 @@ void obtener_datos_de_config(char*);
 void obtener_orden_input(char*);
 void estar_atento_por_sabotaje(void);
 t_paquete* armar_paquete(void);
+int cantidadStringsIngresados(char** );
 
 #endif /* DISCORDIADOR_H_ */

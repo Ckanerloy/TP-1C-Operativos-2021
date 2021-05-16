@@ -26,11 +26,12 @@ int main(void)
 			// Recibe la patota de parte del discordiador
 			// Y prepara cada patota como un PROCESO, y cada tripulante como un HILO
 			break;
-		case PAQUETE:
+	/*	case PAQUETE:
 			lista = recibir_paquete(cliente_fd);
 			printf("Me llegaron los siguientes valores:\n");
 			list_iterate(lista, (void*) iterator);
 			break;
+			*/
 		case -1:
 			log_error(logger, "el cliente se desconecto. Terminando servidor");
 			liberarMemoria(config, logger);

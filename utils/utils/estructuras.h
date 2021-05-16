@@ -30,7 +30,7 @@ typedef struct {
 	uint32_t cantidad_tripulantes;
 	char* archivo_tareas;
 	uint32_t tamanio_tareas;
-	uint32_t posicion_tripulantes[];
+//	uint32_t posicion_tripulantes[];
 	uint32_t tamanio_posiciones;
 } patota;
 

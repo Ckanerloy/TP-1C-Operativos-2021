@@ -97,6 +97,8 @@ void obtener_orden_input(char* comando_entrada) {
 
 	 string_trim(&cadena_ingresada);
 
+
+
 	 if(strcmp(cadena_ingresada, "") == 0)
 	 {
 			printf("No se ha ingresado ninguna orden.\n");
@@ -107,9 +109,12 @@ void obtener_orden_input(char* comando_entrada) {
 
 	 parser_consola = string_split(cadena_ingresada, " ");
 
-	 char* comando_ingresado = malloc(strlen(parser_consola[0])+1);
-	 strcpy(comando_ingresado,parser_consola[0]);
 
+
+	 char* comando_ingresado = malloc(strlen(parser_consola[0]));
+
+	 strcpy(comando_ingresado,parser_consola[0]);
+	 printf("%d",cantidadStringsIngresados(parser_consola)); //MANDAR  A LUCHO
 	 operacion = mapeo_valor_consola(comando_ingresado);
 
 
@@ -161,7 +166,7 @@ void obtener_orden_input(char* comando_entrada) {
 			// enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
 
-			free(mensaje_patota->cantidad_tripulantes);
+			//free(mensaje_patota->cantidad_tripulantes);
 			free(mensaje_patota->archivo_tareas);
 			free(mensaje_patota);
 			close(conexion_mi_ram);
@@ -211,6 +216,14 @@ void obtener_orden_input(char* comando_entrada) {
 		}
 }
 
+int cantidadStringsIngresados(char** parser_consola){  //la vamos a usar tanto para verifiaciones de ingresos
+	int cantidad=0;									   // por consola, como para cantidad de tripu que arrancan en 0,0
+	while(parser_consola[cantidad] != NULL){
+		cantidad++;
+	}
+	return cantidad;
+
+}
 
 void estar_atento_por_sabotaje(){
 
