@@ -8,9 +8,13 @@
 #include<sys/socket.h>
 #include<netdb.h>
 #include<string.h>
+#include "commons/log.h"
+#include "commons/string.h"
+#include "commons/config.h"
 
 #include"utils/estructuras.h"
 
 uint32_t mapeo_valor_consola(char* comando_ingresado);
+void terminar_programa(t_log* logger, t_config* config);
 
 #endif /* UTILSDISCORDIADOR_H_ */

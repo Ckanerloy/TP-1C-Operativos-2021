@@ -11,7 +11,8 @@ typedef enum
 	INICIAR_PLANIFICACION,
 	PAUSAR_PLANIFICACION,
 	OBTENER_BITACORA,
-	RECIBIR_PATOTA
+	RECIBIR_PATOTA,
+	EXIT
 }codigo_operacion;
 
 
@@ -32,12 +33,13 @@ typedef struct {
 	uint32_t tamanio_tareas;
 	// Faltaria el vector para la posicion de los tripulantes
 	// y el tamaño de dicho vector
+	//	uint32_t posicion_tripulantes[];
 } patota;
 
 
 typedef struct {
 	uint32_t id_tripulante;
-} bitacora;
+} tripulante;
 
 
 

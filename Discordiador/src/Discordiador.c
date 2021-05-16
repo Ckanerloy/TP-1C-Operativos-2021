@@ -2,6 +2,8 @@
 
 int main(void) {
 
+	logger = crear_log("discordiador.log", "DISCORDIADOR");
+
 	obtener_datos_de_config(CONFIG_PATH);
 
 	comando_para_ejecutar = malloc(sizeof(sem_t));
@@ -26,40 +28,7 @@ int main(void) {
 		//pthread_detach(hilo_consola);
 	}
 
-		/*if(strcmp(leido, "1") == 0 ){
-			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
-
-			if(conexion_mi_ram != -1) {
-				t_paquete* paquete = armar_paquete();
-					enviar_paquete(paquete, conexion_mi_ram);
-
-					close(conexion_mi_ram);
-			}
-			else {
-				puts("No se pudo conectar al servidor.");
-			}
-
-
-		}
-		else if(strcmp(leido, "2") == 0 ){
-			conexion_mongo_store = crear_conexion(IP_MONGO_STORE,PUERTO_MONGO_STORE);
-
-			if(conexion_mongo_store != -1) {
-				t_paquete* paquete = armar_paquete();
-				enviar_paquete(paquete, conexion_mongo_store);
-
-				close(conexion_mongo_store);
-			}
-			else {
-				puts("No se pudo conectar al servidor.");
-			}
-
-		}
-		else{
-			puts("Cerrando el programa.");
-			config_destroy(config);
-			return EXIT_SUCCESS;
-		}*/
+	terminar_programa(config, logger);
 
 	return EXIT_SUCCESS;
 }
@@ -81,6 +50,12 @@ void obtener_datos_de_config(char* config_path) {
 
 	IP_MONGO_STORE = config_get_string_value(config, "IP_I_MONGO_STORE");
 	PUERTO_MONGO_STORE = config_get_string_value(config, "PUERTO_I_MONGO_STORE");
+
+	GRADO_MULTITAREA = config_get_int_value(config, "GRADO_MULTITAREA");
+	ALGORITMO = config_get_string_value(config, "ALGORITMO");
+	QUANTUM = config_get_int_value(config, "QUANTUM");
+	DURACION_SABOTAJE = config_get_int_value(config, "DURACION_SABOTAJE");
+	RETARDO_CICLO_CPU = config_get_int_value(config, "RETARDO_CICLO_CPU");
 
 }
 
@@ -107,11 +82,12 @@ void obtener_orden_input(char* comando_entrada) {
 
 	 parser_consola = string_split(cadena_ingresada, " ");
 
-	 char* comando_ingresado = malloc(strlen(parser_consola[0])+1);
+	 char* comando_ingresado = malloc(strlen(parser_consola[0]));
+
 	 strcpy(comando_ingresado,parser_consola[0]);
 
+	 sem_post(comando_para_ejecutar);
 	 operacion = mapeo_valor_consola(comando_ingresado);
-
 
 	switch(operacion) {
 
@@ -122,12 +98,14 @@ void obtener_orden_input(char* comando_entrada) {
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO EXECUTE
 
 			break;
+
 		case PAUSAR_PLANIFICACION:
 
 			// PAUSA LA PLANIFICACION DE LOS TRIPULANTES, ES DECIR TODOS EN PAUSA? o se mete algun WAIT(signal)
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO BLOCK I/O
 
 			break;
+
 		case INICIAR_PATOTA:
 
 			// El primer argumento es la cantidad de tripulantes
@@ -137,16 +115,20 @@ void obtener_orden_input(char* comando_entrada) {
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
 
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
-				printf("Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA [CantidadTripulantes] [Ubicación txt Tareas]\n");
+				//printf("Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>\n");
+				log_warning(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
 				break;
 			}
 
 			strcat(parser_consola[2],"\0");
 
-			// Me conecto con el modulo Mi RAM HQ
-			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
-			// Primero reservo la memoria de lo que le voy a enviar, y acto seguido le guardo la "data"
+			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
+
+			if(conexion_mi_ram < 0) {										// En el caso que no pueda conectar, sale del CASE
+				break;
+			}
+
 			patota* mensaje_patota = malloc(sizeof(patota));
 			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
 			mensaje_patota->tamanio_tareas = strlen(parser_consola[2] + 1);
@@ -157,18 +139,27 @@ void obtener_orden_input(char* comando_entrada) {
 			// una vez sabiendo esa cantidad, puedo incializar un vector para meter en las primeras N posiciones la ubicacion de esos tripulantes
 			// en el caso que no esten inicializados, se toman por defecto 0|0
 
-			// enviar_mensaje(EL DATO A ENVIAR, LA FUNCION QUE ESTOY USANDO PARA ENVIAR, EL SOCKET A ENVIAR);
-			// enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
+			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
 
-			free(mensaje_patota->cantidad_tripulantes);
 			free(mensaje_patota->archivo_tareas);
+			//free(mensaje_patota->cantidad_tripulantes);
 			free(mensaje_patota);
 			close(conexion_mi_ram);
 			break;
 
 		case LISTAR_TRIPULANTES:
 
+			if(parser_consola[1] != NULL) {
+				//printf("Sobran argumentos. Debe iniciarse de la forma LISTAR_TRIPULANTES.\n");
+				log_warning(logger, "Sobran argumentos. Debe iniciarse de la forma LISTAR_TRIPULANTES.");
+				break;
+			}
+
+			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
+
+			//enviar_mensaje(mensajeVacio, LISTAR_TRIPULANTES, conexion_mi_ram);
 			// Escucharia al modulo Mi RAM, y este ultimo le envia toda una lista para mostrar en pantalla de acuerdo a este orden
 			// Estado de la Nave:  DD/MM/AAAA  HH:MM:SS
 			// Tripulante: N	Patota: P	Status: E
@@ -176,41 +167,77 @@ void obtener_orden_input(char* comando_entrada) {
 			// P: Id de la patota
 			// E: Estado del tripulante
 
+			close(conexion_mi_ram);
 			break;
+
 		case OBTENER_BITACORA:
 
 			if(parser_consola[1] == NULL) {
-				printf("Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA [ID_TRIPULANTE].\n");
+				//printf("Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.\n");
+				log_warning(logger, "Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.");
 				break;
 			}
 
 			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 
-			bitacora* mensaje_bitacora = malloc(sizeof(bitacora));
+			tripulante* mensaje_bitacora = malloc(sizeof(tripulante));
 			mensaje_bitacora->id_tripulante = atoi(parser_consola[1]);
+
+			enviar_mensaje(mensaje_bitacora, OBTENER_BITACORA, conexion_mongo_store);
 			// OBTENGO EL ID DEL TRIPULANTE PARA PEDIRLE LA BITACORA
 
 			// Consulta con Mongo Store y le pasa la bitacora del tripulante pasado por parametro
 			// Y tambien tengo que escuchar al modulo Mongo Store, para recibir la lista y mostrarla? (IDEM como LISTAR_TRIPULANTES
 
+			free(mensaje_bitacora->id_tripulante);
+			free(mensaje_bitacora);
 			close(conexion_mongo_store);
 			break;
+
 		case EXPULSAR_TRIPULANTE:
 				// ELIMINA EL TRIPULANTE DEL HILO DEL DISCORDIADOR
 			    conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 				// CONECTA CON MI RAM HQ Y LO ELIMINA DE MEMORIA
-					// - TAMBIEN LO ELIMINA DEL MAPA
-				// CODIGO DE LA FUNCION
+			    // 		- TAMBIEN LO ELIMINA DEL MAPA
 
+			    if(parser_consola[1] == NULL) {
+			    	//printf("Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.\n");
+			    	log_warning(logger, "Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.");
+			    	break;
+			    }
+
+			    tripulante* mensaje_tripulante = malloc(sizeof(tripulante));
+			    mensaje_tripulante->id_tripulante = atoi(parser_consola[1]);
+
+			    enviar_mensaje(mensaje_tripulante, EXPULSAR_TRIPULANTE, conexion_mi_ram);
+
+			    free(mensaje_tripulante->id_tripulante);
+			    free(mensaje_tripulante);
 			    close(conexion_mi_ram);
 			break;
+
+		case EXIT:
+			break;
+
 		default:
 			printf("No se reconoce ese comando. Por favor, ingrese un comando válido.\n");
 				// CODIGO POR DEFAULT, o sea si no pudo hacer nada, o quiero terminar
 			break;
 		}
+
+	free(parser_consola);
+	free(cadena_ingresada);
+	return;
 }
 
+int cantidadStringsIngresados(char** parser_consola){  //la vamos a usar tanto para verifiaciones de ingresos
+	int cantidad=0;									   // por consola, como para cantidad de tripu que arrancan en 0,0
+	while(parser_consola[cantidad] != NULL){
+		cantidad++;
+	}
+	return cantidad;
+
+}
 
 void estar_atento_por_sabotaje(){
 

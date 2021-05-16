@@ -2,7 +2,7 @@
 
 
 // FUNCIONES PARA MANEJAR CONEXIONES, SERVIDORES
-int crear_conexion(char *ip, char* puerto)
+int32_t crear_conexion(char *ip, char* puerto)
 {
 	struct addrinfo hints;
 	struct addrinfo *server_info = malloc(sizeof(struct addrinfo));
@@ -17,7 +17,7 @@ int crear_conexion(char *ip, char* puerto)
 	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
 
 	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1) {
-		printf("Error al intentar conectarse.\n");
+		printf("ERROR 404. CONEXION NOT FOUND.\n");
 		socket_cliente = -1;
 	}
 	freeaddrinfo(server_info);
@@ -31,12 +31,10 @@ void cerrar_conexion(int socket) {
 }
 
 
-int iniciar_servidor(char* IP, char* PUERTO)
+int32_t iniciar_servidor(char* IP, char* PUERTO)
 {
 	int socket_servidor;
 	int activo = 1;
-
-	t_log* logger;
 
     struct addrinfo hints, *servinfo, *p;
 
@@ -65,7 +63,7 @@ int iniciar_servidor(char* IP, char* PUERTO)
 
     freeaddrinfo(servinfo);
 
-    log_trace(logger, "Listo para escuchar a mi cliente");
+    //log_trace(logger, "Listo para escuchar a mi cliente");
 
     return socket_servidor;
 }
@@ -100,46 +98,28 @@ void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio)
 }
 
 
-void enviar_paquete(t_paquete* paquete, int socket_cliente)
-{
-	int bytes = paquete->buffer->size + 2*sizeof(int);
-	void* a_enviar = serializar_paquete(paquete, bytes);
-
-	send(socket_cliente, a_enviar, bytes, 0);
-
-	free(a_enviar);
-}
-
-
-void eliminar_paquete(t_paquete* paquete)
-{
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
-}
 
 
 
 
 
 
-
-
-
-int esperar_cliente(int socket_servidor)
+int32_t esperar_cliente(int socket_servidor)
 {
 	struct sockaddr_in dir_cliente;
-	t_log* logger;
+	//t_log* logger;
 
 	int tam_direccion = sizeof(struct sockaddr_in);
 
 	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
-	log_info(logger, "Se conecto un cliente!");
-	puts("Se conecto un cliente!");
+	//log_info(logger, "Se conecto un cliente!");
+	//puts("Se conecto un cliente!");
 
 	return socket_cliente;
 }
+
+
 
 int recibir_operacion(int socket_cliente)
 {
@@ -170,6 +150,13 @@ void* recibir_buffer(int* size, int socket_cliente)
 
 
 
+void eliminar_paquete(t_paquete* paquete)
+{
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
+}
+/*
 t_list* recibir_paquete(int socket_cliente)
 {
 	int size;
@@ -191,18 +178,62 @@ t_list* recibir_paquete(int socket_cliente)
 	free(buffer);
 	return valores;
 	return NULL;
+}*/
+
+
+
+// FUNCIONES PARA RECIBIR UN MENSAJE
+void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion) {
+
+	switch(operacion) {
+
+		case INICIAR_PATOTA:
+			deserializar_iniciar_patota(mensaje, conexion);
+			break;
+
+		case LISTAR_TRIPULANTES:
+
+			break;
+
+		case EXPULSAR_TRIPULANTE:
+			deseralizar_expulsar_tripulante(mensaje, conexion);
+			break;
+
+		default:
+			printf("404 operacion NOT FOUND.\n");
+			break;
+
+	}
+}
+
+void deserializar_iniciar_patota(patota* mensaje, int32_t conexion) {
+
+	recv(conexion, &(mensaje->cantidad_tripulantes), sizeof(mensaje->cantidad_tripulantes), MSG_WAITALL);
+
+	recv(conexion, &(mensaje->tamanio_tareas), sizeof(mensaje->tamanio_tareas), MSG_WAITALL);
+
+	mensaje->archivo_tareas = malloc(mensaje->tamanio_tareas+1);
+
+	recv(conexion, mensaje->archivo_tareas, mensaje->tamanio_tareas+1, MSG_WAITALL);
+}
+
+void deseralizar_expulsar_tripulante(tripulante* mensaje, int32_t conexion) {
+
+	recv(conexion, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante), MSG_WAITALL);
 }
 
 
 
-void enviar_mensaje(void* mensaje, codigo_operacion operacion, int conexion) {
+
+// FUNCIONES PARA ENVIAR UN MENSAJE
+void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion) {
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 	paquete->buffer = malloc(sizeof(t_buffer));
 	uint32_t tamanio_paquete = 0;
 
 	void* paquete_serializado = serializar_paquete(paquete, mensaje, operacion, &tamanio_paquete);
 
-	bytesEnviados(send(socket, paquete_serializado, tamanio_paquete, 0));
+	send(conexion, paquete_serializado, tamanio_paquete, 0);
 
 	eliminar_paquete(paquete);
 	free(paquete_serializado);
@@ -212,8 +243,7 @@ void enviar_mensaje(void* mensaje, codigo_operacion operacion, int conexion) {
 
 // Serializaciones
 
-
-void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, uint32_t tamanio_paquete)
+void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, uint32_t* tamanio_paquete)
 {
 
 	uint32_t tamanio_preparado = 0;
@@ -225,8 +255,23 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 	switch(operacion) {
 
 		case INICIAR_PATOTA:
-			tamanio_preparado = serializar_paquete_por_patota(paquete, mensaje);
+			tamanio_preparado = serializar_paquete_iniciar_patota(paquete, mensaje);
 			break;
+
+		case LISTAR_TRIPULANTES:
+			// No se que se puede serializar, si solamente es enviarle un codigo de operacion
+			// Tipo que tamanio preparado = 0, y el op_code ya queda seteado como LISTAR_TRIPULANTES
+
+			break;
+
+		case OBTENER_BITACORA:
+			// Este lo enviaria al Mongo Store mepa
+			break;
+
+		case EXPULSAR_TRIPULANTE:
+			tamanio_preparado = serializar_paquete_expulsar_tripulante(paquete, mensaje);
+			break;
+
 		default:
 			printf("404 operacion NOT FOUND.\n");
 			break;
@@ -250,63 +295,85 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 }
 
 
-uint32_t serializar_paquete_por_patota(t_paquete* paquete, patota* mensaje) {
+uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje) {
 
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
-	uint32_t size = 0;
-		uint32_t desplazamiento = 0;
-		uint32_t pesoDeElementosAEnviar = 0;
+	uint32_t tamanio_a_enviar = 0;
 
-		if(strlen(estructura->nombreRestaurante) != estructura->largoNombreRestaurante){
-				   printf("Error en la serializacion de longitudes, sos pollo\n");
-				   return -1;
-				}
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->size = sizeof(uint32_t) + strlen(mensaje->archivo_tareas)+1;
 
-		if(strlen(estructura->nombrePlato) != estructura->largoNombrePlato){
-				   printf("Error en la serializacion de longitudes, sos pollo\n");
-				   return -1;
-				}
+	void* stream_auxiliar = malloc(buffer->size);
 
+	// Cantidad de Tripulantes
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->cantidad_tripulantes), sizeof(mensaje->cantidad_tripulantes));
+	desplazamiento += sizeof(mensaje->cantidad_tripulantes);
 
-		 //reservo memoria ESPECIFICAMENTE para el buffer de bytes (payload) que mi querido paquete va a contener
-		t_buffer* buffer = malloc(sizeof(t_buffer));
-		buffer->size = sizeof(uint32_t)*4
-					 + strlen(estructura->nombreRestaurante)+1
-					 + strlen(estructura->nombrePlato)+1;
+	// Tamanio archivo de tareas
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tamanio_tareas), sizeof(mensaje->tamanio_tareas));
+	desplazamiento += sizeof(mensaje->tamanio_tareas);
 
-		void* streamAuxiliar = malloc(buffer->size);
+	// Archivo de tareas
+	memcpy(stream_auxiliar + desplazamiento, mensaje->archivo_tareas, mensaje->tamanio_tareas +1);
+	desplazamiento += mensaje->tamanio_tareas+1;
 
-		//meto el largo del nombre del Restaurante
-		memcpy(streamAuxiliar + desplazamiento, &(estructura->largoNombreRestaurante), sizeof(estructura->largoNombreRestaurante));
-		desplazamiento += sizeof(estructura->largoNombreRestaurante);
+	tamanio_a_enviar = sizeof(mensaje->cantidad_tripulantes) + mensaje->tamanio_tareas+1 + sizeof(mensaje->tamanio_tareas);
 
-		//meto el nombre del restaurante
-		memcpy(streamAuxiliar + desplazamiento, estructura->nombreRestaurante, estructura->largoNombreRestaurante+1);
-		desplazamiento += estructura->largoNombreRestaurante+1;
+	if(desplazamiento != tamanio_a_enviar)
+	{
+		puts("ERROR. Tamanio diferentes.\n");
+		log_error(logger, "Verificar datos que le estoy mandando. Kinda sus...");
+		abort();
+	}
 
-		//meto la ID del pedido
-		memcpy(streamAuxiliar + desplazamiento, &(estructura->idPedido), sizeof(estructura->idPedido));
-		desplazamiento += sizeof(estructura->idPedido);
+	else
+	{
+		buffer->stream = stream_auxiliar;
+		paquete->buffer = buffer;
+		paquete->buffer->size = desplazamiento;
 
-		//meto el largo del nombre del plato a agregar al pedido
-		memcpy(streamAuxiliar + desplazamiento, &(estructura->largoNombrePlato), sizeof(estructura->largoNombrePlato));
-		desplazamiento += sizeof(estructura->largoNombrePlato);
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
 
-		//meto el nombre del plato a agregar al pedido
-		memcpy(streamAuxiliar + desplazamiento, estructura->nombrePlato, estructura->largoNombrePlato+1);
-		desplazamiento += estructura->largoNombrePlato+1;
-
-		//meto la cantidad de platos a agregar al pedido
-		memcpy(streamAuxiliar + desplazamiento, &(estructura->cantidadPlatos), sizeof(estructura->cantidadPlatos));
-		desplazamiento += sizeof(estructura->cantidadPlatos);
-
-		//controlo que el desplazamiento sea = al peso de lo que mando
-		pesoDeElementosAEnviar = sizeof(estructura->largoNombreRestaurante) + estructura->largoNombreRestaurante+1 + sizeof(estructura->idPedido) + sizeof(estructura->largoNombrePlato) + estructura->largoNombrePlato+1 + sizeof(estructura->cantidadPlatos);
-
+		return tamanio;
+	}
 
 }
 
+uint32_t serializar_paquete_expulsar_tripulante(t_paquete* paquete, tripulante* mensaje) {
 
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
 
+	uint32_t tamanio_a_enviar = 0;
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->size = sizeof(uint32_t);
+
+	void* stream_auxiliar = malloc(buffer->size);
+
+	// Id de Tripulante
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
+
+	tamanio_a_enviar = sizeof(mensaje->id_tripulante);
+
+	if(desplazamiento != tamanio_a_enviar)
+	{
+		puts("ERROR. Tamanio diferentes.\n");
+		//log_error(logger);
+		abort();
+	}
+
+	else
+	{
+		buffer->stream = stream_auxiliar;
+		paquete->buffer = buffer;
+		paquete->buffer->size = desplazamiento;
+
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+
+		return tamanio;
+	}
+}

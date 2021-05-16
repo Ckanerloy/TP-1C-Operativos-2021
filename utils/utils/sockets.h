@@ -19,26 +19,36 @@
 t_log* logger;
 t_config* config;
 
-// Para un módulo Cliente
-int crear_conexion(char* ip, char* puerto);
+// Conexiones
+int32_t crear_conexion(char* ip, char* puerto);
 void cerrar_conexion(int socket);
+int32_t iniciar_servidor(char* IP, char* PUERTO);
 
-void enviar_mensaje(char* mensaje, int socket_cliente);
+
+void enviar_mensaje(void* mensaje, codigo_operacion operacion, int conexion);
+void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion);
+
+
 void crear_buffer(t_paquete* paquete);
-t_paquete* crear_paquete(void);
-void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
-void enviar_paquete(t_paquete* paquete, int socket_cliente);
+//void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
+//void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
 
-// Para un módulo Servidor
-int iniciar_servidor(char* IP, char* PUERTO);
 
 int esperar_cliente(int socket_servidor);
 int recibir_operacion(int socket_cliente);
 void* recibir_buffer(int* size, int socket_cliente);
-void recibir_mensaje(int socket_cliente);
 t_list* recibir_paquete(int socket_cliente);
 
 
-void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, int bytes);
+// Serializaciones (para enviar un mensaje)
+void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, uint32_t* tamanio_paquete);
+uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje);
+uint32_t serializar_paquete_expulsar_tripulante(t_paquete* paquete, tripulante* mensaje);
+
+
+// Desserializaciones (para recibir un mensaje)
+void deserializar_iniciar_patota(patota* mensaje, int32_t conexion);
+void deseralizar_expulsar_tripulante(tripulante* mensaje, int32_t conexion);
+
 #endif /* UTILS_SOCKETS_H_ */

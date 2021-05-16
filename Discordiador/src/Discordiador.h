@@ -23,10 +23,17 @@ char* IP_MI_RAM;
 char* PUERTO_MI_RAM;
 char* IP_MONGO_STORE;
 char* PUERTO_MONGO_STORE;
-int conexion_mongo_store;
-int conexion_mi_ram;
+int32_t conexion_mongo_store;
+int32_t conexion_mi_ram;
 
-int32_t conexion_socket;
+// Data del Config
+int GRADO_MULTITAREA;
+char* ALGORITMO;
+int QUANTUM;
+int DURACION_SABOTAJE;
+int RETARDO_CICLO_CPU;
+
+//int32_t conexion_socket;
 int32_t conexion_sabotaje;
 
 // Semaforos
@@ -37,10 +44,7 @@ sem_t* sabotaje;
 pthread_t hilo_consola;
 pthread_t hilo_sabotaje;
 
-// Config
 t_config* config;
-
-// Logger
 t_log* logger;
 
 t_log* iniciar_logger();
@@ -48,5 +52,6 @@ void obtener_datos_de_config(char*);
 void obtener_orden_input(char*);
 void estar_atento_por_sabotaje(void);
 t_paquete* armar_paquete(void);
+int cantidadStringsIngresados(char** );
 
 #endif /* DISCORDIADOR_H_ */

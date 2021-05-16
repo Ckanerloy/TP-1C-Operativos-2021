@@ -32,3 +32,11 @@ uint32_t mapeo_valor_consola(char* comando_ingresado) {
 	return operacion;
 }
 
+
+void terminar_programa(t_log* logger, t_config* config)
+{
+	config_destroy(config);
+	printf("Puntero a archivo .config destruido.\n");
+	log_destroy(logger);
+	printf("Puntero al logger destruido.\n");
+}

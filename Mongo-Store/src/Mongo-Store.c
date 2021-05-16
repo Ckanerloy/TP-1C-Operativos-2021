@@ -24,13 +24,8 @@ int main(void)
 		switch(cod_op)
 		{
 		case OBTENER_BITACORA:
-			recibir_mensaje(cliente_fd);
 			break;
-		//case PAQUETE:
-			//lista = recibir_paquete(cliente_fd);
-			//printf("Me llegaron los siguientes valores:\n");
-			//list_iterate(lista, (void*) iterator);
-			//break;
+
 		case -1:
 			log_error(logger, "el cliente se desconecto. Terminando servidor");
 			config_destroy(config);

@@ -16,6 +16,6 @@
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mi-RAM-HQ/Mi-RAM.config"
 
 
-// Tamaño del TCB = 17 bytes
+void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
 #endif /* MI_RAM_H_ */
