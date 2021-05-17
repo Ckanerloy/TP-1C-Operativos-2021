@@ -42,6 +42,7 @@ void obtener_datos_de_config(t_config* config)
 
 
 
+
 void escuchar_conexion(int32_t* conexion_cliente)
 {
 	codigo_operacion operacion;
@@ -69,7 +70,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				//printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				//printf("Archivo de tareas: %s \n", patota_recibida->archivo_tareas);
-
 				//fork();
 				//crear_patota(patota_recibida);
 				// Recibe la patota de parte del discordiador

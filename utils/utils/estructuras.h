@@ -31,7 +31,7 @@ typedef struct {
 	uint32_t cantidad_tripulantes;
 	char* archivo_tareas;
 	uint32_t tamanio_tareas;
-	// Faltaria el vector para la posicion de los tripulantes
+	char** ubicacionTripulantes;                          // vector para la posicion de los tripulantes
 	// y el tamaño de dicho vector
 	//	uint32_t posicion_tripulantes[];
 } patota;
