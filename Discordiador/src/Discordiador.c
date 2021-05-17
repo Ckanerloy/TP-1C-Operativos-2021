@@ -107,7 +107,6 @@ void obtener_orden_input(char* comando_entrada) {
 			break;
 
 		case INICIAR_PATOTA:
-
 			// El primer argumento es la cantidad de tripulantes
 			// El segundo argumento es la ubicacion del archivo de tareas para cada patota
 			// A partir del tercer argumento, es la posicion inicial de cada tripulante
@@ -139,10 +138,25 @@ void obtener_orden_input(char* comando_entrada) {
 			//Primero tengo que saber cuantas posiciones de tripulantes estan inicializados
 			// una vez sabiendo esa cantidad, puedo incializar un vector para meter en las primeras N posiciones la ubicacion de esos tripulantes
 			// en el caso que no esten inicializados, se toman por defecto 0|0
+			int cantidadUbicaciones=cantidadStringsIngresados(parser_consola) - 3;
+			//Falta la validacion de CantidadTripulantes con respecto con la cantidad de ubicaciones ingresadas
+			mensaje_patota->ubicacionTripulantes=malloc(cantidadUbicaciones*sizeof(char *));
+
+			for(int i=0;i<cantidadUbicaciones;i++){
+				mensaje_patota->ubicacionTripulantes[i]=malloc(sizeof(char*));
+			    strcpy(mensaje_patota->ubicacionTripulantes[i],parser_consola[3+i]);
+			    //printf("%s",mensaje_patota->ubicacionTripulantes[i]);
+			}
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
+			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
+			for(int i=0;i<cantidadUbicaciones;i++){
+				free(mensaje_patota->ubicacionTripulantes[i]);
+			}
+
+			free(mensaje_patota->ubicacionTripulantes);
 			free(mensaje_patota->archivo_tareas);
 			//free(mensaje_patota->cantidad_tripulantes);
 			free(mensaje_patota);

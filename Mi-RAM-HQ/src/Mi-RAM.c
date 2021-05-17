@@ -37,7 +37,7 @@ void obtener_datos_de_config(char* config_path) {
 	config = config_create(config_path);
 
 	PUERTO = config_get_string_value(config, "PUERTO");
-	TAMANIO_MEMORIA = ;
+	TAMANIO_MEMORIA = config_get_string_value(config, "TAMANIO_MEMORIA");
 	char* ESQUEMA_MEMORIA;
 	int TAMANIO_PAGINA;
 	int TAMANIO_SWAP;
@@ -62,8 +62,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				patota_recibida = malloc(sizeof(patota));
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
-				fork();
-				crear_patota(patota_recibida);
+				//fork();
+				//crear_patota(patota_recibida);
 				// Recibe la patota de parte del discordiador
 				// Y prepara cada patota como un PROCESO, y cada tripulante como un HILO
 
