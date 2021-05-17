@@ -132,6 +132,7 @@ void obtener_orden_input(char* comando_entrada) {
 			patota* mensaje_patota = malloc(sizeof(patota));
 			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
 			mensaje_patota->tamanio_tareas = strlen(parser_consola[2] + 1);
+			mensaje_patota->archivo_tareas = malloc(strlen(parser_consola[2])+1);
 			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
 
 			// TE DEBO COMO OBTENER LA POSICION DE CADA TRIPULANTE

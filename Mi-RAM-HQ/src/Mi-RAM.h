@@ -15,6 +15,16 @@
 #define IP "127.0.0.1"
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mi-RAM-HQ/Mi-RAM.config"
 
+// Datos del Config
+char* PUERTO;
+int TAMANIO_MEMORIA;
+char* ESQUEMA_MEMORIA;
+int TAMANIO_PAGINA;
+int TAMANIO_SWAP;
+char* PATH_SWAP;
+char* ALGORITMO_REEMPLAZO;
+
+
 
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 

@@ -63,7 +63,7 @@ typedef struct
 
 // Patota Control Block (PCB)
 typedef struct {
-	uint32_t id_patota;
+	uint32_t id_patota;					// El pid
 	void* direccion_tareas;
 }pcb;
 
@@ -72,8 +72,8 @@ typedef struct {
 
 // Tripulante Control Block (TCB)
 typedef struct {
-	uint32_t id_tripulante;
-	char estado_tripulante;
+	uint32_t id_tripulante;				// El tid
+	char estado_tripulante;				// (N/R/E/B)
 	uint32_t posicion_x;
 	uint32_t posicion_y;
 	uint32_t id_proxima_instruccion;

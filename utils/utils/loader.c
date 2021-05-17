@@ -1,10 +1,11 @@
 #include "loader.h"
 
+/*
 char* obtenerPuerto(t_config* config, char* PATH) {
 	config = config_create(PATH);
 	char* PUERTO = config_get_string_value(config, "PUERTO");
 	return PUERTO;
-}
+}*/
 
 t_config* crear_config(char* config_path) {
 	return config_create(config_path);
