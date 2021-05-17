@@ -26,7 +26,8 @@ int32_t crear_conexion(char *ip, char* puerto)
 }
 
 
-void cerrar_conexion(int socket) {
+void cerrar_conexion(int socket)
+{
 	close(socket);
 }
 
@@ -104,33 +105,23 @@ void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio)
 
 
 
-int32_t esperar_cliente(int socket_servidor)
+int32_t* esperar_conexion(int32_t socket_servidor)
 {
+	int32_t* socket_cliente = malloc(sizeof(int32_t));
 	struct sockaddr_in dir_cliente;
-	//t_log* logger;
+	socklen_t tam_direccion = sizeof(struct sockaddr_in);
 
-	int tam_direccion = sizeof(struct sockaddr_in);
-
-	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
-
-	//log_info(logger, "Se conecto un cliente!");
-	//puts("Se conecto un cliente!");
+	// Espero que se conecte alguien ...
+	*socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
 	return socket_cliente;
 }
 
 
 
-int recibir_operacion(int socket_cliente)
+void recibir_operacion(int32_t socket_cliente, codigo_operacion operacion)
 {
-	int cod_op;
-	if(recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) != 0)
-		return cod_op;
-	else
-	{
-		close(socket_cliente);
-		return -1;
-	}
+	recv(socket_cliente, &operacion, sizeof(operacion), MSG_WAITALL);
 }
 
 
@@ -183,8 +174,8 @@ t_list* recibir_paquete(int socket_cliente)
 
 
 // FUNCIONES PARA RECIBIR UN MENSAJE
-void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion) {
-
+void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion)
+{
 	switch(operacion) {
 
 		case INICIAR_PATOTA:
@@ -206,19 +197,23 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 	}
 }
 
-void deserializar_iniciar_patota(patota* mensaje, int32_t conexion) {
-
+void deserializar_iniciar_patota(patota* mensaje, int32_t conexion)
+{
 	recv(conexion, &(mensaje->cantidad_tripulantes), sizeof(mensaje->cantidad_tripulantes), MSG_WAITALL);
+
+	printf("%u \n", mensaje->cantidad_tripulantes);
 
 	recv(conexion, &(mensaje->tamanio_tareas), sizeof(mensaje->tamanio_tareas), MSG_WAITALL);
 
 	mensaje->archivo_tareas = malloc(mensaje->tamanio_tareas+1);
 
 	recv(conexion, mensaje->archivo_tareas, mensaje->tamanio_tareas+1, MSG_WAITALL);
+
+	printf("%s \n", mensaje->archivo_tareas);
 }
 
-void deseralizar_expulsar_tripulante(tripulante* mensaje, int32_t conexion) {
-
+void deseralizar_expulsar_tripulante(tripulante* mensaje, int32_t conexion)
+{
 	recv(conexion, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante), MSG_WAITALL);
 }
 
@@ -226,16 +221,17 @@ void deseralizar_expulsar_tripulante(tripulante* mensaje, int32_t conexion) {
 
 
 // FUNCIONES PARA ENVIAR UN MENSAJE
-void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion) {
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-	paquete->buffer = malloc(sizeof(t_buffer));
+void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion)
+{
+	t_paquete* paquete_a_armar = malloc(sizeof(t_paquete));
+	paquete_a_armar->buffer = malloc(sizeof(t_buffer));
 	uint32_t tamanio_paquete = 0;
 
-	void* paquete_serializado = serializar_paquete(paquete, mensaje, operacion, &tamanio_paquete);
+	void* paquete_serializado = serializar_paquete(paquete_a_armar, mensaje, operacion, &tamanio_paquete);
 
 	send(conexion, paquete_serializado, tamanio_paquete, 0);
 
-	eliminar_paquete(paquete);
+	eliminar_paquete(paquete_a_armar);
 	free(paquete_serializado);
 }
 
@@ -251,7 +247,6 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 
 	void* buffer_serializar;
 
-
 	switch(operacion) {
 
 		case INICIAR_PATOTA:
@@ -261,7 +256,9 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 		case LISTAR_TRIPULANTES:
 			// No se que se puede serializar, si solamente es enviarle un codigo de operacion
 			// Tipo que tamanio preparado = 0, y el op_code ya queda seteado como LISTAR_TRIPULANTES
-
+			paquete->buffer->stream = NULL;
+			paquete->buffer->size = 0;
+			tamanio_preparado = sizeof(operacion);
 			break;
 
 		case OBTENER_BITACORA:
@@ -295,21 +292,25 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 }
 
 
-uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje) {
-
+uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje)
+{
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
-
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(uint32_t) + strlen(mensaje->archivo_tareas)+1;
+	buffer->size = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + strlen(mensaje->archivo_tareas)+1;
+	//buffer->size = sizeof(uint32_t)*2 + strlen(mensaje->archivo_tareas)+1;
 
 	void* stream_auxiliar = malloc(buffer->size);
 
 	// Cantidad de Tripulantes
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->cantidad_tripulantes), sizeof(mensaje->cantidad_tripulantes));
 	desplazamiento += sizeof(mensaje->cantidad_tripulantes);
+
+	printf("%u \n", mensaje->cantidad_tripulantes);
+
+
 
 	// Tamanio archivo de tareas
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tamanio_tareas), sizeof(mensaje->tamanio_tareas));
@@ -319,7 +320,11 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje) 
 	memcpy(stream_auxiliar + desplazamiento, mensaje->archivo_tareas, mensaje->tamanio_tareas +1);
 	desplazamiento += mensaje->tamanio_tareas+1;
 
-	tamanio_a_enviar = sizeof(mensaje->cantidad_tripulantes) + mensaje->tamanio_tareas+1 + sizeof(mensaje->tamanio_tareas);
+
+	printf("%s \n", mensaje->archivo_tareas);
+
+
+	tamanio_a_enviar = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + mensaje->tamanio_tareas+1;
 
 	if(desplazamiento != tamanio_a_enviar)
 	{
@@ -331,8 +336,10 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje) 
 	else
 	{
 		buffer->stream = stream_auxiliar;
+		buffer->size = desplazamiento;
 		paquete->buffer = buffer;
-		paquete->buffer->size = desplazamiento;
+		//paquete->buffer->size = desplazamiento;
+		//paquete->buffer->stream = stream_auxiliar;
 
 		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
 
@@ -341,8 +348,9 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje) 
 
 }
 
-uint32_t serializar_paquete_expulsar_tripulante(t_paquete* paquete, tripulante* mensaje) {
 
+uint32_t serializar_paquete_expulsar_tripulante(t_paquete* paquete, tripulante* mensaje)
+{
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
@@ -368,9 +376,10 @@ uint32_t serializar_paquete_expulsar_tripulante(t_paquete* paquete, tripulante* 
 
 	else
 	{
-		buffer->stream = stream_auxiliar;
+
 		paquete->buffer = buffer;
 		paquete->buffer->size = desplazamiento;
+		paquete->buffer->stream = stream_auxiliar;
 
 		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
 

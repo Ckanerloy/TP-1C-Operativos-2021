@@ -7,6 +7,8 @@
 #include<commons/string.h>
 #include<commons/config.h>
 #include<readline/readline.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 #include "utils/sockets.h"
 #include "utils/loader.h"
@@ -25,7 +27,13 @@ char* PATH_SWAP;
 char* ALGORITMO_REEMPLAZO;
 
 
+sem_t* espera;
 
+pthread_t hilo_recibir_mensajes;
+
+void obtener_datos_de_config(t_config* config);
+
+void escuchar_conexion(int32_t* conexion_cliente);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
 #endif /* MI_RAM_H_ */

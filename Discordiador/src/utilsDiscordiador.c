@@ -1,9 +1,9 @@
 #include "utilsDiscordiador.h"
 
 
-uint32_t mapeo_valor_consola(char* comando_ingresado) {
+codigo_operacion mapeo_valor_consola(char* comando_ingresado) {
 
-	uint32_t operacion;
+	codigo_operacion operacion;
 
 	if(strcmp(comando_ingresado, "INICIAR_PLANIFICACION") == 0) {
 		operacion = INICIAR_PLANIFICACION;

@@ -44,14 +44,12 @@ sem_t* sabotaje;
 pthread_t hilo_consola;
 pthread_t hilo_sabotaje;
 
-t_config* config;
 t_log* logger;
 
-t_log* iniciar_logger();
-void obtener_datos_de_config(char*);
-void obtener_orden_input(char*);
+void obtener_datos_de_config(t_config* config);		// Obtengo los datos cargados en el archivo .config
+void obtener_orden_input(void);
 void estar_atento_por_sabotaje(void);
-t_paquete* armar_paquete(void);
+
 int cantidadStringsIngresados(char** );
 
 #endif /* DISCORDIADOR_H_ */

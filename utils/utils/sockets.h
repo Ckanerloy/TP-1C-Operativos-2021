@@ -35,8 +35,8 @@ void crear_buffer(t_paquete* paquete);
 void eliminar_paquete(t_paquete* paquete);
 
 
-int esperar_cliente(int socket_servidor);
-int recibir_operacion(int socket_cliente);
+int32_t* esperar_conexion(int32_t socket_servidor);
+void recibir_operacion(int32_t socket_cliente, codigo_operacion operacion);
 void* recibir_buffer(int* size, int socket_cliente);
 t_list* recibir_paquete(int socket_cliente);
 

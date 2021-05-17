@@ -3,8 +3,8 @@
 int main(void) {
 
 	logger = crear_log("discordiador.log", "DISCORDIADOR");
-
-	obtener_datos_de_config(CONFIG_PATH);
+	t_config* config = crear_config(CONFIG_PATH);
+	obtener_datos_de_config(config);
 
 	comando_para_ejecutar = malloc(sizeof(sem_t));
 	sabotaje = malloc(sizeof(sem_t));
@@ -35,15 +35,7 @@ int main(void) {
 
 
 
-t_log* iniciar_logger(void)
-{
-	return log_create("discordiador.log", "TP0", 1, LOG_LEVEL_INFO);
-}
-
-
-void obtener_datos_de_config(char* config_path) {
-
-	config = config_create(config_path);
+void obtener_datos_de_config(t_config* config) {
 
 	IP_MI_RAM = config_get_string_value(config, "IP_MI_RAM_HQ");
 	PUERTO_MI_RAM = config_get_string_value(config, "PUERTO_MI_RAM_HQ");
@@ -59,7 +51,7 @@ void obtener_datos_de_config(char* config_path) {
 
 }
 
-void obtener_orden_input(char* comando_entrada) {
+void obtener_orden_input() {
 
 
 	 char* cadena_ingresada = NULL;
@@ -82,7 +74,7 @@ void obtener_orden_input(char* comando_entrada) {
 
 	 parser_consola = string_split(cadena_ingresada, " ");
 
-	 char* comando_ingresado = malloc(strlen(parser_consola[0]));
+	 char* comando_ingresado = malloc(strlen(parser_consola[0])+1);
 
 	 strcpy(comando_ingresado,parser_consola[0]);
 
@@ -120,19 +112,21 @@ void obtener_orden_input(char* comando_entrada) {
 				break;
 			}
 
+			strcat(parser_consola[1],"\0");
 			strcat(parser_consola[2],"\0");
 
 
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
 
 			if(conexion_mi_ram < 0) {										// En el caso que no pueda conectar, sale del CASE
+				log_error(logger, "No se pudo conectar. \n");
 				break;
 			}
 
 			patota* mensaje_patota = malloc(sizeof(patota));
 			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
-			mensaje_patota->tamanio_tareas = strlen(parser_consola[2] + 1);
-			mensaje_patota->archivo_tareas = malloc(strlen(parser_consola[2])+1);
+			mensaje_patota->tamanio_tareas = strlen(parser_consola[2]);
+			mensaje_patota->archivo_tareas = malloc(mensaje_patota->tamanio_tareas+1);
 			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
 
 			// TE DEBO COMO OBTENER LA POSICION DE CADA TRIPULANTE
@@ -156,6 +150,7 @@ void obtener_orden_input(char* comando_entrada) {
 				log_warning(logger, "Sobran argumentos. Debe iniciarse de la forma LISTAR_TRIPULANTES.");
 				break;
 			}
+			strcat(parser_consola[1], "\0");
 
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
@@ -178,6 +173,7 @@ void obtener_orden_input(char* comando_entrada) {
 				log_warning(logger, "Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.");
 				break;
 			}
+			strcat(parser_consola[1], "\0");
 
 			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 
@@ -217,7 +213,8 @@ void obtener_orden_input(char* comando_entrada) {
 			    close(conexion_mi_ram);
 			break;
 
-		case EXIT:
+		case -1:
+
 			break;
 
 		default:
@@ -252,20 +249,3 @@ void arreglar_sabotaje() {
 	// MANDA TRIPULANTE MAS CERCANO A LA UBICACION DEL SABOTAJE PARA QUE LO SOLUCIONE
 }
 
-
-
-t_paquete* armar_paquete() {
-	t_paquete* paquete;
-
-	char* leido = readline(">Ingrese un valor: ");
-
-	while(strcmp(leido, "") != 0 ) {
-		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
-		free(leido);
-		leido = readline(">Ingrese un valor: ");
-	}
-
-	free(leido);
-
-	return paquete;
-}

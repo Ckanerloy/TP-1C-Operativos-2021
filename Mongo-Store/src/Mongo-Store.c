@@ -4,24 +4,22 @@ int main(void)
 {
 	t_config* config = crear_config(CONFIG_PATH);
 
-	void iterator(char* value)
-	{
-		printf("%s\n", value);
-	}
+	obtener_datos_de_config(config);
 
 	logger = log_create("log.log", "Servidor", 1, LOG_LEVEL_DEBUG);
 
-	char* PUERTO = obtenerPuerto(config, CONFIG_PATH);
+
 
 	int server_fd = iniciar_servidor(IP, PUERTO);
 	log_info(logger, "Servidor listo para recibir al cliente");
 	int cliente_fd = esperar_cliente(server_fd);
-
+	codigo_operacion operacion;
 	t_list* lista;
 	while(1)
 	{
-		int cod_op = recibir_operacion(cliente_fd);
-		switch(cod_op)
+		recibir_operacion(cliente_fd, operacion);
+
+		switch(operacion)
 		{
 		case OBTENER_BITACORA:
 			break;
@@ -39,3 +37,14 @@ int main(void)
 	config_destroy(config);
 	return EXIT_SUCCESS;
 }
+
+
+void obtener_datos_de_config(t_config* config) {
+
+	PUERTO = config_get_string_value(config, "PUERTO");
+	PUERTO_MONTAJE = config_get_string_value(config, "PUERTO_MONTAJE");
+	TIEMPO_SINCRONIZACION = config_get_int_value(config, "TIEMPO_SINCRONIZACION");
+
+}
+
+
