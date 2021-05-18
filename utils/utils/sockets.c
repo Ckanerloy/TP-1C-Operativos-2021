@@ -26,7 +26,7 @@ int32_t crear_conexion(char *ip, char* puerto)
 }
 
 
-void cerrar_conexion(int socket)
+void cerrar_conexion(int32_t socket)
 {
 	close(socket);
 }
@@ -34,8 +34,8 @@ void cerrar_conexion(int socket)
 
 int32_t iniciar_servidor(char* IP, char* PUERTO)
 {
-	int socket_servidor;
-	int activo = 1;
+	int32_t socket_servidor;
+	int32_t activo = 1;
 
     struct addrinfo hints, *servinfo, *p;
 
@@ -73,21 +73,7 @@ int32_t iniciar_servidor(char* IP, char* PUERTO)
 
 
 
-
-
-
-
-
-
-void crear_buffer(t_paquete* paquete)
-{
-	paquete->buffer = malloc(sizeof(t_buffer));
-	paquete->buffer->size = 0;
-	paquete->buffer->stream = NULL;
-}
-
-
-
+/*
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio)
 {
 	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
@@ -96,7 +82,7 @@ void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio)
 	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio);
 
 	paquete->buffer->size += tamanio + sizeof(int);
-}
+}*/
 
 
 
@@ -125,28 +111,13 @@ void recibir_operacion(int32_t socket_cliente, codigo_operacion operacion)
 }
 
 
-
-
-
-void* recibir_buffer(int* size, int socket_cliente)
-{
-	void * buffer;
-
-	recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
-	buffer = malloc(*size);
-	recv(socket_cliente, buffer, *size, MSG_WAITALL);
-
-	return buffer;
-}
-
-
-
 void eliminar_paquete(t_paquete* paquete)
 {
 	free(paquete->buffer->stream);
 	free(paquete->buffer);
 	free(paquete);
 }
+
 /*
 t_list* recibir_paquete(int socket_cliente)
 {
@@ -197,21 +168,43 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 	}
 }
 
+
+void* recibir_buffer(uint32_t* size, int32_t conexion_cliente)
+{
+	void * buffer;
+	recv(conexion_cliente, size, sizeof(uint32_t), MSG_WAITALL);
+	buffer = malloc(*size);
+	recv(conexion_cliente, buffer, *size, MSG_WAITALL);
+
+	return buffer;
+}
+
+
 void deserializar_iniciar_patota(patota* mensaje, int32_t conexion)
 {
-	recv(conexion, &(mensaje->cantidad_tripulantes), sizeof(mensaje->cantidad_tripulantes), MSG_WAITALL);
+	uint32_t tamanio;
+	uint32_t desplazamiento = 0;
+	void* buffer_deserializar;
+	buffer_deserializar = recibir_buffer(&tamanio, conexion);
 
-	printf("%u \n", mensaje->cantidad_tripulantes);
+	memcpy(&(mensaje->cantidad_tripulantes), buffer_deserializar + desplazamiento, sizeof(mensaje->cantidad_tripulantes));
+	desplazamiento += sizeof(mensaje->cantidad_tripulantes);
 
-	recv(conexion, &(mensaje->tamanio_tareas), sizeof(mensaje->tamanio_tareas), MSG_WAITALL);
+	memcpy(&(mensaje->tamanio_tareas), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_tareas));
+	desplazamiento += sizeof(mensaje->tamanio_tareas);
 
 	mensaje->archivo_tareas = malloc(mensaje->tamanio_tareas+1);
 
-	recv(conexion, mensaje->archivo_tareas, mensaje->tamanio_tareas+1, MSG_WAITALL);
+	memcpy(mensaje->archivo_tareas, buffer_deserializar + desplazamiento, mensaje->tamanio_tareas +1);
+	desplazamiento += mensaje->tamanio_tareas+1;
 
-	printf("%s \n", mensaje->archivo_tareas);
+
+	free(buffer_deserializar);
 }
 
+
+
+// arreglar esto
 void deseralizar_expulsar_tripulante(tripulante* mensaje, int32_t conexion)
 {
 	recv(conexion, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante), MSG_WAITALL);
@@ -224,7 +217,7 @@ void deseralizar_expulsar_tripulante(tripulante* mensaje, int32_t conexion)
 void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion)
 {
 	t_paquete* paquete_a_armar = malloc(sizeof(t_paquete));
-	paquete_a_armar->buffer = malloc(sizeof(t_buffer));
+	crear_buffer(paquete_a_armar);
 	uint32_t tamanio_paquete = 0;
 
 	void* paquete_serializado = serializar_paquete(paquete_a_armar, mensaje, operacion, &tamanio_paquete);
@@ -236,6 +229,12 @@ void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion)
 }
 
 
+void crear_buffer(t_paquete* paquete)
+{
+	paquete->buffer = malloc(sizeof(t_buffer));
+	paquete->buffer->size = 0;
+	paquete->buffer->stream = NULL;
+}
 
 // Serializaciones
 
@@ -245,7 +244,7 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 	uint32_t tamanio_preparado = 0;
 	paquete->op_code = operacion;
 
-	void* buffer_serializar;
+	void* buffer_serializar = malloc(sizeof(tamanio_paquete));
 
 	switch(operacion) {
 
@@ -308,10 +307,6 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje)
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->cantidad_tripulantes), sizeof(mensaje->cantidad_tripulantes));
 	desplazamiento += sizeof(mensaje->cantidad_tripulantes);
 
-	printf("%u \n", mensaje->cantidad_tripulantes);
-
-
-
 	// Tamanio archivo de tareas
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tamanio_tareas), sizeof(mensaje->tamanio_tareas));
 	desplazamiento += sizeof(mensaje->tamanio_tareas);
@@ -319,10 +314,6 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje)
 	// Archivo de tareas
 	memcpy(stream_auxiliar + desplazamiento, mensaje->archivo_tareas, mensaje->tamanio_tareas +1);
 	desplazamiento += mensaje->tamanio_tareas+1;
-
-
-	printf("%s \n", mensaje->archivo_tareas);
-
 
 	tamanio_a_enviar = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + mensaje->tamanio_tareas+1;
 

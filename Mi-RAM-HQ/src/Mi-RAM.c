@@ -66,10 +66,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				patota_recibida = malloc(sizeof(patota));
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
-				printf(" %u | %s \n", patota_recibida->cantidad_tripulantes, patota_recibida->archivo_tareas);
+				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
+				printf("Archivo de tareas: %s \n", patota_recibida->archivo_tareas);
 
-				//printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
-				//printf("Archivo de tareas: %s \n", patota_recibida->archivo_tareas);
 				//fork();
 				//crear_patota(patota_recibida);
 				// Recibe la patota de parte del discordiador

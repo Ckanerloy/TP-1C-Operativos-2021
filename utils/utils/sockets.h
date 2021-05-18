@@ -21,11 +21,11 @@ t_config* config;
 
 // Conexiones
 int32_t crear_conexion(char* ip, char* puerto);
-void cerrar_conexion(int socket);
+void cerrar_conexion(int32_t socket);
 int32_t iniciar_servidor(char* IP, char* PUERTO);
 
 
-void enviar_mensaje(void* mensaje, codigo_operacion operacion, int conexion);
+void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion);
 void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion);
 
 
@@ -35,10 +35,10 @@ void crear_buffer(t_paquete* paquete);
 void eliminar_paquete(t_paquete* paquete);
 
 
-int32_t* esperar_conexion(int32_t socket_servidor);
+int32_t* esperar_conexion(int32_t conexion_servidor);
 void recibir_operacion(int32_t socket_cliente, codigo_operacion operacion);
-void* recibir_buffer(int* size, int socket_cliente);
-t_list* recibir_paquete(int socket_cliente);
+void* recibir_buffer(uint32_t* size, int32_t conexion_cliente);
+//t_list* recibir_paquete(int socket_cliente);
 
 
 // Serializaciones (para enviar un mensaje)
