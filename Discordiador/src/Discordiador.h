@@ -16,6 +16,7 @@
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Discordiador/discordiador.config"
 
 char** parser_consola;
+char** parser_posiciones;
 uint32_t operacion;
 
 // Conexiones
@@ -43,6 +44,7 @@ sem_t* sabotaje;
 // Hilos
 pthread_t hilo_consola;
 pthread_t hilo_sabotaje;
+//pthread_t** hilo_tripulante;
 
 t_log* logger;
 
@@ -50,6 +52,5 @@ void obtener_datos_de_config(t_config* config);		// Obtengo los datos cargados e
 void obtener_orden_input(void);
 void estar_atento_por_sabotaje(void);
 
-int cantidadStringsIngresados(char** );
 
 #endif /* DISCORDIADOR_H_ */

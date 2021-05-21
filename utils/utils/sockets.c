@@ -153,14 +153,13 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 			deserializar_iniciar_patota(mensaje, conexion);
 			break;
 
-		case LISTAR_TRIPULANTES:
-
-			break;
-
 		case EXPULSAR_TRIPULANTE:
-			deseralizar_expulsar_tripulante(mensaje, conexion);
+			deseralizar_id_tripulante(mensaje, conexion);
 			break;
 
+		case OBTENER_BITACORA:
+			deseralizar_id_tripulante(mensaje, conexion);
+			break;
 		default:
 			printf("404 operacion NOT FOUND.\n");
 			break;
@@ -180,7 +179,7 @@ void* recibir_buffer(uint32_t* size, int32_t conexion_cliente)
 }
 
 
-void deserializar_iniciar_patota(patota* mensaje, int32_t conexion)
+void deserializar_iniciar_patota(t_patota* mensaje, int32_t conexion)
 {
 	uint32_t tamanio;
 	uint32_t desplazamiento = 0;
@@ -198,16 +197,22 @@ void deserializar_iniciar_patota(patota* mensaje, int32_t conexion)
 	memcpy(mensaje->archivo_tareas, buffer_deserializar + desplazamiento, mensaje->tamanio_tareas +1);
 	desplazamiento += mensaje->tamanio_tareas+1;
 
-
 	free(buffer_deserializar);
 }
 
 
 
-// arreglar esto
-void deseralizar_expulsar_tripulante(tripulante* mensaje, int32_t conexion)
+void deseralizar_id_tripulante(t_id_tripulante* mensaje, int32_t conexion)
 {
-	recv(conexion, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante), MSG_WAITALL);
+	uint32_t tamanio;
+	uint32_t desplazamiento = 0;
+	void* buffer_deserializar;
+	buffer_deserializar = recibir_buffer(&tamanio, conexion);
+
+	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
+
+	free(buffer_deserializar);
 }
 
 
@@ -252,20 +257,13 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			tamanio_preparado = serializar_paquete_iniciar_patota(paquete, mensaje);
 			break;
 
-		case LISTAR_TRIPULANTES:
-			// No se que se puede serializar, si solamente es enviarle un codigo de operacion
-			// Tipo que tamanio preparado = 0, y el op_code ya queda seteado como LISTAR_TRIPULANTES
-			paquete->buffer->stream = NULL;
-			paquete->buffer->size = 0;
-			tamanio_preparado = sizeof(operacion);
-			break;
-
 		case OBTENER_BITACORA:
+			tamanio_preparado = serializar_paquete_id_tripulante(paquete, mensaje);
 			// Este lo enviaria al Mongo Store mepa
 			break;
 
 		case EXPULSAR_TRIPULANTE:
-			tamanio_preparado = serializar_paquete_expulsar_tripulante(paquete, mensaje);
+			tamanio_preparado = serializar_paquete_id_tripulante(paquete, mensaje);
 			break;
 
 		default:
@@ -291,7 +289,7 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 }
 
 
-uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje)
+uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_patota* mensaje)
 {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
@@ -329,8 +327,6 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje)
 		buffer->stream = stream_auxiliar;
 		buffer->size = desplazamiento;
 		paquete->buffer = buffer;
-		//paquete->buffer->size = desplazamiento;
-		//paquete->buffer->stream = stream_auxiliar;
 
 		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
 
@@ -340,7 +336,7 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje)
 }
 
 
-uint32_t serializar_paquete_expulsar_tripulante(t_paquete* paquete, tripulante* mensaje)
+uint32_t serializar_paquete_id_tripulante(t_paquete* paquete, t_id_tripulante* mensaje)
 {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;

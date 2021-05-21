@@ -17,4 +17,7 @@
 uint32_t mapeo_valor_consola(char* comando_ingresado);
 void terminar_programa(t_log* logger, t_config* config);
 
+void listar_tripulantes();
+uint32_t cantidad_argumentos_ingresados(char** parser_consola);
+
 #endif /* UTILSDISCORDIADOR_H_ */

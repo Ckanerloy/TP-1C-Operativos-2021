@@ -28,20 +28,26 @@ typedef enum
 
 
 typedef struct {
+	uint32_t id_tripulante;
+	char estado_tripulante;
+	uint32_t tamanio_estado_tripulante;
+	uint32_t posicion_x;
+	uint32_t posicion_y;
+} t_tripulante;
+
+
+typedef struct {
 	uint32_t cantidad_tripulantes;
 	char* archivo_tareas;
 	uint32_t tamanio_tareas;
-	char** ubicacionTripulantes;                          // vector para la posicion de los tripulantes
-	// y el tamaño de dicho vector
-	//	uint32_t posicion_tripulantes[];
-} patota;
+	t_tripulante** tripulantes;
+	uint32_t tamanio_tripulantes;
+} t_patota;
 
 
 typedef struct {
 	uint32_t id_tripulante;
-} tripulante;
-
-
+} t_id_tripulante;
 
 
 

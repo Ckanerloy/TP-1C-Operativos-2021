@@ -76,12 +76,12 @@ void obtener_orden_input() {
 
 	 char* comando_ingresado = malloc(strlen(parser_consola[0])+1);
 
-	 strcpy(comando_ingresado,parser_consola[0]);
+	 strcpy(comando_ingresado, parser_consola[0]);
 
 	 sem_post(comando_para_ejecutar);
 	 operacion = mapeo_valor_consola(comando_ingresado);
 
-	switch(operacion) {
+	switch(operacion){
 
 		case INICIAR_PLANIFICACION:
 
@@ -99,20 +99,111 @@ void obtener_orden_input() {
 			break;
 
 		case INICIAR_PATOTA:
-			// El primer argumento es la cantidad de tripulantes
-			// El segundo argumento es la ubicacion del archivo de tareas para cada patota
-			// A partir del tercer argumento, es la posicion inicial de cada tripulante
-
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
 
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
-				//printf("Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>\n");
-				log_warning(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
+				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
+				break;
+			}
+
+			uint32_t cantidad_argumentos = cantidad_argumentos_ingresados(parser_consola);
+			uint32_t cantidad_posiciones = cantidad_argumentos - 3;
+			int cantidad_tripulantes = atoi(parser_consola[1]);
+			int posiciones_faltantes = cantidad_tripulantes - cantidad_posiciones;
+			uint32_t tamanio_tripulacion = 0;
+
+			if(posiciones_faltantes < 0) {
+				log_error(logger, "Se ingresaron posiciones demás. Solo puede como máximo haber tantas posiciones como cantidad de tripulantes.\n");
 				break;
 			}
 
 			strcat(parser_consola[1],"\0");
 			strcat(parser_consola[2],"\0");
+
+			t_patota* mensaje_patota = malloc(sizeof(t_patota));
+			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
+			mensaje_patota->tamanio_tareas = strlen(parser_consola[2]);
+			mensaje_patota->archivo_tareas = malloc(mensaje_patota->tamanio_tareas+1);
+			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
+
+			// Indica que arranca a leer a partir de los primeros 3 argumentos: COMANDO CANTIDAD_TRIPULANTES ARCHIVO_TAREAS
+
+			int ubicacion_parser = 3;
+
+			char* posiciones = string_new();
+
+			while(parser_consola[ubicacion_parser] != NULL && ubicacion_parser < cantidad_argumentos) {
+				string_append_with_format(&posiciones, "%s|", parser_consola[ubicacion_parser]);
+				ubicacion_parser++;
+			}
+			for(int i = 0; i<posiciones_faltantes; i++) {
+				string_append_with_format(&posiciones, "%s|", "0|0");
+			}
+
+			printf("%s \n", posiciones);
+
+
+			parser_posiciones = string_split(posiciones, "|");
+			string_trim(parser_posiciones);
+
+
+			int n = 0;
+			while(parser_posiciones[n] != NULL){
+				printf("%s \n", parser_posiciones[n]);
+				n++;
+			}
+
+			/*
+
+			while(parser_consola[ubicacion_parser] != NULL && ubicacion_parser<cantidad_argumentos) {
+				printf("%s \n", parser_consola[ubicacion_parser]);
+				parser_posiciones = string_split(parser_consola[ubicacion_parser], "|");
+				//printf("Posicion X: %s \n", parser_posiciones[0]);
+				posiciones[n] = parser_posiciones[0];
+				//printf("%s \n", posiciones[n]);
+				n++;
+				posiciones[n] = parser_posiciones[1];
+				//printf("%s \n", posiciones[n]);
+				//printf("Posicion Y: %s \n", parser_posiciones[1]);
+				ubicacion_parser++;
+				n ++;
+			}
+
+			for(int i=0; i<posiciones_faltantes; i++){
+				//printf("0|0 \n");
+				posiciones[n] = "0";
+				//printf("%u \n", atoi(posiciones[n]));
+				//printf("%s \n", posiciones[n]);
+				n++;
+				posiciones[n] = "0";
+				//printf("%s \n", posiciones[n]);
+				n++;
+				//printf("Posicion X: 0 \n");
+				//printf("Posicion Y: 0 \n");
+			}
+			int c = 0;
+			while(posiciones[c] != NULL) {
+				printf("%s \n", posiciones[c]);
+				c++;
+			}*/
+
+			// Ejemplo para mostrar como no se puede hacer parser_posiciones = string_split(parser_consola[n], "|");
+			//printf("%s \n", parser_posiciones[0]);
+			//printf("%s \n", parser_posiciones[1]);
+			//printf("%s \n", parser_posiciones[2]);
+			//printf("%s \n", parser_posiciones[3]);
+
+			/*tamanio_tripulacion += sizeof(mensaje_patota->tripulantes[n]);
+
+			for(int c= 0; c<cantidad_tripulantes; c++) {
+			 	mensaje_patota->tripulantes[c] = malloc(sizeof(tripulante));
+				mensaje_patota->tripulantes[c] = crear_tripulante(...);
+
+				tamanio_tripulacion += sizeof(mensaje_patota->tripulantes[c]);
+			}*/
+
+			mensaje_patota->tamanio_tripulantes = tamanio_tripulacion;
+
 
 
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
@@ -122,35 +213,25 @@ void obtener_orden_input() {
 				break;
 			}
 
-			patota* mensaje_patota = malloc(sizeof(patota));
-			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
-			mensaje_patota->tamanio_tareas = strlen(parser_consola[2]);
-			mensaje_patota->archivo_tareas = malloc(mensaje_patota->tamanio_tareas+1);
-			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
-
-			// TE DEBO COMO OBTENER LA POSICION DE CADA TRIPULANTE
-			//Primero tengo que saber cuantas posiciones de tripulantes estan inicializados
-			// una vez sabiendo esa cantidad, puedo incializar un vector para meter en las primeras N posiciones la ubicacion de esos tripulantes
-			// en el caso que no esten inicializados, se toman por defecto 0|0
-			int cantidadUbicaciones=cantidadStringsIngresados(parser_consola) - 3;
 			//Falta la validacion de CantidadTripulantes con respecto con la cantidad de ubicaciones ingresadas
-			mensaje_patota->ubicacionTripulantes=malloc(cantidadUbicaciones*sizeof(char *));
 
-			for(int i=0;i<cantidadUbicaciones;i++){
+			/*for(int i=0;i<cantidadUbicaciones;i++){
 				mensaje_patota->ubicacionTripulantes[i]=malloc(sizeof(char*));
 			    strcpy(mensaje_patota->ubicacionTripulantes[i],parser_consola[3+i]);
 			    //printf("%s",mensaje_patota->ubicacionTripulantes[i]);
 			}
 
-			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
+			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);*/
 
-			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
-			for(int i=0;i<cantidadUbicaciones;i++){
-				free(mensaje_patota->ubicacionTripulantes[i]);
-			}
 
-			free(mensaje_patota->ubicacionTripulantes);
+			free(cantidad_argumentos);
+			free(cantidad_posiciones);
+			free(cantidad_tripulantes);
+			free(posiciones_faltantes);
+			free(tamanio_tripulacion);
+			free(n);
+
 			free(mensaje_patota->archivo_tareas);
 			//free(mensaje_patota->cantidad_tripulantes);
 			free(mensaje_patota);
@@ -160,70 +241,68 @@ void obtener_orden_input() {
 		case LISTAR_TRIPULANTES:
 
 			if(parser_consola[1] != NULL) {
-				//printf("Sobran argumentos. Debe iniciarse de la forma LISTAR_TRIPULANTES.\n");
 				log_warning(logger, "Sobran argumentos. Debe iniciarse de la forma LISTAR_TRIPULANTES.");
 				break;
 			}
-			strcat(parser_consola[1], "\0");
 
-			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+			listar_tripulantes();
 
-
-			//enviar_mensaje(mensajeVacio, LISTAR_TRIPULANTES, conexion_mi_ram);
-			// Escucharia al modulo Mi RAM, y este ultimo le envia toda una lista para mostrar en pantalla de acuerdo a este orden
-			// Estado de la Nave:  DD/MM/AAAA  HH:MM:SS
-			// Tripulante: N	Patota: P	Status: E
-			// N: Id de tripulante
-			// P: Id de la patota
-			// E: Estado del tripulante
-
-			close(conexion_mi_ram);
 			break;
 
 		case OBTENER_BITACORA:
 
 			if(parser_consola[1] == NULL) {
 				//printf("Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.\n");
-				log_warning(logger, "Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.");
+				log_error(logger, "Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.");
 				break;
 			}
 			strcat(parser_consola[1], "\0");
 
+			t_id_tripulante* id_tripulante_x_bitacora = malloc(sizeof(t_id_tripulante));
+			id_tripulante_x_bitacora->id_tripulante = atoi(parser_consola[1]);
+
 			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 
-			tripulante* mensaje_bitacora = malloc(sizeof(tripulante));
-			mensaje_bitacora->id_tripulante = atoi(parser_consola[1]);
+			if(conexion_mongo_store < 0) {
+				log_error(logger, "No se pudo conectar. \n");
+				break;
+			}
 
-			enviar_mensaje(mensaje_bitacora, OBTENER_BITACORA, conexion_mongo_store);
-			// OBTENGO EL ID DEL TRIPULANTE PARA PEDIRLE LA BITACORA
+			enviar_mensaje(id_tripulante_x_bitacora, OBTENER_BITACORA, conexion_mongo_store);
 
 			// Consulta con Mongo Store y le pasa la bitacora del tripulante pasado por parametro
 			// Y tambien tengo que escuchar al modulo Mongo Store, para recibir la lista y mostrarla? (IDEM como LISTAR_TRIPULANTES
 
-			free(mensaje_bitacora->id_tripulante);
-			free(mensaje_bitacora);
+			free(id_tripulante_x_bitacora);
 			close(conexion_mongo_store);
 			break;
 
 		case EXPULSAR_TRIPULANTE:
 				// ELIMINA EL TRIPULANTE DEL HILO DEL DISCORDIADOR
-			    conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
 				// CONECTA CON MI RAM HQ Y LO ELIMINA DE MEMORIA
 			    // 		- TAMBIEN LO ELIMINA DEL MAPA
 
 			    if(parser_consola[1] == NULL) {
 			    	//printf("Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.\n");
-			    	log_warning(logger, "Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.");
+			    	log_error(logger, "Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.");
+			    	break;
+			    }
+			    strcat(parser_consola[1], "\0");
+
+			    t_id_tripulante* id_tripulante_a_expulsar = malloc(sizeof(t_id_tripulante));
+			    id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
+
+			    conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
+
+			    if(conexion_mi_ram < 0) {										// En el caso que no pueda conectar, sale del CASE
+			    	log_error(logger, "No se pudo conectar. \n");
 			    	break;
 			    }
 
-			    tripulante* mensaje_tripulante = malloc(sizeof(tripulante));
-			    mensaje_tripulante->id_tripulante = atoi(parser_consola[1]);
+			    enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
 
-			    enviar_mensaje(mensaje_tripulante, EXPULSAR_TRIPULANTE, conexion_mi_ram);
-
-			    free(mensaje_tripulante->id_tripulante);
-			    free(mensaje_tripulante);
+			    free(id_tripulante_a_expulsar);
 			    close(conexion_mi_ram);
 			break;
 
@@ -242,14 +321,6 @@ void obtener_orden_input() {
 	return;
 }
 
-int cantidadStringsIngresados(char** parser_consola){  //la vamos a usar tanto para verifiaciones de ingresos
-	int cantidad=0;									   // por consola, como para cantidad de tripu que arrancan en 0,0
-	while(parser_consola[cantidad] != NULL){
-		cantidad++;
-	}
-	return cantidad;
-
-}
 
 void estar_atento_por_sabotaje(){
 

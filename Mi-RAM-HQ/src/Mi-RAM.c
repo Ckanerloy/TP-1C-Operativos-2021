@@ -55,20 +55,21 @@ void escuchar_conexion(int32_t* conexion_cliente)
 
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 {
-	patota* patota_recibida;
-	tripulante* tripulante_recibido;
+	t_patota* patota_recibida;
+	//t_tripulante* tripulante_recibido;
+	t_id_tripulante* tripulante_recibido;
 
 	//sem_post(espera);
 
 	switch(operacion)
 			{
 			case INICIAR_PATOTA:
-				patota_recibida = malloc(sizeof(patota));
+				patota_recibida = malloc(sizeof(t_patota));
 				recibir_mensaje(patota_recibida, operacion, conexion);
-
+				/*
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				printf("Archivo de tareas: %s \n", patota_recibida->archivo_tareas);
-
+ 	 	 	 	 */
 				//fork();
 				//crear_patota(patota_recibida);
 				// Recibe la patota de parte del discordiador
@@ -77,18 +78,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				free(patota_recibida);
 				break;
 
-			case LISTAR_TRIPULANTES:
-				//Aca habria que listar todos los tripulantes, pero no recibiria ningun parametro, solamente el codigo de operacion
-				recibir_mensaje("", operacion, conexion);
-
-				break;
-
 			case EXPULSAR_TRIPULANTE:
-				tripulante_recibido = malloc(sizeof(tripulante));
+				tripulante_recibido = malloc(sizeof(t_id_tripulante));
 				recibir_mensaje(tripulante_recibido, operacion, conexion);
 
+				printf("Tripulante a Expulsar: %u \n", tripulante_recibido->id_tripulante);
 				// Eliminar el tripulante o hilo dentro de la memoria y del mapa
-				//free(tripulante_recibido);
+
+				free(tripulante_recibido);
 				break;
 
 			default:

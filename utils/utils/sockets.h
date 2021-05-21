@@ -43,12 +43,12 @@ void* recibir_buffer(uint32_t* size, int32_t conexion_cliente);
 
 // Serializaciones (para enviar un mensaje)
 void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, uint32_t* tamanio_paquete);
-uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, patota* mensaje);
-uint32_t serializar_paquete_expulsar_tripulante(t_paquete* paquete, tripulante* mensaje);
+uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_patota* mensaje);
+uint32_t serializar_paquete_id_tripulante(t_paquete* paquete, t_id_tripulante* mensaje);
 
 
 // Desserializaciones (para recibir un mensaje)
-void deserializar_iniciar_patota(patota* mensaje, int32_t conexion);
-void deseralizar_expulsar_tripulante(tripulante* mensaje, int32_t conexion);
+void deserializar_iniciar_patota(t_patota* mensaje, int32_t conexion);
+void deseralizar_id_tripulante(t_id_tripulante* mensaje, int32_t conexion);
 
 #endif /* UTILS_SOCKETS_H_ */
