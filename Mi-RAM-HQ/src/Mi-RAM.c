@@ -56,7 +56,8 @@ void escuchar_conexion(int32_t* conexion_cliente)
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 {
 	t_patota* patota_recibida;
-	//t_tripulante* tripulante_recibido;
+	t_tripulante** tripulante_x_patota_recibido;
+
 	t_id_tripulante* tripulante_recibido;
 
 	//sem_post(espera);
@@ -66,10 +67,19 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 			case INICIAR_PATOTA:
 				patota_recibida = malloc(sizeof(t_patota));
 				recibir_mensaje(patota_recibida, operacion, conexion);
-				/*
+
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				printf("Archivo de tareas: %s \n", patota_recibida->archivo_tareas);
- 	 	 	 	 */
+/*
+				for(int i=1; i<=patota_recibida->cantidad_tripulantes; i++) {
+					recibir_mensaje(tripulante_x_patota_recibido[i], operacion, conexion);
+				}
+
+				//for(int i=1; i<=patota_recibida->cantidad_tripulantes; i++) {
+					mostrar_tripulante(tripulante_x_patota_recibido[i]);
+				}*/
+
+
 				//fork();
 				//crear_patota(patota_recibida);
 				// Recibe la patota de parte del discordiador
@@ -92,4 +102,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				log_warning(logger, "Operacion desconocida. No quieras meter la pata");
 				break;
 			}
+}
+
+
+void mostrar_tripulante(t_tripulante* tripulante) {
+
+	printf("Id tripulante: %u \n", tripulante->id_tripulante);
+	printf("Estado tripulante: %s \n", tripulante->estado_tripulante);
+	printf("Posicion X: %i \n", tripulante->posicion_x);
+	printf("Posicion Y: %i \n", tripulante->posicion_y);
 }

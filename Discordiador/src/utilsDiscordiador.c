@@ -1,6 +1,5 @@
 #include "utilsDiscordiador.h"
 
-
 codigo_operacion mapeo_valor_consola(char* comando_ingresado) {
 
 	codigo_operacion operacion;
@@ -42,6 +41,55 @@ void terminar_programa(t_log* logger, t_config* config)
 }
 
 
+t_tripulante* crear_tripulante(uint32_t id, char* posicion_x, char* posicion_y) {
+
+	t_tripulante* tripulante = malloc(sizeof(t_tripulante));
+
+	tripulante->id_tripulante = id;
+
+	tripulante->tamanio_estado_tripulante = strlen("NUEVO");
+	tripulante->estado_tripulante = malloc(tripulante->tamanio_estado_tripulante + 1);
+	strcpy(tripulante->estado_tripulante, "NUEVO");
+
+	tripulante->posicion_x = atoi(posicion_x);
+
+	tripulante->posicion_y = atoi(posicion_y);
+
+	tripulante->peso_tripulante = sizeof(tripulante->id_tripulante) + sizeof(tripulante->tamanio_estado_tripulante) + strlen(tripulante->estado_tripulante)+1 + sizeof(tripulante->posicion_x) + sizeof(tripulante->posicion_y);
+
+	return tripulante;
+}
+
+void crear_tripulanteV2(t_datos_hilo* datos_hilo) {
+
+	t_tcb* tripulante = malloc(sizeof(t_tcb));
+
+	tripulante->id_tripulante = datos_hilo->id;
+
+	//tripulante->estado_tripulante = malloc(sizeof(char));
+	tripulante->estado_tripulante = 'N';
+
+	tripulante->posicion_x = datos_hilo->posicion_x;
+
+	tripulante->posicion_y = datos_hilo->posicion_y;
+
+	tripulante->id_proxima_instruccion = 0;
+}
+
+void mostrar_tripulante(t_tripulante* tripulante) {
+
+	printf("Id tripulante: %u \n", tripulante->id_tripulante);
+	printf("Estado tripulante: %s \n", tripulante->estado_tripulante);
+	printf("Posicion X: %i \n", tripulante->posicion_x);
+	printf("Posicion Y: %i \n", tripulante->posicion_y);
+}
+
+void liberar_tripulantes(uint32_t cantidad_tripulantes, t_tripulante** mensaje_tripulantes) {
+	for(uint32_t c=1; c<=cantidad_tripulantes; c++){
+		free(mensaje_tripulantes[c]);
+	}
+}
+
 // Funcion para LISTAR TRIPULANTES
 void listar_tripulantes() {
 	printf("-------------------------------------------------------------------------\n");
@@ -64,8 +112,8 @@ uint32_t cantidad_argumentos_ingresados(char** parser_consola){  // la vamos a u
 
 
 
-/*
 
+/*
 int main(int n, char **args) {
 	printf("FCFS: FIRST COME FIRST SERVERED");
 	int np=11, procesos[10];

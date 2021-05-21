@@ -40,11 +40,12 @@ int32_t conexion_sabotaje;
 // Semaforos
 sem_t* comando_para_ejecutar;
 sem_t* sabotaje;
+sem_t* termino_operacion;
 
 // Hilos
 pthread_t hilo_consola;
 pthread_t hilo_sabotaje;
-//pthread_t** hilo_tripulante;
+pthread_t hilo_tripulante;
 
 t_log* logger;
 

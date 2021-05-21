@@ -255,6 +255,7 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 
 		case INICIAR_PATOTA:
 			tamanio_preparado = serializar_paquete_iniciar_patota(paquete, mensaje);
+
 			break;
 
 		case OBTENER_BITACORA:
@@ -296,6 +297,7 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_patota* mensaje
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
+
 	buffer->size = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + strlen(mensaje->archivo_tareas)+1;
 	//buffer->size = sizeof(uint32_t)*2 + strlen(mensaje->archivo_tareas)+1;
 
@@ -314,6 +316,59 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_patota* mensaje
 	desplazamiento += mensaje->tamanio_tareas+1;
 
 	tamanio_a_enviar = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + mensaje->tamanio_tareas+1;
+
+	if(desplazamiento != tamanio_a_enviar)
+	{
+		puts("ERROR. Tamanio diferentes.\n");
+		log_error(logger, "Verificar datos que le estoy mandando. Kinda sus...");
+		abort();
+	}
+
+	else
+	{
+		buffer->stream = stream_auxiliar;
+		buffer->size = desplazamiento;
+		paquete->buffer = buffer;
+
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+
+		return tamanio;
+	}
+
+}
+
+uint32_t serializar_tripulante(t_paquete* paquete, t_tripulante* mensaje)
+{
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
+	uint32_t tamanio_a_enviar = 0;
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+
+	buffer->size = sizeof(mensaje->id_tripulante) + sizeof(mensaje->tamanio_estado_tripulante) + strlen(mensaje->estado_tripulante)+1;
+	//buffer->size = sizeof(uint32_t)*2 + strlen(mensaje->archivo_tareas)+1;
+
+	void* stream_auxiliar = malloc(buffer->size);
+
+	// ID de tripulante
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
+
+	// Estado de tripulante
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tamanio_estado_tripulante), sizeof(mensaje->tamanio_estado_tripulante));
+	desplazamiento += sizeof(mensaje->tamanio_estado_tripulante);
+	memcpy(stream_auxiliar + desplazamiento, mensaje->estado_tripulante, mensaje->tamanio_estado_tripulante +1);
+	desplazamiento += mensaje->tamanio_estado_tripulante+1;
+
+	// Posicion X
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->posicion_x), sizeof(mensaje->posicion_x));
+	desplazamiento += sizeof(mensaje->posicion_x);
+
+	// Posicion Y
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->posicion_y), sizeof(mensaje->posicion_y));
+	desplazamiento += sizeof(mensaje->posicion_y);
+
+	tamanio_a_enviar = sizeof(mensaje->id_tripulante) + sizeof(mensaje->tamanio_estado_tripulante) + mensaje->tamanio_estado_tripulante+1 + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y);
 
 	if(desplazamiento != tamanio_a_enviar)
 	{

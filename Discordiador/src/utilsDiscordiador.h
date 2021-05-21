@@ -20,4 +20,6 @@ void terminar_programa(t_log* logger, t_config* config);
 void listar_tripulantes();
 uint32_t cantidad_argumentos_ingresados(char** parser_consola);
 
+void crear_tripulanteV2(t_datos_hilo* datos_hilo);
+
 #endif /* UTILSDISCORDIADOR_H_ */
