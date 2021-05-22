@@ -1,8 +1,6 @@
 #ifndef UTILS_ESTRUCTURAS_H_
 #define UTILS_ESTRUCTURAS_H_
 
-
-
 typedef enum
 {
 	INICIAR_PATOTA,
@@ -13,7 +11,7 @@ typedef enum
 	OBTENER_BITACORA,
 	RECIBIR_PATOTA,
 	TERMINAR_PROGRAMA
-}codigo_operacion;
+} codigo_operacion;
 
 
 typedef enum
@@ -24,12 +22,19 @@ typedef enum
 	CONSUMIR_COMIDA,
 	GENERAR_BASURA,
 	DESCARTAR_BASURA
-}codigo_tarea;
+} codigo_tarea;
+
+typedef enum {
+	NEW,
+	READY,
+	BLOQ,
+	EXECUTE
+} estado_tripulante;
 
 
 typedef struct {
 	uint32_t id_tripulante;
-	char* estado_tripulante;
+	estado_tripulante estado_tripulante;
 	uint32_t tamanio_estado_tripulante;
 	int posicion_x;
 	int posicion_y;
@@ -68,10 +73,6 @@ typedef struct
 	codigo_operacion op_code;
 	t_buffer* buffer;
 } t_paquete;
-
-
-
-
 
 
 // Patota Control Block (PCB)

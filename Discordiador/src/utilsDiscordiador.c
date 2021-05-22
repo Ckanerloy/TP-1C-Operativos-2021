@@ -71,8 +71,8 @@ t_tcb* crear_tripulante(t_datos_hilo* datos_hilo) {
 
 	tripulante->id_tripulante = datos_hilo->id;
 
-	//tripulante->estado_tripulante = malloc(sizeof(char));
-	tripulante->estado_tripulante = 'N';
+	tripulante->estado_tripulante = malloc(sizeof(estado_tripulante));
+	tripulante->estado_tripulante = NEW;
 
 	tripulante->posicion_x = datos_hilo->posicion_x;
 

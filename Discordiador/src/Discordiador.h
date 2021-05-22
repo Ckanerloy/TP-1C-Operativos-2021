@@ -12,6 +12,7 @@
 
 #include "utils/sockets.h"
 #include "utilsDiscordiador.h"
+#include "planificador.h"
 
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Discordiador/discordiador.config"
 
@@ -28,9 +29,9 @@ int32_t conexion_mongo_store;
 int32_t conexion_mi_ram;
 
 // Data del Config
-int GRADO_MULTITAREA;
-char* ALGORITMO;
-int QUANTUM;
+//int GRADO_MULTITAREA;
+//char* ALGORITMO;
+//int QUANTUM;
 int DURACION_SABOTAJE;
 int RETARDO_CICLO_CPU;
 

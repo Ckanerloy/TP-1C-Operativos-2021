@@ -14,7 +14,7 @@
 
 #include"utils/estructuras.h"
 
-uint32_t mapeo_valor_consola(char* comando_ingresado);
+codigo_operacion mapeo_valor_consola(char* comando_ingresado);
 void terminar_programa(t_config* config, t_log* logger);
 
 void listar_tripulantes();

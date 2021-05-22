@@ -5,7 +5,7 @@ int main(void) {
 	logger = crear_log("discordiador.log", "DISCORDIADOR");
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
-
+	obtener_planificacion_de_config(config);
 	sabotaje = malloc(sizeof(sem_t));
 	sem_init(sabotaje, 0, 1);
 
@@ -43,9 +43,6 @@ void obtener_datos_de_config(t_config* config) {
 	IP_MONGO_STORE = config_get_string_value(config, "IP_I_MONGO_STORE");
 	PUERTO_MONGO_STORE = config_get_string_value(config, "PUERTO_I_MONGO_STORE");
 
-	GRADO_MULTITAREA = config_get_int_value(config, "GRADO_MULTITAREA");
-	ALGORITMO = config_get_string_value(config, "ALGORITMO");
-	QUANTUM = config_get_int_value(config, "QUANTUM");
 	DURACION_SABOTAJE = config_get_int_value(config, "DURACION_SABOTAJE");
 	RETARDO_CICLO_CPU = config_get_int_value(config, "RETARDO_CICLO_CPU");
 
@@ -89,6 +86,10 @@ void obtener_orden_input()
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
 			// LOS TRIPULANTES ESTAN DEFINIDOS POR HILO -> CADA HILO IRIA A UNA COLA
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO EXECUTE
+
+			elegir_algoritmo();
+
+
 			break;
 
 		case PAUSAR_PLANIFICACION:
@@ -137,10 +138,18 @@ void obtener_orden_input()
 			parser_posiciones = string_split(posiciones, "|");
 			string_trim(parser_posiciones);
 
+			t_patota* mensaje_patota = malloc(sizeof(t_patota));
+			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
+			mensaje_patota->tamanio_tareas = strlen(parser_consola[2]);
+			mensaje_patota->archivo_tareas = malloc(mensaje_patota->tamanio_tareas+1);
+			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
+
+			/*
 			t_pcb* patota = malloc(sizeof(t_pcb));
 			patota->id_patota = 1;
 			patota->direccion_tareas = malloc(strlen(parser_consola[2])+1);
 			strcpy(patota->direccion_tareas, parser_consola[2]);
+			*/
 
 			int posicion = 0;
 
@@ -158,28 +167,17 @@ void obtener_orden_input()
 
 				posicion += 2;
 				free(datos_hilo);
-
 			}
 
 			/*
-			t_patota* mensaje_patota = malloc(sizeof(t_patota));
-			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
-			mensaje_patota->tamanio_tareas = strlen(parser_consola[2]);
-			mensaje_patota->archivo_tareas = malloc(mensaje_patota->tamanio_tareas+1);
-			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
-
-
-
-
-
 			int n = 0;
 			while(parser_posiciones[n] != NULL){
 				printf("%s \n", parser_posiciones[n]);
 				n++;
 			}
 
-			//t_tripulante** mensaje_tripulantes = malloc(sizeof(t_tripulante));
-			//uint32_t tamanio_tripulacion = 0;
+			t_tripulante** mensaje_tripulantes = malloc(sizeof(t_tripulante));
+			uint32_t tamanio_tripulacion = 0;
 
 			int posicion = 0;
 			for(uint32_t c= 1; c<=cantidad_tripulantes; c++) {
@@ -190,14 +188,9 @@ void obtener_orden_input()
 				posicion += 2;
 			}
 
-
 			for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
 				mostrar_tripulante(mensaje_tripulantes[k]);
 			}
-
-
-
-
 
 			while(parser_consola[ubicacion_parser] != NULL && ubicacion_parser<cantidad_argumentos) {
 				printf("%s \n", parser_consola[ubicacion_parser]);
@@ -231,18 +224,6 @@ void obtener_orden_input()
 				c++;
 			}*/
 
-
-			/*tamanio_tripulacion += sizeof(mensaje_patota->tripulantes[n]);
-
-			for(int c= 0; c<cantidad_tripulantes; c++) {
-			 	mensaje_patota->tripulantes[c] = malloc(sizeof(tripulante));
-				mensaje_patota->tripulantes[c] = crear_tripulante(...);
-
-				tamanio_tripulacion += sizeof(mensaje_patota->tripulantes[c]);
-			}*/
-
-
-
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
 
 			if(conexion_mi_ram < 0) {										// En el caso que no pueda conectar, sale del CASE
@@ -250,28 +231,17 @@ void obtener_orden_input()
 				break;
 			}
 
-			//enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
+			/*enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
-		//	for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
-			//	enviar_mensaje(mensaje_tripulantes[k], INICIAR_PATOTA, conexion_mi_ram);
-		//	}
-
-			/*
-			for(int i=0;i<cantidadUbicaciones;i++){
-				mensaje_patota->ubicacionTripulantes[i]=malloc(sizeof(char*));
-			    strcpy(mensaje_patota->ubicacionTripulantes[i],parser_consola[3+i]);
-			    //printf("%s",mensaje_patota->ubicacionTripulantes[i]);
+			for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
+				enviar_mensaje(mensaje_tripulantes[k], INICIAR_PATOTA, conexion_mi_ram);
 			}*/
-
-
-			//liberar_tripulantes(cantidad_tripulantes, mensaje_tripulantes);
 
 			free(posiciones);
 			free(parser_posiciones);
 
-			//free(mensaje_patota->archivo_tareas);
-			//free(mensaje_patota->cantidad_tripulantes);
-			//free(mensaje_patota);
+			free(mensaje_patota->archivo_tareas);
+			free(mensaje_patota);
 			close(conexion_mi_ram);
 			break;
 
@@ -289,7 +259,6 @@ void obtener_orden_input()
 		case OBTENER_BITACORA:
 
 			if(parser_consola[1] == NULL) {
-				//printf("Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.\n");
 				log_error(logger, "Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.");
 				break;
 			}
@@ -307,9 +276,6 @@ void obtener_orden_input()
 
 			enviar_mensaje(id_tripulante_x_bitacora, OBTENER_BITACORA, conexion_mongo_store);
 
-			// Consulta con Mongo Store y le pasa la bitacora del tripulante pasado por parametro
-			// Y tambien tengo que escuchar al modulo Mongo Store, para recibir la lista y mostrarla? (IDEM como LISTAR_TRIPULANTES
-
 			free(id_tripulante_x_bitacora);
 			close(conexion_mongo_store);
 			break;
@@ -321,7 +287,6 @@ void obtener_orden_input()
 			// 		- TAMBIEN LO ELIMINA DEL MAPA
 
 			if(parser_consola[1] == NULL) {
-			   	//printf("Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.\n");
 			   	log_error(logger, "Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.");
 			  	break;
 			}
@@ -331,7 +296,6 @@ void obtener_orden_input()
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
 
 			// Buscar el hilo del tripulante a expulsar y eliminarlo (pthread_detach)?
-
 
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
 
@@ -355,7 +319,6 @@ void obtener_orden_input()
 
 		default:
 			printf("No se reconoce ese comando. Por favor, ingrese un comando válido.\n");
-				// CODIGO POR DEFAULT, o sea si no pudo hacer nada, o quiero terminar
 			break;
 		}
 
