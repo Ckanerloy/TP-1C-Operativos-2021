@@ -11,6 +11,8 @@
 #include <netdb.h>
 #include <string.h>
 #include <commons/collections/queue.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 #include "commons/log.h"
 #include "commons/string.h"

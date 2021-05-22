@@ -65,10 +65,10 @@ void iniciarPlanificacion() {
     cola_block = list_create();
 
     pthread_t hilo_block_ready;
-	pthread_create(&hilo_block_ready, NULL, (void*)block_ready, NULL);
+	//pthread_create(&hilo_block_ready, NULL, (void*)block_ready, NULL);
 
 	pthread_t hilo_new_ready;
-	pthread_create(&hilo_new_ready, NULL, (void*)new_ready, NULL);
+	//pthread_create(&hilo_new_ready, NULL, (void*)new_ready, NULL);
 
 	//pthread_t threadHilosMaestro;
 	//pthread_create(&threadHilosMaestro, NULL, (void*)hiloCiclosMaestro, NULL);
@@ -81,7 +81,7 @@ void iniciarPlanificacion() {
 
 		*numero_hilo = i;
 
-		pthread_create(&hilo_execute, NULL, (void*)execute, numero_hilo);
+		//pthread_create(&hilo_execute, NULL, (void*)execute, numero_hilo);
 	}
 }
 
@@ -169,7 +169,7 @@ void new_ready() {
 	//sem_wait(mutexNew);
 
 		char* tarea_nueva = string_new();
-		obtener_siguiente_tarea(tarea_nueva); // Busca en la lista de tareas de la patota, la tarea siguiente para ejecutar
+		//obtener_siguiente_tarea(tarea_nueva); // Busca en la lista de tareas de la patota, la tarea siguiente para ejecutar
 		//char* tarea_nueva = queue_pop(colaNew);
 
 	//sem_post(mutexNew);
@@ -177,7 +177,7 @@ void new_ready() {
 	//sem_wait(contadorRepartidoresDisp);
 
 
-		asignar_tarea_a_tripulante(tarea_nueva); //Le paso una tarea como parametro?
+//		asignar_tarea_a_tripulante(tarea_nueva); //Le paso una tarea como parametro?
 
 		//cambiar_estado_del_tripulante NEW -> READY
 	}
