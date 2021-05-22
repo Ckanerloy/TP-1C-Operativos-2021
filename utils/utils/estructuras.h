@@ -12,7 +12,7 @@ typedef enum
 	PAUSAR_PLANIFICACION,
 	OBTENER_BITACORA,
 	RECIBIR_PATOTA,
-	EXIT
+	TERMINAR_PROGRAMA
 }codigo_operacion;
 
 
@@ -41,8 +41,8 @@ typedef struct {
 	uint32_t cantidad_tripulantes;
 	char* archivo_tareas;
 	uint32_t tamanio_tareas;
-	//t_tripulante** tripulantes;
-	//uint32_t tamanio_tripulantes;
+	t_tripulante** tripulantes;
+	uint32_t tamanio_tripulantes;
 } t_patota;
 
 

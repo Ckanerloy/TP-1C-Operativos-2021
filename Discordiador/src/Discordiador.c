@@ -3,38 +3,32 @@
 int main(void) {
 
 	logger = crear_log("discordiador.log", "DISCORDIADOR");
-	t_config* config = crear_config(CONFIG_PATH);
+	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
 
-	comando_para_ejecutar = malloc(sizeof(sem_t));
 	sabotaje = malloc(sizeof(sem_t));
-	termino_operacion = malloc(sizeof(sem_t));
-
 	sem_init(sabotaje, 0, 1);
+
+	comando_para_ejecutar = malloc(sizeof(sem_t));
 	sem_init(comando_para_ejecutar, 0, 1);
+
+	termino_operacion = malloc(sizeof(sem_t));
 	sem_init(termino_operacion, 0, 1);
 
 	while(1) {
-
 
 		// Conexion de escucha con MongoStore?  POR SABOTAJE
 		//sem_wait(sabotaje);
 		//pthread_create(&hilo_sabotaje, NULL, (void*)estar_atento_por_sabotaje, NULL);
 
-
 		sem_wait(comando_para_ejecutar);
 		pthread_create(&hilo_consola, NULL,(void*)obtener_orden_input, NULL);
 
-
-		pthread_detach(hilo_sabotaje);
-		//pthread_detach(hilo_consola);
+		//pthread_detach(hilo_sabotaje);
+		pthread_detach(hilo_consola);
 	}
 
 	terminar_programa(config, logger);
-
-	free(comando_para_ejecutar);
-	free(sabotaje);
-	free(termino_operacion);
 
 	return EXIT_SUCCESS;
 }
@@ -57,15 +51,13 @@ void obtener_datos_de_config(t_config* config) {
 
 }
 
-void obtener_orden_input() {
-
-
+void obtener_orden_input()
+{
 	 char* cadena_ingresada = NULL;
-		//respuesta_ok_error* estructuraRespuesta;
+
 	 size_t longitud = 0;
 
-
-	 sem_wait(termino_operacion);
+	sem_wait(termino_operacion);
 
 	 printf("Inserte orden:\n");
 
@@ -158,7 +150,11 @@ void obtener_orden_input() {
 				datos_hilo->posicion_x = atoi(parser_posiciones[posicion]);
 				datos_hilo->posicion_y = atoi(parser_posiciones[posicion+1]);
 
-				pthread_create(&(hilo_tripulante), NULL, (void*)crear_tripulanteV2, datos_hilo);
+				// Array para guardar todos los tripulantes (guarda los hilos)
+				// Array para guardar todas las patotas (guarda los procesos)
+
+				pthread_create(&(hilo_tripulante), NULL, (t_tcb*)crear_tripulante, (t_datos_hilo*) datos_hilo);
+				pthread_join(hilo_tripulante, &tripulantes);
 
 				posicion += 2;
 				free(datos_hilo);
@@ -334,6 +330,9 @@ void obtener_orden_input() {
 			t_id_tripulante* id_tripulante_a_expulsar = malloc(sizeof(t_id_tripulante));
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
 
+			// Buscar el hilo del tripulante a expulsar y eliminarlo (pthread_detach)?
+
+
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
 
 			if(conexion_mi_ram < 0) {										// En el caso que no pueda conectar, sale del CASE
@@ -347,8 +346,11 @@ void obtener_orden_input() {
 			close(conexion_mi_ram);
 			break;
 
-		case -1:
-
+		case TERMINAR_PROGRAMA:
+			printf("Terminando programa... \n");
+			sleep(1);
+			printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
+			// Tengo que salir del hilo en el que esta siendo ejecutado, de esa forma salir del while y Finalizar el Programa
 			break;
 
 		default:

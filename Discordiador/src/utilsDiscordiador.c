@@ -28,11 +28,15 @@ codigo_operacion mapeo_valor_consola(char* comando_ingresado) {
 		operacion = OBTENER_BITACORA;
 	}
 
+	if(strcmp(comando_ingresado, "TERMINAR_PROGRAMA") == 0) {
+		operacion = TERMINAR_PROGRAMA;
+	}
+
 	return operacion;
 }
 
 
-void terminar_programa(t_log* logger, t_config* config)
+void terminar_programa(t_config* config, t_log* logger)
 {
 	config_destroy(config);
 	printf("Puntero a archivo .config destruido.\n");
@@ -40,7 +44,7 @@ void terminar_programa(t_log* logger, t_config* config)
 	printf("Puntero al logger destruido.\n");
 }
 
-
+/*
 t_tripulante* crear_tripulante(uint32_t id, char* posicion_x, char* posicion_y) {
 
 	t_tripulante* tripulante = malloc(sizeof(t_tripulante));
@@ -58,9 +62,10 @@ t_tripulante* crear_tripulante(uint32_t id, char* posicion_x, char* posicion_y) 
 	tripulante->peso_tripulante = sizeof(tripulante->id_tripulante) + sizeof(tripulante->tamanio_estado_tripulante) + strlen(tripulante->estado_tripulante)+1 + sizeof(tripulante->posicion_x) + sizeof(tripulante->posicion_y);
 
 	return tripulante;
-}
+}*/
 
-void crear_tripulanteV2(t_datos_hilo* datos_hilo) {
+// Creación de un Tripulante
+t_tcb* crear_tripulante(t_datos_hilo* datos_hilo) {
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
 
@@ -74,6 +79,8 @@ void crear_tripulanteV2(t_datos_hilo* datos_hilo) {
 	tripulante->posicion_y = datos_hilo->posicion_y;
 
 	tripulante->id_proxima_instruccion = 0;
+
+	return tripulante;
 }
 
 void mostrar_tripulante(t_tripulante* tripulante) {
@@ -110,33 +117,3 @@ uint32_t cantidad_argumentos_ingresados(char** parser_consola){  // la vamos a u
 	return cantidad;
 }
 
-
-
-
-/*
-int main(int n, char **args) {
-	printf("FCFS: FIRST COME FIRST SERVERED");
-	int np=11, procesos[10];
-	double tf = 0, tp;// tiempo promedio.
-	while (np > 10 || np <= 0) {
-		printf("\nNumero de procesos: ");
-		scanf("%d", &np);
-	}
-	//para i=0, mientras i<np, hacer:...
-	// pedimos el tamaño de cada proceso.
-	for(int i=0; i<np; i++) {
-		printf("\nInserte el proceso %d :", i+1);
-		scanf("%d", &procesos[i]);
-	}
-	// Algoritmo FCFS
-	for(int i=0; i<np; i++) {
-		tf += procesos[i];
-		tp = tp + tf;
-		printf("\nProceso %d, concluye en %2.1f", i+1, tf);
-	}
-	printf("\n-------------------------------");
-	printf("\nLa suma de los procesos %2.1f", tp);
-	tp = tp / np;
-	printf("\n\nTiempo promedio en FCFS fue de: %2.2f:", tp);
-	return 0;
-}*/

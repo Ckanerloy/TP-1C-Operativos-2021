@@ -47,11 +47,16 @@ pthread_t hilo_consola;
 pthread_t hilo_sabotaje;
 pthread_t hilo_tripulante;
 
+t_tcb** tripulantes;
+
 t_log* logger;
+t_config* config;
 
 void obtener_datos_de_config(t_config* config);		// Obtengo los datos cargados en el archivo .config
-void obtener_orden_input(void);
-void estar_atento_por_sabotaje(void);
+void obtener_orden_input(void);						// Leo lo que escriba por consola y ejecuta la operacion a realizar
 
+// POR AHORA SON UNA IDEA
+void estar_atento_por_sabotaje(void);
+void arreglar_sabotaje(void);
 
 #endif /* DISCORDIADOR_H_ */
