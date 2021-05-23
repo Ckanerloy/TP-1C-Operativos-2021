@@ -201,6 +201,35 @@ void deserializar_iniciar_patota(t_patota* mensaje, int32_t conexion)
 }
 
 
+void deserealizar_tripulante(t_tcb* mensaje, int32_t conexion) {
+	uint32_t tamanio;
+	uint32_t desplazamiento = 0;
+	void* buffer_deserializar;
+	buffer_deserializar = recibir_buffer(&tamanio, conexion);
+
+	// Id de Tripulante
+	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
+
+	// Estado de Tripulante
+	memcpy(&(mensaje->estado_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->estado_tripulante));
+	desplazamiento += sizeof(mensaje->estado_tripulante);
+
+	// Posicion X
+	memcpy(&(mensaje->posicion_x), buffer_deserializar + desplazamiento, sizeof(mensaje->posicion_x));
+	desplazamiento += sizeof(mensaje->posicion_x);
+
+	// Posicion Y
+	memcpy(&(mensaje->posicion_y), buffer_deserializar + desplazamiento, sizeof(mensaje->posicion_y));
+	desplazamiento += sizeof(mensaje->posicion_y);
+
+	// Id proxima instruccion
+	memcpy(&(mensaje->id_proxima_instruccion), buffer_deserializar + desplazamiento, sizeof(mensaje->id_proxima_instruccion));
+	desplazamiento += sizeof(mensaje->id_proxima_instruccion);
+
+	free(buffer_deserializar);
+}
+
 
 void deseralizar_id_tripulante(t_id_tripulante* mensaje, int32_t conexion)
 {
@@ -255,7 +284,6 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 
 		case INICIAR_PATOTA:
 			tamanio_preparado = serializar_paquete_iniciar_patota(paquete, mensaje);
-
 			break;
 
 		case OBTENER_BITACORA:
@@ -297,7 +325,6 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_patota* mensaje
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-
 	buffer->size = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + strlen(mensaje->archivo_tareas)+1;
 	//buffer->size = sizeof(uint32_t)*2 + strlen(mensaje->archivo_tareas)+1;
 
@@ -336,6 +363,63 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_patota* mensaje
 	}
 
 }
+
+uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tcb* mensaje)
+{
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
+
+	uint32_t tamanio_a_enviar = 0;
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->size = sizeof(mensaje->id_tripulante) + sizeof(mensaje->estado_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y) + sizeof(mensaje->id_proxima_instruccion);
+
+	void* stream_auxiliar = malloc(buffer->size);
+
+	// Id de Tripulante
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
+
+	// Estado de Tripulante
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->estado_tripulante), sizeof(mensaje->estado_tripulante));
+	desplazamiento += sizeof(mensaje->estado_tripulante);
+
+	// Posicion X
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->posicion_x), sizeof(mensaje->posicion_x));
+	desplazamiento += sizeof(mensaje->posicion_x);
+
+	// Posicion Y
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->posicion_y), sizeof(mensaje->posicion_y));
+	desplazamiento += sizeof(mensaje->posicion_y);
+
+	// Id proxima instruccion
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_proxima_instruccion), sizeof(mensaje->id_proxima_instruccion));
+	desplazamiento += sizeof(mensaje->id_proxima_instruccion);
+
+
+	tamanio_a_enviar = sizeof(mensaje->id_tripulante) + sizeof(mensaje->estado_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y) + sizeof(mensaje->id_proxima_instruccion);
+
+
+	if(desplazamiento != tamanio_a_enviar)
+	{
+		puts("ERROR. Tamanio diferentes.\n");
+		//log_error(logger);
+		abort();
+	}
+
+	else
+	{
+
+		paquete->buffer = buffer;
+		paquete->buffer->size = desplazamiento;
+		paquete->buffer->stream = stream_auxiliar;
+
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+
+		return tamanio;
+	}
+}
+
 
 
 uint32_t serializar_paquete_id_tripulante(t_paquete* paquete, t_id_tripulante* mensaje)

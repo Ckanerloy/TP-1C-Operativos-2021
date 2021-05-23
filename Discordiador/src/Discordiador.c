@@ -28,8 +28,6 @@ int main(void) {
 		pthread_detach(hilo_consola);
 	}
 
-	terminar_programa(config, logger);
-
 	return EXIT_SUCCESS;
 }
 
@@ -54,7 +52,7 @@ void obtener_orden_input()
 
 	 size_t longitud = 0;
 
-	sem_wait(termino_operacion);
+	 sem_wait(termino_operacion);
 
 	 printf("Inserte orden:\n");
 
@@ -138,92 +136,6 @@ void obtener_orden_input()
 			parser_posiciones = string_split(posiciones, "|");
 			string_trim(parser_posiciones);
 
-			t_patota* mensaje_patota = malloc(sizeof(t_patota));
-			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
-			mensaje_patota->tamanio_tareas = strlen(parser_consola[2]);
-			mensaje_patota->archivo_tareas = malloc(mensaje_patota->tamanio_tareas+1);
-			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
-
-			/*
-			t_pcb* patota = malloc(sizeof(t_pcb));
-			patota->id_patota = 1;
-			patota->direccion_tareas = malloc(strlen(parser_consola[2])+1);
-			strcpy(patota->direccion_tareas, parser_consola[2]);
-			*/
-
-			int posicion = 0;
-
-			for(uint32_t c=1; c<=cantidad_tripulantes; c++){
-				t_datos_hilo* datos_hilo = malloc(sizeof(t_datos_hilo));
-				datos_hilo->id = c;
-				datos_hilo->posicion_x = atoi(parser_posiciones[posicion]);
-				datos_hilo->posicion_y = atoi(parser_posiciones[posicion+1]);
-
-				// Array para guardar todos los tripulantes (guarda los hilos)
-				// Array para guardar todas las patotas (guarda los procesos)
-
-				pthread_create(&(hilo_tripulante), NULL, (t_tcb*)crear_tripulante, (t_datos_hilo*) datos_hilo);
-				pthread_join(hilo_tripulante, &tripulantes);
-
-				posicion += 2;
-				free(datos_hilo);
-			}
-
-			/*
-			int n = 0;
-			while(parser_posiciones[n] != NULL){
-				printf("%s \n", parser_posiciones[n]);
-				n++;
-			}
-
-			t_tripulante** mensaje_tripulantes = malloc(sizeof(t_tripulante));
-			uint32_t tamanio_tripulacion = 0;
-
-			int posicion = 0;
-			for(uint32_t c= 1; c<=cantidad_tripulantes; c++) {
-				mensaje_tripulantes[c] = malloc(sizeof(t_tripulante));
-				mensaje_tripulantes[c] = crear_tripulante(c, parser_posiciones[posicion], parser_posiciones[posicion+1]);
-
-				tamanio_tripulacion += mensaje_tripulantes[c]->peso_tripulante;
-				posicion += 2;
-			}
-
-			for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
-				mostrar_tripulante(mensaje_tripulantes[k]);
-			}
-
-			while(parser_consola[ubicacion_parser] != NULL && ubicacion_parser<cantidad_argumentos) {
-				printf("%s \n", parser_consola[ubicacion_parser]);
-				parser_posiciones = string_split(parser_consola[ubicacion_parser], "|");
-				//printf("Posicion X: %s \n", parser_posiciones[0]);
-				posiciones[n] = parser_posiciones[0];
-				//printf("%s \n", posiciones[n]);
-				n++;
-				posiciones[n] = parser_posiciones[1];
-				//printf("%s \n", posiciones[n]);
-				//printf("Posicion Y: %s \n", parser_posiciones[1]);
-				ubicacion_parser++;
-				n ++;
-			}
-
-			for(int i=0; i<posiciones_faltantes; i++){
-				//printf("0|0 \n");
-				posiciones[n] = "0";
-				//printf("%u \n", atoi(posiciones[n]));
-				//printf("%s \n", posiciones[n]);
-				n++;
-				posiciones[n] = "0";
-				//printf("%s \n", posiciones[n]);
-				n++;
-				//printf("Posicion X: 0 \n");
-				//printf("Posicion Y: 0 \n");
-			}
-			int c = 0;
-			while(posiciones[c] != NULL) {
-				printf("%s \n", posiciones[c]);
-				c++;
-			}*/
-
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
 
 			if(conexion_mi_ram < 0) {										// En el caso que no pueda conectar, sale del CASE
@@ -231,11 +143,57 @@ void obtener_orden_input()
 				break;
 			}
 
-			/*enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
+			t_patota* mensaje_patota = malloc(sizeof(t_patota));
+			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
+			mensaje_patota->tamanio_tareas = strlen(parser_consola[2]);
+			mensaje_patota->archivo_tareas = malloc(mensaje_patota->tamanio_tareas+1);
+			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
+
+			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
+
+			// Que hacer con la lista de posiciones, se envian a MIRAM o se dejan aca para hacer los tripulantes
+/*
+			int posicion = 0;
+			for(uint32_t c=0; c<cantidad_tripulantes; c++){
+				t_datos_hilo* datos_hilo = malloc(sizeof(t_datos_hilo));
+				datos_hilo->posicion_x = atoi(parser_posiciones[posicion]);
+				datos_hilo->posicion_y = atoi(parser_posiciones[posicion+1]);
+
+				// Array para guardar todos los tripulantes (guarda los hilos)
+				// Array para guardar todas las patotas (guarda los procesos)
+
+				pthread_create(&(hilo_tripulante), NULL, (t_tcb*)crear_tripulante, (t_datos_hilo*) datos_hilo);
+
+				//tripulantes = tripulantes ->sig siempre que sea NULL, y ahi guarda el tripulante creado
+				pthread_join(hilo_tripulante, &tripulantes);
+
+				posicion += 2;
+				free(datos_hilo);
+			}*/
+
+			 t_tcb** tripulantes = malloc(sizeof(t_tcb)*cantidad_tripulantes);
+
+			int posicion1 = 0;
+			for(uint32_t c=1; c<=cantidad_tripulantes; c++){
+				tripulantes[c] = malloc(sizeof(t_tcb));
+				tripulantes[c]->id_tripulante = c;
+				tripulantes[c]->estado_tripulante = 'N';
+				tripulantes[c]->posicion_x = atoi(parser_posiciones[posicion1]);
+				tripulantes[c]->posicion_y = atoi(parser_posiciones[posicion1+1]);
+				tripulantes[c]->id_proxima_instruccion = 0;
+
+				posicion1 += 2;
+			}
 
 			for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
-				enviar_mensaje(mensaje_tripulantes[k], INICIAR_PATOTA, conexion_mi_ram);
-			}*/
+				mostrar_tripulante(tripulantes[k]);
+			}
+
+			for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
+				enviar_mensaje(tripulantes[k], INICIAR_PATOTA, conexion_mi_ram);
+			}
+
+
 
 			free(posiciones);
 			free(parser_posiciones);
@@ -253,7 +211,6 @@ void obtener_orden_input()
 			}
 
 			listar_tripulantes();
-
 			break;
 
 		case OBTENER_BITACORA:
@@ -295,7 +252,7 @@ void obtener_orden_input()
 			t_id_tripulante* id_tripulante_a_expulsar = malloc(sizeof(t_id_tripulante));
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
 
-			// Buscar el hilo del tripulante a expulsar y eliminarlo (pthread_detach)?
+			// Buscar el hilo del tripulante a expulsar y eliminarlo (DELETE)?
 
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
 
@@ -314,8 +271,12 @@ void obtener_orden_input()
 			printf("Terminando programa... \n");
 			sleep(1);
 			printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
-			// Tengo que salir del hilo en el que esta siendo ejecutado, de esa forma salir del while y Finalizar el Programa
-			break;
+			// Libero memoria
+			free(parser_consola);
+			free(cadena_ingresada);
+			terminar_programa(config, logger);
+
+			exit(0);
 
 		default:
 			printf("No se reconoce ese comando. Por favor, ingrese un comando válido.\n");
@@ -326,6 +287,7 @@ void obtener_orden_input()
 
 	free(parser_consola);
 	free(cadena_ingresada);
+
 	return;
 }
 

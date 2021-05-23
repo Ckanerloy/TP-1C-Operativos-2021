@@ -57,7 +57,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 {
 	t_patota* patota_recibida;
 	t_tripulante** tripulante_x_patota_recibido;
-
 	t_id_tripulante* tripulante_recibido;
 
 	//sem_post(espera);
@@ -70,20 +69,32 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				printf("Archivo de tareas: %s \n", patota_recibida->archivo_tareas);
+
 /*
-				for(int i=1; i<=patota_recibida->cantidad_tripulantes; i++) {
+ * Esta forma NO VA. Sucede que lo entiende y lo corre, PEEEEERO, primero recibe la patota, y cuando le estas enviando el tripulante
+ * en la funcion de INICIAR PATOTA de Discordiador le estas enviando algo RE DIFERENTE a lo que pide en el codigo de aca arriba
+ * y no lo entiende, asi que rompe
+ * Es como que te pidan caramelos, y le estas dando chupetines
+ * Asi que esta forma de enviar en primera parte la PATOTA y despues todos los TRIPULANTES NO VA
+ * La otra que se me ocurre, es que se haga una lista de tripulantes dentro de la patota, entonces ya esta todo en conjunto
+ * Pero cuesta un huevo en la Serializacion y la Deserializacion, asi que paso...
+ */
+
+
+
+
+				/*uint32_t cantidad_tripulantes = patota_recibida->cantidad_tripulantes;
+
+				tripulante_x_patota_recibido = malloc(sizeof(t_tcb)*cantidad_tripulantes);
+
+				for(int i=1; i<=cantidad_tripulantes; i++) {
 					recibir_mensaje(tripulante_x_patota_recibido[i], operacion, conexion);
 				}
 
-				//for(int i=1; i<=patota_recibida->cantidad_tripulantes; i++) {
+				for(int i=1; i<=cantidad_tripulantes; i++) {
 					mostrar_tripulante(tripulante_x_patota_recibido[i]);
 				}*/
 
-
-				//fork();
-				//crear_patota(patota_recibida);
-				// Recibe la patota de parte del discordiador
-				// Y prepara cada patota como un PROCESO, y cada tripulante como un HILO
 				free(patota_recibida->archivo_tareas);
 				free(patota_recibida);
 				break;
@@ -105,10 +116,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 }
 
 
-void mostrar_tripulante(t_tripulante* tripulante) {
+void mostrar_tripulante(t_tcb* tripulante) {
 
 	printf("Id tripulante: %u \n", tripulante->id_tripulante);
-	printf("Estado tripulante: %s \n", tripulante->estado_tripulante);
+	printf("Estado tripulante: %c \n", tripulante->estado_tripulante);
 	printf("Posicion X: %i \n", tripulante->posicion_x);
 	printf("Posicion Y: %i \n", tripulante->posicion_y);
+	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_proxima_instruccion);
 }
+

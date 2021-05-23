@@ -21,6 +21,6 @@ void listar_tripulantes();
 uint32_t cantidad_argumentos_ingresados(char** parser_consola);
 
 t_tcb* crear_tripulante(t_datos_hilo* datos_hilo);
-void mostrar_tripulante(t_tripulante* tripulante);
+void mostrar_tripulante(t_tcb* tripulante);
 
 #endif /* UTILSDISCORDIADOR_H_ */

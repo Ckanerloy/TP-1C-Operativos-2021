@@ -69,10 +69,10 @@ t_tcb* crear_tripulante(t_datos_hilo* datos_hilo) {
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
 
-	tripulante->id_tripulante = datos_hilo->id;
+	//tripulante->id_tripulante = ;
 
-	tripulante->estado_tripulante = malloc(sizeof(estado_tripulante));
-	tripulante->estado_tripulante = NEW;
+	//tripulante->estado_tripulante = malloc(sizeof(estado_tripulante));
+	tripulante->estado_tripulante = 'N';
 
 	tripulante->posicion_x = datos_hilo->posicion_x;
 
@@ -83,12 +83,13 @@ t_tcb* crear_tripulante(t_datos_hilo* datos_hilo) {
 	return tripulante;
 }
 
-void mostrar_tripulante(t_tripulante* tripulante) {
+void mostrar_tripulante(t_tcb* tripulante) {
 
 	printf("Id tripulante: %u \n", tripulante->id_tripulante);
-	printf("Estado tripulante: %s \n", tripulante->estado_tripulante);
+	printf("Estado tripulante: %c \n", tripulante->estado_tripulante);
 	printf("Posicion X: %i \n", tripulante->posicion_x);
 	printf("Posicion Y: %i \n", tripulante->posicion_y);
+	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_proxima_instruccion);
 }
 
 void liberar_tripulantes(uint32_t cantidad_tripulantes, t_tripulante** mensaje_tripulantes) {
@@ -99,10 +100,12 @@ void liberar_tripulantes(uint32_t cantidad_tripulantes, t_tripulante** mensaje_t
 
 // Funcion para LISTAR TRIPULANTES
 void listar_tripulantes() {
+
+	t_lista_tripulante** lista;
+
 	printf("-------------------------------------------------------------------------\n");
 	printf("Estado de la nave: %s \n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
 	printf("Tripulante: ID_TRIPULANTE      Patota: NUM_PATOTA      Status:  STATUS \n");
-
 	printf("--------------------------------------------------------------------------\n\n");
 }
 

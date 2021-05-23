@@ -24,17 +24,10 @@ typedef enum
 	DESCARTAR_BASURA
 } codigo_tarea;
 
-typedef enum {
-	NEW,
-	READY,
-	BLOQ,
-	EXECUTE
-} estado_tripulante;
-
 
 typedef struct {
 	uint32_t id_tripulante;
-	estado_tripulante estado_tripulante;
+	char estado_tripulante;
 	uint32_t tamanio_estado_tripulante;
 	int posicion_x;
 	int posicion_y;
@@ -46,10 +39,16 @@ typedef struct {
 	uint32_t cantidad_tripulantes;
 	char* archivo_tareas;
 	uint32_t tamanio_tareas;
-	t_tripulante** tripulantes;
-	uint32_t tamanio_tripulantes;
+	//t_tripulante** tripulantes;
+	//uint32_t tamanio_tripulantes;
 } t_patota;
 
+
+typedef struct {
+	uint32_t num_patota;
+	uint32_t num_tripulante;
+	char estado;
+} t_lista_tripulante;
 
 typedef struct {
 	uint32_t id_tripulante;
@@ -77,7 +76,7 @@ typedef struct
 
 // Patota Control Block (PCB)
 typedef struct {
-	uint32_t id_patota;
+	uint32_t id_patota;					// PID
 	void* direccion_tareas;
 }t_pcb;
 
@@ -86,7 +85,7 @@ typedef struct {
 
 // Tripulante Control Block (TCB)
 typedef struct {
-	uint32_t id_tripulante;
+	uint32_t id_tripulante;				// TID
 	char estado_tripulante;				// (N/R/E/B)
 	uint32_t posicion_x;
 	uint32_t posicion_y;

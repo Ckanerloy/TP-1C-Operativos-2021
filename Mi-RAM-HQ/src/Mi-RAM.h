@@ -36,4 +36,6 @@ void obtener_datos_de_config(t_config* config);
 void escuchar_conexion(int32_t* conexion_cliente);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
+void mostrar_tripulante(t_tcb* tripulante);
+
 #endif /* MI_RAM_H_ */

@@ -48,8 +48,6 @@ pthread_t hilo_consola;
 pthread_t hilo_sabotaje;
 pthread_t hilo_tripulante;
 
-t_tcb** tripulantes;
-
 t_log* logger;
 t_config* config;
 
