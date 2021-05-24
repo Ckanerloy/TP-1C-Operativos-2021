@@ -36,24 +36,6 @@ codigo_operacion mapeo_valor_consola(char* comando_ingresado) {
 }
 
 
-// Creación de un Tripulante
-t_tcb* crear_tripulante(t_datos_hilo* datos_hilo) {
-
-	t_tcb* tripulante = malloc(sizeof(t_tcb));
-
-	//tripulante->id_tripulante = ;
-
-	tripulante->estado_tripulante = 'N';
-
-	tripulante->posicion_x = datos_hilo->posicion_x;
-
-	tripulante->posicion_y = datos_hilo->posicion_y;
-
-	tripulante->id_proxima_instruccion = 0;
-
-	return tripulante;
-}
-
 void mostrar_tripulante(t_tcb* tripulante) {
 
 	printf("Id tripulante: %u \n", tripulante->tid);

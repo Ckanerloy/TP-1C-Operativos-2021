@@ -153,8 +153,11 @@ void obtener_orden_input()
 			strcpy(mensaje_patota->posiciones, posiciones);
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
-			close(conexion_mi_ram);
 
+			t_tcb* tripulante_recibido = malloc(sizeof(t_tcb));
+			recibir_mensaje(tripulante_recibido, INICIAR_TRIPULANTE,conexion_mi_ram);
+
+			mostrar_tripulante(tripulante_recibido);
 
 			free(posiciones);
 			free(parser_posiciones);
@@ -162,7 +165,7 @@ void obtener_orden_input()
 			free(mensaje_patota->archivo_tareas);
 			free(mensaje_patota->posiciones);
 			free(mensaje_patota);
-
+			close(conexion_mi_ram);
 			break;
 
 		case LISTAR_TRIPULANTES:

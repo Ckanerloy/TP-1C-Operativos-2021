@@ -65,8 +65,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				printf("Archivo de tareas: %s \n", patota_recibida->archivo_tareas);
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
 
+				tripulante_recibido = malloc(sizeof(t_tcb));
 				t_pcb* pcb_patota = crear_pcb();
-				crear_tcbs(pcb_patota, patota_recibida);
+				tripulante_recibido = crear_tcbs(pcb_patota, patota_recibida);
+
+				enviar_mensaje(tripulante_recibido, INICIAR_TRIPULANTE, conexion);
 
 				free(patota_recibida->archivo_tareas);
 				free(patota_recibida->posiciones);
@@ -111,26 +114,26 @@ t_pcb* crear_pcb(void){
 	proceso_patota->tareas = 0; //Hay que buscar que es la direccion logica del archivo de tareas
 	return proceso_patota;
 }
-void crear_tcbs(t_pcb* pcb_patota, t_iniciar_patota* patota_recibida){
+t_tcb* crear_tcbs(t_pcb* pcb_patota, t_iniciar_patota* patota_recibida){
 	uint32_t cantidad_tripulantes = patota_recibida->cantidad_tripulantes;
 
 	char** parser_posiciones = string_split(patota_recibida->posiciones, "|");
 	string_trim(parser_posiciones);
 
 	int posicion = 0;
-	for(uint32_t c=0; c<cantidad_tripulantes; c++){
+	//for(uint32_t c=0; c<cantidad_tripulantes; c++){
 		int posicion_x = atoi(parser_posiciones[posicion]);
 		int posicion_y = atoi(parser_posiciones[posicion+1]);
 
-		t_tcb* tripulante = crear_tripulante(posicion_x, posicion_y);
-		//enviar_discordiador(tripulante);
+		return crear_tripulante(posicion_x, posicion_y, pcb_patota);
+
 		//agregar_tripulante_mapa(tripulante);
 
-		posicion += 2;
-	}
+		//posicion += 2;
+	//}
 }
 
-t_tcb* crear_tripulante(int posicion_x, int posicion_y){
+t_tcb* crear_tripulante(int posicion_x, int posicion_y, t_pcb* pcb_patota){
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
 	tripulante->tid = process_get_thread_id();
@@ -138,13 +141,11 @@ t_tcb* crear_tripulante(int posicion_x, int posicion_y){
 	tripulante->posicion_x = posicion_x;
 	tripulante->posicion_y = posicion_y;
 	tripulante->id_proxima_instruccion = 0;
+	tripulante->puntero_PCB = &pcb_patota;
 
 	return tripulante;
 }
 
-//void enviar_discordiador(t_tcb* tripulante){
-
-//}
 
 
 void mostrar_tripulante(t_tcb* tripulante) {

@@ -142,6 +142,7 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 			break;
 
 		case INICIAR_TRIPULANTE:
+			deserealizar_tripulante(mensaje, conexion);
 			break;
 
 		case EXPULSAR_TRIPULANTE:
@@ -293,6 +294,10 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 		case INICIAR_PATOTA:
 			tamanio_preparado = serializar_paquete_iniciar_patota(paquete, mensaje);
 			break;
+
+		case INICIAR_TRIPULANTE:
+					tamanio_preparado = serializar_paquete_tripulante(paquete, mensaje);
+					break;
 
 		case OBTENER_BITACORA:
 			tamanio_preparado = serializar_paquete_id_tripulante(paquete, mensaje);
