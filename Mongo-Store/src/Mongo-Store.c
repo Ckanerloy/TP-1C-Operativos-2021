@@ -2,11 +2,11 @@
 
 int main(void)
 {
-	t_config* config = crear_config(CONFIG_PATH);
+	config = crear_config(CONFIG_PATH);
 
 	obtener_datos_de_config(config);
 
-	t_log* logger = crear_log("mongo-store.log", "Mongo Store");
+	logger = crear_log("mongo-store.log", "Mongo Store");
 	log_info(logger, "Servidor Mongo Store activo...");
 
 	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);

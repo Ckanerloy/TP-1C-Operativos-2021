@@ -14,4 +14,11 @@
 #include "utils/estructuras.h"
 
 
+typedef struct{
+	uint32_t cantidad;
+	int posicion_x;
+	int posicion_y;
+	uint32_t tiempo;
+} t_parametros_tarea;
+
 #endif /* TAREAS_H_ */

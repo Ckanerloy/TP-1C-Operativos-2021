@@ -24,6 +24,9 @@ char* PUERTO_MONTAJE;
 int TIEMPO_SINCRONIZACION;
 char** POSICIONES_SABOTAJE;
 
+t_log* logger;
+t_config* config;
+
 pthread_t hilo_recibir_mensajes;
 
 void obtener_datos_de_config(t_config* config);
