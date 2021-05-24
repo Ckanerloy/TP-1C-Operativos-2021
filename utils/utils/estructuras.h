@@ -90,8 +90,8 @@ typedef struct {
 typedef struct {
 	uint32_t tid;						// ID tripulante
 	char estado_tripulante;				// (N/R/E/B)
-	uint32_t posicion_x;
-	uint32_t posicion_y;
+	int posicion_x;
+	int posicion_y;
 	uint32_t id_proxima_instruccion;	// Linea del archivo de texto
 	uint32_t puntero_PCB;				// Dirección lógica del PCB
 }t_tcb;

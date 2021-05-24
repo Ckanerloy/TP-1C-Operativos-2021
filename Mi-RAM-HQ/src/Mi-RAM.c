@@ -11,24 +11,30 @@ int main(void)
 
 	//espera = malloc(sizeof(sem_t));
 	//sem_init(espera, 0, 1);
+	/*sem_recibir = malloc(sizeof(sem_t));
+	sem_init(sem_recibir, 0, 1);
+
+	sem_enviar = malloc(sizeof(sem_t));
+	sem_init(sem_enviar, 0, 0);*/
 
 	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
 
 	while(1) {
 
+		//sem_wait(sem_recibir);
 		int32_t* conexion_cliente = esperar_conexion(conexion_servidor);
-		//sem_wait(espera);
+
 		pthread_create(&hilo_recibir_mensajes, NULL,(void*)escuchar_conexion, conexion_cliente);
 
 		pthread_detach(hilo_recibir_mensajes);
-	}
 
+		/*sem_wait(sem_enviar);*/
+
+	}
 
 	terminar_programa(config, logger);
 	return EXIT_SUCCESS;
 }
-
-
 
 void obtener_datos_de_config(t_config* config)
 {
@@ -41,15 +47,12 @@ void obtener_datos_de_config(t_config* config)
 	ALGORITMO_REEMPLAZO = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
 }
 
-
-
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 {
 	t_iniciar_patota* patota_recibida;
 	t_tcb* tripulante_recibido;
 	t_id_tripulante* tripulante_a_eliminar;
 
-	char ** parser_posiciones;
 	//sem_post(espera);
 
 	switch(operacion)
@@ -62,18 +65,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				printf("Archivo de tareas: %s \n", patota_recibida->archivo_tareas);
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
 
-				parser_posiciones = string_split(patota_recibida->posiciones, "|");
-				string_trim(parser_posiciones);
+				t_pcb* pcb_patota = crear_pcb();
+				crear_tcbs(pcb_patota, patota_recibida);
 
-/*
- * Esta forma NO VA. Sucede que lo entiende y lo corre, PEEEEERO, primero recibe la patota, y cuando le estas enviando el tripulante
- * en la funcion de INICIAR PATOTA de Discordiador le estas enviando algo RE DIFERENTE a lo que pide en el codigo de aca arriba
- * y no lo entiende, asi que rompe
- * Es como que te pidan caramelos, y le estas dando chupetines
- * Asi que esta forma de enviar en primera parte la PATOTA y despues todos los TRIPULANTES NO VA
- * La otra que se me ocurre, es que se haga una lista de tripulantes dentro de la patota, entonces ya esta todo en conjunto
- * Pero cuesta un huevo en la Serializacion y la Deserializacion, asi que paso...
- */
 				free(patota_recibida->archivo_tareas);
 				free(patota_recibida->posiciones);
 				free(patota_recibida);
@@ -109,6 +103,48 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				break;
 			}
 }
+
+
+t_pcb* crear_pcb(void){
+	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));
+	proceso_patota->pid = process_getpid();
+	proceso_patota->tareas = 0; //Hay que buscar que es la direccion logica del archivo de tareas
+	return proceso_patota;
+}
+void crear_tcbs(t_pcb* pcb_patota, t_iniciar_patota* patota_recibida){
+	uint32_t cantidad_tripulantes = patota_recibida->cantidad_tripulantes;
+
+	char** parser_posiciones = string_split(patota_recibida->posiciones, "|");
+	string_trim(parser_posiciones);
+
+	int posicion = 0;
+	for(uint32_t c=0; c<cantidad_tripulantes; c++){
+		int posicion_x = atoi(parser_posiciones[posicion]);
+		int posicion_y = atoi(parser_posiciones[posicion+1]);
+
+		t_tcb* tripulante = crear_tripulante(posicion_x, posicion_y);
+		//enviar_discordiador(tripulante);
+		//agregar_tripulante_mapa(tripulante);
+
+		posicion += 2;
+	}
+}
+
+t_tcb* crear_tripulante(int posicion_x, int posicion_y){
+
+	t_tcb* tripulante = malloc(sizeof(t_tcb));
+	tripulante->tid = process_get_thread_id();
+	tripulante->estado_tripulante = 'N';
+	tripulante->posicion_x = posicion_x;
+	tripulante->posicion_y = posicion_y;
+	tripulante->id_proxima_instruccion = 0;
+
+	return tripulante;
+}
+
+//void enviar_discordiador(t_tcb* tripulante){
+
+//}
 
 
 void mostrar_tripulante(t_tcb* tripulante) {

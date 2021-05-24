@@ -134,7 +134,6 @@ void obtener_orden_input()
 
 			strcat(posiciones, "\0");
 
-
 			// Conexión con Mi-RAM HQ
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
 
@@ -154,48 +153,8 @@ void obtener_orden_input()
 			strcpy(mensaje_patota->posiciones, posiciones);
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
+			close(conexion_mi_ram);
 
-			/*
-			int posicion = 0;
-			for(uint32_t c=0; c<cantidad_tripulantes; c++){
-				t_datos_hilo* datos_hilo = malloc(sizeof(t_datos_hilo));
-				datos_hilo->posicion_x = atoi(parser_posiciones[posicion]);
-				datos_hilo->posicion_y = atoi(parser_posiciones[posicion+1]);
-
-				// Array para guardar todos los tripulantes (guarda los hilos)
-				// Array para guardar todas las patotas (guarda los procesos)
-
-				pthread_create(&(hilo_tripulante), NULL, (t_tcb*)crear_tripulante, (t_datos_hilo*) datos_hilo);
-
-				//tripulantes = tripulantes ->sig siempre que sea NULL, y ahi guarda el tripulante creado
-				pthread_join(hilo_tripulante, &tripulantes);
-
-				posicion += 2;
-				free(datos_hilo);
-			}
-
-			 t_tcb** tripulantes = malloc(sizeof(t_tcb)*cantidad_tripulantes);
-
-			int posicion1 = 0;
-			for(uint32_t c=1; c<=cantidad_tripulantes; c++){
-				tripulantes[c] = malloc(sizeof(t_tcb));
-				tripulantes[c]->id_tripulante = c;
-				tripulantes[c]->estado_tripulante = 'N';
-				tripulantes[c]->posicion_x = atoi(parser_posiciones[posicion1]);
-				tripulantes[c]->posicion_y = atoi(parser_posiciones[posicion1+1]);
-				tripulantes[c]->id_proxima_instruccion = 0;
-
-				posicion1 += 2;
-			}
-
-			for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
-				mostrar_tripulante(tripulantes[k]);
-			}
-
-			for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
-				enviar_mensaje(tripulantes[k], INICIAR_PATOTA, conexion_mi_ram);
-			}
-			*/
 
 			free(posiciones);
 			free(parser_posiciones);
@@ -203,7 +162,7 @@ void obtener_orden_input()
 			free(mensaje_patota->archivo_tareas);
 			free(mensaje_patota->posiciones);
 			free(mensaje_patota);
-			close(conexion_mi_ram);
+
 			break;
 
 		case LISTAR_TRIPULANTES:
@@ -307,3 +266,46 @@ void arreglar_sabotaje() {
 	// MANDA TRIPULANTE MAS CERCANO A LA UBICACION DEL SABOTAJE PARA QUE LO SOLUCIONE
 }
 
+/*
+ * CODIGO QUE PODEMOS UTILIZAR
+ *
+		int posicion = 0;
+		for(uint32_t c=0; c<cantidad_tripulantes; c++){
+			t_datos_hilo* datos_hilo = malloc(sizeof(t_datos_hilo));
+			datos_hilo->posicion_x = atoi(parser_posiciones[posicion]);
+			datos_hilo->posicion_y = atoi(parser_posiciones[posicion+1]);
+
+			// Array para guardar todos los tripulantes (guarda los hilos)
+			// Array para guardar todas las patotas (guarda los procesos)
+
+			pthread_create(&(hilo_tripulante), NULL, (t_tcb*)crear_tripulante, (t_datos_hilo*) datos_hilo);
+
+			//tripulantes = tripulantes ->sig siempre que sea NULL, y ahi guarda el tripulante creado
+			pthread_join(hilo_tripulante, &tripulantes);
+
+			posicion += 2;
+			free(datos_hilo);
+		}
+
+		 t_tcb** tripulantes = malloc(sizeof(t_tcb)*cantidad_tripulantes);
+
+		int posicion1 = 0;
+		for(uint32_t c=1; c<=cantidad_tripulantes; c++){
+			tripulantes[c] = malloc(sizeof(t_tcb));
+			tripulantes[c]->id_tripulante = c;
+			tripulantes[c]->estado_tripulante = 'N';
+			tripulantes[c]->posicion_x = atoi(parser_posiciones[posicion1]);
+			tripulantes[c]->posicion_y = atoi(parser_posiciones[posicion1+1]);
+			tripulantes[c]->id_proxima_instruccion = 0;
+
+			posicion1 += 2;
+		}
+
+		for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
+			mostrar_tripulante(tripulantes[k]);
+		}
+
+		for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
+			enviar_mensaje(tripulantes[k], INICIAR_PATOTA, conexion_mi_ram);
+		}
+		*/

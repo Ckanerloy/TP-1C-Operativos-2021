@@ -35,6 +35,10 @@ void obtener_datos_de_config(t_config* config);
 
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
+t_tcb* crear_tripulante(int pos_x, int pos_y);
+
+t_pcb* crear_pcb(void);
+
 void mostrar_tripulante(t_tcb* tripulante);
 
 #endif /* MI_RAM_H_ */
