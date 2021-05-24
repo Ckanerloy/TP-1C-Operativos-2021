@@ -36,34 +36,6 @@ codigo_operacion mapeo_valor_consola(char* comando_ingresado) {
 }
 
 
-void terminar_programa(t_config* config, t_log* logger)
-{
-	config_destroy(config);
-	printf("Puntero a archivo .config destruido.\n");
-	log_destroy(logger);
-	printf("Puntero al logger destruido.\n");
-}
-
-/*
-t_tripulante* crear_tripulante(uint32_t id, char* posicion_x, char* posicion_y) {
-
-	t_tripulante* tripulante = malloc(sizeof(t_tripulante));
-
-	tripulante->id_tripulante = id;
-
-	tripulante->tamanio_estado_tripulante = strlen("NUEVO");
-	tripulante->estado_tripulante = malloc(tripulante->tamanio_estado_tripulante + 1);
-	strcpy(tripulante->estado_tripulante, "NUEVO");
-
-	tripulante->posicion_x = atoi(posicion_x);
-
-	tripulante->posicion_y = atoi(posicion_y);
-
-	tripulante->peso_tripulante = sizeof(tripulante->id_tripulante) + sizeof(tripulante->tamanio_estado_tripulante) + strlen(tripulante->estado_tripulante)+1 + sizeof(tripulante->posicion_x) + sizeof(tripulante->posicion_y);
-
-	return tripulante;
-}*/
-
 // Creación de un Tripulante
 t_tcb* crear_tripulante(t_datos_hilo* datos_hilo) {
 
@@ -71,7 +43,6 @@ t_tcb* crear_tripulante(t_datos_hilo* datos_hilo) {
 
 	//tripulante->id_tripulante = ;
 
-	//tripulante->estado_tripulante = malloc(sizeof(estado_tripulante));
 	tripulante->estado_tripulante = 'N';
 
 	tripulante->posicion_x = datos_hilo->posicion_x;
@@ -85,7 +56,7 @@ t_tcb* crear_tripulante(t_datos_hilo* datos_hilo) {
 
 void mostrar_tripulante(t_tcb* tripulante) {
 
-	printf("Id tripulante: %u \n", tripulante->id_tripulante);
+	printf("Id tripulante: %u \n", tripulante->tid);
 	printf("Estado tripulante: %c \n", tripulante->estado_tripulante);
 	printf("Posicion X: %i \n", tripulante->posicion_x);
 	printf("Posicion Y: %i \n", tripulante->posicion_y);
@@ -101,7 +72,7 @@ void liberar_tripulantes(uint32_t cantidad_tripulantes, t_tripulante** mensaje_t
 // Funcion para LISTAR TRIPULANTES
 void listar_tripulantes() {
 
-	t_lista_tripulante** lista;
+	//t_lista_tripulante** lista;
 
 	printf("-------------------------------------------------------------------------\n");
 	printf("Estado de la nave: %s \n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
@@ -118,5 +89,9 @@ uint32_t cantidad_argumentos_ingresados(char** parser_consola){  // la vamos a u
 		cantidad++;
 	}
 	return cantidad;
+}
+
+void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
+
 }
 

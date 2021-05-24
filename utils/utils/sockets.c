@@ -70,27 +70,6 @@ int32_t iniciar_servidor(char* IP, char* PUERTO)
 }
 
 
-
-
-
-/*
-void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio)
-{
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
-
-	memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));
-	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio);
-
-	paquete->buffer->size += tamanio + sizeof(int);
-}*/
-
-
-
-
-
-
-
-
 int32_t* esperar_conexion(int32_t socket_servidor)
 {
 	int32_t* socket_cliente = malloc(sizeof(int32_t));
@@ -103,6 +82,15 @@ int32_t* esperar_conexion(int32_t socket_servidor)
 	return socket_cliente;
 }
 
+
+void escuchar_conexion(int32_t* conexion_cliente)
+{
+	codigo_operacion operacion;
+
+	recv(*conexion_cliente, &operacion, sizeof(operacion), MSG_WAITALL);
+
+	procesar_mensajes(operacion, *conexion_cliente);
+}
 
 
 void recibir_operacion(int32_t socket_cliente, codigo_operacion operacion)
@@ -153,6 +141,9 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 			deserializar_iniciar_patota(mensaje, conexion);
 			break;
 
+		case INICIAR_TRIPULANTE:
+			break;
+
 		case EXPULSAR_TRIPULANTE:
 			deseralizar_id_tripulante(mensaje, conexion);
 			break;
@@ -179,23 +170,36 @@ void* recibir_buffer(uint32_t* size, int32_t conexion_cliente)
 }
 
 
-void deserializar_iniciar_patota(t_patota* mensaje, int32_t conexion)
+void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion)
 {
 	uint32_t tamanio;
 	uint32_t desplazamiento = 0;
 	void* buffer_deserializar;
 	buffer_deserializar = recibir_buffer(&tamanio, conexion);
 
+	// Cantidad de Tripulantes
 	memcpy(&(mensaje->cantidad_tripulantes), buffer_deserializar + desplazamiento, sizeof(mensaje->cantidad_tripulantes));
 	desplazamiento += sizeof(mensaje->cantidad_tripulantes);
 
+	// Tamanio de archivo de tareas
 	memcpy(&(mensaje->tamanio_tareas), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_tareas));
 	desplazamiento += sizeof(mensaje->tamanio_tareas);
 
 	mensaje->archivo_tareas = malloc(mensaje->tamanio_tareas+1);
 
+	// Archivo de tareas
 	memcpy(mensaje->archivo_tareas, buffer_deserializar + desplazamiento, mensaje->tamanio_tareas +1);
 	desplazamiento += mensaje->tamanio_tareas+1;
+
+	// Tamanio de posiciones
+	memcpy(&(mensaje->tamanio_posiciones), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_posiciones));
+	desplazamiento += sizeof(mensaje->tamanio_posiciones);
+
+	mensaje->posiciones = malloc(mensaje->tamanio_posiciones+1);
+
+	// Posiciones de los tripulantes
+	memcpy(mensaje->posiciones, buffer_deserializar + desplazamiento, mensaje->tamanio_posiciones+1);
+	desplazamiento += mensaje->tamanio_posiciones+1;
 
 	free(buffer_deserializar);
 }
@@ -208,8 +212,8 @@ void deserealizar_tripulante(t_tcb* mensaje, int32_t conexion) {
 	buffer_deserializar = recibir_buffer(&tamanio, conexion);
 
 	// Id de Tripulante
-	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
-	desplazamiento += sizeof(mensaje->id_tripulante);
+	memcpy(&(mensaje->tid), buffer_deserializar + desplazamiento, sizeof(mensaje->tid));
+	desplazamiento += sizeof(mensaje->tid);
 
 	// Estado de Tripulante
 	memcpy(&(mensaje->estado_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->estado_tripulante));
@@ -226,6 +230,10 @@ void deserealizar_tripulante(t_tcb* mensaje, int32_t conexion) {
 	// Id proxima instruccion
 	memcpy(&(mensaje->id_proxima_instruccion), buffer_deserializar + desplazamiento, sizeof(mensaje->id_proxima_instruccion));
 	desplazamiento += sizeof(mensaje->id_proxima_instruccion);
+
+	// Puntero del PCB
+	memcpy(&(mensaje->puntero_PCB), buffer_deserializar + desplazamiento, sizeof(mensaje->puntero_PCB));
+	desplazamiento += sizeof(mensaje->puntero_PCB);
 
 	free(buffer_deserializar);
 }
@@ -318,14 +326,14 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 }
 
 
-uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_patota* mensaje)
+uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota* mensaje)
 {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + strlen(mensaje->archivo_tareas)+1;
+	buffer->size = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + strlen(mensaje->archivo_tareas)+1 + sizeof(mensaje->tamanio_posiciones) + strlen(mensaje->posiciones)+1;
 	//buffer->size = sizeof(uint32_t)*2 + strlen(mensaje->archivo_tareas)+1;
 
 	void* stream_auxiliar = malloc(buffer->size);
@@ -342,7 +350,15 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_patota* mensaje
 	memcpy(stream_auxiliar + desplazamiento, mensaje->archivo_tareas, mensaje->tamanio_tareas +1);
 	desplazamiento += mensaje->tamanio_tareas+1;
 
-	tamanio_a_enviar = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + mensaje->tamanio_tareas+1;
+	// Tamanio de posiciones
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tamanio_posiciones), sizeof(mensaje->tamanio_posiciones));
+	desplazamiento += sizeof(mensaje->tamanio_posiciones);
+
+	// Posiciones de los tripulantes
+	memcpy(stream_auxiliar + desplazamiento, mensaje->posiciones, mensaje->tamanio_posiciones+1);
+	desplazamiento += mensaje->tamanio_posiciones+1;
+
+	tamanio_a_enviar = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + mensaje->tamanio_tareas+1 + sizeof(mensaje->tamanio_posiciones) + mensaje->tamanio_posiciones+1;
 
 	if(desplazamiento != tamanio_a_enviar)
 	{
@@ -372,13 +388,13 @@ uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tcb* mensaje)
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(mensaje->id_tripulante) + sizeof(mensaje->estado_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y) + sizeof(mensaje->id_proxima_instruccion);
+	buffer->size = sizeof(mensaje->tid) + sizeof(mensaje->estado_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y) + sizeof(mensaje->id_proxima_instruccion) + sizeof(mensaje->puntero_PCB);
 
 	void* stream_auxiliar = malloc(buffer->size);
 
 	// Id de Tripulante
-	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
-	desplazamiento += sizeof(mensaje->id_tripulante);
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tid), sizeof(mensaje->tid));
+	desplazamiento += sizeof(mensaje->tid);
 
 	// Estado de Tripulante
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->estado_tripulante), sizeof(mensaje->estado_tripulante));
@@ -396,8 +412,11 @@ uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tcb* mensaje)
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_proxima_instruccion), sizeof(mensaje->id_proxima_instruccion));
 	desplazamiento += sizeof(mensaje->id_proxima_instruccion);
 
+	// Puntero del PCB
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->puntero_PCB), sizeof(mensaje->puntero_PCB));
+	desplazamiento += sizeof(mensaje->puntero_PCB);
 
-	tamanio_a_enviar = sizeof(mensaje->id_tripulante) + sizeof(mensaje->estado_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y) + sizeof(mensaje->id_proxima_instruccion);
+	tamanio_a_enviar = sizeof(mensaje->tid) + sizeof(mensaje->estado_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y) + sizeof(mensaje->id_proxima_instruccion) + sizeof(mensaje->puntero_PCB);
 
 
 	if(desplazamiento != tamanio_a_enviar)

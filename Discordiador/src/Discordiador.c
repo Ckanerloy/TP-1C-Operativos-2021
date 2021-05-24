@@ -120,6 +120,7 @@ void obtener_orden_input()
 			// Indica que arranca a leer a partir de los primeros 3 argumentos: COMANDO CANTIDAD_TRIPULANTES ARCHIVO_TAREAS
 			int ubicacion_parser = 3;
 
+			// Meter todas las posiciones de los tripulantes en una sola cadena
 			char* posiciones = string_new();
 
 			while(parser_consola[ubicacion_parser] != NULL && ubicacion_parser < cantidad_argumentos) {
@@ -131,11 +132,10 @@ void obtener_orden_input()
 				string_append_with_format(&posiciones, "%s|", "0|0");
 			}
 
-			//printf("%s \n", posiciones);
+			strcat(posiciones, "\0");
 
-			parser_posiciones = string_split(posiciones, "|");
-			string_trim(parser_posiciones);
 
+			// Conexión con Mi-RAM HQ
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
 
 			if(conexion_mi_ram < 0) {										// En el caso que no pueda conectar, sale del CASE
@@ -143,16 +143,19 @@ void obtener_orden_input()
 				break;
 			}
 
-			t_patota* mensaje_patota = malloc(sizeof(t_patota));
+
+			t_iniciar_patota* mensaje_patota = malloc(sizeof(t_iniciar_patota));
 			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
 			mensaje_patota->tamanio_tareas = strlen(parser_consola[2]);
 			mensaje_patota->archivo_tareas = malloc(mensaje_patota->tamanio_tareas+1);
 			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
+			mensaje_patota->tamanio_posiciones = strlen(posiciones);
+			mensaje_patota->posiciones = malloc(mensaje_patota->tamanio_posiciones+1);
+			strcpy(mensaje_patota->posiciones, posiciones);
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
-			// Que hacer con la lista de posiciones, se envian a MIRAM o se dejan aca para hacer los tripulantes
-/*
+			/*
 			int posicion = 0;
 			for(uint32_t c=0; c<cantidad_tripulantes; c++){
 				t_datos_hilo* datos_hilo = malloc(sizeof(t_datos_hilo));
@@ -169,7 +172,7 @@ void obtener_orden_input()
 
 				posicion += 2;
 				free(datos_hilo);
-			}*/
+			}
 
 			 t_tcb** tripulantes = malloc(sizeof(t_tcb)*cantidad_tripulantes);
 
@@ -192,13 +195,13 @@ void obtener_orden_input()
 			for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
 				enviar_mensaje(tripulantes[k], INICIAR_PATOTA, conexion_mi_ram);
 			}
-
-
+			*/
 
 			free(posiciones);
 			free(parser_posiciones);
 
 			free(mensaje_patota->archivo_tareas);
+			free(mensaje_patota->posiciones);
 			free(mensaje_patota);
 			close(conexion_mi_ram);
 			break;

@@ -11,6 +11,7 @@
 #include <semaphore.h>
 
 #include "utils/sockets.h"
+#include "utils/loader.h"
 #include "utilsDiscordiador.h"
 #include "planificador.h"
 
