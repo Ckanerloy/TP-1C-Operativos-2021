@@ -7,7 +7,7 @@ int main(void)
 	obtener_datos_de_config(config);
 
 	t_log* logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
-	log_info(logger, "Servido activo, esperando instrucciones ... \n");
+	log_info(logger, "Servidor activo, esperando instrucciones ... \n");
 
 	//espera = malloc(sizeof(sem_t));
 	//sem_init(espera, 0, 1);
@@ -64,12 +64,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				printf("Archivo de tareas: %s \n", patota_recibida->archivo_tareas);
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
+				printf("PCB PATOTA: %s \n", patota_recibida->pid_patota);
+
 
 				tripulante_recibido = malloc(sizeof(t_tcb));
-				t_pcb* pcb_patota = crear_pcb();
-				tripulante_recibido = crear_tcbs(pcb_patota, patota_recibida);
+				//t_pcb* pcb_patota = crear_pcb();
+			//	tripulante_recibido = crear_tcbs(pcb_patota, patota_recibida);
 
-				enviar_mensaje(tripulante_recibido, INICIAR_TRIPULANTE, conexion);
+			//	enviar_mensaje(tripulante_recibido, INICIAR_TRIPULANTE, conexion);
 
 				free(patota_recibida->archivo_tareas);
 				free(patota_recibida->posiciones);
@@ -77,12 +79,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				break;
 
 			case INICIAR_TRIPULANTE:
-				tripulante_recibido = malloc(sizeof(t_tcb));
-				recibir_mensaje(tripulante_recibido, operacion, conexion);
+			//	tripulante_recibido = malloc(sizeof(t_tcb));
+			//	recibir_mensaje(tripulante_recibido, operacion, conexion);
 
-				mostrar_tripulante(tripulante_recibido);
+			//	mostrar_tripulante(tripulante_recibido);
 
-				free(tripulante_recibido);
+			//	free(tripulante_recibido);
 				break;
 
 			case RECIBIR_UBICACION_TRIPULANTE:

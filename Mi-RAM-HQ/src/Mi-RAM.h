@@ -39,7 +39,7 @@ t_tcb* crear_tripulante(int pos_x, int pos_y, t_pcb* pcb_patota);
 
 t_tcb* crear_tcbs(t_pcb* pcb_patota, t_iniciar_patota* patota_recibida);
 
-t_pcb* crear_pcb(void);
+//t_pcb* crear_pcb(void);
 
 void mostrar_tripulante(t_tcb* tripulante);
 

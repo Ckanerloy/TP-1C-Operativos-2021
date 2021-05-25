@@ -44,6 +44,7 @@ typedef struct {
 	uint32_t tamanio_tareas;
 	char* posiciones;
 	uint32_t tamanio_posiciones;
+	uint32_t pid_patota;
 } t_iniciar_patota;
 
 /*

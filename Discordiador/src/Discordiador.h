@@ -14,6 +14,7 @@
 #include "utils/loader.h"
 #include "utilsDiscordiador.h"
 #include "planificador.h"
+#include "utils/estructuras.h"
 
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Discordiador/discordiador.config"
 
@@ -58,5 +59,7 @@ void obtener_orden_input(void);						// Leo lo que escriba por consola y ejecuta
 // POR AHORA SON UNA IDEA
 void estar_atento_por_sabotaje(void);
 void arreglar_sabotaje(void);
+
+t_pcb* crear_pcb(void);
 
 #endif /* DISCORDIADOR_H_ */

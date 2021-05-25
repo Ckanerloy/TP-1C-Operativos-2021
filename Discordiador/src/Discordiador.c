@@ -142,7 +142,7 @@ void obtener_orden_input()
 				break;
 			}
 
-
+			t_pcb* pcb_patota = crear_pcb();
 			t_iniciar_patota* mensaje_patota = malloc(sizeof(t_iniciar_patota));
 			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
 			mensaje_patota->tamanio_tareas = strlen(parser_consola[2]);
@@ -151,6 +151,7 @@ void obtener_orden_input()
 			mensaje_patota->tamanio_posiciones = strlen(posiciones);
 			mensaje_patota->posiciones = malloc(mensaje_patota->tamanio_posiciones+1);
 			strcpy(mensaje_patota->posiciones, posiciones);
+			mensaje_patota->pid_patota = pcb_patota->pid;
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
@@ -254,6 +255,13 @@ void obtener_orden_input()
 	free(cadena_ingresada);
 
 	return;
+}
+
+t_pcb* crear_pcb(void){
+	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));
+	proceso_patota->pid = process_getpid();
+	proceso_patota->tareas = 0; //Hay que buscar que es la direccion logica del archivo de tareas
+	return proceso_patota;
 }
 
 
