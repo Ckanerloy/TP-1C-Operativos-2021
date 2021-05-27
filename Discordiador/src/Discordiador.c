@@ -146,15 +146,16 @@ void obtener_orden_input()
 			t_iniciar_patota* mensaje_patota = malloc(sizeof(t_iniciar_patota));
 			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
 
-			FILE* archivo_tareas;
-			archivo_tareas = fopen(parser_consola[2], "r");
 
-			if(archivo_tareas > 0) {
-				printf("El archivo existe.\n");
-			}
-			else {
-				log_error(logger, "El archivo %s no existe. \n", parser_consola[2]);
-			}
+			FILE* archivo_tareas = fopen(parser_consola[2], "r");
+
+				if(archivo_tareas > 0) {
+					printf("El archivo existe.\n");
+				}
+				else {
+					log_error(logger, "El archivo %s no existe. \n", parser_consola[2]);
+					break;
+				}
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

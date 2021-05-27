@@ -31,6 +31,29 @@ codigo_tarea mapeo_tareas_tripulantes(char* tarea) {
 	return tarea_a_realizar;
 }
 
+char** obtener_tareas(char* tareas_patota) {
+	return string_split(tareas_patota, "|");
+}
+
+
+t_tarea* obtener_la_tarea(char* tarea_tripulante) {
+	char** parser_tarea = string_split(tarea_tripulante, " ");
+	t_tarea* tarea_nueva = malloc(sizeof(t_tarea));
+
+	tarea_nueva->operacion = mapeo_tareas_tripulantes(parser_tarea[0]);
+	tarea_nueva->parametros = recibir_parametros(parser_tarea[1]);
+
+	return tarea_nueva;
+}
+
+void obtener_operando(char* tarea_tripulante, codigo_tarea operacion_tarea, t_parametros_tarea* parametros_tarea) {
+	char** parser_tarea = string_split(tarea_tripulante, " ");
+
+	operacion_tarea = mapeo_tareas_tripulantes(parser_tarea[0]);
+	parametros_tarea = recibir_parametros(parser_tarea[1]);
+
+	free(parser_tarea);
+}
 
 t_parametros_tarea* recibir_parametros(char* parametros) {
 
@@ -48,8 +71,8 @@ t_parametros_tarea* recibir_parametros(char* parametros) {
 	return estructura;
 }
 
-
-// Tareas a Realizar por el Tripulante
+/*
+// Tareas de I/O del Tripulante
 void generar_oxigeno(char* PARAMETROS) {
 
 	t_parametros_tarea parametros = recibir_parametros(PARAMETROS);
@@ -139,7 +162,7 @@ void descartar_basura() {
 		log_info(logger, "El archivo 'Basura.ims' no existe. \n");
 	}
 }
-
+*/
 //Las tareas que no se encuentren en este anexo consistirán en llegar a la ubicación y esperar que pase el tiempo solicitado en el estado EXEC
 //y no tienen que hacer ninguna operación sobre archivos de recursos.
 

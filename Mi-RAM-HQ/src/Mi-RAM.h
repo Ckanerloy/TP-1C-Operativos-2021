@@ -13,6 +13,7 @@
 #include "utils/sockets.h"
 #include "utils/loader.h"
 #include "utils/estructuras.h"
+#include "tareas.h"
 
 #define IP "127.0.0.1"
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mi-RAM-HQ/Mi-RAM.config"

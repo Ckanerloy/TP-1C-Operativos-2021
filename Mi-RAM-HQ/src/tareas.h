@@ -21,4 +21,13 @@ typedef struct{
 	uint32_t tiempo;
 } t_parametros_tarea;
 
+typedef struct {
+	codigo_tarea operacion;
+	t_parametros_tarea* parametros;
+} t_tarea;
+
+
+char** obtener_tareas(char* tareas_patota);
+t_parametros_tarea* recibir_parametros(char* parametros);
+
 #endif /* TAREAS_H_ */

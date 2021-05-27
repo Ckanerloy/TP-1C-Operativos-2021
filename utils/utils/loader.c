@@ -15,3 +15,4 @@ void terminar_programa(t_config* config, t_log* logger)
 	log_destroy(logger);
 	printf("Puntero al logger destruido.\n");
 }
+

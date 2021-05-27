@@ -64,15 +64,41 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				printf("Archivo de tareas: %s \n", patota_recibida->tareas_de_patota);
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
-				printf("PCB PATOTA: %s \n", patota_recibida->pid_patota);
+				//printf("PCB PATOTA: %s \n", patota_recibida->pid_patota);
+
+				char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
+
+				t_tarea* tarea = obtener_la_tarea(parser_tarea[0]);
+
+				printf("%u \n", tarea->operacion);
+				printf("%u \n", tarea->parametros->cantidad);
+				printf("%u \n", tarea->parametros->posicion_x);
+				printf("%u \n", tarea->parametros->posicion_y);
+				printf("%u \n", tarea->parametros->tiempo);
+/*
+				int posicion = 0;
+				while(parser_tarea[posicion] != NULL){
+					string_trim(&parser_tarea[posicion]);
+					string_append(&parser_tarea[posicion], ";");
+					printf("%s \n", parser_tarea[posicion]);
+					posicion++;
+				}*/
 
 
-				tripulante_recibido = malloc(sizeof(t_tcb));
+	//			codigo_tarea codigo_tarea;
+//				t_parametros_tarea* parametros_tarea;
+				//obtener_operando(tareas, codigo_tarea, parametros_tarea);
+
+
+//				tripulante_recibido = malloc(sizeof(t_tcb));
 				//t_pcb* pcb_patota = crear_pcb();
 			//	tripulante_recibido = crear_tcbs(pcb_patota, patota_recibida);
 
 			//	enviar_mensaje(tripulante_recibido, INICIAR_TRIPULANTE, conexion);
 
+				//free(tareas);
+
+				free(parser_tarea);
 				free(patota_recibida->tareas_de_patota);
 				free(patota_recibida->posiciones);
 				free(patota_recibida);
