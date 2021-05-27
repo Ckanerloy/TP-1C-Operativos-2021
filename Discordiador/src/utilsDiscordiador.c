@@ -35,6 +35,16 @@ codigo_operacion mapeo_valor_consola(char* comando_ingresado) {
 	return operacion;
 }
 
+void leer_archivo_tareas(FILE* archivo_tareas, char* tareas) {
+	char* tarea = string_new();
+
+	while(!feof(archivo_tareas)){
+		fscanf(archivo_tareas, "%s ", tarea);
+		string_append_with_format(&tareas, "%s ", tarea);
+	}
+	printf("%s \n", tareas);
+}
+
 
 void mostrar_tripulante(t_tcb* tripulante) {
 

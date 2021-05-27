@@ -40,29 +40,18 @@ typedef struct {
 
 typedef struct {
 	uint32_t cantidad_tripulantes;
-	char* archivo_tareas;
+	char* tareas_de_patota;
 	uint32_t tamanio_tareas;
 	char* posiciones;
 	uint32_t tamanio_posiciones;
 	uint32_t pid_patota;
 } t_iniciar_patota;
 
-/*
-typedef struct {
-	uint32_t num_patota;
-	uint32_t num_tripulante;
-	char estado;
-} t_lista_tripulante;
-*/
+
 typedef struct {
 	uint32_t id_tripulante;
 } t_id_tripulante;
 
-typedef struct {
-	uint32_t id;
-	int posicion_x;
-	int posicion_y;
-} t_datos_hilo;
 
 typedef struct
 {
@@ -83,7 +72,6 @@ typedef struct {
 	uint32_t pid;						// ID patota
 	uint32_t tareas;					// Dirección lógica del inicio de las Tareas
 }t_pcb;
-
 // Tamaño del PCB = 8 bytes
 
 
@@ -91,12 +79,11 @@ typedef struct {
 typedef struct {
 	uint32_t tid;						// ID tripulante
 	char estado_tripulante;				// (N/R/E/B)
-	int posicion_x;
-	int posicion_y;
+	uint32_t posicion_x;
+	uint32_t posicion_y;
 	uint32_t id_proxima_instruccion;	// Linea del archivo de texto
 	uint32_t puntero_PCB;				// Dirección lógica del PCB
 }t_tcb;
-
 // Tamaño del TCB = 17 bytes
 
 

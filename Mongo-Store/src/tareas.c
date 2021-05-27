@@ -140,3 +140,8 @@ void descartar_basura() {
 	}
 }
 
+//Las tareas que no se encuentren en este anexo consistirán en llegar a la ubicación y esperar que pase el tiempo solicitado en el estado EXEC
+//y no tienen que hacer ninguna operación sobre archivos de recursos.
+
+//Todas las listadas a continuación consumirán 1 ciclo de CPU para realizar la petición de E/S.
+

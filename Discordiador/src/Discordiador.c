@@ -145,9 +145,41 @@ void obtener_orden_input()
 			t_pcb* pcb_patota = crear_pcb();
 			t_iniciar_patota* mensaje_patota = malloc(sizeof(t_iniciar_patota));
 			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
-			mensaje_patota->tamanio_tareas = strlen(parser_consola[2]);
-			mensaje_patota->archivo_tareas = malloc(mensaje_patota->tamanio_tareas+1);
-			strcpy(mensaje_patota->archivo_tareas, parser_consola[2]);
+
+			FILE* archivo_tareas;
+			archivo_tareas = fopen(parser_consola[2], "r");
+
+			if(archivo_tareas > 0) {
+				printf("El archivo existe.\n");
+			}
+			else {
+				log_error(logger, "El archivo %s no existe. \n", parser_consola[2]);
+			}
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			char* tarea = string_new();
+			char* tareas_totales = string_new();
+
+			/*	HAY PROBLEMAS DE MEMORIA ENTRE EL FSCANF Y EL STRING APPEND
+			 * 		SI BIEN FUNCIONA, ME RETORNA EL CONTENIDO DEL ARCHIVO DE TAREAS, PERO LEE MEMORIA DEMAS
+			 * 		Y ESO LLEVA A MUCHOS ERRORES DE MEMORIA
+			 */
+
+			while(!feof(archivo_tareas)){
+				fscanf(archivo_tareas, "%s", tarea);
+				string_append_with_format(&tareas_totales, "%s ", tarea);
+			}
+			printf("%s \n", tareas_totales);
+
+			strcat(tareas_totales, "\0");
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			mensaje_patota->tamanio_tareas = strlen(tareas_totales);
+			mensaje_patota->tareas_de_patota = malloc(mensaje_patota->tamanio_tareas+1);
+			strcpy(mensaje_patota->tareas_de_patota, tareas_totales);
+
 			mensaje_patota->tamanio_posiciones = strlen(posiciones);
 			mensaje_patota->posiciones = malloc(mensaje_patota->tamanio_posiciones+1);
 			strcpy(mensaje_patota->posiciones, posiciones);
@@ -155,18 +187,21 @@ void obtener_orden_input()
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
-			t_tcb* tripulante_recibido = malloc(sizeof(t_tcb));
-			recibir_mensaje(tripulante_recibido, INICIAR_TRIPULANTE,conexion_mi_ram);
+			//t_tcb* tripulante_recibido = malloc(sizeof(t_tcb));
+			//recibir_mensaje(tripulante_recibido, INICIAR_TRIPULANTE,conexion_mi_ram);
 
-			mostrar_tripulante(tripulante_recibido);
+			//mostrar_tripulante(tripulante_recibido);
+
+			fclose(archivo_tareas);
+			free(tarea);
+			free(tareas_totales);
 
 			free(posiciones);
 			free(parser_posiciones);
-
-			free(mensaje_patota->archivo_tareas);
+			free(mensaje_patota->tareas_de_patota);
 			free(mensaje_patota->posiciones);
 			free(mensaje_patota);
-			close(conexion_mi_ram);
+			cerrar_conexion(logger, conexion_mi_ram);
 			break;
 
 		case LISTAR_TRIPULANTES:

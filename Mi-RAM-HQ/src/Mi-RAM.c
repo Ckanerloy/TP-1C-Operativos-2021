@@ -62,7 +62,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
-				printf("Archivo de tareas: %s \n", patota_recibida->archivo_tareas);
+				printf("Archivo de tareas: %s \n", patota_recibida->tareas_de_patota);
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
 				printf("PCB PATOTA: %s \n", patota_recibida->pid_patota);
 
@@ -73,7 +73,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 			//	enviar_mensaje(tripulante_recibido, INICIAR_TRIPULANTE, conexion);
 
-				free(patota_recibida->archivo_tareas);
+				free(patota_recibida->tareas_de_patota);
 				free(patota_recibida->posiciones);
 				free(patota_recibida);
 				break;

@@ -26,9 +26,16 @@ int32_t crear_conexion(char *ip, char* puerto)
 }
 
 
-void cerrar_conexion(int32_t socket)
+void cerrar_conexion(t_log* logger, int32_t socket)
 {
-	close(socket);
+	if(socket <= 0 ) {
+		log_error(logger, "No existe tal conexion.\n");
+	}
+	else {
+		log_info(logger, "Cerrando conexion...\n");
+		close(socket);
+		sleep(1);
+	}
 }
 
 
@@ -186,10 +193,10 @@ void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion)
 	memcpy(&(mensaje->tamanio_tareas), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_tareas));
 	desplazamiento += sizeof(mensaje->tamanio_tareas);
 
-	mensaje->archivo_tareas = malloc(mensaje->tamanio_tareas+1);
+	mensaje->tareas_de_patota = malloc(mensaje->tamanio_tareas+1);
 
 	// Archivo de tareas
-	memcpy(mensaje->archivo_tareas, buffer_deserializar + desplazamiento, mensaje->tamanio_tareas +1);
+	memcpy(mensaje->tareas_de_patota, buffer_deserializar + desplazamiento, mensaje->tamanio_tareas +1);
 	desplazamiento += mensaje->tamanio_tareas+1;
 
 	// Tamanio de posiciones
@@ -338,7 +345,7 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota*
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + strlen(mensaje->archivo_tareas)+1 + sizeof(mensaje->tamanio_posiciones) + strlen(mensaje->posiciones)+1;
+	buffer->size = sizeof(mensaje->cantidad_tripulantes) + sizeof(mensaje->tamanio_tareas) + strlen(mensaje->tareas_de_patota)+1 + sizeof(mensaje->tamanio_posiciones) + strlen(mensaje->posiciones)+1;
 	//buffer->size = sizeof(uint32_t)*2 + strlen(mensaje->archivo_tareas)+1;
 
 	void* stream_auxiliar = malloc(buffer->size);
@@ -352,7 +359,7 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota*
 	desplazamiento += sizeof(mensaje->tamanio_tareas);
 
 	// Archivo de tareas
-	memcpy(stream_auxiliar + desplazamiento, mensaje->archivo_tareas, mensaje->tamanio_tareas +1);
+	memcpy(stream_auxiliar + desplazamiento, mensaje->tareas_de_patota, mensaje->tamanio_tareas +1);
 	desplazamiento += mensaje->tamanio_tareas+1;
 
 	// Tamanio de posiciones

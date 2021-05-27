@@ -21,7 +21,7 @@ t_config* config;
 
 // Conexiones
 int32_t crear_conexion(char* ip, char* puerto);
-void cerrar_conexion(int32_t socket);
+void cerrar_conexion(t_log* logger, int32_t socket);
 int32_t iniciar_servidor(char* IP, char* PUERTO);
 void escuchar_conexion(int32_t* conexion_cliente);
 
