@@ -183,7 +183,7 @@ void new_ready() {
 	}
 }
 
-
+/*
 void block_ready() {
 
 }
@@ -202,3 +202,4 @@ t_tripulante* obtener_siguiente_ready() {
 	// Caso contrario devuelve el que tiene mas prioridad segun el algoritmo que se este empleando
 	return tripulante_planificado;
 }
+*/

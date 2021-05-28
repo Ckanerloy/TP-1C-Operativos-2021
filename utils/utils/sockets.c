@@ -90,6 +90,7 @@ int32_t* esperar_conexion(int32_t socket_servidor)
 }
 
 
+
 void escuchar_conexion(int32_t* conexion_cliente)
 {
 	codigo_operacion operacion;
@@ -97,6 +98,12 @@ void escuchar_conexion(int32_t* conexion_cliente)
 	recv(*conexion_cliente, &operacion, sizeof(operacion), MSG_WAITALL);
 
 	procesar_mensajes(operacion, *conexion_cliente);
+}
+
+void obtener_operando(int32_t* conexion_cliente, t_paquete* paquete) {
+
+	recv(*conexion_cliente, &(paquete->op_code), sizeof(paquete->op_code), MSG_WAITALL);
+
 }
 
 

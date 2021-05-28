@@ -119,10 +119,8 @@ void obtener_orden_input()
 
 			// Indica que arranca a leer a partir de los primeros 3 argumentos: COMANDO CANTIDAD_TRIPULANTES ARCHIVO_TAREAS
 			int ubicacion_parser = 3;
-
 			// Meter todas las posiciones de los tripulantes en una sola cadena
 			char* posiciones = string_new();
-
 			while(parser_consola[ubicacion_parser] != NULL && ubicacion_parser < cantidad_argumentos) {
 				string_append_with_format(&posiciones, "%s|", parser_consola[ubicacion_parser]);
 				ubicacion_parser++;
@@ -142,11 +140,8 @@ void obtener_orden_input()
 				break;
 			}
 
-			t_pcb* pcb_patota = crear_pcb();
-			t_iniciar_patota* mensaje_patota = malloc(sizeof(t_iniciar_patota));
-			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
 
-
+			// Obtiene el contenido del Archivo de Tareas de la Patota
 			FILE* archivo_tareas = fopen(parser_consola[2], "r");
 
 				if(archivo_tareas > 0) {
@@ -156,26 +151,20 @@ void obtener_orden_input()
 					log_error(logger, "El archivo %s no existe. \n", parser_consola[2]);
 					break;
 				}
+			fseek(archivo_tareas, 0, SEEK_END);
+			long int tamanio_archivo = ftell(archivo_tareas);
+			rewind(archivo_tareas);
 
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			char* tareas_totales = malloc(sizeof(char)*tamanio_archivo);
 
-			char* tarea = string_new();
-			char* tareas_totales = string_new();
-
-			/*	HAY PROBLEMAS DE MEMORIA ENTRE EL FSCANF Y EL STRING APPEND
-			 * 		SI BIEN FUNCIONA, ME RETORNA EL CONTENIDO DEL ARCHIVO DE TAREAS, PERO LEE MEMORIA DEMAS
-			 * 		Y ESO LLEVA A MUCHOS ERRORES DE MEMORIA
-			 */
-
-			while(!feof(archivo_tareas)){
-				fscanf(archivo_tareas, "%s", tarea);
-				string_append_with_format(&tareas_totales, "%s ", tarea);
-			}
-			printf("%s \n", tareas_totales);
-
+			fread(tareas_totales, tamanio_archivo+1, 1, archivo_tareas);
+			tareas_totales = string_substring_until(tareas_totales, tamanio_archivo);
 			strcat(tareas_totales, "\0");
 
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			// Creo la estructura de datos de la Patota
+			t_iniciar_patota* mensaje_patota = malloc(sizeof(t_iniciar_patota));
+			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
 
 			mensaje_patota->tamanio_tareas = strlen(tareas_totales);
 			mensaje_patota->tareas_de_patota = malloc(mensaje_patota->tamanio_tareas+1);
@@ -184,17 +173,14 @@ void obtener_orden_input()
 			mensaje_patota->tamanio_posiciones = strlen(posiciones);
 			mensaje_patota->posiciones = malloc(mensaje_patota->tamanio_posiciones+1);
 			strcpy(mensaje_patota->posiciones, posiciones);
-			mensaje_patota->pid_patota = pcb_patota->pid;
+			//mensaje_patota->pid_patota = pcb_patota->pid;
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
-			//t_tcb* tripulante_recibido = malloc(sizeof(t_tcb));
-			//recibir_mensaje(tripulante_recibido, INICIAR_TRIPULANTE,conexion_mi_ram);
 
-			//mostrar_tripulante(tripulante_recibido);
 
+			// Libero la memoria usada
 			fclose(archivo_tareas);
-			free(tarea);
 			free(tareas_totales);
 
 			free(posiciones);
@@ -293,12 +279,13 @@ void obtener_orden_input()
 	return;
 }
 
+/*
 t_pcb* crear_pcb(void){
 	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));
 	proceso_patota->pid = process_getpid();
 	proceso_patota->tareas = 0; //Hay que buscar que es la direccion logica del archivo de tareas
 	return proceso_patota;
-}
+}*/
 
 
 void estar_atento_por_sabotaje(){

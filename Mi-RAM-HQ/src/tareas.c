@@ -38,67 +38,54 @@ char** obtener_tareas(char* tareas_patota) {
 
 t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 	char** parser_tarea = string_split(tarea_tripulante, " ");
+
 	t_tarea* tarea_nueva = malloc(sizeof(t_tarea));
 
 	tarea_nueva->operacion = mapeo_tareas_tripulantes(parser_tarea[0]);
 	tarea_nueva->parametros = recibir_parametros(parser_tarea[1]);
 
-	return tarea_nueva;
-}
-
-void obtener_operando(char* tarea_tripulante, codigo_tarea operacion_tarea, t_parametros_tarea* parametros_tarea) {
-	char** parser_tarea = string_split(tarea_tripulante, " ");
-
-	operacion_tarea = mapeo_tareas_tripulantes(parser_tarea[0]);
-	parametros_tarea = recibir_parametros(parser_tarea[1]);
-
 	free(parser_tarea);
+	return tarea_nueva;
 }
 
 t_parametros_tarea* recibir_parametros(char* parametros) {
 
-	char ** parser_parametros;
+	char** parser_parametros = NULL;
 
 	t_parametros_tarea* estructura = malloc(sizeof(t_parametros_tarea));
-	parser_parametros = string_split(parametros, ";");
+	parser_parametros = string_split(parametros, ";");						// SI fuese un STRING, directamente se hace un strcpy a cada parametro
 
-	estructura->cantidad = atoi(parser_parametros[0]);
-	estructura->posicion_x = atoi(parser_parametros[1]);
-	estructura->posicion_y = atoi(parser_parametros[2]);
-	estructura->tiempo = atoi(parser_parametros[3]);
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ *
+ * Ver en el caso de que no se le asigne el parametro de cantidad, como se puede solucionar el caso de la cantidad de memoria
+ * reservada para dicho parametro. Sin tener que modificar el archivo de tareas, sea que se toma el primer parametro mediante un if
+ * y el resto de los parametros tal como esta en este codigo. O se toma el parametro NULO como si fuese un 0, y asi rellenar el espacio
+ * de memoria de la estructura.
+ *
+ * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ */
+
+
+
+	if(parser_parametros[0] == NULL){
+		estructura->cantidad = 0;									// ISSUE
+		estructura->posicion_x = atoi(parser_parametros[1]);
+		estructura->posicion_y = atoi(parser_parametros[2]);
+		estructura->tiempo = atoi(parser_parametros[3]);
+	}
+	else {
+		estructura->cantidad = atoi(parser_parametros[0]);
+		estructura->posicion_x = atoi(parser_parametros[1]);
+		estructura->posicion_y = atoi(parser_parametros[2]);
+		estructura->tiempo = atoi(parser_parametros[3]);
+	}
 
 	free(parser_parametros);
 	return estructura;
 }
 
 /*
-// Tareas de I/O del Tripulante
-void generar_oxigeno(char* PARAMETROS) {
-
-	t_parametros_tarea parametros = recibir_parametros(PARAMETROS);
-
-	if(SI ESTA EL ARCHIVO) {
-		modificar_archivo("Oxigeno.ims", parametros->cantidad);
-	}
-	else {
-		crear_archivo("Oxigeno.ims", 'O');
-	}
-}
-
-
-void generar_comida(char* PARAMETROS) {
-
-	t_parametros_tarea parametros = recibir_parametros(PARAMETROS);
-
-	if(SI ESTA EL ARCHIVO) {
-		modificar_archivo("Comida.ims", parametros->cantidad);
-	}
-	else {
-		crear_archivo("Comida.ims", 'C');
-	}
-}
-
-void realizar_tarea(codigo_tarea tarea, char* PARAMETROS){
+void realizar_tarea_de_io(codigo_tarea tarea, char* PARAMETROS){
 
 	t_parametros_tarea* parametros = malloc(sizeof(t_parametros_tarea));
 
@@ -133,6 +120,35 @@ void realizar_tarea(codigo_tarea tarea, char* PARAMETROS){
 			break;
 		}
 }
+
+
+// Tareas de I/O del Tripulante
+void generar_oxigeno(char* PARAMETROS) {
+
+	t_parametros_tarea parametros = recibir_parametros(PARAMETROS);
+
+	if(SI ESTA EL ARCHIVO) {
+		modificar_archivo("Oxigeno.ims", parametros->cantidad);
+	}
+	else {
+		crear_archivo("Oxigeno.ims", 'O');
+	}
+}
+
+
+void generar_comida(char* PARAMETROS) {
+
+	t_parametros_tarea parametros = recibir_parametros(PARAMETROS);
+
+	if(SI ESTA EL ARCHIVO) {
+		modificar_archivo("Comida.ims", parametros->cantidad);
+	}
+	else {
+		crear_archivo("Comida.ims", 'C');
+	}
+}
+
+
 
 void generar_insumo(char* nombre_archivo, char caracter_llenado, t_parametros_tarea* parametros) {
 

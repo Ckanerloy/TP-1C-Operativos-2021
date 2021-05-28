@@ -14,16 +14,21 @@
 #include "utils/loader.h"
 #include "utils/estructuras.h"
 #include "tareas.h"
+#include "memoria.h"
 
 #define IP "127.0.0.1"
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mi-RAM-HQ/Mi-RAM.config"
 
+// Config y Log
+t_config* config;
+t_log* logger;
+
 // Datos del Config
 char* PUERTO;
-int TAMANIO_MEMORIA;
+uint32_t TAMANIO_MEMORIA;
 char* ESQUEMA_MEMORIA;
-int TAMANIO_PAGINA;
-int TAMANIO_SWAP;
+uint32_t TAMANIO_PAGINA;
+uint32_t TAMANIO_SWAP;
 char* PATH_SWAP;
 char* ALGORITMO_REEMPLAZO;
 
@@ -32,9 +37,14 @@ sem_t* espera;
 
 pthread_t hilo_recibir_mensajes;
 
-void obtener_datos_de_config(t_config* config);
 
+
+void iniciar_comunicacion(void);
+void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
+
+uint32_t cantidad_tareas(char** parser_tarea);
+
 
 t_tcb* crear_tripulante(int pos_x, int pos_y, t_pcb* pcb_patota);
 

@@ -54,23 +54,22 @@ void mostrar_tripulante(t_tcb* tripulante) {
 	printf("Posicion Y: %i \n", tripulante->posicion_y);
 	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_proxima_instruccion);
 }
-
+/*
 void liberar_tripulantes(uint32_t cantidad_tripulantes, t_tripulante** mensaje_tripulantes) {
 	for(uint32_t c=1; c<=cantidad_tripulantes; c++){
 		free(mensaje_tripulantes[c]);
 	}
-}
+}*/
 
 // Funcion para LISTAR TRIPULANTES
 void listar_tripulantes() {
-
-	//t_lista_tripulante** lista;
 
 	printf("-------------------------------------------------------------------------\n");
 	printf("Estado de la nave: %s \n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
 	printf("Tripulante: ID_TRIPULANTE      Patota: NUM_PATOTA      Status:  STATUS \n");
 	printf("--------------------------------------------------------------------------\n\n");
 }
+
 
 
 // Obtener la cantidad de argumentos de parte del parser_consola

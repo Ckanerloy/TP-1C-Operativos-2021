@@ -2,12 +2,48 @@
 
 int main(void)
 {
-	t_config* config = crear_config(CONFIG_PATH);
+	MEMORIA_PRINCIPAL = NULL;
+	AREA_SWAP = NULL;
+	config = crear_config(CONFIG_PATH);
 
 	obtener_datos_de_config(config);
+	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
 
-	t_log* logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
-	log_info(logger, "Servidor activo, esperando instrucciones ... \n");
+	printf("Tamanio de Memoria Principal: %u \n", TAMANIO_MEMORIA);
+	printf("Equema de Memoria utilizado: %s \n", ESQUEMA_MEMORIA);
+	printf("Tamanio de Pagina: %u \n", TAMANIO_PAGINA);
+	printf("Tamanio Area Swap: %u \n", TAMANIO_SWAP);
+	printf("Algoritmo de Reemplazo: %s \n", ALGORITMO_REEMPLAZO);
+
+	MEMORIA_PRINCIPAL = malloc(TAMANIO_MEMORIA);
+	if(MEMORIA_PRINCIPAL != NULL){
+		printf("Memoria Principal iniciada... \n");
+	}
+	else {
+		log_error(logger, "Error al iniciar la Memoria Principal.\n");
+		sleep(1);
+		abort();
+	}
+
+	AREA_SWAP = malloc(TAMANIO_SWAP);
+	if(AREA_SWAP != NULL){
+		printf("Area de Swap iniciada...\n");
+	}
+	else{
+		log_error(logger, "Error al iniciar el Area de Swap.\n");
+		sleep(1);
+		abort();
+	}
+
+
+	//Iniciar tabla de segmentos de Patota
+	//lista_de_patotas = malloc(sizeof(tablas_segmenos_patotas));
+	//inicializar_lista_de_patotas(lista_de_patotas);
+
+
+
+	iniciar_comunicacion();
+
 
 	//espera = malloc(sizeof(sem_t));
 	//sem_init(espera, 0, 1);
@@ -17,8 +53,8 @@ int main(void)
 	sem_enviar = malloc(sizeof(sem_t));
 	sem_init(sem_enviar, 0, 0);*/
 
-	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
-
+	/*int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
+	log_info(logger, "Servidor activo, esperando instrucciones ... \n");
 	while(1) {
 
 		//sem_wait(sem_recibir);
@@ -28,13 +64,21 @@ int main(void)
 
 		pthread_detach(hilo_recibir_mensajes);
 
-		/*sem_wait(sem_enviar);*/
+		sem_wait(sem_enviar);
 
-	}
+	}*/
+
+
+	free(MEMORIA_PRINCIPAL);
+	printf("Memoria Principal liberada...\n");
+	free(AREA_SWAP);
+	printf("Area de Swap liberada...\n");
 
 	terminar_programa(config, logger);
 	return EXIT_SUCCESS;
 }
+
+
 
 void obtener_datos_de_config(t_config* config)
 {
@@ -47,12 +91,32 @@ void obtener_datos_de_config(t_config* config)
 	ALGORITMO_REEMPLAZO = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
 }
 
+
+void iniciar_comunicacion(){
+	log_info(logger, "Servidor activo, esperando instrucciones ... \n");
+	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
+
+
+
+	while(1) {
+
+		int32_t* conexion_cliente = esperar_conexion(conexion_servidor);
+
+		pthread_create(&hilo_recibir_mensajes, NULL,(void*)escuchar_conexion, conexion_cliente);
+
+		pthread_detach(hilo_recibir_mensajes);
+
+	}
+}
+
+
+
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 {
 	t_iniciar_patota* patota_recibida;
-	t_tcb* tripulante_recibido;
+	//t_tcb* tripulante_recibido;
 	t_id_tripulante* tripulante_a_eliminar;
-
+	t_tarea** tareas_tripulantes;
 	//sem_post(espera);
 
 	switch(operacion)
@@ -62,20 +126,46 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
-				printf("Archivo de tareas: %s \n", patota_recibida->tareas_de_patota);
+				printf("Contenido de tareas: %s \n", patota_recibida->tareas_de_patota);
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
 				//printf("PCB PATOTA: %s \n", patota_recibida->pid_patota);
 
+				string_trim(&patota_recibida->tareas_de_patota);
 				char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
 
-				t_tarea* tarea = obtener_la_tarea(parser_tarea[0]);
+				uint32_t cant_tareas = cantidad_tareas(parser_tarea);
 
-				printf("%u \n", tarea->operacion);
-				printf("%u \n", tarea->parametros->cantidad);
-				printf("%u \n", tarea->parametros->posicion_x);
-				printf("%u \n", tarea->parametros->posicion_y);
-				printf("%u \n", tarea->parametros->tiempo);
-/*
+				tareas_tripulantes = malloc(sizeof(t_tarea));
+				for(uint32_t i=0; i<cant_tareas; i++){
+					tareas_tripulantes[i] = obtener_la_tarea(parser_tarea[i]);
+
+					printf("Operacion: %u \n", tareas_tripulantes[i]->operacion);
+					printf(" - Cantidad: %u \n", tareas_tripulantes[i]->parametros->cantidad);
+					printf(" - Posicion X: %u \n", tareas_tripulantes[i]->parametros->posicion_x);
+					printf(" - Posicion Y:%u \n", tareas_tripulantes[i]->parametros->posicion_y);
+					printf(" - Tiempo: %u \n\n", tareas_tripulantes[i]->parametros->tiempo);
+				}
+
+
+
+/*				t_tarea** tareas_tripulantes = malloc(sizeof(t_tarea));
+				tareas_tripulantes[0] = obtener_la_tarea(parser_tarea[1]);
+				tareas_tripulantes[1] = obtener_la_tarea(parser_tarea[2]);
+
+
+				printf("%u \n", tareas_tripulantes[0]->operacion);
+				printf("%u \n", tareas_tripulantes[0]->parametros->cantidad);
+				printf("%u \n", tareas_tripulantes[0]->parametros->posicion_x);
+				printf("%u \n", tareas_tripulantes[0]->parametros->posicion_y);
+				printf("%u \n", tareas_tripulantes[0]->parametros->tiempo);
+
+				printf("%u \n", tareas_tripulantes[1]->operacion);
+				printf("%u \n", tareas_tripulantes[1]->parametros->cantidad);
+				printf("%u \n", tareas_tripulantes[1]->parametros->posicion_x);
+				printf("%u \n", tareas_tripulantes[1]->parametros->posicion_y);
+				printf("%u \n", tareas_tripulantes[1]->parametros->tiempo);
+
+
 				int posicion = 0;
 				while(parser_tarea[posicion] != NULL){
 					string_trim(&parser_tarea[posicion]);
@@ -139,9 +229,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 t_pcb* crear_pcb(void){
 	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));
 	proceso_patota->pid = process_getpid();
-	proceso_patota->tareas = 0; //Hay que buscar que es la direccion logica del archivo de tareas
+	proceso_patota->tareas = 0; //Direccion de memoria de las tareas
 	return proceso_patota;
 }
+
 t_tcb* crear_tcbs(t_pcb* pcb_patota, t_iniciar_patota* patota_recibida){
 	uint32_t cantidad_tripulantes = patota_recibida->cantidad_tripulantes;
 
@@ -174,6 +265,15 @@ t_tcb* crear_tripulante(int posicion_x, int posicion_y, t_pcb* pcb_patota){
 	return tripulante;
 }
 
+
+uint32_t cantidad_tareas(char** parser_tarea) {
+
+	int cantidad = 0;
+	while(parser_tarea[cantidad] != NULL){
+		cantidad++;
+	}
+	return cantidad;
+}
 
 
 void mostrar_tripulante(t_tcb* tripulante) {
