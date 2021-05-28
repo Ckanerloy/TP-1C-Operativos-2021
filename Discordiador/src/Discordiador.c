@@ -15,22 +15,34 @@ int main(void) {
 	termino_operacion = malloc(sizeof(sem_t));
 	sem_init(termino_operacion, 0, 1);
 
-	while(1) {
+	while(1){
+	//DISCORDIADOR COMO SERVIDOR DE MONGO-STORE
+	// Conexion de escucha con MongoStore?  POR SABOTAJE
+	//sem_wait(sabotaje);
+	//pthread_create(&hilo_sabotaje, NULL, (void*)iniciar_escucha_sabotaje, NULL);
+	sem_wait(comando_para_ejecutar);
 
-		// Conexion de escucha con MongoStore?  POR SABOTAJE
-		//sem_wait(sabotaje);
-		//pthread_create(&hilo_sabotaje, NULL, (void*)estar_atento_por_sabotaje, NULL);
+	pthread_create(&hilo_consola, NULL,(void*)obtener_orden_input, NULL);
 
-		sem_wait(comando_para_ejecutar);
-		pthread_create(&hilo_consola, NULL,(void*)obtener_orden_input, NULL);
 
-		//pthread_detach(hilo_sabotaje);
-		pthread_detach(hilo_consola);
+	//pthread_detach(hilo_sabotaje);
+	pthread_detach(hilo_consola);
 	}
-
 	return EXIT_SUCCESS;
 }
 
+//void iniciar_escucha_sabotaje(void){
+//	while(1){
+//		obtener_orden_sabotaje();
+//	}
+//}
+
+//void iniciar_escucha_por_consola(void){
+//	while(1){
+//		obtener_orden_input();
+//	}
+
+//}
 
 
 void obtener_datos_de_config(t_config* config) {
@@ -177,6 +189,17 @@ void obtener_orden_input()
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
+			//Me envia MiRam la confirmaciones del PCB
+
+			//for(int i=0; i<cantidad_tripulantes;i++){
+			//tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+			//tripulante->id_tripulante=contador_id;
+
+			//}
+
+
+
+
 
 
 			// Libero la memoria usada
@@ -288,7 +311,7 @@ t_pcb* crear_pcb(void){
 }*/
 
 
-void estar_atento_por_sabotaje(){
+void obtener_orden_sabotaje(void){
 
 	//conexion_mongo_store = crear_conexion(IP_MONGO_STORE,PUERTO_MONGO_STORE);
 	conexion_sabotaje = iniciar_servidor(IP_MONGO_STORE, PUERTO_MONGO_STORE);
