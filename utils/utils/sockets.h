@@ -24,6 +24,8 @@ int32_t crear_conexion(char* ip, char* puerto);
 void cerrar_conexion(t_log* logger, int32_t socket);
 int32_t iniciar_servidor(char* IP, char* PUERTO);
 void escuchar_conexion(int32_t* conexion_cliente);
+int32_t resultado_conexion(int32_t conexion, t_log* logger, char* modulo) ;
+int32_t validacion_envio(int32_t conexion_cliente);
 
 void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion);
 void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion);

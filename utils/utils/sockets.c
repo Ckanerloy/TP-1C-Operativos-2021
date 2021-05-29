@@ -17,7 +17,7 @@ int32_t crear_conexion(char *ip, char* puerto)
 	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
 
 	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1) {
-		printf("ERROR 404. CONNECTION NOT FOUND.\n");
+		//printf("ERROR 404. CONNECTION NOT FOUND.\n");
 		socket_cliente = -1;
 	}
 	freeaddrinfo(server_info);
@@ -25,6 +25,32 @@ int32_t crear_conexion(char *ip, char* puerto)
 	return socket_cliente;
 }
 
+
+int32_t resultado_conexion(int32_t conexion, t_log* logger, char* modulo) {
+
+	if(conexion == -1)
+	{
+		log_warning(logger, "¡Error! No se ha podido conectar a %s. \n", modulo);
+		return -1;
+	}
+	else
+	{
+		log_info(logger, "Se pudo conectar a %s. \n", modulo);
+		return conexion;
+	}
+}
+
+int32_t validacion_envio(int32_t conexion_cliente) {
+
+	codigo_operacion cod_op;
+
+	if(recv(conexion_cliente, &cod_op, sizeof(cod_op), MSG_WAITALL) < 1){
+		 return 0;
+	}
+	else {
+		return 1;
+	}
+}
 
 void cerrar_conexion(t_log* logger, int32_t socket)
 {
@@ -282,6 +308,7 @@ void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion)
 	send(conexion, paquete_serializado, tamanio_paquete, 0);
 
 	eliminar_paquete(paquete_a_armar);
+
 	free(paquete_serializado);
 }
 
@@ -310,8 +337,8 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			break;
 
 		case INICIAR_TRIPULANTE:
-					tamanio_preparado = serializar_paquete_tripulante(paquete, mensaje);
-					break;
+				tamanio_preparado = serializar_paquete_tripulante(paquete, mensaje);
+				break;
 
 		case OBTENER_BITACORA:
 			tamanio_preparado = serializar_paquete_id_tripulante(paquete, mensaje);

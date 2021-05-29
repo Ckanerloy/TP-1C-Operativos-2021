@@ -49,8 +49,9 @@ void obtener_datos_de_config(t_config* config) {
 void obtener_orden_input()
 {
 	 char* cadena_ingresada = NULL;
-
 	 size_t longitud = 0;
+
+	 t_respuesta* respuesta;
 
 	 sem_wait(termino_operacion);
 
@@ -109,6 +110,8 @@ void obtener_orden_input()
 			int cantidad_tripulantes = atoi(parser_consola[1]);
 			int posiciones_faltantes = cantidad_tripulantes - cantidad_posiciones;
 
+			respuesta = malloc(sizeof(t_respuesta));
+
 			if(posiciones_faltantes < 0) {
 				log_error(logger, "Se ingresaron posiciones demás. Solo puede como máximo haber tantas posiciones como cantidad de tripulantes.\n");
 				break;
@@ -133,24 +136,22 @@ void obtener_orden_input()
 			strcat(posiciones, "\0");
 
 			// Conexión con Mi-RAM HQ
-			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
-
-			if(conexion_mi_ram < 0) {										// En el caso que no pueda conectar, sale del CASE
-				log_error(logger, "No se pudo conectar. \n");
+			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
 				break;
 			}
-
 
 			// Obtiene el contenido del Archivo de Tareas de la Patota
 			FILE* archivo_tareas = fopen(parser_consola[2], "r");
 
 				if(archivo_tareas > 0) {
-					printf("El archivo existe.\n");
+					printf("El archivo existe en %s.\n", parser_consola[2]);
 				}
 				else {
 					log_error(logger, "El archivo %s no existe. \n", parser_consola[2]);
 					break;
 				}
+
 			fseek(archivo_tareas, 0, SEEK_END);
 			long int tamanio_archivo = ftell(archivo_tareas);
 			rewind(archivo_tareas);
@@ -177,6 +178,17 @@ void obtener_orden_input()
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
+			if(validacion_envio(conexion_mi_ram) == 1) {
+				recibir_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion_mi_ram);
+
+				/*for(int i=0; i<cantidad_tripulantes; i++){
+					enviar_mensaje(tripulante[i], INICIAR_TRIPULANTE, conexion_mi_ram);
+
+				}*/
+			}
+
+
+
 
 
 			// Libero la memoria usada
@@ -185,6 +197,7 @@ void obtener_orden_input()
 
 			free(posiciones);
 			free(parser_posiciones);
+
 			free(mensaje_patota->tareas_de_patota);
 			free(mensaje_patota->posiciones);
 			free(mensaje_patota);

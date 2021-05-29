@@ -31,6 +31,7 @@ uint32_t TAMANIO_PAGINA;
 uint32_t TAMANIO_SWAP;
 char* PATH_SWAP;
 char* ALGORITMO_REEMPLAZO;
+char* CRITERIO_SELECCION;
 
 
 sem_t* espera;

@@ -1,6 +1,8 @@
 #ifndef UTILS_ESTRUCTURAS_H_
 #define UTILS_ESTRUCTURAS_H_
 
+#include <semaphore.h>
+
 typedef enum
 {
 	INICIAR_PATOTA,
@@ -13,7 +15,9 @@ typedef enum
 	TERMINAR_PROGRAMA,
 	INICIAR_TRIPULANTE,
 	RECIBIR_UBICACION_TRIPULANTE,
-	ENVIAR_PROXIMA_TAREA
+	ENVIAR_PROXIMA_TAREA,
+
+	RESPUESTA_INICIAR_PATOTA
 } codigo_operacion;
 
 
@@ -24,8 +28,15 @@ typedef enum
 	GENERAR_COMIDA,
 	CONSUMIR_COMIDA,
 	GENERAR_BASURA,
-	DESCARTAR_BASURA
+	DESCARTAR_BASURA,
+	MOVERSE,
+	ABURRIRSE
 } codigo_tarea;
+
+
+typedef struct {
+	uint32_t respuesta;
+} t_respuesta;
 
 
 // Estructuras de Sockets
@@ -42,6 +53,11 @@ typedef struct
 	t_buffer* buffer;
 } t_paquete;
 
+typedef struct {
+	uint32_t id_tripulante;
+	pthread_t hilo_id_tripulante;
+	sem_t sem_execute;
+} t_iniciar_tripulante;
 
 // Estructuras del Discordiador
 typedef struct {
@@ -50,7 +66,7 @@ typedef struct {
 	uint32_t tamanio_tareas;
 	char* posiciones;
 	uint32_t tamanio_posiciones;
-	uint32_t pid_patota;
+	//uint32_t pid_patota;
 } t_iniciar_patota;
 
 
@@ -101,7 +117,6 @@ typedef struct {
 // Estructuras para Mi RAM HQ
 typedef struct tabla_paginas
 {
-
 	int32_t numero_de_marco;
 	char* estado_proceso;				// Libre u Ocupado
 	uint32_t id_proceso;				// Proceso de Patota

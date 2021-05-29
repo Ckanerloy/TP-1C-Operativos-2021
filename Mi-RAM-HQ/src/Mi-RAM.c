@@ -14,6 +14,7 @@ int main(void)
 	printf("Tamanio de Pagina: %u \n", TAMANIO_PAGINA);
 	printf("Tamanio Area Swap: %u \n", TAMANIO_SWAP);
 	printf("Algoritmo de Reemplazo: %s \n", ALGORITMO_REEMPLAZO);
+	printf("Criterio de Seleccion para meter en Segmentacion: %s \n", CRITERIO_SELECCION);
 
 	MEMORIA_PRINCIPAL = malloc(TAMANIO_MEMORIA);
 	if(MEMORIA_PRINCIPAL != NULL){
@@ -89,6 +90,7 @@ void obtener_datos_de_config(t_config* config)
 	TAMANIO_SWAP = config_get_int_value(config, "TAMANIO_SWAP");
 	PATH_SWAP = config_get_string_value(config, "PATH_SWAP");
 	ALGORITMO_REEMPLAZO = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
+	CRITERIO_SELECCION = config_get_string_value(config, "CRITERIO_SELECCION");
 }
 
 
@@ -117,6 +119,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 	//t_tcb* tripulante_recibido;
 	t_id_tripulante* tripulante_a_eliminar;
 	t_tarea** tareas_tripulantes;
+	t_respuesta* respuesta;
 	//sem_post(espera);
 
 	switch(operacion)
@@ -124,6 +127,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 			case INICIAR_PATOTA:
 				patota_recibida = malloc(sizeof(t_iniciar_patota));
 				recibir_mensaje(patota_recibida, operacion, conexion);
+				respuesta = malloc(sizeof(t_respuesta));
 
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				printf("Contenido de tareas: %s \n", patota_recibida->tareas_de_patota);
@@ -146,6 +150,15 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					printf(" - Tiempo: %u \n\n", tareas_tripulantes[i]->parametros->tiempo);
 				}
 
+
+				// Crea el PCB de la Patota, ALMACENAR EN LA MEMORIA (SEGMENTACION O PAGINACION)
+				respuesta->respuesta = 1;
+				enviar_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion);
+
+				/*
+				 * Cuando se crea el PCB de la patota, se mete su PID, y la direccion que apunta a las tareas previamente hechas
+				 * y almacenadas en la Memoria.
+				 */
 
 
 /*				t_tarea** tareas_tripulantes = malloc(sizeof(t_tarea));

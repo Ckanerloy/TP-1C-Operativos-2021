@@ -48,6 +48,11 @@ t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 	return tarea_nueva;
 }
 
+
+// FALLA EL PARSEO POR ESPACIOS ENTRE LOS PARAMETROS CUANDO SE PASA UN PARAMETRO MENOS, POR EJEMPLO EN DESCARTAR_BASURA
+
+
+
 t_parametros_tarea* recibir_parametros(char* parametros) {
 
 	char** parser_parametros = NULL;
@@ -62,13 +67,10 @@ t_parametros_tarea* recibir_parametros(char* parametros) {
  * y el resto de los parametros tal como esta en este codigo. O se toma el parametro NULO como si fuese un 0, y asi rellenar el espacio
  * de memoria de la estructura.
  *
- * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- */
-
-
+ * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 	if(parser_parametros[0] == NULL){
-		estructura->cantidad = 0;									// ISSUE
+		estructura->cantidad = atoi("0");									// ISSUE
 		estructura->posicion_x = atoi(parser_parametros[1]);
 		estructura->posicion_y = atoi(parser_parametros[2]);
 		estructura->tiempo = atoi(parser_parametros[3]);
