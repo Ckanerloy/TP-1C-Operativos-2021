@@ -53,13 +53,17 @@ pthread_t hilo_tripulante;
 t_log* logger;
 t_config* config;
 
+void iniciar_escucha_sabotaje(void);
+void iniciar_escucha_por_consola(void);
 void obtener_datos_de_config(t_config* config);		// Obtengo los datos cargados en el archivo .config
-void obtener_orden_input(void);						// Leo lo que escriba por consola y ejecuta la operacion a realizar
+void obtener_orden_input();						// Leo lo que escriba por consola y ejecuta la operacion a realizar
 
 // POR AHORA SON UNA IDEA
-void estar_atento_por_sabotaje(void);
+void obtener_orden_sabotaje(void);
 void arreglar_sabotaje(void);
 
 t_pcb* crear_pcb(void);
 
+//Discordiador
+int32_t contador_id=0;
 #endif /* DISCORDIADOR_H_ */

@@ -1,5 +1,7 @@
 #ifndef UTILS_ESTRUCTURAS_H_
 #define UTILS_ESTRUCTURAS_H_
+#include <semaphore.h>
+#include <pthread.h>
 
 #include <semaphore.h>
 
@@ -69,11 +71,18 @@ typedef struct {
 	//uint32_t pid_patota;
 } t_iniciar_patota;
 
-
 typedef struct {
 	uint32_t id_tripulante;
 	uint32_t id_patota;
 } t_id_tripulante;
+
+typedef struct {
+	uint32_t id_tripulante;
+//	uint32_t id_patota;
+	sem_t* sem_execute;
+	pthread_t hiloTripulante;
+//	sem_t* sem_confirmacion;
+} tripulante_plani;
 
 
 
