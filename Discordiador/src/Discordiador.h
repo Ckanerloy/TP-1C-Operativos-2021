@@ -64,6 +64,4 @@ void arreglar_sabotaje(void);
 
 t_pcb* crear_pcb(void);
 
-//Discordiador
-int32_t contador_id=0;
 #endif /* DISCORDIADOR_H_ */

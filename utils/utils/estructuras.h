@@ -39,6 +39,7 @@ typedef enum
 // Estructura para la Respuesta
 typedef struct {
 	uint32_t respuesta;
+//	t_list* ids_tripu;
 } t_respuesta;
 
 
@@ -85,10 +86,7 @@ typedef struct {
 
 typedef struct {
 	uint32_t id_tripulante;
-//	uint32_t id_patota;
 	sem_t* sem_execute;
-	pthread_t hiloTripulante;
-//	sem_t* sem_confirmacion;
 } tripulante_plani;
 
 

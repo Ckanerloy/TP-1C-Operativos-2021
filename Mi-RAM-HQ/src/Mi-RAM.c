@@ -5,6 +5,8 @@ int main(void)
 	MEMORIA_PRINCIPAL = NULL;
 	AREA_SWAP = NULL;
 	config = crear_config(CONFIG_PATH);
+	contador_id_tripu=1;
+	ids=list_create();     //CREA LA LISTA DE IDS
 
 	obtener_datos_de_config(config);
 	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
@@ -136,19 +138,37 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				//printf("PCB PATOTA: %s \n", patota_recibida->pid_patota);
 
 
-				// Crea el PCB de la Patota, ALMACENAR EN LA MEMORIA (SEGMENTACION O PAGINACION)
+				// Se verifica espacio para pcb y tcbs,si lo hay los creo.
 				/*
 				 * Cuando se crea el PCB de la patota, se mete su PID, y la direccion que apunta a las tareas previamente hechas
 				 * y almacenadas en la Memoria.
 				 *
 				 */
 
-				// SI TENGO MEMORIA
-				respuesta->respuesta = 1;
+				// if(tengomemoria()){}
+				if(1){
+					t_pcb* nueva_patota=malloc(sizeof(t_pcb));
+					nueva_patota=crear_pcb();
+					parser_posiciones = string_split(patota_recibida->posiciones, "|");
+					//Guardar pcb en memoria
+					//calcular direccion logica de la misma
+					for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
+						t_tcb* nuevo_tripulante=malloc(sizeof(t_tcb));
+						nuevo_tripulante=crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
+						//guardarlo tcb en memoria
+						list_add(ids,nuevo_tripulante->id_tripulante);
+						contador_id_tripu++;
+					}
+					respuesta->respuesta = 1;
+					//respuesta->ids_tripu = ids;
+				}else{
+					respuesta->respuesta = 0; // SI NO TENGO MEMORIA
+				}
 
-
-				// SI NO TENGO MEMORIA
-				// respuesta->respuesta = 0;
+				for(int i=0;list_size(ids)>i;i++){
+					uint32_t a=list_get(ids,i);
+					printf("%d",a);
+				}
 
 				enviar_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion);
 
@@ -207,45 +227,25 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 }
 
 
-t_pcb* crear_pcb(void){
+t_pcb* crear_pcb(){
 	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));
-	proceso_patota->pid = process_getpid();
+	proceso_patota->pid = 1;
 	proceso_patota->tareas = 0; //Direccion de memoria de las tareas
 	return proceso_patota;
 }
 
-t_tcb* crear_tcbs(t_pcb* pcb_patota, t_iniciar_patota* patota_recibida){
-	uint32_t cantidad_tripulantes = patota_recibida->cantidad_tripulantes;
-
-	char** parser_posiciones = string_split(patota_recibida->posiciones, "|");
-	string_trim(parser_posiciones);
-
-	int posicion = 0;
-	//for(uint32_t c=0; c<cantidad_tripulantes; c++){
-		int posicion_x = atoi(parser_posiciones[posicion]);
-		int posicion_y = atoi(parser_posiciones[posicion+1]);
-
-		return crear_tripulante(posicion_x, posicion_y, pcb_patota);
-
-		//agregar_tripulante_mapa(tripulante);
-
-		//posicion += 2;
-	//}
-}
-
-t_tcb* crear_tripulante(int posicion_x, int posicion_y, t_pcb* pcb_patota){
+t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x,uint32_t posicion_y,uint32_t dir_logica_prox_instruc){
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
-	tripulante->id_tripulante = process_get_thread_id();
+	tripulante->id_tripulante = contador_id_tripu;
 	tripulante->estado_tripulante = 'N';
 	tripulante->posicion_x = posicion_x;
 	tripulante->posicion_y = posicion_y;
-	tripulante->id_proxima_instruccion = 0;
-	tripulante->puntero_PCB = &pcb_patota;
+	tripulante->id_proxima_instruccion = dir_logica_prox_instruc;
+	tripulante->puntero_PCB = dir_logica_pcb;
 
 	return tripulante;
 }
-
 
 uint32_t cantidad_tareas(char** parser_tarea) {
 

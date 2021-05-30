@@ -292,7 +292,7 @@ void obtener_orden_input()
 			enviar_mensaje(id_tripulante_x_bitacora, OBTENER_BITACORA, conexion_mongo_store);
 
 			free(id_tripulante_x_bitacora);
-			cerrar_conexion(conexion_mongo_store);
+			cerrar_conexion(logger,conexion_mongo_store);
 			break;
 
 		case EXPULSAR_TRIPULANTE:
@@ -322,7 +322,7 @@ void obtener_orden_input()
 			enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
 
 			free(id_tripulante_a_expulsar);
-			cerar_conexion(conexion_mi_ram);
+			cerrar_conexion(logger,conexion_mi_ram);
 			break;
 
 		case TERMINAR_PROGRAMA:

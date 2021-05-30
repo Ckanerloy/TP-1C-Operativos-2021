@@ -44,14 +44,13 @@ void iniciar_comunicacion(void);
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
+
+t_list* ids;
 uint32_t cantidad_tareas(char** parser_tarea);
-
-
-t_tcb* crear_tripulante(int pos_x, int pos_y, t_pcb* pcb_patota);
-
-t_tcb* crear_tcbs(t_pcb* pcb_patota, t_iniciar_patota* patota_recibida);
-
-//t_pcb* crear_pcb(void);
+char** parser_posiciones;
+uint32_t contador_id_tripu;
+t_pcb* crear_pcb(void);
+t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x,uint32_t posicion_y,uint32_t dir_logica_prox_instruc);
 
 void mostrar_tripulante(t_tcb* tripulante);
 
