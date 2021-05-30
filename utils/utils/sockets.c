@@ -192,6 +192,11 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 		case OBTENER_BITACORA:
 			deseralizar_id_tripulante(mensaje, conexion);
 			break;
+
+		case RESPUESTA_INICIAR_PATOTA:
+			deserializar_respuesta_patota(mensaje, conexion);
+			break;
+
 		default:
 			printf("404 operacion NOT FOUND.\n");
 			break;
@@ -246,6 +251,19 @@ void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion)
 }
 
 
+void deserializar_respuesta_patota(t_respuesta* mensaje, int32_t conexion) {
+	uint32_t tamanio;
+	uint32_t desplazamiento = 0;
+	void* buffer_deserializar;
+	buffer_deserializar = recibir_buffer(&tamanio, conexion);
+
+	memcpy(&(mensaje->respuesta), buffer_deserializar + desplazamiento, sizeof(mensaje->respuesta));
+	desplazamiento += sizeof(mensaje->respuesta);
+
+	free(buffer_deserializar);
+}
+
+
 void deserealizar_tripulante(t_tcb* mensaje, int32_t conexion) {
 	uint32_t tamanio;
 	uint32_t desplazamiento = 0;
@@ -253,8 +271,8 @@ void deserealizar_tripulante(t_tcb* mensaje, int32_t conexion) {
 	buffer_deserializar = recibir_buffer(&tamanio, conexion);
 
 	// Id de Tripulante
-	memcpy(&(mensaje->tid), buffer_deserializar + desplazamiento, sizeof(mensaje->tid));
-	desplazamiento += sizeof(mensaje->tid);
+	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
 
 	// Estado de Tripulante
 	memcpy(&(mensaje->estado_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->estado_tripulante));
@@ -349,6 +367,10 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			tamanio_preparado = serializar_paquete_id_tripulante(paquete, mensaje);
 			break;
 
+		case RESPUESTA_INICIAR_PATOTA:
+			tamanio_preparado = serializar_respuesta_iniciar_patota(paquete, mensaje);
+			break;
+
 		default:
 			printf("404 operacion NOT FOUND.\n");
 			break;
@@ -426,6 +448,44 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota*
 
 }
 
+
+uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta* mensaje) {
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
+
+	uint32_t tamanio_a_enviar = 0;
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->size = sizeof(uint32_t);
+
+	void* stream_auxiliar = malloc(buffer->size);
+
+	// Respuesta
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->respuesta), sizeof(mensaje->respuesta));
+	desplazamiento += sizeof(mensaje->respuesta);
+
+	tamanio_a_enviar = sizeof(mensaje->respuesta);
+
+	if(desplazamiento != tamanio_a_enviar)
+	{
+		puts("ERROR. Tamanio diferentes.\n");
+		//log_error(logger);
+		abort();
+	}
+
+	else
+	{
+
+		paquete->buffer = buffer;
+		paquete->buffer->size = desplazamiento;
+		paquete->buffer->stream = stream_auxiliar;
+
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+
+		return tamanio;
+	}
+}
+
 uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tcb* mensaje)
 {
 	uint32_t tamanio = 0;
@@ -434,13 +494,13 @@ uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tcb* mensaje)
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(mensaje->tid) + sizeof(mensaje->estado_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y) + sizeof(mensaje->id_proxima_instruccion) + sizeof(mensaje->puntero_PCB);
+	buffer->size = sizeof(mensaje->id_tripulante) + sizeof(mensaje->estado_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y) + sizeof(mensaje->id_proxima_instruccion) + sizeof(mensaje->puntero_PCB);
 
 	void* stream_auxiliar = malloc(buffer->size);
 
 	// Id de Tripulante
-	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tid), sizeof(mensaje->tid));
-	desplazamiento += sizeof(mensaje->tid);
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
 
 	// Estado de Tripulante
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->estado_tripulante), sizeof(mensaje->estado_tripulante));
@@ -462,7 +522,7 @@ uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tcb* mensaje)
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->puntero_PCB), sizeof(mensaje->puntero_PCB));
 	desplazamiento += sizeof(mensaje->puntero_PCB);
 
-	tamanio_a_enviar = sizeof(mensaje->tid) + sizeof(mensaje->estado_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y) + sizeof(mensaje->id_proxima_instruccion) + sizeof(mensaje->puntero_PCB);
+	tamanio_a_enviar = sizeof(mensaje->id_tripulante) + sizeof(mensaje->estado_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y) + sizeof(mensaje->id_proxima_instruccion) + sizeof(mensaje->puntero_PCB);
 
 
 	if(desplazamiento != tamanio_a_enviar)

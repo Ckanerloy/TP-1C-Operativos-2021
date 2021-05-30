@@ -92,6 +92,9 @@ void obtener_orden_input()
 
 	switch(operacion){
 
+
+	// Arranca todo pausado
+
 		case INICIAR_PLANIFICACION:
 
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
@@ -121,13 +124,13 @@ void obtener_orden_input()
 			uint32_t cantidad_posiciones = cantidad_argumentos - 3;
 			int cantidad_tripulantes = atoi(parser_consola[1]);
 			int posiciones_faltantes = cantidad_tripulantes - cantidad_posiciones;
-
 			respuesta = malloc(sizeof(t_respuesta));
 
 			if(posiciones_faltantes < 0) {
 				log_error(logger, "Se ingresaron posiciones demás. Solo puede como máximo haber tantas posiciones como cantidad de tripulantes.\n");
 				break;
 			}
+
 
 			strcat(parser_consola[1],"\0");
 			strcat(parser_consola[2],"\0");
@@ -144,14 +147,15 @@ void obtener_orden_input()
 			for(int i = 0; i<posiciones_faltantes; i++) {
 				string_append_with_format(&posiciones, "%s|", "0|0");
 			}
-
 			strcat(posiciones, "\0");
+
 
 			// Conexión con Mi-RAM HQ
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
 				break;
 			}
+
 
 			// Obtiene el contenido del Archivo de Tareas de la Patota
 			FILE* archivo_tareas = fopen(parser_consola[2], "r");
@@ -190,15 +194,48 @@ void obtener_orden_input()
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
+			t_tcb** tripulante;
 
 			if(validacion_envio(conexion_mi_ram) == 1) {
 				recibir_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion_mi_ram);
 
-				/*for(int i=0; i<cantidad_tripulantes; i++){
-					enviar_mensaje(tripulante[i], INICIAR_TRIPULANTE, conexion_mi_ram);
+				printf("%u\n", respuesta->respuesta);
 
+				if(respuesta->respuesta == 1){
+					printf("La respuesta fue positiva. \n");
+				}
+				else {
+					printf("La respuesta fue negativa. \n");			// Salgo del Switch, ya que no pudo crearse la Patota en Mi-RAM HQ
+					break;
+				}
+
+				/*int posicion = 0;
+				for(int c=1; c <= cantidad_tripulantes; c++){
+				 	tripulante[c] = malloc(sizeof(t_tcb));
+
+					//tripulante[c]->id_tripulante = VARIABLE GLOBAL;
+					tripulante[c]->estado_tripulante = 'N';
+					tripulante[c]->posicion_x = atoi(parser_posiciones[posicion]);
+					tripulante[c]->posicion_y = atoi(parser_posiciones[posicion+1]);
+					tripulante[c]->id_proxima_instruccion = 0;
+					tripulante[c]->puntero_PCB = 0;
+
+					// Crear el Hilo
+					// Mandar a la cola de New
+					enviar_mensaje(tripulante[c], INICIAR_TRIPULANTE, conexion_mi_ram);
+
+					// Valido el envio
+					// Recibo la respuesta
+					// SI es positiva
+						// Cambiar el estado a READY
+					// SI es Negativa
+
+					posicion += 2;
 				}*/
 			}
+
+
+
 
 			//Me envia MiRam la confirmaciones del PCB
 
@@ -210,13 +247,10 @@ void obtener_orden_input()
 
 
 
-
-
-
-
 			// Libero la memoria usada
 			fclose(archivo_tareas);
 			free(tareas_totales);
+			free(respuesta);
 
 			free(posiciones);
 			free(parser_posiciones);
@@ -258,7 +292,7 @@ void obtener_orden_input()
 			enviar_mensaje(id_tripulante_x_bitacora, OBTENER_BITACORA, conexion_mongo_store);
 
 			free(id_tripulante_x_bitacora);
-			close(conexion_mongo_store);
+			cerrar_conexion(conexion_mongo_store);
 			break;
 
 		case EXPULSAR_TRIPULANTE:
@@ -288,7 +322,7 @@ void obtener_orden_input()
 			enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
 
 			free(id_tripulante_a_expulsar);
-			close(conexion_mi_ram);
+			cerar_conexion(conexion_mi_ram);
 			break;
 
 		case TERMINAR_PROGRAMA:

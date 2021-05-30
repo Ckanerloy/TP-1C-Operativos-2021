@@ -17,6 +17,7 @@ int main(void)
 	printf("Criterio de Seleccion para meter en Segmentacion: %s \n", CRITERIO_SELECCION);
 
 	MEMORIA_PRINCIPAL = malloc(TAMANIO_MEMORIA);
+
 	if(MEMORIA_PRINCIPAL != NULL){
 		printf("Memoria Principal iniciada... \n");
 	}
@@ -118,7 +119,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 	t_iniciar_patota* patota_recibida;
 	//t_tcb* tripulante_recibido;
 	t_id_tripulante* tripulante_a_eliminar;
-	t_tarea** tareas_tripulantes;
+	t_tarea** tareas_de_la_patota;
 	t_respuesta* respuesta;
 	//sem_post(espera);
 
@@ -134,86 +135,53 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
 				//printf("PCB PATOTA: %s \n", patota_recibida->pid_patota);
 
+
+				// Crea el PCB de la Patota, ALMACENAR EN LA MEMORIA (SEGMENTACION O PAGINACION)
+				/*
+				 * Cuando se crea el PCB de la patota, se mete su PID, y la direccion que apunta a las tareas previamente hechas
+				 * y almacenadas en la Memoria.
+				 *
+				 */
+
+				// SI TENGO MEMORIA
+				respuesta->respuesta = 1;
+
+
+				// SI NO TENGO MEMORIA
+				// respuesta->respuesta = 0;
+
+				enviar_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion);
+
+
+
+
+
+				// Tareas de UNA Patota
 				string_trim(&patota_recibida->tareas_de_patota);
 				char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
 
 				uint32_t cant_tareas = cantidad_tareas(parser_tarea);
 
-				tareas_tripulantes = malloc(sizeof(t_tarea));
+				tareas_de_la_patota = malloc(sizeof(t_tarea)*cant_tareas);
+
 				for(uint32_t i=0; i<cant_tareas; i++){
-					tareas_tripulantes[i] = obtener_la_tarea(parser_tarea[i]);
+					tareas_de_la_patota[i] = obtener_la_tarea(parser_tarea[i]);
 
-					printf("Operacion: %u \n", tareas_tripulantes[i]->operacion);
-					printf(" - Cantidad: %u \n", tareas_tripulantes[i]->parametros->cantidad);
-					printf(" - Posicion X: %u \n", tareas_tripulantes[i]->parametros->posicion_x);
-					printf(" - Posicion Y:%u \n", tareas_tripulantes[i]->parametros->posicion_y);
-					printf(" - Tiempo: %u \n\n", tareas_tripulantes[i]->parametros->tiempo);
+					printf("Operacion: %u \n", tareas_de_la_patota[i]->operacion);
+					printf(" - Cantidad: %u \n", tareas_de_la_patota[i]->parametros->cantidad);
+					printf(" - Posicion X: %u \n", tareas_de_la_patota[i]->parametros->posicion_x);
+					printf(" - Posicion Y:%u \n", tareas_de_la_patota[i]->parametros->posicion_y);
+					printf(" - Tiempo: %u \n\n", tareas_de_la_patota[i]->parametros->tiempo);
 				}
+				// GUARDAR tareas_de_la_patota EN MEMORIA; EN EL SEGMENTO DE LA PATOTA CREADA
 
 
-				// Crea el PCB de la Patota, ALMACENAR EN LA MEMORIA (SEGMENTACION O PAGINACION)
-				respuesta->respuesta = 1;
-				enviar_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion);
-
-				/*
-				 * Cuando se crea el PCB de la patota, se mete su PID, y la direccion que apunta a las tareas previamente hechas
-				 * y almacenadas en la Memoria.
-				 */
-
-
-/*				t_tarea** tareas_tripulantes = malloc(sizeof(t_tarea));
-				tareas_tripulantes[0] = obtener_la_tarea(parser_tarea[1]);
-				tareas_tripulantes[1] = obtener_la_tarea(parser_tarea[2]);
-
-
-				printf("%u \n", tareas_tripulantes[0]->operacion);
-				printf("%u \n", tareas_tripulantes[0]->parametros->cantidad);
-				printf("%u \n", tareas_tripulantes[0]->parametros->posicion_x);
-				printf("%u \n", tareas_tripulantes[0]->parametros->posicion_y);
-				printf("%u \n", tareas_tripulantes[0]->parametros->tiempo);
-
-				printf("%u \n", tareas_tripulantes[1]->operacion);
-				printf("%u \n", tareas_tripulantes[1]->parametros->cantidad);
-				printf("%u \n", tareas_tripulantes[1]->parametros->posicion_x);
-				printf("%u \n", tareas_tripulantes[1]->parametros->posicion_y);
-				printf("%u \n", tareas_tripulantes[1]->parametros->tiempo);
-
-
-				int posicion = 0;
-				while(parser_tarea[posicion] != NULL){
-					string_trim(&parser_tarea[posicion]);
-					string_append(&parser_tarea[posicion], ";");
-					printf("%s \n", parser_tarea[posicion]);
-					posicion++;
-				}*/
-
-
-	//			codigo_tarea codigo_tarea;
-//				t_parametros_tarea* parametros_tarea;
-				//obtener_operando(tareas, codigo_tarea, parametros_tarea);
-
-
-//				tripulante_recibido = malloc(sizeof(t_tcb));
-				//t_pcb* pcb_patota = crear_pcb();
-			//	tripulante_recibido = crear_tcbs(pcb_patota, patota_recibida);
-
-			//	enviar_mensaje(tripulante_recibido, INICIAR_TRIPULANTE, conexion);
-
-				//free(tareas);
-
+				free(tareas_de_la_patota);
+				free(respuesta);
 				free(parser_tarea);
 				free(patota_recibida->tareas_de_patota);
 				free(patota_recibida->posiciones);
 				free(patota_recibida);
-				break;
-
-			case INICIAR_TRIPULANTE:
-			//	tripulante_recibido = malloc(sizeof(t_tcb));
-			//	recibir_mensaje(tripulante_recibido, operacion, conexion);
-
-			//	mostrar_tripulante(tripulante_recibido);
-
-			//	free(tripulante_recibido);
 				break;
 
 			case RECIBIR_UBICACION_TRIPULANTE:
@@ -268,7 +236,7 @@ t_tcb* crear_tcbs(t_pcb* pcb_patota, t_iniciar_patota* patota_recibida){
 t_tcb* crear_tripulante(int posicion_x, int posicion_y, t_pcb* pcb_patota){
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
-	tripulante->tid = process_get_thread_id();
+	tripulante->id_tripulante = process_get_thread_id();
 	tripulante->estado_tripulante = 'N';
 	tripulante->posicion_x = posicion_x;
 	tripulante->posicion_y = posicion_y;
@@ -291,7 +259,7 @@ uint32_t cantidad_tareas(char** parser_tarea) {
 
 void mostrar_tripulante(t_tcb* tripulante) {
 
-	printf("Id tripulante: %u \n", tripulante->tid);
+	printf("Id tripulante: %u \n", tripulante->id_tripulante);
 	printf("Estado tripulante: %c \n", tripulante->estado_tripulante);
 	printf("Posicion X: %i \n", tripulante->posicion_x);
 	printf("Posicion Y: %i \n", tripulante->posicion_y);

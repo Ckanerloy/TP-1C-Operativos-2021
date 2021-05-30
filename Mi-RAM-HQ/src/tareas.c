@@ -31,6 +31,7 @@ codigo_tarea mapeo_tareas_tripulantes(char* tarea) {
 	return tarea_a_realizar;
 }
 
+
 char** obtener_tareas(char* tareas_patota) {
 	return string_split(tareas_patota, "|");
 }
@@ -49,38 +50,17 @@ t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 }
 
 
-// FALLA EL PARSEO POR ESPACIOS ENTRE LOS PARAMETROS CUANDO SE PASA UN PARAMETRO MENOS, POR EJEMPLO EN DESCARTAR_BASURA
-
-
-
 t_parametros_tarea* recibir_parametros(char* parametros) {
 
 	char** parser_parametros = NULL;
 
 	t_parametros_tarea* estructura = malloc(sizeof(t_parametros_tarea));
-	parser_parametros = string_split(parametros, ";");						// SI fuese un STRING, directamente se hace un strcpy a cada parametro
+	parser_parametros = string_split(parametros, ";");
 
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- *
- * Ver en el caso de que no se le asigne el parametro de cantidad, como se puede solucionar el caso de la cantidad de memoria
- * reservada para dicho parametro. Sin tener que modificar el archivo de tareas, sea que se toma el primer parametro mediante un if
- * y el resto de los parametros tal como esta en este codigo. O se toma el parametro NULO como si fuese un 0, y asi rellenar el espacio
- * de memoria de la estructura.
- *
- * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-
-	if(parser_parametros[0] == NULL){
-		estructura->cantidad = atoi("0");									// ISSUE
-		estructura->posicion_x = atoi(parser_parametros[1]);
-		estructura->posicion_y = atoi(parser_parametros[2]);
-		estructura->tiempo = atoi(parser_parametros[3]);
-	}
-	else {
-		estructura->cantidad = atoi(parser_parametros[0]);
-		estructura->posicion_x = atoi(parser_parametros[1]);
-		estructura->posicion_y = atoi(parser_parametros[2]);
-		estructura->tiempo = atoi(parser_parametros[3]);
-	}
+	estructura->cantidad = atoi(parser_parametros[0]);
+	estructura->posicion_x = atoi(parser_parametros[1]);
+	estructura->posicion_y = atoi(parser_parametros[2]);
+	estructura->tiempo = atoi(parser_parametros[3]);
 
 	free(parser_parametros);
 	return estructura;

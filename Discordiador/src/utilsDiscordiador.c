@@ -48,7 +48,7 @@ void leer_archivo_tareas(FILE* archivo_tareas, char* tareas) {
 
 void mostrar_tripulante(t_tcb* tripulante) {
 
-	printf("Id tripulante: %u \n", tripulante->tid);
+	printf("Id tripulante: %u \n", tripulante->id_tripulante);
 	printf("Estado tripulante: %c \n", tripulante->estado_tripulante);
 	printf("Posicion X: %i \n", tripulante->posicion_x);
 	printf("Posicion Y: %i \n", tripulante->posicion_y);
