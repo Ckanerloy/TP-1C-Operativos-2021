@@ -260,6 +260,13 @@ void deserializar_respuesta_patota(t_respuesta* mensaje, int32_t conexion) {
 	memcpy(&(mensaje->respuesta), buffer_deserializar + desplazamiento, sizeof(mensaje->respuesta));
 	desplazamiento += sizeof(mensaje->respuesta);
 
+	memcpy(&(mensaje->tamanio_ids), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_ids));
+	desplazamiento += sizeof(mensaje->tamanio_ids);
+
+	mensaje->ids_tripu=malloc(mensaje->tamanio_ids+1);
+
+	memcpy(mensaje->ids_tripu, buffer_deserializar + desplazamiento, mensaje->tamanio_ids+1);
+	desplazamiento += mensaje->tamanio_ids+1;
 	free(buffer_deserializar);
 }
 
@@ -456,7 +463,7 @@ uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta* me
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(uint32_t);
+	buffer->size = sizeof(uint32_t)+ sizeof(mensaje->tamanio_ids) + strlen(mensaje->ids_tripu)+1;
 
 	void* stream_auxiliar = malloc(buffer->size);
 
@@ -464,7 +471,15 @@ uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta* me
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->respuesta), sizeof(mensaje->respuesta));
 	desplazamiento += sizeof(mensaje->respuesta);
 
-	tamanio_a_enviar = sizeof(mensaje->respuesta);
+	//Tamanio ids
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tamanio_ids), sizeof(mensaje->tamanio_ids));
+	desplazamiento += sizeof(mensaje->tamanio_ids);
+
+	// Cadena ids
+	memcpy(stream_auxiliar + desplazamiento, mensaje->ids_tripu, mensaje->tamanio_ids+1);
+	desplazamiento += mensaje->tamanio_ids+1;
+
+	tamanio_a_enviar = sizeof(mensaje->respuesta) + sizeof(mensaje->tamanio_ids) + mensaje->tamanio_ids+1;
 
 	if(desplazamiento != tamanio_a_enviar)
 	{

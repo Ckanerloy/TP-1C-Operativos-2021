@@ -146,6 +146,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				 */
 
 				// if(tengomemoria()){}
+				char* ids_enviar=string_new();
 				if(1){
 					t_pcb* nueva_patota=malloc(sizeof(t_pcb));
 					nueva_patota=crear_pcb();
@@ -156,18 +157,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 						t_tcb* nuevo_tripulante=malloc(sizeof(t_tcb));
 						nuevo_tripulante=crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
 						//guardarlo tcb en memoria
-						list_add(ids,nuevo_tripulante->id_tripulante);
+						string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
 						contador_id_tripu++;
+						free(nuevo_tripulante);
 					}
+
+					printf("%s\n",ids_enviar);
+					free(nueva_patota);
+					strcat(ids_enviar,"\0");
 					respuesta->respuesta = 1;
-					//respuesta->ids_tripu = ids;
+					respuesta->tamanio_ids=strlen(ids_enviar);
+					respuesta->ids_tripu=malloc(respuesta->tamanio_ids+1);
+					strcpy(respuesta->ids_tripu,ids_enviar);
 				}else{
 					respuesta->respuesta = 0; // SI NO TENGO MEMORIA
-				}
-
-				for(int i=0;list_size(ids)>i;i++){
-					uint32_t a=list_get(ids,i);
-					printf("%d",a);
+					respuesta->tamanio_ids=0;
+					respuesta->ids_tripu=NULL;
 				}
 
 				enviar_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion);
@@ -196,6 +201,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				// GUARDAR tareas_de_la_patota EN MEMORIA; EN EL SEGMENTO DE LA PATOTA CREADA
 
 
+				free(ids_enviar);
 				free(tareas_de_la_patota);
 				free(respuesta);
 				free(parser_tarea);

@@ -194,15 +194,18 @@ void obtener_orden_input()
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
-			t_tcb** tripulante;
-
 			if(validacion_envio(conexion_mi_ram) == 1) {
 				recibir_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion_mi_ram);
 
 				printf("%u\n", respuesta->respuesta);
 
 				if(respuesta->respuesta == 1){
+					//for(int i=0;mensaje_patota->cantidad_tripulantes>i;i++){
+					//	tripulante_plani* tripulante=malloc(sizeof(tripulante_plani));
+					//	tripulante->id_tripulante=list_get(respuesta->ids_tripu,i);
+					//}
 					printf("La respuesta fue positiva. \n");
+					printf("posiciones de los tripulantes %s\n",respuesta->ids_tripu);
 				}
 				else {
 					printf("La respuesta fue negativa. \n");			// Salgo del Switch, ya que no pudo crearse la Patota en Mi-RAM HQ
