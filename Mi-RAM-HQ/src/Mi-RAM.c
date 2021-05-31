@@ -6,6 +6,7 @@ int main(void)
 	AREA_SWAP = NULL;
 	config = crear_config(CONFIG_PATH);
 	contador_id_tripu=1;
+	contador_id_patota=1;
 	ids=list_create();     //CREA LA LISTA DE IDS
 
 	obtener_datos_de_config(config);
@@ -177,10 +178,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				enviar_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion);
 
-
-
-
-
 				// Tareas de UNA Patota
 				string_trim(&patota_recibida->tareas_de_patota);
 				char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
@@ -200,7 +197,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				}
 				// GUARDAR tareas_de_la_patota EN MEMORIA; EN EL SEGMENTO DE LA PATOTA CREADA
 
-
+				contador_id_patota++;
 				free(ids_enviar);
 				free(tareas_de_la_patota);
 				free(respuesta);
@@ -235,7 +232,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 t_pcb* crear_pcb(){
 	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));
-	proceso_patota->pid = 1;
+	proceso_patota->pid = contador_id_patota;
 	proceso_patota->tareas = 0; //Direccion de memoria de las tareas
 	return proceso_patota;
 }

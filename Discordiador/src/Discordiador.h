@@ -49,19 +49,23 @@ sem_t* termino_operacion;
 pthread_t hilo_consola;
 pthread_t hilo_sabotaje;
 pthread_t hilo_tripulante;
+pthread_t hilo_new_ready;
 
 t_log* logger;
 t_config* config;
 
-void iniciar_escucha_sabotaje(void);
-void iniciar_escucha_por_consola(void);
-void obtener_datos_de_config(t_config* config);		// Obtengo los datos cargados en el archivo .config
+//void iniciar_escucha_sabotaje(void);
+void iniciar_escucha_por_consola();
 void obtener_orden_input();						// Leo lo que escriba por consola y ejecuta la operacion a realizar
+void crear_hilos();
 
 // POR AHORA SON UNA IDEA
 void obtener_orden_sabotaje(void);
 void arreglar_sabotaje(void);
 
 t_pcb* crear_pcb(void);
+
+// Colas de planificacion
+t_queue* colaNew;
 
 #endif /* DISCORDIADOR_H_ */

@@ -6,6 +6,24 @@ int main(void) {
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
 	obtener_planificacion_de_config(config);
+
+	inicializar_semaforos();
+	iniciar_planificacion();
+
+	crear_hilos();
+
+	while(1){
+	//DISCORDIADOR COMO SERVIDOR DE MONGO-STORE
+	// Conexion de escucha con MongoStore?  POR SABOTAJE
+	//sem_wait(sabotaje);
+	//pthread_create(&hilo_sabotaje, NULL, (void*)iniciar_escucha_sabotaje, NULL);
+
+	//pthread_detach(hilo_sabotaje);
+	}
+	return EXIT_SUCCESS;
+}
+
+void inicializar_semaforos(){
 	sabotaje = malloc(sizeof(sem_t));
 	sem_init(sabotaje, 0, 1);
 
@@ -14,21 +32,14 @@ int main(void) {
 
 	termino_operacion = malloc(sizeof(sem_t));
 	sem_init(termino_operacion, 0, 1);
+}
 
-	while(1){
-	//DISCORDIADOR COMO SERVIDOR DE MONGO-STORE
-	// Conexion de escucha con MongoStore?  POR SABOTAJE
-	//sem_wait(sabotaje);
-	//pthread_create(&hilo_sabotaje, NULL, (void*)iniciar_escucha_sabotaje, NULL);
-	sem_wait(comando_para_ejecutar);
-
-	pthread_create(&hilo_consola, NULL,(void*)obtener_orden_input, NULL);
-
-
-	//pthread_detach(hilo_sabotaje);
+void crear_hilos(){
+	pthread_create(&hilo_consola, NULL,(void*)iniciar_escucha_por_consola, NULL);
 	pthread_detach(hilo_consola);
-	}
-	return EXIT_SUCCESS;
+
+	pthread_create(&hilo_new_ready, NULL,(void*)new_ready, NULL);
+	pthread_detach(hilo_new_ready);
 }
 
 //void iniciar_escucha_sabotaje(void){
@@ -37,13 +48,13 @@ int main(void) {
 //	}
 //}
 
-//void iniciar_escucha_por_consola(void){
-//	while(1){
-//		obtener_orden_input();
-//	}
+void iniciar_escucha_por_consola(){
+	while(1){
+		sem_wait(comando_para_ejecutar);
+		obtener_orden_input();
+	}
 
-//}
-
+}
 
 void obtener_datos_de_config(t_config* config) {
 
@@ -90,6 +101,8 @@ void obtener_orden_input()
 	 sem_post(comando_para_ejecutar);
 	 operacion = mapeo_valor_consola(comando_ingresado);
 
+	 int32_t valor_semaforo;
+
 	switch(operacion){
 
 
@@ -98,6 +111,12 @@ void obtener_orden_input()
 		case INICIAR_PLANIFICACION:
 
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
+			sem_getvalue(planificacion_on,&valor_semaforo);
+
+			if(valor_semaforo == 0){
+				sem_post(planificacion_on);
+			}
+
 			// LOS TRIPULANTES ESTAN DEFINIDOS POR HILO -> CADA HILO IRIA A UNA COLA
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO EXECUTE
 
@@ -108,6 +127,10 @@ void obtener_orden_input()
 
 		case PAUSAR_PLANIFICACION:
 
+			sem_getvalue(planificacion_on,&valor_semaforo);
+			if(valor_semaforo == 1){
+			sem_wait(planificacion_on);
+			}
 			// PAUSA LA PLANIFICACION DE LOS TRIPULANTES, ES DECIR TODOS EN PAUSA? o se mete algun WAIT(signal)
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO BLOCK I/O
 			break;
@@ -196,59 +219,27 @@ void obtener_orden_input()
 
 			if(validacion_envio(conexion_mi_ram) == 1) {
 				recibir_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion_mi_ram);
-
-				printf("%u\n", respuesta->respuesta);
-
 				if(respuesta->respuesta == 1){
-					//for(int i=0;mensaje_patota->cantidad_tripulantes>i;i++){
-					//	tripulante_plani* tripulante=malloc(sizeof(tripulante_plani));
-					//	tripulante->id_tripulante=list_get(respuesta->ids_tripu,i);
-					//}
 					printf("La respuesta fue positiva. \n");
-					printf("posiciones de los tripulantes %s\n",respuesta->ids_tripu);
+					printf("los id de los tripulantes %s\n",respuesta->ids_tripu);
+					char** parser_ids= string_split(respuesta->ids_tripu, "|");
+					for(int i=0;mensaje_patota->cantidad_tripulantes>i;i++){
+						tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+						tripulante->id_tripulante = atoi(parser_ids[i]);
+						sem_wait(mutex_new);
+						queue_push(cola_new,tripulante);
+						sem_post(mutex_new);
+
+						sem_post(contador_tripulantes_en_new);
+					}
+					//tripulante_plani* aux=queue_pop(cola_new);
+
 				}
 				else {
 					printf("La respuesta fue negativa. \n");			// Salgo del Switch, ya que no pudo crearse la Patota en Mi-RAM HQ
 					break;
 				}
-
-				/*int posicion = 0;
-				for(int c=1; c <= cantidad_tripulantes; c++){
-				 	tripulante[c] = malloc(sizeof(t_tcb));
-
-					//tripulante[c]->id_tripulante = VARIABLE GLOBAL;
-					tripulante[c]->estado_tripulante = 'N';
-					tripulante[c]->posicion_x = atoi(parser_posiciones[posicion]);
-					tripulante[c]->posicion_y = atoi(parser_posiciones[posicion+1]);
-					tripulante[c]->id_proxima_instruccion = 0;
-					tripulante[c]->puntero_PCB = 0;
-
-					// Crear el Hilo
-					// Mandar a la cola de New
-					enviar_mensaje(tripulante[c], INICIAR_TRIPULANTE, conexion_mi_ram);
-
-					// Valido el envio
-					// Recibo la respuesta
-					// SI es positiva
-						// Cambiar el estado a READY
-					// SI es Negativa
-
-					posicion += 2;
-				}*/
 			}
-
-
-
-
-			//Me envia MiRam la confirmaciones del PCB
-
-			//for(int i=0; i<cantidad_tripulantes;i++){
-			//tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
-			//tripulante->id_tripulante=contador_id;
-
-			//}
-
-
 
 			// Libero la memoria usada
 			fclose(archivo_tareas);

@@ -18,6 +18,20 @@ algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo) {
 	return algoritmo_elegido;
 }
 
+void inicializar_semaforos_plani(){
+	contador_tripulantes_en_new = malloc(sizeof(sem_t));
+	sem_init(contador_tripulantes_en_new,0, 0);
+
+	mutex_new = malloc(sizeof(sem_t));
+	sem_init(mutex_new, 0 , 1);
+
+	mutex_ready = malloc(sizeof(sem_t));
+	sem_init(mutex_ready, 0, 1);
+
+	planificacion_on = malloc(sizeof(sem_t));
+	sem_init(planificacion_on, 0, 0);
+}
+
 void obtener_planificacion_de_config(t_config* config){
 
 	GRADO_MULTITAREA = config_get_int_value(config, "GRADO_MULTITAREA");
@@ -26,7 +40,7 @@ void obtener_planificacion_de_config(t_config* config){
 }
 
 
-void elegir_algoritmo(void) {
+void elegir_algoritmo() {
 
 	algoritmo_planificacion algoritmo_elegido;
 	algoritmo_elegido = mapeo_algoritmo_planificacion(ALGORITMO);
@@ -57,18 +71,20 @@ void elegir_algoritmo(void) {
 
 
 
-void iniciarPlanificacion() {
+void iniciar_planificacion() {
 	printf("Iniciando Planificacion....... \n");
 
 	cola_new = queue_create();
 	cola_ready = list_create();
     cola_block = list_create();
 
-    pthread_t hilo_block_ready;
+    inicializar_semaforos_plani();
+
+    //pthread_t hilo_block_ready;
 	//pthread_create(&hilo_block_ready, NULL, (void*)block_ready, NULL);
 
 	pthread_t hilo_new_ready;
-	//pthread_create(&hilo_new_ready, NULL, (void*)new_ready, NULL);
+	pthread_create(&hilo_new_ready, NULL, (void*)new_ready, NULL);
 
 	//pthread_t threadHilosMaestro;
 	//pthread_create(&threadHilosMaestro, NULL, (void*)hiloCiclosMaestro, NULL);
@@ -148,7 +164,7 @@ void execute(int* numero_hilo) {
 			agregarABlock(tripulante_a_trabajar);
 
 		} else {
-			/*waitSemaforoHabilitarCicloExec(numHiloExec);
+			//*waitSemaforoHabilitarCicloExec(numHiloExec);
 			sem_wait(semLog);
 			log_trace(logger, "[EXEC-%d] Desperdicio un ciclo porque no hay nadie en ready.", numHiloExec);
 			sem_post(semLog);
@@ -163,21 +179,34 @@ void execute(int* numero_hilo) {
 
 void new_ready() {
 	while(1){
+		sem_wait(planificacion_on);
 
-	//sem_wait(contadorProcesosEnNew);
+		sem_wait(contador_tripulantes_en_new);
 
-	//sem_wait(mutexNew);
+		sem_wait(mutex_new);
 
-		char* tarea_nueva = string_new();
+		tripulante_plani* tripulante_a_ready = queue_pop(cola_new);
+
+		sem_post(mutex_new);
+
+		sem_wait(mutex_ready);
+
+		queue_push(cola_ready,tripulante_a_ready);
+
+		sem_post(mutex_ready);
+
+		sem_wait(planificacion_on);
+
+		//IDEAS PIOLAS A IMPLEMENTAR
+		//char* tarea_nueva = string_new();
 		//obtener_siguiente_tarea(tarea_nueva); // Busca en la lista de tareas de la patota, la tarea siguiente para ejecutar
 		//char* tarea_nueva = queue_pop(colaNew);
 
-	//sem_post(mutexNew);
 
-	//sem_wait(contadorRepartidoresDisp);
+		//sem_wait(contadorRepartidoresDisp);
 
 
-//		asignar_tarea_a_tripulante(tarea_nueva); //Le paso una tarea como parametro?
+		//asignar_tarea_a_tripulante(tarea_nueva); //Le paso una tarea como parametro?
 
 		//cambiar_estado_del_tripulante NEW -> READY
 	}

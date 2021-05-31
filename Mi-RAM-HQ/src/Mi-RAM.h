@@ -49,6 +49,7 @@ t_list* ids;
 uint32_t cantidad_tareas(char** parser_tarea);
 char** parser_posiciones;
 uint32_t contador_id_tripu;
+uint32_t contador_id_patota;
 t_pcb* crear_pcb(void);
 t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x,uint32_t posicion_y,uint32_t dir_logica_prox_instruc);
 
