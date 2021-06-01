@@ -39,7 +39,7 @@ sem_t* mutex_new;
 sem_t* planificacion_on;
 
 //Hilos
-pthread_t hilo_new_readdy;
+//pthread_t hilo_new_ready;			Por que se pone aca, pero tambien esta en planificador.c?
 //pthread_t hilo_block_ready;
 
 // Datos del Config

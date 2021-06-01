@@ -100,9 +100,8 @@ void obtener_datos_de_config(t_config* config)
 
 void iniciar_comunicacion(){
 	log_info(logger, "Servidor activo, esperando instrucciones ... \n");
+
 	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
-
-
 
 	while(1) {
 
@@ -176,7 +175,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				}
 
 				enviar_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion);
+
 				free(respuesta->ids_tripu);
+
 				// Tareas de UNA Patota
 				string_trim(&patota_recibida->tareas_de_patota);
 				char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);

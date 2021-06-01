@@ -56,6 +56,7 @@ t_config* config;
 
 //void iniciar_escucha_sabotaje(void);
 void iniciar_escucha_por_consola();
+void obtener_datos_de_config(t_config* config);
 void obtener_orden_input();						// Leo lo que escriba por consola y ejecuta la operacion a realizar
 void crear_hilos();
 
@@ -66,6 +67,6 @@ void arreglar_sabotaje(void);
 t_pcb* crear_pcb(void);
 
 // Colas de planificacion
-t_queue* colaNew;
+//t_queue* colaNew;
 
 #endif /* DISCORDIADOR_H_ */

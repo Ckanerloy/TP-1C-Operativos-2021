@@ -66,6 +66,8 @@ void listar_tripulantes() {
 
 	printf("-------------------------------------------------------------------------\n");
 	printf("Estado de la nave: %s \n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
+
+
 	printf("Tripulante: ID_TRIPULANTE      Patota: NUM_PATOTA      Status:  STATUS \n");
 	printf("--------------------------------------------------------------------------\n\n");
 }

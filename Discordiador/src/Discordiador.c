@@ -8,6 +8,7 @@ int main(void) {
 	obtener_planificacion_de_config(config);
 
 	inicializar_semaforos();
+
 	iniciar_planificacion();
 
 	crear_hilos();
@@ -23,6 +24,7 @@ int main(void) {
 	return EXIT_SUCCESS;
 }
 
+
 void inicializar_semaforos(){
 	sabotaje = malloc(sizeof(sem_t));
 	sem_init(sabotaje, 0, 1);
@@ -33,6 +35,14 @@ void inicializar_semaforos(){
 	termino_operacion = malloc(sizeof(sem_t));
 	sem_init(termino_operacion, 0, 1);
 }
+
+
+void finalizar_semaforos() {
+	free(sabotaje);
+	free(termino_operacion);
+	free(comando_para_ejecutar);
+}
+
 
 void crear_hilos(){
 	pthread_create(&hilo_consola, NULL,(void*)iniciar_escucha_por_consola, NULL);
@@ -129,7 +139,7 @@ void obtener_orden_input()
 
 			sem_getvalue(planificacion_on,&valor_semaforo);
 			if(valor_semaforo == 1){
-			sem_wait(planificacion_on);
+				sem_wait(planificacion_on);
 			}
 			// PAUSA LA PLANIFICACION DE LOS TRIPULANTES, ES DECIR TODOS EN PAUSA? o se mete algun WAIT(signal)
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO BLOCK I/O
@@ -304,14 +314,19 @@ void obtener_orden_input()
 			t_id_tripulante* id_tripulante_a_expulsar = malloc(sizeof(t_id_tripulante));
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
 
-			// Buscar el hilo del tripulante a expulsar y eliminarlo (DELETE)?
-
-			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);		// Me conecto con el modulo Mi RAM HQ
-
-			if(conexion_mi_ram < 0) {										// En el caso que no pueda conectar, sale del CASE
-			   log_error(logger, "No se pudo conectar. \n");
-			   break;
+			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+				break;
 			}
+
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			// ENVIA EL ID DEL TRIPULANTE A EXPULSAR: LO ELIMINA DEL MAPA, LO ELIMINA DE LA MEMORIA
+			// Y TAMBIEN HAY QUE ELIMINARLO DE LA LISTA QUE GUARDA DISCORDIADOR
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 			enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
 
@@ -326,6 +341,7 @@ void obtener_orden_input()
 			// Libero memoria
 			free(parser_consola);
 			free(cadena_ingresada);
+			finalizar_semaforos();
 			terminar_programa(config, logger);
 
 			exit(0);
@@ -337,14 +353,13 @@ void obtener_orden_input()
 
 	sem_post(termino_operacion);
 
-	free(sabotaje);
-	free(termino_operacion);
-	free(comando_para_ejecutar);
+
+
 	free(parser_consola);
 	free(cadena_ingresada);
 
-	return;
 }
+
 
 /*
 t_pcb* crear_pcb(void){

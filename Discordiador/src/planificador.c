@@ -32,6 +32,15 @@ void inicializar_semaforos_plani(){
 	sem_init(planificacion_on, 0, 0);
 }
 
+
+void finalizar_semaforos_plani() {
+	free(contador_tripulantes_en_new);
+	free(mutex_new);
+	free(mutex_ready);
+	free(planificacion_on);
+}
+
+
 void obtener_planificacion_de_config(t_config* config){
 
 	GRADO_MULTITAREA = config_get_int_value(config, "GRADO_MULTITAREA");
@@ -75,8 +84,10 @@ void iniciar_planificacion() {
 	printf("Iniciando Planificacion....... \n");
 
 	cola_new = queue_create();
-	cola_ready = list_create();
-    cola_block = list_create();
+	//cola_ready = list_create();
+	cola_ready = queue_create();
+    //cola_block = list_create();
+	cola_block = queue_create();
 
     inicializar_semaforos_plani();
 
@@ -99,6 +110,8 @@ void iniciar_planificacion() {
 
 		//pthread_create(&hilo_execute, NULL, (void*)execute, numero_hilo);
 	}
+
+	//finalizar_semaforos_plani();
 }
 
 void execute(int* numero_hilo) {
@@ -185,13 +198,14 @@ void new_ready() {
 
 		sem_wait(mutex_new);
 
+		//tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
 		tripulante_plani* tripulante_a_ready = queue_pop(cola_new);
 
 		sem_post(mutex_new);
 
 		sem_wait(mutex_ready);
 
-		queue_push(cola_ready,tripulante_a_ready);
+		queue_push(cola_ready, tripulante_a_ready);
 
 		sem_post(mutex_ready);
 
@@ -209,10 +223,7 @@ void new_ready() {
 		//asignar_tarea_a_tripulante(tarea_nueva); //Le paso una tarea como parametro?
 
 		//cambiar_estado_del_tripulante NEW -> READY
-		free(contador_tripulantes_en_new);
-		free(mutex_new);
-		free(mutex_ready);
-		free(planificacion_on);
+
 	}
 }
 
