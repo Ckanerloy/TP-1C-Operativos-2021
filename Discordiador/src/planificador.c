@@ -209,6 +209,10 @@ void new_ready() {
 		//asignar_tarea_a_tripulante(tarea_nueva); //Le paso una tarea como parametro?
 
 		//cambiar_estado_del_tripulante NEW -> READY
+		free(contador_tripulantes_en_new);
+		free(mutex_new);
+		free(mutex_ready);
+		free(planificacion_on);
 	}
 }
 

@@ -100,7 +100,7 @@ void obtener_orden_input()
 
 	 sem_post(comando_para_ejecutar);
 	 operacion = mapeo_valor_consola(comando_ingresado);
-
+	 free(comando_ingresado);
 	 int32_t valor_semaforo;
 
 	switch(operacion){
@@ -229,7 +229,7 @@ void obtener_orden_input()
 						sem_wait(mutex_new);
 						queue_push(cola_new,tripulante);
 						sem_post(mutex_new);
-
+                        free(tripulante);
 						sem_post(contador_tripulantes_en_new);
 					}
 					//tripulante_plani* aux=queue_pop(cola_new);
@@ -337,6 +337,9 @@ void obtener_orden_input()
 
 	sem_post(termino_operacion);
 
+	free(sabotaje);
+	free(termino_operacion);
+	free(comando_para_ejecutar);
 	free(parser_consola);
 	free(cadena_ingresada);
 

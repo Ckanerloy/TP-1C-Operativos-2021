@@ -149,14 +149,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				// if(tengomemoria()){}
 				char* ids_enviar=string_new();
 				if(1){
-					t_pcb* nueva_patota=malloc(sizeof(t_pcb));
-					nueva_patota=crear_pcb();
+
+					t_pcb* nueva_patota = crear_pcb();
 					parser_posiciones = string_split(patota_recibida->posiciones, "|");
 					//Guardar pcb en memoria
 					//calcular direccion logica de la misma
 					for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
-						t_tcb* nuevo_tripulante=malloc(sizeof(t_tcb));
-						nuevo_tripulante=crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
+						t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
 						//guardarlo tcb en memoria
 						string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
 						contador_id_tripu++;
@@ -177,7 +176,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				}
 
 				enviar_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion);
-
+				free(respuesta->ids_tripu);
 				// Tareas de UNA Patota
 				string_trim(&patota_recibida->tareas_de_patota);
 				char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
