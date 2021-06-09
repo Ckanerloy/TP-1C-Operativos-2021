@@ -36,6 +36,13 @@ typedef enum
 } codigo_tarea;
 
 
+typedef enum
+{
+	PAGINACION,
+	SEGMENTACION
+} codigo_memoria;
+
+
 // Estructura para la Respuesta
 typedef struct {
 	uint32_t respuesta;
@@ -131,8 +138,9 @@ typedef struct {
 
 
 
-
 // Estructuras para Mi RAM HQ
+
+// Tabla de Paginas
 typedef struct tabla_paginas
 {
 	int32_t numero_de_marco;
@@ -140,59 +148,50 @@ typedef struct tabla_paginas
 	uint32_t id_proceso;				// Proceso de Patota
 	uint32_t numero_de_pagina;
 
+
 	struct tabla_paginas* ant_pagina;
 	struct tabla_paginas* sig_pagina;
-} tabla_paginas;
+} t_paginas;
 
 
-// Cada Patota maneja una Tabla de Segmentos
-typedef struct tabla_segmentos
+// Tabla de Segmentos de cada Tripulante
+typedef struct tabla_segmentos_tripulante
 {
-	uint32_t numero_de_segmento;
+	t_tcb* tripulante;
+
+	struct tabla_segmentos_tripulante* ant_segmento;
+	struct tabla_segmentos_tripulante* sig_segmento;
+} t_segmentos_tripulantes;
+
+
+// Tabla de Segmentos de cada Tarea
+typedef struct tabla_segmentos_tarea
+{
+	t_tarea* tarea;
+
+	struct tabla_segmentos_tarea *ant_segmento;
+	struct tabla_segmentos_tarea *sig_segmento;
+} t_segmentos_tarea;
+
+
+// Tabla de Segmentos de cada Patota
+typedef struct tabla_segmentos_patota
+{
+	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento
 	uint32_t inicio;					// Direccion fisica de donde empieza el segmento
 	uint32_t tamanio_segmento;			// Tamanio total del segmento
 
-} tabla_segmentos;
-
-
-
-
-/*
-typedef struct tabla_segmentos_tripulantes
-{
-	t_tcb* tripulante;
-	uint32_t numero_de_segmento;
-
-	struct tabla_segmentos* ant_segmento;
-	struct tabla_segmentos* sig_segmento;
-} tablas_segmentos_tripulante;*/
-
-// Tablas de segmentos como LISTAS
-
-
-
-
-
-/*
-typedef struct tabla_segmentos_tareas
-{
-	t_tarea** tarea;
-	uint32_t numero_de_segmento;
-
-	struct tabla_segmentos_tareas* ant_segmento;
-	struct tabla_segmentos_tareas* sig_segmento;
-} tabla_segmentos_tareas;*/
-
-
-// Tabla de Segmentos de la Patota
-typedef struct tablas_segmentos_patotas
-{
 	t_pcb* patota;
-	uint32_t numero_de_segmento;
+	uint32_t cantidad_tripulantes;
+	t_segmentos_tripulantes* tripulantes;
 
-	struct tablas_segmentos_patotas* ant_lista;
-	struct tablas_segmentos_patotas* sig_lista;
-} tablas_segmentos_patotas;
+	uint32_t cantidad_tareas;
+	t_segmentos_tarea* tareas;
+
+	struct tabla_segmentos_patota* ant_segmento;
+	struct tabla_segmentos_patota* sig_segmento;
+} t_segmentos_patota;
+
 
 
 
@@ -203,5 +202,7 @@ typedef struct espacio
 
 	struct espacio* sig_espacio;
 } espacio;
+
+
 
 #endif /* UTILS_ESTRUCTURAS_H_ */
