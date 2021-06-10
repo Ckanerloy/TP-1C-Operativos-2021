@@ -54,7 +54,7 @@ void elegir_algoritmo() {
 	algoritmo_planificacion algoritmo_elegido;
 	algoritmo_elegido = mapeo_algoritmo_planificacion(ALGORITMO);
 
-	t_tcb* tripulante_planificado = NULL;
+	t_tcb* tripulante_planificado;
 
 	switch(algoritmo_elegido){
 
@@ -81,7 +81,6 @@ void elegir_algoritmo() {
 
 
 void iniciar_planificacion() {
-	printf("Iniciando Planificacion....... \n");
 
 	cola_new = queue_create();
 	//cola_ready = list_create();
@@ -101,15 +100,15 @@ void iniciar_planificacion() {
 	//pthread_create(&threadHilosMaestro, NULL, (void*)hiloCiclosMaestro, NULL);
 
 	// Genero un hilo por cada estado exec
-	for (int i = 0; i < GRADO_MULTITAREA; i++){
+//	for (int i = 0; i < GRADO_MULTITAREA; i++){
 
-		pthread_t hilo_execute;
-		int* numero_hilo = malloc(sizeof(int));
+	//	pthread_t hilo_execute;
+		//int* numero_hilo = malloc(sizeof(int));
 
-		*numero_hilo = i;
+		//*numero_hilo = i;
 
 		//pthread_create(&hilo_execute, NULL, (void*)execute, numero_hilo);
-	}
+	//}
 
 	//finalizar_semaforos_plani();
 }
@@ -198,18 +197,26 @@ void new_ready() {
 
 		sem_wait(mutex_new);
 
-		//tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
-		tripulante_plani* tripulante_a_ready = queue_pop(cola_new);
+
+		//printf("%s","aca");
+		tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
+
+		tripulante_a_ready = queue_pop(cola_new);
+		queue_push(cola_ready, tripulante_a_ready);
+		//free(tripulante_a_ready);
+	//	printf("id %u",tripulante_a_ready->id_tripulante);
 
 		sem_post(mutex_new);
 
-		sem_wait(mutex_ready);
 
-		queue_push(cola_ready, tripulante_a_ready);
 
-		sem_post(mutex_ready);
+	//	sem_wait(mutex_ready);
 
-		sem_wait(planificacion_on);
+		//queue_push(cola_ready, tripulante_a_ready);
+
+	//	sem_post(mutex_ready);
+
+		sem_post(planificacion_on);
 
 		//IDEAS PIOLAS A IMPLEMENTAR
 		//char* tarea_nueva = string_new();

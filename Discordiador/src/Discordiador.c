@@ -112,8 +112,9 @@ void obtener_orden_input()
 	 operacion = mapeo_valor_consola(comando_ingresado);
 	 free(comando_ingresado);
 	 int32_t valor_semaforo;
-
-	switch(operacion){
+	 tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+	 //tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
+	 switch(operacion){
 
 
 	// Arranca todo pausado
@@ -124,6 +125,7 @@ void obtener_orden_input()
 			sem_getvalue(planificacion_on,&valor_semaforo);
 
 			if(valor_semaforo == 0){
+				printf("Iniciando Planificacion....... \n");
 				sem_post(planificacion_on);
 			}
 
@@ -236,10 +238,12 @@ void obtener_orden_input()
 					for(int i=0;mensaje_patota->cantidad_tripulantes>i;i++){
 						tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 						tripulante->id_tripulante = atoi(parser_ids[i]);
+
 						sem_wait(mutex_new);
 						queue_push(cola_new,tripulante);
 						sem_post(mutex_new);
-                        free(tripulante);
+
+                   //     free(tripulante);
 						sem_post(contador_tripulantes_en_new);
 					}
 					//tripulante_plani* aux=queue_pop(cola_new);
@@ -250,6 +254,7 @@ void obtener_orden_input()
 					break;
 				}
 			}
+
 
 			// Libero la memoria usada
 			fclose(archivo_tareas);
@@ -270,6 +275,14 @@ void obtener_orden_input()
 			if(parser_consola[1] != NULL) {
 				log_warning(logger, "Sobran argumentos. Debe iniciarse de la forma LISTAR_TRIPULANTES.");
 				break;
+			}
+			//while(queue_size(cola_new)>0){
+			//		tripulante_plani* tripulante_a_ready = queue_pop(cola_new);
+			//		printf("id tripulante: %u \n",tripulante_a_ready->id_tripulante);
+			//}
+			while(queue_size(cola_ready)>0){
+				tripulante_plani* tripulante_a_ready = queue_pop(cola_ready);
+				printf("id tripulante: %u \n",tripulante_a_ready->id_tripulante);
 			}
 
 			listar_tripulantes();
@@ -335,7 +348,17 @@ void obtener_orden_input()
 			break;
 
 		case TERMINAR_PROGRAMA:
-			printf("Terminando programa... \n");
+
+			while(queue_size(cola_ready)>0){
+				tripulante_plani* tripulante_a_ready = queue_pop(cola_new);
+				printf("id tripulante: %u",tripulante_a_ready->id_tripulante);
+			}
+			sem_getvalue(contador_tripulantes_en_new,&valor_semaforo);
+
+		//	printf("%d",valor_semaforo);
+	//		printf("%d",queue_size(cola_new));
+
+			/*printf("Terminando programa... \n");
 			sleep(1);
 			printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
 			// Libero memoria
@@ -343,9 +366,10 @@ void obtener_orden_input()
 			free(cadena_ingresada);
 			finalizar_semaforos();
 			terminar_programa(config, logger);
-
+			breack
 			exit(0);
-
+*/
+			break;
 		default:
 			printf("No se reconoce ese comando. Por favor, ingrese un comando válido.\n");
 			break;

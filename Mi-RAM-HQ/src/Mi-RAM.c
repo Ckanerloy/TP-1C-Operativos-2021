@@ -181,6 +181,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 
 						string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
+						printf("----------");
+						printf("%u",contador_id_tripu);
+						printf("----------");
 						contador_id_tripu++;
 						free(nuevo_tripulante);
 					}
