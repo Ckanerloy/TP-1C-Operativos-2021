@@ -9,6 +9,7 @@
 #include<readline/readline.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <stdbool.h>
 
 #include "utils/sockets.h"
 #include "utils/loader.h"

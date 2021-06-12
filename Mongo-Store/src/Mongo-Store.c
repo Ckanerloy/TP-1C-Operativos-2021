@@ -28,7 +28,7 @@ int main(void)
 void obtener_datos_de_config(t_config* config) {
 
 	PUERTO = config_get_string_value(config, "PUERTO");
-	PUERTO_MONTAJE = config_get_string_value(config, "PUERTO_MONTAJE");
+	PUNTO_MONTAJE = config_get_string_value(config, "PUNTO_MONTAJE");
 	TIEMPO_SINCRONIZACION = config_get_int_value(config, "TIEMPO_SINCRONIZACION");
 	POSICIONES_SABOTAJE = config_get_array_value(config, "POSICIONES_SABOTAJE");
 
