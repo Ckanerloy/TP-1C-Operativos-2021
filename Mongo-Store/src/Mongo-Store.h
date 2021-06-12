@@ -19,7 +19,7 @@
 
 // Datos del Config
 char* PUERTO;
-char* PUNTO_MONTAJE;
+char* PUERTO_MONTAJE;
 int TIEMPO_SINCRONIZACION;
 char** POSICIONES_SABOTAJE;
 

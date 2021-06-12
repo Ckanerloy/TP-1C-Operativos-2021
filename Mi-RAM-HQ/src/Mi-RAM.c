@@ -41,11 +41,11 @@ int main(void)
 	}
 
 	// Elige el ESQUEMA DE MEMORIA elegido en el Config
-	//elegir_esquema_de_memoria(ESQUEMA_MEMORIA);
+	elegir_esquema_de_memoria(ESQUEMA_MEMORIA);
 
 
-	t_segmentos_patota* segmento_patota = malloc(sizeof(t_segmentos_patota));
-	inicializar_tabla_segmentos_de_patota(segmento_patota);
+	//t_segmentos_patota* segmento_patota = malloc(sizeof(t_segmentos_patota));
+	//inicializar_tabla_segmentos_de_patota(segmento_patota);
 
 
 	iniciar_comunicacion();
@@ -166,9 +166,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 						printf(" - Tiempo: %u \n\n", tareas_de_la_patota[i]->parametros->tiempo);
 					}
 
+
+
+					// FALTA HACER UN CHEQUEO PREVIO, DONDE GUARDO SEGUN EL ESQUEMA DE MEMORIA ELEGIDO
+					// POR EJEMPLO, guardar_patota , Y DIRECTAMENTE GUARDO, DESPUES VERIFICO EL ESQUEMA DE MEMORIA
 					// GUARDO EL PCB Y LAS TAREAS EN LA TABLA DE SEGMENTOS/PAGINACION DE LA PATOTA
+					crear_segmento_patota(segmento_patota, nueva_patota, tareas_de_la_patota, cant_tareas, patota_recibida->cantidad_tripulantes);
 
-
+					segmento_patota->patota->tareas = &segmento_patota->tareas;
 
 
 					//calcular direccion logica de la misma
@@ -176,9 +181,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					{
 						t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
 
-
-					// GUARDO CADA TRIPULANTE EN LA TABLA DE SEGMENTOS/PAGINACION DE LA PATOTA
-
+						// IDEM AL PUNTO ANTERIOR
+						// GUARDO CADA TRIPULANTE EN LA TABLA DE SEGMENTOS/PAGINACION DE LA PATOTA
+						crear_segmento_tripulante(segmento_patota, nuevo_tripulante);
 
 						string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
 						printf("----------");

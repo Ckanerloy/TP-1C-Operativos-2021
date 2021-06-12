@@ -140,20 +140,48 @@ typedef struct {
 
 // Estructuras para Mi RAM HQ
 
-// Tabla de Paginas
-typedef struct tabla_paginas
+// PAGINACION
+// Tabla de Paginas de cada Tripulante
+typedef struct tabla_paginas_tripulante
+{
+	t_tcb* tripulante;
+
+	struct tabla_paginas_tripulante* ant_pagina;
+	struct tabla_paginas_tripulante* sig_pagina;
+} t_paginas_tripulantes;
+
+
+// Tabla de Paginas de cada Tarea
+typedef struct tabla_paginas_tarea
+{
+	t_tarea* tarea;
+
+	struct tabla_paginas_tarea *ant_pagina;
+	struct tabla_paginas_tarea *sig_pagina;
+} t_paginas_tarea;
+
+
+// Tabla de Paginas de cada Patota
+typedef struct tabla_paginas_patota
 {
 	int32_t numero_de_marco;
-	char* estado_proceso;				// Libre u Ocupado
-	uint32_t id_proceso;				// Proceso de Patota
 	uint32_t numero_de_pagina;
 
+	t_pcb* patota;
+	uint32_t cantidad_tripulantes;
+	t_paginas_tripulantes* tripulantes;
+
+	uint32_t cantidad_tareas;
+	t_paginas_tarea* tareas;
 
 	struct tabla_paginas* ant_pagina;
 	struct tabla_paginas* sig_pagina;
-} t_paginas;
+} t_paginas_patota;
 
 
+
+
+// SEGMENTACION
 // Tabla de Segmentos de cada Tripulante
 typedef struct tabla_segmentos_tripulante
 {
