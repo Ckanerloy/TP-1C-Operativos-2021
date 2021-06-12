@@ -120,10 +120,10 @@ void iniciar_comunicacion(){
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 {
 	t_iniciar_patota* patota_recibida;
-	//t_tcb* tripulante_recibido;
+	uint32_t tamanio_patota;
 	t_id_tripulante* tripulante_a_eliminar;
 	t_tarea** tareas_de_la_patota;
-	t_respuesta* respuesta;
+	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 	//sem_post(espera);
 
 	switch(operacion)
@@ -131,11 +131,21 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 			case INICIAR_PATOTA:
 				patota_recibida = malloc(sizeof(t_iniciar_patota));
 				recibir_mensaje(patota_recibida, operacion, conexion);
-				respuesta = malloc(sizeof(t_respuesta));
+				//respuesta = malloc(sizeof(t_respuesta_iniciar_patota));
 
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				printf("Contenido de tareas: %s \n", patota_recibida->tareas_de_patota);
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
+
+
+
+				/*
+				 * 1) Estructuras de Segmentacion y Paginacion
+				 * 2) Como y cuando consultar el tamaño del segmento total, para verificar tamaño de memoria
+				 * 3) Validacion que el tamaño del segmento alcance para entrar en la Memoria Principal
+				 */
+
+
 
 
 
@@ -166,14 +176,15 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 						printf(" - Tiempo: %u \n\n", tareas_de_la_patota[i]->parametros->tiempo);
 					}
 
+					tamanio_patota = sizeof(nueva_patota) + sizeof(tareas_de_la_patota);
 
-
+					guardar_patota(nueva_patota, tareas_de_la_patota, patota_recibida->cantidad_tripulantes, cant_tareas);
 					// FALTA HACER UN CHEQUEO PREVIO, DONDE GUARDO SEGUN EL ESQUEMA DE MEMORIA ELEGIDO
 					// POR EJEMPLO, guardar_patota , Y DIRECTAMENTE GUARDO, DESPUES VERIFICO EL ESQUEMA DE MEMORIA
 					// GUARDO EL PCB Y LAS TAREAS EN LA TABLA DE SEGMENTOS/PAGINACION DE LA PATOTA
-					crear_segmento_patota(segmento_patota, nueva_patota, tareas_de_la_patota, cant_tareas, patota_recibida->cantidad_tripulantes);
 
-					segmento_patota->patota->tareas = &segmento_patota->tareas;
+
+
 
 
 					//calcular direccion logica de la misma
@@ -181,9 +192,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					{
 						t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
 
+						tamanio_patota += sizeof(nuevo_tripulante);
+
 						// IDEM AL PUNTO ANTERIOR
 						// GUARDO CADA TRIPULANTE EN LA TABLA DE SEGMENTOS/PAGINACION DE LA PATOTA
-						crear_segmento_tripulante(segmento_patota, nuevo_tripulante);
+						//crear_segmento_tripulante(segmento_patota, nuevo_tripulante);
+						guardar_tripulante(nuevo_tripulante);
 
 						string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
 						printf("----------");
@@ -193,34 +207,40 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 						free(nuevo_tripulante);
 					}
 
+					respuesta_iniciar_patota = validar_espacio_por_patota(tamanio_patota);
+
 					printf("%s\n",ids_enviar);
 					free(nueva_patota);
 					free(parser_tarea);
 
 					strcat(ids_enviar,"\0");
-					respuesta->respuesta = 1;
-					respuesta->tamanio_ids = strlen(ids_enviar);
-					respuesta->ids_tripu = malloc(respuesta->tamanio_ids+1);
-					strcpy(respuesta->ids_tripu,ids_enviar);
+
+
+					//respuesta->respuesta = 1;
+
+
+					respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
+					respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
+					strcpy(respuesta_iniciar_patota->ids_tripu,ids_enviar);
 
 				}
 				else {
 
-					respuesta->respuesta = 0; // SI NO TENGO MEMORIA
-					respuesta->tamanio_ids = 0;
-					respuesta->ids_tripu = NULL;
+					//respuesta->respuesta = 0; // SI NO TENGO MEMORIA
+					respuesta_iniciar_patota->tamanio_ids = 0;
+					respuesta_iniciar_patota->ids_tripu = NULL;
 				}
 
 
-				enviar_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion);
+				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
 
 
 
-				free(respuesta->ids_tripu);
+				free(respuesta_iniciar_patota->ids_tripu);
 				contador_id_patota++;
 				free(ids_enviar);
 				free(tareas_de_la_patota);
-				free(respuesta);
+				free(respuesta_iniciar_patota);
 				free(patota_recibida->tareas_de_patota);
 				free(patota_recibida->posiciones);
 				free(patota_recibida);
@@ -247,6 +267,23 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				break;
 			}
 }
+
+
+t_respuesta_iniciar_patota* validar_espacio_por_patota(uint32_t tamanio)
+{
+	t_respuesta_iniciar_patota* respuesta = malloc(sizeof(t_respuesta_iniciar_patota));
+
+	uint32_t restante = sizeof(MEMORIA_PRINCIPAL) - tamanio;
+	if(restante > 0) {
+		respuesta->respuesta = 1;
+	}
+	else {
+		respuesta->respuesta = 0;
+	}
+
+	return respuesta;
+}
+
 
 
 t_pcb* crear_pcb(){

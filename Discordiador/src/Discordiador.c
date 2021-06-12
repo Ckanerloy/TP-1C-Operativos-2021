@@ -86,7 +86,7 @@ void obtener_orden_input()
 	 char* cadena_ingresada = NULL;
 	 size_t longitud = 0;
 
-	 t_respuesta* respuesta;
+	 t_respuesta_iniciar_patota* respuesta;
 
 	 sem_wait(termino_operacion);
 
@@ -163,7 +163,7 @@ void obtener_orden_input()
 			uint32_t cantidad_posiciones = cantidad_argumentos - 3;
 			int cantidad_tripulantes = atoi(parser_consola[1]);
 			int posiciones_faltantes = cantidad_tripulantes - cantidad_posiciones;
-			respuesta = malloc(sizeof(t_respuesta));
+			respuesta = malloc(sizeof(t_respuesta_iniciar_patota));
 
 			if(posiciones_faltantes < 0) {
 				log_error(logger, "Se ingresaron posiciones demás. Solo puede como máximo haber tantas posiciones como cantidad de tripulantes.\n");
@@ -372,7 +372,7 @@ void obtener_orden_input()
 			free(cadena_ingresada);
 			finalizar_semaforos();
 			terminar_programa(config, logger);
-			breack
+			break;
 			exit(0);
 */
 			break;

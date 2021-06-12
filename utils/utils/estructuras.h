@@ -48,7 +48,7 @@ typedef struct {
 	uint32_t respuesta;
 	char* ids_tripu;
 	uint32_t tamanio_ids;
-} t_respuesta;
+} t_respuesta_iniciar_patota;
 
 
 // Estructuras de Sockets
@@ -141,86 +141,30 @@ typedef struct {
 // Estructuras para Mi RAM HQ
 
 // PAGINACION
-// Tabla de Paginas de cada Tripulante
-typedef struct tabla_paginas_tripulante
-{
-	t_tcb* tripulante;
-
-	struct tabla_paginas_tripulante* ant_pagina;
-	struct tabla_paginas_tripulante* sig_pagina;
-} t_paginas_tripulantes;
-
-
-// Tabla de Paginas de cada Tarea
-typedef struct tabla_paginas_tarea
-{
-	t_tarea* tarea;
-
-	struct tabla_paginas_tarea *ant_pagina;
-	struct tabla_paginas_tarea *sig_pagina;
-} t_paginas_tarea;
-
-
-// Tabla de Paginas de cada Patota
-typedef struct tabla_paginas_patota
+typedef struct tabla_paginas
 {
 	int32_t numero_de_marco;
 	uint32_t numero_de_pagina;
 
-	t_pcb* patota;
-	uint32_t cantidad_tripulantes;
-	t_paginas_tripulantes* tripulantes;
-
-	uint32_t cantidad_tareas;
-	t_paginas_tarea* tareas;
-
 	struct tabla_paginas* ant_pagina;
 	struct tabla_paginas* sig_pagina;
-} t_paginas_patota;
+} t_paginas;
 
 
 
 
 // SEGMENTACION
-// Tabla de Segmentos de cada Tripulante
-typedef struct tabla_segmentos_tripulante
-{
-	t_tcb* tripulante;
-
-	struct tabla_segmentos_tripulante* ant_segmento;
-	struct tabla_segmentos_tripulante* sig_segmento;
-} t_segmentos_tripulantes;
-
-
-// Tabla de Segmentos de cada Tarea
-typedef struct tabla_segmentos_tarea
-{
-	t_tarea* tarea;
-
-	struct tabla_segmentos_tarea *ant_segmento;
-	struct tabla_segmentos_tarea *sig_segmento;
-} t_segmentos_tarea;
-
-
-// Tabla de Segmentos de cada Patota
-typedef struct tabla_segmentos_patota
+typedef struct tabla_segmentos
 {
 	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento
 	uint32_t inicio;					// Direccion fisica de donde empieza el segmento
 	uint32_t tamanio_segmento;			// Tamanio total del segmento
 
-	t_pcb* patota;
-	uint32_t cantidad_tripulantes;
-	t_segmentos_tripulantes* tripulantes;
-
-	uint32_t cantidad_tareas;
-	t_segmentos_tarea* tareas;
-
 	struct tabla_segmentos_patota* ant_segmento;
 	struct tabla_segmentos_patota* sig_segmento;
-} t_segmentos_patota;
+} t_segmentos;
 
-
+//tabla de segmentos como t_list
 
 
 typedef struct espacio

@@ -45,6 +45,10 @@ void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
 
+
+t_respuesta_iniciar_patota* validar_espacio_por_patota(uint32_t tamanio);
+
+
 t_list* ids;
 uint32_t cantidad_tareas(char** parser_tarea);
 char** parser_posiciones;

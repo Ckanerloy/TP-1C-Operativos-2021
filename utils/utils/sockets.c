@@ -250,7 +250,7 @@ void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion)
 }
 
 
-void deserializar_respuesta_patota(t_respuesta* mensaje, int32_t conexion) {
+void deserializar_respuesta_patota(t_respuesta_iniciar_patota* mensaje, int32_t conexion) {
 	uint32_t tamanio;
 	uint32_t desplazamiento = 0;
 	void* buffer_deserializar;
@@ -455,7 +455,7 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota*
 }
 
 
-uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta* mensaje) {
+uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta_iniciar_patota* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
