@@ -28,6 +28,7 @@ typedef enum{
 //Colas
 t_queue* cola_new;
 t_queue* cola_ready;
+t_queue* cola_running;
 t_queue* cola_block;
 t_queue* cola_suspendido;
 
@@ -37,6 +38,10 @@ sem_t* mutex_ready;
 sem_t* contador_tripulantes_en_new;
 sem_t* mutex_new;
 sem_t* planificacion_on;
+sem_t* planificacion_on_ready_running;
+sem_t* nivel_multitarea;
+sem_t* cantidad_hilo_en_ready;
+sem_t* mutex_running;
 
 //Hilos
 //pthread_t hilo_new_ready;			Por que se pone aca, pero tambien esta en planificador.c?
@@ -51,6 +56,7 @@ algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo);
 void elegir_algoritmo();
 void obtener_planificacion_de_config(t_config* config);
 void new_ready();
+void ready_running();
 void iniciar_planificacion();
 void inicializar_semaforos();
 
