@@ -30,6 +30,18 @@ void inicializar_semaforos_plani(){
 
 	planificacion_on = malloc(sizeof(sem_t));
 	sem_init(planificacion_on, 0, 0);
+
+	planificacion_on_ready_running = malloc(sizeof(sem_t));
+	sem_init(planificacion_on_ready_running, 0, 0);
+
+	nivel_multitarea = malloc(sizeof(sem_t));
+	sem_init(nivel_multitarea, 0 ,GRADO_MULTITAREA);
+
+	cantidad_hilo_en_ready = malloc(sizeof(sem_t));
+	sem_init(cantidad_hilo_en_ready,0,0);
+
+	mutex_running = malloc(sizeof(sem_t));
+	sem_init(mutex_running, 0, 1);
 }
 
 
@@ -38,6 +50,10 @@ void finalizar_semaforos_plani() {
 	free(mutex_new);
 	free(mutex_ready);
 	free(planificacion_on);
+	free(planificacion_on_ready_running);
+	free(nivel_multitarea);
+	free(cantidad_hilo_en_ready);
+	free(mutex_running);
 }
 
 
@@ -85,6 +101,9 @@ void iniciar_planificacion() {
 	cola_new = queue_create();
 	//cola_ready = list_create();
 	cola_ready = queue_create();
+
+	cola_running = queue_create();
+	//cola_running;
     //cola_block = list_create();
 	cola_block = queue_create();
 
@@ -93,8 +112,11 @@ void iniciar_planificacion() {
     //pthread_t hilo_block_ready;
 	//pthread_create(&hilo_block_ready, NULL, (void*)block_ready, NULL);
 
-	pthread_t hilo_new_ready;
-	pthread_create(&hilo_new_ready, NULL, (void*)new_ready, NULL);
+	//pthread_t hilo_new_ready;
+	//pthread_create(&hilo_new_ready, NULL, (void*)new_ready, NULL);
+
+	//pthread_t hilo_ready_running;
+	//pthread_create(&hilo_ready_running, NULL, (void*)ready_running, NULL);
 
 	//pthread_t threadHilosMaestro;
 	//pthread_create(&threadHilosMaestro, NULL, (void*)hiloCiclosMaestro, NULL);
@@ -195,41 +217,43 @@ void new_ready() {
 
 		sem_wait(contador_tripulantes_en_new);
 
-		sem_wait(mutex_new);
-
-
-		//printf("%s","aca");
 		tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
 
+		sem_wait(mutex_new);
 		tripulante_a_ready = queue_pop(cola_new);
-		queue_push(cola_ready, tripulante_a_ready);
-		//free(tripulante_a_ready);
-	//	printf("id %u",tripulante_a_ready->id_tripulante);
-
 		sem_post(mutex_new);
 
+		sem_wait(mutex_ready);
+		queue_push(cola_ready, tripulante_a_ready);
+		sem_post(mutex_ready);
 
-
-	//	sem_wait(mutex_ready);
-
-		//queue_push(cola_ready, tripulante_a_ready);
-
-	//	sem_post(mutex_ready);
+		sem_post(cantidad_hilo_en_ready);
 
 		sem_post(planificacion_on);
 
-		//IDEAS PIOLAS A IMPLEMENTAR
-		//char* tarea_nueva = string_new();
-		//obtener_siguiente_tarea(tarea_nueva); // Busca en la lista de tareas de la patota, la tarea siguiente para ejecutar
-		//char* tarea_nueva = queue_pop(colaNew);
+	}
+}
 
+void ready_running() {
+	while(1){
 
-		//sem_wait(contadorRepartidoresDisp);
+		sem_wait(planificacion_on_ready_running);
 
+		sem_wait(nivel_multitarea);
 
-		//asignar_tarea_a_tripulante(tarea_nueva); //Le paso una tarea como parametro?
+		sem_wait(cantidad_hilo_en_ready);
 
-		//cambiar_estado_del_tripulante NEW -> READY
+		tripulante_plani* tripulante_a_running = malloc(sizeof(tripulante_plani));
+
+		sem_wait(mutex_ready);
+		tripulante_a_running = queue_pop(cola_ready);
+		sem_post(mutex_ready);
+
+		sem_wait(mutex_running);
+		queue_push(cola_running, tripulante_a_running);
+		sem_post(mutex_running);
+
+		sem_post(planificacion_on_ready_running);
 
 	}
 }

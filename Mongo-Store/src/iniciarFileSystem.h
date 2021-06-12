@@ -3,7 +3,9 @@
 
 #include "Mongo-Store.h"
 
+
 void iniciarFileSystem();
+int existeFileSystem();
 
 
 #endif /*SRC_INICIAR_FILE_SYSTEM_H_*/

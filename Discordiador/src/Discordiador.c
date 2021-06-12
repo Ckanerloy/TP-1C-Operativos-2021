@@ -50,6 +50,9 @@ void crear_hilos(){
 
 	pthread_create(&hilo_new_ready, NULL,(void*)new_ready, NULL);
 	pthread_detach(hilo_new_ready);
+
+	pthread_create(&hilo_ready_running, NULL, (void*)ready_running, NULL);
+	pthread_detach(hilo_ready_running);
 }
 
 //void iniciar_escucha_sabotaje(void){
@@ -76,7 +79,6 @@ void obtener_datos_de_config(t_config* config) {
 
 	DURACION_SABOTAJE = config_get_int_value(config, "DURACION_SABOTAJE");
 	RETARDO_CICLO_CPU = config_get_int_value(config, "RETARDO_CICLO_CPU");
-
 }
 
 void obtener_orden_input()
@@ -126,8 +128,10 @@ void obtener_orden_input()
 
 			if(valor_semaforo == 0){
 				printf("Iniciando Planificacion....... \n");
-				sem_post(planificacion_on);
+
 			}
+			sem_post(planificacion_on);
+			sem_post(planificacion_on_ready_running);
 
 			// LOS TRIPULANTES ESTAN DEFINIDOS POR HILO -> CADA HILO IRIA A UNA COLA
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO EXECUTE
@@ -276,12 +280,14 @@ void obtener_orden_input()
 				log_warning(logger, "Sobran argumentos. Debe iniciarse de la forma LISTAR_TRIPULANTES.");
 				break;
 			}
-			//while(queue_size(cola_new)>0){
-			//		tripulante_plani* tripulante_a_ready = queue_pop(cola_new);
-			//		printf("id tripulante: %u \n",tripulante_a_ready->id_tripulante);
-			//}
 			while(queue_size(cola_ready)>0){
 				tripulante_plani* tripulante_a_ready = queue_pop(cola_ready);
+				printf("id tripulante: %u \n",tripulante_a_ready->id_tripulante);
+			}
+
+			printf("-----------------\n");
+			while(queue_size(cola_running)>0){
+				tripulante_plani* tripulante_a_ready = queue_pop(cola_running);
 				printf("id tripulante: %u \n",tripulante_a_ready->id_tripulante);
 			}
 
