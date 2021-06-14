@@ -11,6 +11,7 @@ int main(void)
 
 	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
 
+
 	while(1)
 	{
 		int32_t* conexion_cliente = esperar_conexion(conexion_servidor);

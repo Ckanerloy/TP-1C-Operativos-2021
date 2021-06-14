@@ -1,5 +1,6 @@
 #ifndef MONGO_STORE_H_
 #define MONGO_STORE_H_
+#define _GNU_SOURCE
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -10,6 +11,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 
 #include "utils/sockets.h"
 #include "utils/loader.h"
