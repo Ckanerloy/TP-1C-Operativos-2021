@@ -51,8 +51,6 @@ void crear_hilos(){
 	pthread_create(&hilo_new_ready, NULL,(void*)new_ready, NULL);
 	pthread_detach(hilo_new_ready);
 
-	pthread_create(&hilo_ready_running, NULL, (void*)ready_running, NULL);
-	pthread_detach(hilo_ready_running);
 }
 
 //void iniciar_escucha_sabotaje(void){
@@ -242,6 +240,15 @@ void obtener_orden_input()
 					for(int i=0;mensaje_patota->cantidad_tripulantes>i;i++){
 						tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 						tripulante->id_tripulante = atoi(parser_ids[i]);
+						tripulante->numero_patota = 5;         //A
+
+						sem_t* semaforo_exec= malloc(sizeof(sem_t));
+						sem_init(semaforo_exec, 0, 0);
+
+						tripulante->sem_execute= semaforo_exec;
+
+						//pthread_create(&hilo_tripulante,NULL,(void*)tripulante_hilo,tripulante);
+						//pthread_detach(hilo_tripulante);
 
 						sem_wait(mutex_new);
 						queue_push(cola_new,tripulante);
@@ -274,6 +281,15 @@ void obtener_orden_input()
 			cerrar_conexion(logger, conexion_mi_ram);
 			break;
 
+			/*
+			 * COSAS QUE FALTAN:
+			 * 	-Mi-Ram debe devolvernos el numero de patota cuando devuelve el numero de tripulante A
+			 * 	-Agregar las cosas a la serializacion
+			 *
+			 *
+			*/
+
+
 		case LISTAR_TRIPULANTES:
 
 			if(parser_consola[1] != NULL) {
@@ -282,13 +298,13 @@ void obtener_orden_input()
 			}
 			while(queue_size(cola_ready)>0){
 				tripulante_plani* tripulante_a_ready = queue_pop(cola_ready);
-				printf("id tripulante: %u \n",tripulante_a_ready->id_tripulante);
+				printf("id tripulante (COLA READY): %u \n",tripulante_a_ready->id_tripulante);
 			}
 
 			printf("-----------------\n");
 			while(queue_size(cola_running)>0){
 				tripulante_plani* tripulante_a_ready = queue_pop(cola_running);
-				printf("id tripulante: %u \n",tripulante_a_ready->id_tripulante);
+				printf("id tripulante (COLA RUNNING): %u \n",tripulante_a_ready->id_tripulante);
 			}
 
 			listar_tripulantes();
@@ -355,11 +371,7 @@ void obtener_orden_input()
 
 		case TERMINAR_PROGRAMA:
 
-			while(queue_size(cola_ready)>0){
-				tripulante_plani* tripulante_a_ready = queue_pop(cola_new);
-				printf("id tripulante: %u",tripulante_a_ready->id_tripulante);
-			}
-			sem_getvalue(contador_tripulantes_en_new,&valor_semaforo);
+			running_ready();
 
 		//	printf("%d",valor_semaforo);
 	//		printf("%d",queue_size(cola_new));

@@ -36,7 +36,7 @@ char** obtener_tareas(char* tareas_patota) {
 	return string_split(tareas_patota, "|");
 }
 
-
+/*
 t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 	char** parser_tarea = string_split(tarea_tripulante, " ");
 
@@ -66,32 +66,29 @@ t_parametros_tarea* recibir_parametros(char* parametros) {
 	return estructura;
 }
 
-/*
-void realizar_tarea_de_io(codigo_tarea tarea, char* PARAMETROS){
 
-	t_parametros_tarea* parametros = malloc(sizeof(t_parametros_tarea));
+void realizar_tarea(t_tarea* tarea, tripulante_plani tripulante){
 
-	parametros = recibir_parametros(PARAMETROS);
-	switch(tarea) {
+	switch(tarea->operacion) {
 
 		case GENERAR_OXIGENO:
-			generar_insumo("Oxigeno.ims", 'O', parametros);
+			generar_insumo("Oxigeno.ims", 'O', tarea->parametros);
 			break;
 
 		case CONSUMIR_OXIGENO:
-			consumir_insumo("Oxigeno.ims", 'O', parametros);
+			consumir_insumo("Oxigeno.ims", 'O', tarea->parametros);
 			break;
 
 		case GENERAR_COMIDA:
-			generar_insumo("Comida.ims", 'C', parametros);
+			generar_insumo("Comida.ims", 'C', tarea->parametros);
 			break;
 
 		case CONSUMIR_COMIDA:
-			consumir_insumo("Comida.ims",'C', parametros);
+			consumir_insumo("Comida.ims",'C', tarea->parametros);
 			break;
 
 		case GENERAR_BASURA:
-			generar_insumo("Basura.ims", 'B', parametros);
+			generar_insumo("Basura.ims", 'B', tarea->parametros);
 			break;
 
 		case DESCARTAR_BASURA:
@@ -132,14 +129,20 @@ void generar_comida(char* PARAMETROS) {
 
 
 
-void generar_insumo(char* nombre_archivo, char caracter_llenado, t_parametros_tarea* parametros) {
+void generar_insumo(char* nombre_archivo, char caracter_llenado, t_parametros_tarea* parametros,tripulante_plani tripulante) {
 
+	sem_wait();
+	//llamar al i-mongo y gastar 1 ciclo de cpu
+	sleep(RETARDO_CICLO_CPU);
+	running_block(tripulante->id_tripulante);
+	sem_post();
 	if(SI ESTA EL ARCHIVO) {
 		modificar_archivo(nombre_archivo, parametros->cantidad);
 	}
 	else {
 		crear_archivo(nombre_archivo, caracter_llenado);
 	}
+
 }
 
 void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, t_parametros_tarea* parametros) {

@@ -50,7 +50,6 @@ pthread_t hilo_consola;
 pthread_t hilo_sabotaje;
 pthread_t hilo_tripulante;
 pthread_t hilo_new_ready;
-pthread_t hilo_ready_running;
 
 t_log* logger;
 t_config* config;

@@ -93,10 +93,9 @@ typedef struct {
 
 
 typedef struct {
-	uint32_t id_tripulante;
-	//sem_t* sem_execute;
-} tripulante_plani;
-
+	uint32_t posicion_x;
+	uint32_t posicion_y;
+} posiciones;
 
 
 
@@ -136,7 +135,12 @@ typedef struct {
 	t_parametros_tarea* parametros;
 } t_tarea;
 
-
+typedef struct {
+	uint32_t id_tripulante;
+	uint32_t numero_patota;
+	//t_tarea* tarea_a_realizar;
+	sem_t* sem_tripu;
+} tripulante_plani;
 
 // Estructuras para Mi RAM HQ
 
