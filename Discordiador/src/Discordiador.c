@@ -245,10 +245,12 @@ void obtener_orden_input()
 						sem_t* semaforo_exec= malloc(sizeof(sem_t));
 						sem_init(semaforo_exec, 0, 0);
 
-						tripulante->sem_execute= semaforo_exec;
+						tripulante->sem_tripu= semaforo_exec;
 
 						//pthread_create(&hilo_tripulante,NULL,(void*)tripulante_hilo,tripulante);
 						//pthread_detach(hilo_tripulante);
+
+						list_add(lista_semaforos_tripulantes, tripulante->sem_tripu);
 
 						sem_wait(mutex_new);
 						queue_push(cola_new,tripulante);

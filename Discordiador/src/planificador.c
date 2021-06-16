@@ -43,8 +43,12 @@ void inicializar_semaforos_plani(){
 	mutex_valorMultitarea = malloc(sizeof(sem_t));
 	sem_init(mutex_valorMultitarea, 0 ,1);
 
-	sem_tripu= malloc(sizeof(sem_t));
-	sem_init(sem_tripu, 0, 1);
+	//
+	sem_a_block = malloc(sizeof(sem_t));
+	sem_init(sem_a_block, 0, 0);
+
+	ya_pase_a_block = malloc(sizeof(sem_t));
+	sem_init(ya_pase_a_block, 0, 0);
 }
 
 
@@ -56,7 +60,7 @@ void finalizar_semaforos_plani() {
 	free(planificacion_on_ready_running);
 	free(mutex_running);
 	free(cantidad_running);
-	free(sem_tripu);
+	free(sem_a_block);
 }
 
 
@@ -109,6 +113,8 @@ void iniciar_planificacion() {
 
 	multitarea_Disponible = GRADO_MULTITAREA;
 
+	lista_semaforos_tripulantes = list_create();
+
 	inicializar_semaforos_plani();
 
 
@@ -129,7 +135,7 @@ void new_ready() {
 		tripulante_a_ready = queue_pop(cola_new);
 		sem_post(mutex_new);
 
-		tripulante_a_ready->tarea_a_realizar = obtener_siguiente_tarea(tripulante_a_ready->numero_patota);
+		sem_post(tripulante_a_ready->sem_tripu);
 
 		sem_wait(mutex_ready);
 		queue_push(cola_ready, tripulante_a_ready);
@@ -190,7 +196,7 @@ void running_block(){
 void tripulante_hilo(void* tripulante){
 	tripulante_plani* tripu = tripulante;
 
-	sem_wait(sem_tripu);
+	sem_wait(tripu->sem_tripu);
 
 
 	t_tarea* tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
@@ -200,7 +206,7 @@ void tripulante_hilo(void* tripulante){
 	posicion_tripu = obtener_posiciones(tripu->id_tripulante);
 
 	while(tarea_a_realizar != NULL){
-		sem_wait(sem_tripu);
+		sem_wait(tripu->sem_tripu);
 		//sem_wait(mutex_valorMultitarea);
 		posiciones* posicion_tarea;
 		posicion_tarea = malloc(sizeof(posiciones));
@@ -211,7 +217,7 @@ void tripulante_hilo(void* tripulante){
 
 		while(distancia != 0){
 
-			sem_wait(sem_tripu);
+			sem_wait(tripu->sem_tripu);
 			sleep(RETARDO_CICLO_CPU);
 			//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
 			//cantidadRealizado ++;
@@ -232,7 +238,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
 	//le mandamos el numero de la patota a Mi-Ram y nos devuelve un char* tarea_tripulante
 	//Si no hay una proxima tarea, devuelve un NULL
 
-	return obtener_la_tarea(tarea_tripulante);
+	//return obtener_la_tarea(tarea_tripulante);
 }
 
 posiciones* obtener_posiciones(uint32_t tripulante){
@@ -309,9 +315,9 @@ void realizar_tarea(t_tarea* tarea, tripulante_plani tripulante){
 	//Es importante que sem_tripu quede en cero sino se autoejecuta.
 }
 
-void generar_insumo(char* nombre_archivo, char caracter_llenado, t_parametros_tarea* parametros,tripulante_plani tripulante) {
+void generar_insumo(char* nombre_archivo, char caracter_llenado, t_parametros_tarea* parametros,tripulante_plani tripu) {
 
-	sem_wait(sem_tripu);
+	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 	sleep(RETARDO_CICLO_CPU);
 	//running_block(tripulante->id_tripulante);
@@ -329,17 +335,17 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, t_parametros_ta
 	uint32_t tiempo_transcurrido = 0;
 
 	while(tiempo_restante != 0){
-		sem_wait(sem_tripu);
+		sem_wait(tripu->sem_tripu);
 		sleep(RETARDO_CICLO_CPU);
 		tiempo_transcurrido++;
 		tiempo_restante--;
-		sem_post(sem_tripu);
+		sem_post(tripu->sem_tripu);
 	}
 }
 
-void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, t_parametros_tarea* parametros,tripulante_plani tripulante) {
+void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, t_parametros_tarea* parametros,tripulante_plani tripu) {
 
-	sem_wait(sem_tripu);
+	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 	sleep(RETARDO_CICLO_CPU);
 	//running_block(tripulante->id_tripulante);
@@ -357,17 +363,17 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, t_parametro
 	uint32_t tiempo_transcurrido = 0;
 
 	while(tiempo_restante != 0){
-		sem_wait(sem_tripu);
+		sem_wait(tripu->sem_tripu);
 		sleep(RETARDO_CICLO_CPU);
 		tiempo_transcurrido++;
 		tiempo_restante--;
-		sem_post(sem_tripu);
+		sem_post(tripu->sem_tripu);
 	}
 }
 
-void descartar_basura(t_parametros_tarea* parametros,tripulante_plani tripulante) {
+void descartar_basura(t_parametros_tarea* parametros,tripulante_plani tripu) {
 
-	sem_wait(sem_tripu);
+	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 	sleep(RETARDO_CICLO_CPU);
 	//running_block(tripulante->id_tripulante);
@@ -385,10 +391,10 @@ void descartar_basura(t_parametros_tarea* parametros,tripulante_plani tripulante
 	uint32_t tiempo_transcurrido = 0;
 
 	while(tiempo_restante != 0){
-		sem_wait(sem_tripu);
+		sem_wait(tripu->sem_tripu);
 		sleep(RETARDO_CICLO_CPU);
 		tiempo_transcurrido++;
 		tiempo_restante--;
-		sem_post(sem_tripu);
+		sem_post(tripu->sem_tripu);
 	}
 }
