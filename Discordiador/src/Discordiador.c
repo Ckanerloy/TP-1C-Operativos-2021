@@ -114,7 +114,7 @@ void obtener_orden_input()
 	 operacion = mapeo_valor_consola(comando_ingresado);
 	 free(comando_ingresado);
 	 int32_t valor_semaforo;
-	 tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+	// tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 	 //tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
 	 switch(operacion){
 
@@ -238,6 +238,7 @@ void obtener_orden_input()
 				if(respuesta->respuesta == 1){
 					printf("La respuesta fue positiva. \n");
 					printf("los id de los tripulantes %s\n",respuesta->ids_tripu);
+					printf("Numero de patota: %u \n", respuesta->numero_de_patota);
 					char** parser_ids= string_split(respuesta->ids_tripu, "|");
 					for(int i=0;mensaje_patota->cantidad_tripulantes>i;i++){
 						tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));

@@ -117,7 +117,7 @@ uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta_ini
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(uint32_t)+ sizeof(mensaje->tamanio_ids) + strlen(mensaje->ids_tripu)+1;
+	buffer->size = sizeof(mensaje->respuesta) + sizeof(mensaje->tamanio_ids) + strlen(mensaje->ids_tripu)+1 + sizeof(mensaje->numero_de_patota);
 
 	void* stream_auxiliar = malloc(buffer->size);
 
@@ -125,7 +125,7 @@ uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta_ini
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->respuesta), sizeof(mensaje->respuesta));
 	desplazamiento += sizeof(mensaje->respuesta);
 
-	//Tamanio ids
+	// Tamanio ids
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tamanio_ids), sizeof(mensaje->tamanio_ids));
 	desplazamiento += sizeof(mensaje->tamanio_ids);
 
@@ -133,7 +133,11 @@ uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta_ini
 	memcpy(stream_auxiliar + desplazamiento, mensaje->ids_tripu, mensaje->tamanio_ids+1);
 	desplazamiento += mensaje->tamanio_ids+1;
 
-	tamanio_a_enviar = sizeof(mensaje->respuesta) + sizeof(mensaje->tamanio_ids) + mensaje->tamanio_ids+1;
+	// Numero de Patota
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->numero_de_patota), sizeof(mensaje->numero_de_patota));
+	desplazamiento += sizeof(mensaje->numero_de_patota);
+
+	tamanio_a_enviar = sizeof(mensaje->respuesta) + sizeof(mensaje->tamanio_ids) + mensaje->tamanio_ids+1 + sizeof(mensaje->numero_de_patota);
 
 	if(desplazamiento != tamanio_a_enviar)
 	{

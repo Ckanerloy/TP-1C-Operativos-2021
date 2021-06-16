@@ -52,6 +52,9 @@ void deserializar_respuesta_patota(t_respuesta_iniciar_patota* mensaje, int32_t 
 
 	memcpy(mensaje->ids_tripu, buffer_deserializar + desplazamiento, mensaje->tamanio_ids+1);
 	desplazamiento += mensaje->tamanio_ids+1;
+
+	memcpy(&(mensaje->numero_de_patota), buffer_deserializar + desplazamiento, sizeof(mensaje->numero_de_patota));
+	desplazamiento += sizeof(mensaje->numero_de_patota);
 	free(buffer_deserializar);
 }
 

@@ -30,18 +30,21 @@ typedef struct segmento
 	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento
 	uint32_t inicio;					// Direccion fisica de donde empieza el segmento
 	uint32_t tamanio_segmento;			// Tamanio total del segmento
+
 } t_segmento;
 
 
 typedef struct	tabla_segmentos_patota
 {
 	t_pcb* patota;
-	uint32_t numero_de_segmento;
 	//t_list* segmentos;
 } t_segmentos_patota;
 
-t_segmentos_patota* patota1;
-//tabla de segmentos como t_list
+typedef struct
+{
+
+};
+
 
 
 typedef struct espacio

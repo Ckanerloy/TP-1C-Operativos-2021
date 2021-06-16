@@ -20,6 +20,7 @@ int main(void)
 	printf("Criterio de Seleccion para meter en Segmentacion: %s \n", CRITERIO_SELECCION);
 
 	MEMORIA_PRINCIPAL = malloc(TAMANIO_MEMORIA);
+	MEMORIA_RESTANTE = TAMANIO_MEMORIA;
 
 	if(MEMORIA_PRINCIPAL != NULL){
 		printf("Memoria Principal iniciada... \n");
@@ -120,125 +121,139 @@ void iniciar_comunicacion(){
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 {
 	t_iniciar_patota* patota_recibida;
-	uint32_t tamanio_patota;
-	t_id_tripulante* tripulante_a_eliminar;
-	t_list* tareas_de_la_patota;
+	int32_t tamanio_patota;
+	t_queue* tareas_de_la_patota;
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
-	//sem_post(espera);
+
+	t_id_tripulante* tripulante_a_eliminar;
 
 	switch(operacion)
 {
 			case INICIAR_PATOTA:
 				patota_recibida = malloc(sizeof(t_iniciar_patota));
+				respuesta_iniciar_patota = malloc(sizeof(t_respuesta_iniciar_patota));
+
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				printf("Contenido de tareas: %s \n", patota_recibida->tareas_de_patota);
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
+				parser_posiciones = string_split(patota_recibida->posiciones, "|");
 
-				// if(tengomemoria()){}
-				char* ids_enviar=string_new();
-				if(1){
+				char* ids_enviar = string_new();
 
-					t_pcb* nueva_patota = crear_pcb();
+				t_pcb* nueva_patota = crear_pcb();
 
-					parser_posiciones = string_split(patota_recibida->posiciones, "|");
+				// Tareas de UNA Patota
+				string_trim(&patota_recibida->tareas_de_patota);
+				char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
+
+				uint32_t cant_tareas = cantidad_tareas(parser_tarea);
+
+				tareas_de_la_patota = queue_create();
+
+				for(uint32_t i=0; i<cant_tareas; i++){
+					queue_push(tareas_de_la_patota, obtener_la_tarea(parser_tarea[i]));
+				}
 
 
-					// Tareas de UNA Patota
-					string_trim(&patota_recibida->tareas_de_patota);
-					char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
-
-					uint32_t cant_tareas = cantidad_tareas(parser_tarea);
-
-					tareas_de_la_patota = list_create();
+				for(uint32_t c=0; c<cant_tareas; c++) {
 					t_tarea* tarea_ejemplo = malloc(sizeof(t_tarea));
+					tarea_ejemplo = queue_pop(tareas_de_la_patota);
 
-					for(uint32_t i=0; i<cant_tareas; i++){
-						list_add(tareas_de_la_patota, obtener_la_tarea(parser_tarea[i]));
+					printf("Operacion: %u \n", tarea_ejemplo->operacion);
+					printf(" - Cantidad: %u \n", tarea_ejemplo->parametros->cantidad);
+					printf(" - Posicion X: %u \n", tarea_ejemplo->parametros->posicion_x);
+					printf(" - Posicion Y:%u \n", tarea_ejemplo->parametros->posicion_y);
+					printf(" - Tiempo: %u \n\n", tarea_ejemplo->parametros->tiempo);
 
-						tarea_ejemplo = list_get(tareas_de_la_patota, 0);
-						printf("Operacion: %u \n", tarea_ejemplo->operacion);
-						printf(" - Cantidad: %u \n", tarea_ejemplo->parametros->cantidad);
-						printf(" - Posicion X: %u \n", tarea_ejemplo->parametros->posicion_x);
-						printf(" - Posicion Y:%u \n", tarea_ejemplo->parametros->posicion_y);
-						printf(" - Tiempo: %u \n\n", tarea_ejemplo->parametros->tiempo);
+					free(tarea_ejemplo);
+				}
 
-						tareas_de_la_patota->head = tareas_de_la_patota->head->next;
-						free(tarea_ejemplo);
-					}
-
-					//tamanio_patota = sizeof(nueva_patota) + sizeof(tareas_de_la_patota);
-
-				//	guardar_patota(nueva_patota, tareas_de_la_patota, patota_recibida->cantidad_tripulantes, cant_tareas);
-					// FALTA HACER UN CHEQUEO PREVIO, DONDE GUARDO SEGUN EL ESQUEMA DE MEMORIA ELEGIDO
-					// POR EJEMPLO, guardar_patota , Y DIRECTAMENTE GUARDO, DESPUES VERIFICO EL ESQUEMA DE MEMORIA
-					// GUARDO EL PCB Y LAS TAREAS EN LA TABLA DE SEGMENTOS/PAGINACION DE LA PATOTA
+				tamanio_patota = sizeof(nueva_patota) + queue_size(tareas_de_la_patota);
 
 
+				//calcular direccion logica de la misma
+				for(int i=0;i<patota_recibida->cantidad_tripulantes;i++)
+				{
+					t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
+
+					tamanio_patota += sizeof(nuevo_tripulante);
+
+					string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
+					contador_id_tripu++;
+					free(nuevo_tripulante);
+				}
+				strcat(ids_enviar,"\0");
 
 
 
-					//calcular direccion logica de la misma
-					for(int i=0;i<patota_recibida->cantidad_tripulantes;i++)
-					{
-						t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
+				printf("Tamanio patota %d \n", tamanio_patota);
+				printf("Tamanio memoria Principal %d \n\n", TAMANIO_MEMORIA);
 
-						tamanio_patota += sizeof(nuevo_tripulante);
 
-						// IDEM AL PUNTO ANTERIOR
-						// GUARDO CADA TRIPULANTE EN LA TABLA DE SEGMENTOS/PAGINACION DE LA PATOTA
-						//crear_segmento_tripulante(segmento_patota, nuevo_tripulante);
-						//guardar_tripulante(nuevo_tripulante);
 
-						string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
-						printf("----------");
-						printf("%u",contador_id_tripu);
-						printf("----------\n");
-						contador_id_tripu++;
-						free(nuevo_tripulante);
-					}
+				respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
 
-					respuesta_iniciar_patota = validar_espacio_por_patota(tamanio_patota);
 
-					printf("%s\n",ids_enviar);
+				// Verifica si hay espacio para guardar en memoria
+				if(validar_espacio_por_patota(tamanio_patota) == 0) {
+					respuesta_iniciar_patota->respuesta = 0;
+					respuesta_iniciar_patota->tamanio_ids = 0;
+					respuesta_iniciar_patota->ids_tripu = "";
+
+					MEMORIA_RESTANTE += tamanio_patota;
+
+					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
+
+
+					//liberar_memoria = todas las estructuras usadas por iniciar patota
 					free(nueva_patota);
 					free(parser_tarea);
+					free(ids_enviar);
 
-					strcat(ids_enviar,"\0");
+					free(tareas_de_la_patota);
 
+					free(respuesta_iniciar_patota->ids_tripu);
+					free(respuesta_iniciar_patota);
 
-					//respuesta->respuesta = 1;
-
-
-					respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
-					respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
-					strcpy(respuesta_iniciar_patota->ids_tripu,ids_enviar);
-
-				}
-				else {
-
-					//respuesta->respuesta = 0; // SI NO TENGO MEMORIA
-					respuesta_iniciar_patota->tamanio_ids = 0;
-					respuesta_iniciar_patota->ids_tripu = NULL;
+					free(patota_recibida->tareas_de_patota);
+					free(patota_recibida->posiciones);
+					free(patota_recibida);
+					break;
 				}
 
+
+				// Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
+
+				//guardar_patota();
+
+				respuesta_iniciar_patota->respuesta = 1;
+				respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
+				respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
+				strcpy(respuesta_iniciar_patota->ids_tripu,ids_enviar);
 
 				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
 
+				contador_id_patota++;
 
+
+				free(ids_enviar);
+
+				free(nueva_patota);
+				free(parser_tarea);
+				free(tareas_de_la_patota);
 
 				free(respuesta_iniciar_patota->ids_tripu);
-				contador_id_patota++;
-				free(ids_enviar);
-				free(tareas_de_la_patota);
 				free(respuesta_iniciar_patota);
+
 				free(patota_recibida->tareas_de_patota);
 				free(patota_recibida->posiciones);
 				free(patota_recibida);
 				break;
 
 			case RECIBIR_UBICACION_TRIPULANTE:
+
 				break;
 
 			case ENVIAR_PROXIMA_TAREA:
@@ -261,19 +276,15 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 }
 
 
-t_respuesta_iniciar_patota* validar_espacio_por_patota(uint32_t tamanio)
+int32_t validar_espacio_por_patota(uint32_t tamanio)
 {
-	t_respuesta_iniciar_patota* respuesta = malloc(sizeof(t_respuesta_iniciar_patota));
-
-	uint32_t restante = sizeof(MEMORIA_PRINCIPAL) - tamanio;
+	int32_t restante = MEMORIA_RESTANTE - tamanio;
 	if(restante > 0) {
-		respuesta->respuesta = 1;
+		return 1;
 	}
 	else {
-		respuesta->respuesta = 0;
+		return 0;
 	}
-
-	return respuesta;
 }
 
 

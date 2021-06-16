@@ -25,6 +25,13 @@ typedef enum
 
 typedef enum
 {
+	GUARDAR_PATOTA,
+	GUARDAR_TRIPULANTE,
+	GUARDAR_TAREAS,
+} codigo_guardado;
+
+typedef enum
+{
 	GENERAR_OXIGENO,
 	CONSUMIR_OXIGENO,
 	GENERAR_COMIDA,
@@ -48,6 +55,7 @@ typedef struct {
 	uint32_t respuesta;
 	char* ids_tripu;
 	uint32_t tamanio_ids;
+	uint32_t numero_de_patota;
 } t_respuesta_iniciar_patota;
 
 
