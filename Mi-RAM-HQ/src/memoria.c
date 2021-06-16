@@ -28,15 +28,13 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 		case PAGINACION:
 
 			esquema_elegido = 'P';
-			pagina_patota = malloc(sizeof(t_paginas));
-			inicializar_tabla_paginas_de_patota(pagina_patota);
+			tabla_paginas = list_create();
 
 			break;
 		case SEGMENTACION:
 
 			esquema_elegido = 'S';
-			segmento_patota = malloc(sizeof(t_segmentos));
-			inicializar_tabla_segmentos_de_patota(segmento_patota);
+			tabla_segmentos = list_create();
 
 			break;
 		default:

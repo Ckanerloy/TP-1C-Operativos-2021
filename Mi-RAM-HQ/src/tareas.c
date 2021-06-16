@@ -66,6 +66,7 @@ t_parametros_tarea* recibir_parametros(char* parametros) {
 	return estructura;
 }
 
+
 /*
 void realizar_tarea_de_io(codigo_tarea tarea, char* PARAMETROS){
 

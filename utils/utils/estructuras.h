@@ -137,44 +137,4 @@ typedef struct {
 } t_tarea;
 
 
-
-// Estructuras para Mi RAM HQ
-
-// PAGINACION
-typedef struct tabla_paginas
-{
-	int32_t numero_de_marco;
-	uint32_t numero_de_pagina;
-
-	struct tabla_paginas* ant_pagina;
-	struct tabla_paginas* sig_pagina;
-} t_paginas;
-
-
-
-
-// SEGMENTACION
-typedef struct tabla_segmentos
-{
-	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento
-	uint32_t inicio;					// Direccion fisica de donde empieza el segmento
-	uint32_t tamanio_segmento;			// Tamanio total del segmento
-
-	struct tabla_segmentos_patota* ant_segmento;
-	struct tabla_segmentos_patota* sig_segmento;
-} t_segmentos;
-
-//tabla de segmentos como t_list
-
-
-typedef struct espacio
-{
-	uint32_t numeroDeEspacio;
-	uint32_t espacioOcupado;
-
-	struct espacio* sig_espacio;
-} espacio;
-
-
-
 #endif /* UTILS_ESTRUCTURAS_H_ */

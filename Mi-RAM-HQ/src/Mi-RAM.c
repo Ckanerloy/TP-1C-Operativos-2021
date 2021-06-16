@@ -122,7 +122,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 	t_iniciar_patota* patota_recibida;
 	uint32_t tamanio_patota;
 	t_id_tripulante* tripulante_a_eliminar;
-	t_tarea** tareas_de_la_patota;
+	t_list* tareas_de_la_patota;
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 	//sem_post(espera);
 
@@ -131,23 +131,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 			case INICIAR_PATOTA:
 				patota_recibida = malloc(sizeof(t_iniciar_patota));
 				recibir_mensaje(patota_recibida, operacion, conexion);
-				//respuesta = malloc(sizeof(t_respuesta_iniciar_patota));
 
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				printf("Contenido de tareas: %s \n", patota_recibida->tareas_de_patota);
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
-
-
-
-				/*
-				 * 1) Estructuras de Segmentacion y Paginacion
-				 * 2) Como y cuando consultar el tamaño del segmento total, para verificar tamaño de memoria
-				 * 3) Validacion que el tamaño del segmento alcance para entrar en la Memoria Principal
-				 */
-
-
-
-
 
 				// if(tengomemoria()){}
 				char* ids_enviar=string_new();
@@ -164,21 +151,26 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 					uint32_t cant_tareas = cantidad_tareas(parser_tarea);
 
-					tareas_de_la_patota = malloc(sizeof(t_tarea)*cant_tareas);
+					tareas_de_la_patota = list_create();
+					t_tarea* tarea_ejemplo = malloc(sizeof(t_tarea));
 
 					for(uint32_t i=0; i<cant_tareas; i++){
-						tareas_de_la_patota[i] = obtener_la_tarea(parser_tarea[i]);
+						list_add(tareas_de_la_patota, obtener_la_tarea(parser_tarea[i]));
 
-						printf("Operacion: %u \n", tareas_de_la_patota[i]->operacion);
-						printf(" - Cantidad: %u \n", tareas_de_la_patota[i]->parametros->cantidad);
-						printf(" - Posicion X: %u \n", tareas_de_la_patota[i]->parametros->posicion_x);
-						printf(" - Posicion Y:%u \n", tareas_de_la_patota[i]->parametros->posicion_y);
-						printf(" - Tiempo: %u \n\n", tareas_de_la_patota[i]->parametros->tiempo);
+						tarea_ejemplo = list_get(tareas_de_la_patota, 0);
+						printf("Operacion: %u \n", tarea_ejemplo->operacion);
+						printf(" - Cantidad: %u \n", tarea_ejemplo->parametros->cantidad);
+						printf(" - Posicion X: %u \n", tarea_ejemplo->parametros->posicion_x);
+						printf(" - Posicion Y:%u \n", tarea_ejemplo->parametros->posicion_y);
+						printf(" - Tiempo: %u \n\n", tarea_ejemplo->parametros->tiempo);
+
+						tareas_de_la_patota->head = tareas_de_la_patota->head->next;
+						free(tarea_ejemplo);
 					}
 
-					tamanio_patota = sizeof(nueva_patota) + sizeof(tareas_de_la_patota);
+					//tamanio_patota = sizeof(nueva_patota) + sizeof(tareas_de_la_patota);
 
-					guardar_patota(nueva_patota, tareas_de_la_patota, patota_recibida->cantidad_tripulantes, cant_tareas);
+				//	guardar_patota(nueva_patota, tareas_de_la_patota, patota_recibida->cantidad_tripulantes, cant_tareas);
 					// FALTA HACER UN CHEQUEO PREVIO, DONDE GUARDO SEGUN EL ESQUEMA DE MEMORIA ELEGIDO
 					// POR EJEMPLO, guardar_patota , Y DIRECTAMENTE GUARDO, DESPUES VERIFICO EL ESQUEMA DE MEMORIA
 					// GUARDO EL PCB Y LAS TAREAS EN LA TABLA DE SEGMENTOS/PAGINACION DE LA PATOTA
@@ -197,12 +189,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 						// IDEM AL PUNTO ANTERIOR
 						// GUARDO CADA TRIPULANTE EN LA TABLA DE SEGMENTOS/PAGINACION DE LA PATOTA
 						//crear_segmento_tripulante(segmento_patota, nuevo_tripulante);
-						guardar_tripulante(nuevo_tripulante);
+						//guardar_tripulante(nuevo_tripulante);
 
 						string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
 						printf("----------");
 						printf("%u",contador_id_tripu);
-						printf("----------");
+						printf("----------\n");
 						contador_id_tripu++;
 						free(nuevo_tripulante);
 					}

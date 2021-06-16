@@ -34,6 +34,9 @@ char* ALGORITMO_REEMPLAZO;
 char* CRITERIO_SELECCION;
 
 
+void* MEMORIA_PRINCIPAL;
+void* AREA_SWAP;
+
 sem_t* espera;
 
 pthread_t hilo_recibir_mensajes;
