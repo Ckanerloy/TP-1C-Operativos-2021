@@ -192,6 +192,7 @@ void tripulante_hilo(void* tripulante){
 
 	sem_wait(sem_tripu);
 
+
 	t_tarea* tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
 
 	posiciones* posicion_tripu;
