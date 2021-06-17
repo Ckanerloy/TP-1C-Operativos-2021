@@ -31,7 +31,6 @@ typedef enum{
 //Colas
 t_queue* cola_new;
 t_queue* cola_ready;
-t_queue* cola_running;
 t_queue* cola_block;
 t_queue* cola_suspendido;
 
@@ -45,11 +44,10 @@ sem_t* contador_tripulantes_en_new;
 sem_t* mutex_new;
 sem_t* planificacion_on;
 sem_t* planificacion_on_ready_running;
-sem_t* mutex_running;
-sem_t* cantidad_running;
 sem_t* mutex_valorMultitarea;
 sem_t* sem_a_block;
 sem_t* ya_pase_a_block;
+sem_t* contador_tripulantes_en_ready;
 
 //Hilos
 //pthread_t hilo_new_ready;			Por que se pone aca, pero tambien esta en planificador.c?
@@ -69,16 +67,18 @@ void ready_running();
 void iniciar_planificacion();
 void inicializar_semaforos();
 void pulso_rafaga();
-void running_ready();
+void running_ready(tripulante_plani* tripulante);
 void tripulante_hilo(void* tripulante);
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota);
 posiciones* obtener_posiciones(uint32_t tripulante);
 uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
-void realizar_tarea(t_tarea* tarea);
-//Pasar a utils
+
+//Pasar a utils O REVISAR
 t_tarea* obtener_la_tarea(char* tarea_tripulante);
 t_parametros_tarea* recibir_parametros(char* parametros);
-void realizar_tarea(t_tarea* tarea, tripulante_plani tripulante);
-
+void realizar_tarea(t_tarea* tarea, tripulante_plani* tripulante);
+void generar_insumo(char* nombre_archivo, char caracter_llenado, uint32_t duracionTarea,tripulante_plani* tripu);
+void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, uint32_t duracionTarea,tripulante_plani* tripu);
+void descartar_basura(uint32_t duracionTarea,tripulante_plani* tripu);
 
 #endif /* PLANIFICADOR_H_ */

@@ -145,6 +145,10 @@ void obtener_orden_input()
 			if(valor_semaforo == 1){
 				sem_wait(planificacion_on);
 			}
+
+			lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
+
+
 			// PAUSA LA PLANIFICACION DE LOS TRIPULANTES, ES DECIR TODOS EN PAUSA? o se mete algun WAIT(signal)
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO BLOCK I/O
 			break;
@@ -304,10 +308,6 @@ void obtener_orden_input()
 			}
 
 			printf("-----------------\n");
-			while(queue_size(cola_running)>0){
-				tripulante_plani* tripulante_a_ready = queue_pop(cola_running);
-				printf("id tripulante (COLA RUNNING): %u \n",tripulante_a_ready->id_tripulante);
-			}
 
 			listar_tripulantes();
 			break;
@@ -372,8 +372,6 @@ void obtener_orden_input()
 			break;
 
 		case TERMINAR_PROGRAMA:
-
-			running_ready();
 
 		//	printf("%d",valor_semaforo);
 	//		printf("%d",queue_size(cola_new));
@@ -469,3 +467,6 @@ void arreglar_sabotaje() {
 			enviar_mensaje(tripulantes[k], INICIAR_PATOTA, conexion_mi_ram);
 		}
 		*/
+void poner_en_cero_semaforos(sem_t* semaforo){
+	sem_wait(semaforo);
+}

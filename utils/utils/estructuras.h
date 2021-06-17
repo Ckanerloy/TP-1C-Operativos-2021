@@ -131,8 +131,11 @@ typedef struct{
 
 
 typedef struct {
-	codigo_tarea operacion;
-	t_parametros_tarea* parametros;
+    codigo_tarea operacion;
+    int32_t cantidad;
+    uint32_t posicion_x;
+    uint32_t posicion_y;
+    int32_t tiempo;
 } t_tarea;
 
 typedef struct {

@@ -59,6 +59,7 @@ void iniciar_escucha_por_consola();
 void obtener_datos_de_config(t_config* config);
 void obtener_orden_input();						// Leo lo que escriba por consola y ejecuta la operacion a realizar
 void crear_hilos();
+void poner_en_cero_semaforos(sem_t* semaforo);
 
 // POR AHORA SON UNA IDEA
 void obtener_orden_sabotaje(void);
