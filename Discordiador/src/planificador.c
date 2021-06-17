@@ -47,11 +47,15 @@ void inicializar_semaforos_plani(){
 	sem_init(contador_tripulantes_en_ready,0 ,0);
 
 	mutex_exit = malloc(sizeof(sem_t));
-	sem_init(mutex_exit, 0, 0);
+	sem_init(mutex_exit, 0, 1);
+
+	mutex_prueba=malloc(sizeof(sem_t));
+	sem_init(mutex_prueba,0,1);
 }
 
 
 void finalizar_semaforos_plani() {
+	free(mutex_prueba);
 	free(contador_tripulantes_en_new);
 	free(mutex_new);
 	free(mutex_ready);
@@ -75,7 +79,7 @@ void obtener_planificacion_de_config(t_config* config){
 
 void elegir_algoritmo() {
 
-	algoritmo_planificacion algoritmo_elegido;
+
 	algoritmo_elegido = mapeo_algoritmo_planificacion(ALGORITMO);
 
 	switch(algoritmo_elegido){
@@ -156,7 +160,9 @@ void ready_running() {
 			sem_wait(mutex_valorMultitarea);
 			multitarea_Disponible--;
 			sem_post(mutex_valorMultitarea);
-
+			sem_wait(mutex_prueba);
+			prueba++;
+			sem_post(mutex_prueba);
 			//Actualizar el estado (a E) en Mi-Ram
 
 			sem_post(tripulante_a_running->sem_tripu);
@@ -191,6 +197,9 @@ void block_ready(tripulante_plani* tripu){
 }
 
 void block_exit(tripulante_plani* tripu){
+	sem_wait(mutex_prueba);
+	prueba++;
+	sem_post(mutex_prueba);
 	sem_wait(mutex_exit);
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
@@ -203,9 +212,9 @@ void tripulante_hilo(void* tripulante){
 
 	sem_wait(tripu->sem_tripu);
 
-	printf("%u",tripu->id_tripulante);
+	//printf("tripu %u en R",tripu->id_tripulante);
+	prueba++;
 
-	/*
 	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
 
 	posiciones* posicion_tripu;
@@ -214,7 +223,6 @@ void tripulante_hilo(void* tripulante){
 
 	while(tripu->tarea_a_realizar != NULL){
 		sem_wait(tripu->sem_tripu);
-		//sem_wait(mutex_valorMultitarea);
 		posiciones* posicion_tarea;
 		posicion_tarea = malloc(sizeof(posiciones));
 		posicion_tarea->posicion_x = tripu->tarea_a_realizar->posicion_x;
@@ -222,18 +230,26 @@ void tripulante_hilo(void* tripulante){
 
 		uint32_t distancia = obtener_distancia(posicion_tripu,posicion_tarea);
 		uint32_t cantidadRealizado = 0;
-
+		sem_post(tripu->sem_tripu);
 		while(distancia != 0){
 
-			if(cantidadRealizado==QUANTUM){
-				running_ready(tripu);
-				sem_wait(mutex_valorMultitarea);
-				multitarea_Disponible++;
-				sem_post(mutex_valorMultitarea);
-				cantidadRealizado=0;
-				sem_wait(tripu->sem_tripu);
-			}
+			if(algoritmo_elegido==QUANTUM){
 
+				if(cantidadRealizado==QUANTUM){
+					running_ready(tripu);
+
+					sem_wait(mutex_valorMultitarea);
+					multitarea_Disponible++;
+					sem_post(mutex_valorMultitarea);
+
+
+					cantidadRealizado=0;
+					sem_wait(tripu->sem_tripu);
+					sem_wait(tripu->sem_tripu);
+					sem_post(tripu->sem_tripu);
+				}
+
+			}
 			sem_wait(tripu->sem_tripu);
 			sleep(RETARDO_CICLO_CPU);
 			//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
@@ -242,20 +258,34 @@ void tripulante_hilo(void* tripulante){
 
 			sem_post(tripu->sem_tripu);
 		}
-		if(cantidadRealizado==QUANTUM){
-			running_ready(tripu);
-			sem_wait(mutex_valorMultitarea);
-			multitarea_Disponible++;
-			sem_post(mutex_valorMultitarea);
-			cantidadRealizado=0;
-			sem_wait(tripu->sem_tripu);
+		if(algoritmo_elegido==QUANTUM){
+			if(cantidadRealizado==QUANTUM){
+				running_ready(tripu);
+				sem_wait(mutex_valorMultitarea);
+				multitarea_Disponible++;
+				sem_post(mutex_valorMultitarea);
+				cantidadRealizado=0;
+				sem_wait(tripu->sem_tripu);
+				sem_wait(tripu->sem_tripu);
+				sem_post(mutex_valorMultitarea);
+			}
 		}
 		realizar_tarea(tripu,&cantidadRealizado);
 	}
-*/
+	sem_wait(tripu->sem_tripu);
 }
 
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
+
+	t_tarea* tarea = malloc(sizeof(t_tarea));
+
+	tarea->operacion=GENERAR_OXIGENO;
+	tarea->cantidad=5;
+	tarea->posicion_x=5;
+	tarea->posicion_y=5;
+	tarea->tiempo=5;
+	return tarea;
+
 	//le mandamos el numero de la patota a Mi-Ram y nos devuelve un char* tarea_tripulante
 	//Si no hay una proxima tarea, devuelve un NULL
 
@@ -264,8 +294,10 @@ t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
 
 posiciones* obtener_posiciones(uint32_t tripulante){
 	//le mandamos el id del tripulante a Mi_Ram y nos dice su ubicacion
-
-	//return posicion;
+	posiciones* posicion= malloc(sizeof(posiciones));
+	posicion->posicion_x=5;
+	posicion->posicion_y=5;
+	return posicion;
 }
 
 uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea){
@@ -357,13 +389,15 @@ void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
 			otras_tareas(tripu,cantidadRealizado);
 			break;
 		}
-	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+	tripu->tarea_a_realizar= NULL;
 	if(tripu->tarea_a_realizar!=NULL){
 		block_ready(tripu);
+
 	}else{
 		block_exit(tripu);
-		sem_wait(tripu->sem_tripu);
 	}
+
 	//Es importante que sem_tripu quede en cero sino se autoejecuta.
 }
 
@@ -373,6 +407,9 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 	sleep(RETARDO_CICLO_CPU);
 	sem_post(tripu->sem_tripu);
+	sem_wait(mutex_prueba);
+	prueba++;
+	sem_post(mutex_prueba);
 	running_block(tripu);
 
 	//if(SI ESTA EL ARCHIVO) {

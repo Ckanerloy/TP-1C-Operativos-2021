@@ -54,12 +54,18 @@ sem_t* contador_tripulantes_en_ready;
 //pthread_t hilo_new_ready;			Por que se pone aca, pero tambien esta en planificador.c?
 //pthread_t hilo_block_ready;
 
+
+sem_t* mutex_prueba;
+
+int prueba;
+
 // Datos del Config
 int GRADO_MULTITAREA;
 char* ALGORITMO;
 int QUANTUM;
 int RETARDO_CICLO_CPU;
 
+algoritmo_planificacion algoritmo_elegido;
 algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo);
 void elegir_algoritmo();
 void obtener_planificacion_de_config(t_config* config);
@@ -76,7 +82,6 @@ uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tare
 
 //Pasar a utils O REVISAR
 t_tarea* obtener_la_tarea(char* tarea_tripulante);
-t_parametros_tarea* recibir_parametros(char* parametros);
 void realizar_tarea(tripulante_plani* tripulante,uint32_t* cantidadRealizado);
 void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu);
 void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu);
