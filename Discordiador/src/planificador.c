@@ -203,6 +203,9 @@ void tripulante_hilo(void* tripulante){
 
 	sem_wait(tripu->sem_tripu);
 
+	printf("%u",tripu->id_tripulante);
+
+	/*
 	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
 
 	posiciones* posicion_tripu;
@@ -249,7 +252,7 @@ void tripulante_hilo(void* tripulante){
 		}
 		realizar_tarea(tripu,&cantidadRealizado);
 	}
-
+*/
 }
 
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){

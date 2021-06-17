@@ -48,8 +48,8 @@ void crear_hilos(){
 	pthread_create(&hilo_consola, NULL,(void*)iniciar_escucha_por_consola, NULL);
 	pthread_detach(hilo_consola);
 
-	pthread_create(&hilo_new_ready, NULL,(void*)new_ready, NULL);
-	pthread_detach(hilo_new_ready);
+	//pthread_create(&hilo_new_ready, NULL,(void*)new_ready, NULL);
+	//pthread_detach(hilo_new_ready);
 
 }
 
@@ -128,8 +128,9 @@ void obtener_orden_input()
 				printf("Iniciando Planificacion....... \n");
 
 			}
-			sem_post(planificacion_on);
-			sem_post(planificacion_on_ready_running);
+			lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
+			//sem_post(planificacion_on);
+			//sem_post(planificacion_on_ready_running);
 
 			// LOS TRIPULANTES ESTAN DEFINIDOS POR HILO -> CADA HILO IRIA A UNA COLA
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO EXECUTE
@@ -145,6 +146,7 @@ void obtener_orden_input()
 			if(valor_semaforo == 1){
 				sem_wait(planificacion_on);
 			}
+
 
 			lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
 
@@ -251,8 +253,8 @@ void obtener_orden_input()
 
 						tripulante->sem_tripu= semaforo_exec;
 
-						//pthread_create(&hilo_tripulante,NULL,(void*)tripulante_hilo,tripulante);
-						//pthread_detach(hilo_tripulante);
+						pthread_create(&hilo_tripulante,NULL,(void*)tripulante_hilo,tripulante);
+						pthread_detach(hilo_tripulante);
 
 						list_add(lista_semaforos_tripulantes, tripulante->sem_tripu);
 
@@ -424,49 +426,8 @@ void arreglar_sabotaje() {
 	// MANDA TRIPULANTE MAS CERCANO A LA UBICACION DEL SABOTAJE PARA QUE LO SOLUCIONE
 }
 
-/*
- * CODIGO QUE PODEMOS UTILIZAR
- *
-		int posicion = 0;
-		for(uint32_t c=0; c<cantidad_tripulantes; c++){
-			t_datos_hilo* datos_hilo = malloc(sizeof(t_datos_hilo));
-			datos_hilo->posicion_x = atoi(parser_posiciones[posicion]);
-			datos_hilo->posicion_y = atoi(parser_posiciones[posicion+1]);
 
-			// Array para guardar todos los tripulantes (guarda los hilos)
-			// Array para guardar todas las patotas (guarda los procesos)
-
-			pthread_create(&(hilo_tripulante), NULL, (t_tcb*)crear_tripulante, (t_datos_hilo*) datos_hilo);
-
-			//tripulantes = tripulantes ->sig siempre que sea NULL, y ahi guarda el tripulante creado
-			pthread_join(hilo_tripulante, &tripulantes);
-
-			posicion += 2;
-			free(datos_hilo);
-		}
-
-		 t_tcb** tripulantes = malloc(sizeof(t_tcb)*cantidad_tripulantes);
-
-		int posicion1 = 0;
-		for(uint32_t c=1; c<=cantidad_tripulantes; c++){
-			tripulantes[c] = malloc(sizeof(t_tcb));
-			tripulantes[c]->id_tripulante = c;
-			tripulantes[c]->estado_tripulante = 'N';
-			tripulantes[c]->posicion_x = atoi(parser_posiciones[posicion1]);
-			tripulantes[c]->posicion_y = atoi(parser_posiciones[posicion1+1]);
-			tripulantes[c]->id_proxima_instruccion = 0;
-
-			posicion1 += 2;
-		}
-
-		for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
-			mostrar_tripulante(tripulantes[k]);
-		}
-
-		for(uint32_t k=1; k<=cantidad_tripulantes; k++) {
-			enviar_mensaje(tripulantes[k], INICIAR_PATOTA, conexion_mi_ram);
-		}
-		*/
 void poner_en_cero_semaforos(sem_t* semaforo){
-	sem_wait(semaforo);
+	//sem_wait(semaforo);
+	sem_post(semaforo);
 }
