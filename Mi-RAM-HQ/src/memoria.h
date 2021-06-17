@@ -9,9 +9,8 @@ char esquema_elegido;
 t_list* tablas_segmentos;
 t_list* tabla_paginas;
 
-
-void elegir_esquema_de_memoria(char* ESQUEMA);
-
+uint32_t contador_segmento;
+int32_t inicio;
 
 // Estructuras para Mi RAM HQ
 
@@ -21,7 +20,7 @@ typedef struct segmento
 	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento
 	uint32_t inicio;					// Direccion fisica de donde empieza el segmento
 	uint32_t tamanio_segmento;			// Tamanio total del segmento
-
+	tipo_segmento tipo_de_segmento;
 } t_segmento;
 
 
@@ -47,6 +46,16 @@ typedef struct espacio
 	struct espacio* sig_espacio;
 } espacio;
 
-t_tabla_segmentos_patota* crear_tabla_segmentos(nueva_patota);
+t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
+void elegir_esquema_de_memoria(char* ESQUEMA);
+criterio_seleccion elegir_criterio_seleccion(char* criterio);
+algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo);
+
+
+void crear_segmento(void* estructura, tipo_segmento tipo_de_segmento);
+
+uint32_t administrar_guardar_patota(t_pcb* nueva_patota);
+uint32_t administrar_guardar_tareas(t_queue* tareas_de_la_patota);
+uint32_t administrar_guardar_tripulante(t_tcb* nuevo_tripulante);
 
 #endif /* MEMORIA_H_ */

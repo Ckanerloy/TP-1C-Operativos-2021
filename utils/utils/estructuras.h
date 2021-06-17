@@ -57,6 +57,13 @@ typedef enum
 
 typedef enum
 {
+	PATOTA,
+	TAREAS,
+	TRIPULANTE
+} tipo_segmento;
+
+typedef enum
+{
 	BEST_FIT,
 	FIRST_FIT
 } criterio_seleccion;

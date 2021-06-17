@@ -37,10 +37,10 @@ criterio_seleccion criterio_elegido;
 algoritmo_reemplazo algoritmo_elegido;
 
 
-void* MEMORIA_PRINCIPAL;
+void* memoria_principal;
 void* AREA_SWAP;
 
-int32_t MEMORIA_RESTANTE;
+int32_t memoria_restante;
 
 sem_t* espera;
 

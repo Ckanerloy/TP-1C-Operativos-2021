@@ -33,7 +33,7 @@ codigo_tarea mapeo_tareas_tripulantes(char* tarea) {
 
 
 char** obtener_tareas(char* tareas_patota) {
-	return string_split(tareas_patota, "|");
+	return string_split(tareas_patota, "\n");
 }
 
 

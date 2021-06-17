@@ -2,12 +2,13 @@
 
 int main(void)
 {
-	MEMORIA_PRINCIPAL = NULL;
+	memoria_principal = NULL;
 	AREA_SWAP = NULL;
 	config = crear_config(CONFIG_PATH);
 	contador_id_tripu=1;
 	contador_id_patota=1;
 	ids=list_create();     //CREA LA LISTA DE IDS
+	inicio = 0;
 
 	obtener_datos_de_config(config);
 	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
@@ -19,10 +20,10 @@ int main(void)
 	printf("Algoritmo de Reemplazo: %s \n", ALGORITMO_REEMPLAZO);
 	printf("Criterio de Seleccion para meter en Segmentacion: %s \n", CRITERIO_SELECCION);
 
-	MEMORIA_PRINCIPAL = malloc(TAMANIO_MEMORIA);
-	MEMORIA_RESTANTE = TAMANIO_MEMORIA;
+	memoria_principal = malloc(TAMANIO_MEMORIA);
+	memoria_restante = TAMANIO_MEMORIA;
 
-	if(MEMORIA_PRINCIPAL != NULL){
+	if(memoria_principal != NULL){
 		printf("Memoria Principal iniciada... \n");
 	}
 	else {
@@ -78,7 +79,7 @@ int main(void)
 	}*/
 
 
-	free(MEMORIA_PRINCIPAL);
+	free(memoria_principal);
 	printf("Memoria Principal liberada...\n");
 	free(AREA_SWAP);
 	printf("Area de Swap liberada...\n");
@@ -175,9 +176,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					respuesta_iniciar_patota->numero_de_patota = 0;
 					respuesta_iniciar_patota->respuesta = 0;
 					respuesta_iniciar_patota->tamanio_ids = 0;
-					respuesta_iniciar_patota->ids_tripu = "";
+					respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
+					strcpy(respuesta_iniciar_patota->ids_tripu, "");
 
-					//MEMORIA_RESTANTE += tamanio_patota;
 				}
 				else { // Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
 
@@ -185,21 +186,19 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 
 					t_tabla_segmentos_patota* tabla = crear_tabla_segmentos(nueva_patota);
-					//int resultado_guardado = guardar_patota();
 
-					/*
-					 * Aca voy a guardar una patota en un segmento
-					 * EN ESTE CASO: EL TAMANIO DEL SEGMENTO = sizeof(t_pcb);
-					 */
+			// Mutex
+					crear_segmento(nueva_patota, PATOTA);
 					//administrar_guardar_patota(nueva_patota);
+			// Mutex
 
 
-					/*
-					 * Aca voy a guardar las tareas en otro segmento
-					 * EN ESTE CASO: EL TAMANIO DEL SEGMENTO = sizeof(t_tarea)* queue_size(tareas_de_la_patota);
-					 */
-					//administrar_guardar_tareas(tareas_de_la_patota);
+			// Mutex
+					crear_segmento(tareas_de_la_patota, TAREAS);
+			// Mutex
 
+					// Esta estructura apunta a donde arranca el segmento de todas las tareas
+					//nueva_patota->tareas = inicio;
 
 					// Solamente esta para PROBAR que llegan las tareas
 					for(uint32_t c=0; c<cant_tareas; c++) {
@@ -224,22 +223,18 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 						t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
 
 
-						/*
-						 *  Aca voy a guardar cada tripulante en un segmento
-						 *  EN ESTE CASO: EL TAMANIO DEL SEGMENTO = sizeof(t_tcb);
-						 */
-						//administrar_guardar_tripulante(nuevo_tripulante);
-
+				// Mutex
+						crear_segmento(nuevo_tripulante, TRIPULANTE);
+				// Mutex
 
 
 						string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
+
 						contador_id_tripu++;
 						free(nuevo_tripulante);
 					}
+
 					strcat(ids_enviar,"\0");
-
-
-
 
 					respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
 					respuesta_iniciar_patota->respuesta = 1;
@@ -249,11 +244,16 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 					contador_id_patota++;
 					free(nueva_patota);
-					free(respuesta_iniciar_patota->ids_tripu);
+
 				}
 
 				printf("Tamanio patota %d \n", tamanio_patota);
 				printf("Tamanio memoria Principal %d \n\n", TAMANIO_MEMORIA);
+				printf("Memoria Restante: %d \n", memoria_restante);
+
+
+				printf("Inicio de proximo segmento: %d \n", inicio);
+				printf("Numero de proximo segmento: %d \n", contador_segmento);
 
 
 				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
@@ -261,7 +261,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				free(ids_enviar);
 				free(parser_tarea);
 				free(tareas_de_la_patota);
-
+				free(respuesta_iniciar_patota->ids_tripu);
 				free(respuesta_iniciar_patota);
 				free(patota_recibida->tareas_de_patota);
 				free(patota_recibida->posiciones);
@@ -292,7 +292,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 }
 
 int32_t validar_espacio_por_patota(uint32_t tamanio){
-	int32_t restante = MEMORIA_RESTANTE - tamanio;
+	int32_t restante = memoria_restante - tamanio;
 	return (restante > 0);
 }
 
@@ -303,7 +303,7 @@ t_pcb* crear_pcb(){
 	return proceso_patota;
 }
 
-t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x,uint32_t posicion_y,uint32_t id_proxima_tarea){
+t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion_y, uint32_t id_proxima_tarea){
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
 	tripulante->id_tripulante = contador_id_tripu;
