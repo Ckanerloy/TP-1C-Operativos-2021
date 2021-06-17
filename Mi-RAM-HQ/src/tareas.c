@@ -36,20 +36,30 @@ char** obtener_tareas(char* tareas_patota) {
 	return string_split(tareas_patota, "|");
 }
 
-/*
+
 t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 	char** parser_tarea = string_split(tarea_tripulante, " ");
 
-	t_tarea* tarea_nueva = malloc(sizeof(t_tarea));
+    char** parser_parametros = NULL;
+
+    t_tarea* tarea_nueva = malloc(sizeof(t_tarea));
 
 	tarea_nueva->operacion = mapeo_tareas_tripulantes(parser_tarea[0]);
-	tarea_nueva->parametros = recibir_parametros(parser_tarea[1]);
 
-	free(parser_tarea);
-	return tarea_nueva;
+    parser_parametros = string_split(parser_tarea[1], ";");
+
+    tarea_nueva->cantidad = atoi(parser_parametros[0]);
+    tarea_nueva->posicion_x = atoi(parser_parametros[1]);
+    tarea_nueva->posicion_y = atoi(parser_parametros[2]);
+    tarea_nueva->tiempo = atoi(parser_parametros[3]);
+
+    free(parser_tarea);
+    free(parser_parametros);
+    return tarea_nueva;
 }
 
 
+/*
 t_parametros_tarea* recibir_parametros(char* parametros) {
 
 	char** parser_parametros = NULL;

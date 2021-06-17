@@ -31,7 +31,7 @@ typedef enum{
 //Colas
 t_queue* cola_new;
 t_queue* cola_ready;
-t_queue* cola_block;
+t_queue* cola_exit;
 t_queue* cola_suspendido;
 
 //Lista de los semaforos de los tripulantes
@@ -40,6 +40,7 @@ t_list* lista_semaforos_tripulantes;
 //Semaforos
 sem_t* sem_ready;
 sem_t* mutex_ready;
+sem_t* mutex_exit;
 sem_t* contador_tripulantes_en_new;
 sem_t* mutex_new;
 sem_t* planificacion_on;
@@ -76,9 +77,10 @@ uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tare
 //Pasar a utils O REVISAR
 t_tarea* obtener_la_tarea(char* tarea_tripulante);
 t_parametros_tarea* recibir_parametros(char* parametros);
-void realizar_tarea(t_tarea* tarea, tripulante_plani* tripulante);
-void generar_insumo(char* nombre_archivo, char caracter_llenado, uint32_t duracionTarea,tripulante_plani* tripu);
-void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, uint32_t duracionTarea,tripulante_plani* tripu);
-void descartar_basura(uint32_t duracionTarea,tripulante_plani* tripu);
+void realizar_tarea(tripulante_plani* tripulante,uint32_t* cantidadRealizado);
+void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu);
+void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu);
+void descartar_basura(tripulante_plani* tripu);
+void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado);
 
 #endif /* PLANIFICADOR_H_ */

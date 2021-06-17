@@ -45,6 +45,9 @@ void inicializar_semaforos_plani(){
 
 	contador_tripulantes_en_ready = malloc(sizeof(sem_t));
 	sem_init(contador_tripulantes_en_ready,0 ,0);
+
+	mutex_exit = malloc(sizeof(sem_t));
+	sem_init(mutex_exit, 0, 0);
 }
 
 
@@ -52,6 +55,7 @@ void finalizar_semaforos_plani() {
 	free(contador_tripulantes_en_new);
 	free(mutex_new);
 	free(mutex_ready);
+	free(mutex_exit);
 	free(planificacion_on);
 	free(planificacion_on_ready_running);
 	free(mutex_valorMultitarea);
@@ -74,15 +78,10 @@ void elegir_algoritmo() {
 	algoritmo_planificacion algoritmo_elegido;
 	algoritmo_elegido = mapeo_algoritmo_planificacion(ALGORITMO);
 
-	t_tcb* tripulante_planificado;
-
 	switch(algoritmo_elegido){
 
 		case FIFO:
 			printf("Eligio el algoritmo FIFO.\n");
-			sem_wait(sem_ready);
-			tripulante_planificado = list_remove(cola_ready, 0);
-			sem_post(sem_ready);
 			break;
 
 		case RR:
@@ -102,7 +101,7 @@ void iniciar_planificacion() {
 	//cola_ready = list_create();
 	cola_ready = queue_create();
 
-	cola_block = queue_create();
+	cola_exit = queue_create();
 
 	multitarea_Disponible = GRADO_MULTITAREA;
 
@@ -132,6 +131,8 @@ void new_ready() {
 		queue_push(cola_ready, tripulante_a_ready);
 		sem_post(mutex_ready);
 
+		//Actualizar el estado del tripulante (R) EN Mi-Ram
+
 		sem_post(planificacion_on);
 		sem_post(contador_tripulantes_en_ready);
 
@@ -156,7 +157,7 @@ void ready_running() {
 			multitarea_Disponible--;
 			sem_post(mutex_valorMultitarea);
 
-			//Actualizar el estado (a R) en Mi-Ram
+			//Actualizar el estado (a E) en Mi-Ram
 
 			sem_post(tripulante_a_running->sem_tripu);
 		}
@@ -171,11 +172,30 @@ void running_ready(tripulante_plani* tripulante){
 	sem_wait(mutex_ready);
 	queue_push(cola_ready, tripulante);
 	sem_post(mutex_ready);
+	//Actualizar el estado del tripulante (R) EN Mi-Ram
 }
 
 void running_block(tripulante_plani* tripulante){
+	//Actualizar el estado del tripulante (B) EN Mi-Ram
+	sem_wait(mutex_valorMultitarea);
+	multitarea_Disponible++;
+	sem_post(mutex_valorMultitarea);
+}
 
+void block_ready(tripulante_plani* tripu){
+	sem_wait(mutex_ready);
+	queue_push(cola_ready, tripu);
+	sem_post(mutex_ready);
 
+	//Actualizar el estado del tripulante (R) EN Mi-Ram
+}
+
+void block_exit(tripulante_plani* tripu){
+	sem_wait(mutex_exit);
+	queue_push(cola_exit, tripu);
+	sem_post(mutex_exit);
+
+	//Actualizar el estado del tripulante (E) EN Mi-Ram
 }
 
 void tripulante_hilo(void* tripulante){
@@ -183,49 +203,53 @@ void tripulante_hilo(void* tripulante){
 
 	sem_wait(tripu->sem_tripu);
 
-	t_tarea* tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
 
 	posiciones* posicion_tripu;
 	posicion_tripu = malloc(sizeof(posiciones));
 	posicion_tripu = obtener_posiciones(tripu->id_tripulante);
 
-	while(tarea_a_realizar != NULL){
+	while(tripu->tarea_a_realizar != NULL){
 		sem_wait(tripu->sem_tripu);
 		//sem_wait(mutex_valorMultitarea);
 		posiciones* posicion_tarea;
 		posicion_tarea = malloc(sizeof(posiciones));
-		posicion_tarea->posicion_x = tarea_a_realizar->posicion_x;
-		posicion_tarea->posicion_y = tarea_a_realizar->posicion_y;
+		posicion_tarea->posicion_x = tripu->tarea_a_realizar->posicion_x;
+		posicion_tarea->posicion_y = tripu->tarea_a_realizar->posicion_y;
 
 		uint32_t distancia = obtener_distancia(posicion_tripu,posicion_tarea);
 		uint32_t cantidadRealizado = 0;
 
 		while(distancia != 0){
 
+			if(cantidadRealizado==QUANTUM){
+				running_ready(tripu);
+				sem_wait(mutex_valorMultitarea);
+				multitarea_Disponible++;
+				sem_post(mutex_valorMultitarea);
+				cantidadRealizado=0;
+				sem_wait(tripu->sem_tripu);
+			}
+
 			sem_wait(tripu->sem_tripu);
 			sleep(RETARDO_CICLO_CPU);
 			//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
 			cantidadRealizado ++;
 			distancia--;
-			if(cantidadRealizado==QUANTUM){
-				running_ready(tripu);
-				sem_wait(mutex_valorMultitarea);
-				multitarea_Disponible--;
-				cantidadRealizado=0;
-				sem_post(mutex_valorMultitarea);
-				sem_wait(tripu->sem_tripu);
-			}
+
 			sem_post(tripu->sem_tripu);
 		}
-		realizar_tarea(tarea_a_realizar, tripu,&cantidadRealizado);
-		tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
-
-		//volvemos a la cola de ready
-
-		// Le aviso a Mi-Ram que cambio de estado a ready e incremento cantidad tripu a ready
-		//sem_post();  El hilo que te saca de running
+		if(cantidadRealizado==QUANTUM){
+			running_ready(tripu);
+			sem_wait(mutex_valorMultitarea);
+			multitarea_Disponible++;
+			sem_post(mutex_valorMultitarea);
+			cantidadRealizado=0;
+			sem_wait(tripu->sem_tripu);
+		}
+		realizar_tarea(tripu,&cantidadRealizado);
 	}
-	//sem_post(running_exit);
+
 }
 
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
@@ -298,49 +322,55 @@ t_tarea* obtener_la_tarea(char* tarea_tripulante) {
     return tarea_nueva;
 }
 
-void realizar_tarea(t_tarea* tarea, tripulante_plani* tripulante, uint32_t* cantidadRealizado){
+void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
 
-	switch(tarea->operacion) {
+	switch(tripu->tarea_a_realizar->operacion) {
 
 		case GENERAR_OXIGENO:
-			generar_insumo("Oxigeno.ims", 'O', tarea->tiempo,tripulante,cantidadRealizado);
+			generar_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
 		case CONSUMIR_OXIGENO:
-			consumir_insumo("Oxigeno.ims", 'O', tarea->tiempo,tripulante,cantidadRealizado);
+			consumir_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
 		case GENERAR_COMIDA:
-			generar_insumo("Comida.ims", 'C', tarea->tiempo,tripulante,cantidadRealizado);
+			generar_insumo("Comida.ims", 'C', tripu);
 			break;
 
 		case CONSUMIR_COMIDA:
-			consumir_insumo("Comida.ims",'C', tarea->tiempo,tripulante,cantidadRealizado);
+			consumir_insumo("Comida.ims",'C', tripu);
 			break;
 
 		case GENERAR_BASURA:
-			generar_insumo("Basura.ims", 'B', tarea->tiempo,tripulante,cantidadRealizado);
+			generar_insumo("Basura.ims", 'B', tripu);
 			break;
 
 		case DESCARTAR_BASURA:
-			descartar_basura(tarea->tiempo,tripulante,cantidadRealizado);
+			descartar_basura(tripu);
 			break;
 
 		default:
+			otras_tareas(tripu,cantidadRealizado);
 			break;
 		}
+	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+	if(tripu->tarea_a_realizar!=NULL){
+		block_ready(tripu);
+	}else{
+		block_exit(tripu);
+		sem_wait(tripu->sem_tripu);
+	}
 	//Es importante que sem_tripu quede en cero sino se autoejecuta.
 }
 
-void generar_insumo(char* nombre_archivo, char caracter_llenado, uint32_t duracionTarea,tripulante_plani* tripu,uint32_t* cantidadRealizado) {
+void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu) {
 
-	//sem_wait(tripu->sem_tripu);
-	if(cantidadRealizado>QUANTUM){
+	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 	sleep(RETARDO_CICLO_CPU);
-	//running_block(tripulante->id_tripulante);
-	sem_post(sem_a_block);
-	sem_wait(ya_pase_a_block);
+	sem_post(tripu->sem_tripu);
+	running_block(tripu);
 
 	//if(SI ESTA EL ARCHIVO) {
 	//	modificar_archivo(nombre_archivo, parametros->cantidad);
@@ -349,27 +379,27 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, uint32_t duraci
 	//	crear_archivo(nombre_archivo, caracter_llenado);
 	//}
 
-	uint32_t tiempo_restante = duracionTarea;
-	uint32_t tiempo_transcurrido = 0;
+	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
+	//uint32_t tiempo_transcurrido = 0;
 
 	while(tiempo_restante != 0){
 		sem_wait(tripu->sem_tripu);
 		sleep(RETARDO_CICLO_CPU);
-		tiempo_transcurrido++;
+		//tiempo_transcurrido++;
 		tiempo_restante--;
 		sem_post(tripu->sem_tripu);
 	}
-	}
+
 }
 
-void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, uint32_t duracionTarea,tripulante_plani* tripu) {
+void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu) {
 
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 	sleep(RETARDO_CICLO_CPU);
-	//running_block(tripulante->id_tripulante);
-	sem_post(sem_a_block);
-	sem_wait(ya_pase_a_block);
+	running_block(tripu);
+	sem_post(tripu->sem_tripu);
+	running_block(tripu);
 
 	//if(SI ESTA EL ARCHIVO) {
 		//modificar_archivo(nombre_archivo, parametros->cantidad);
@@ -378,26 +408,26 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, uint32_t du
 	//	crear_archivo(nombre_archivo, caracter_a_consumir);
 	//}
 
-	uint32_t tiempo_restante = duracionTarea;
-	uint32_t tiempo_transcurrido = 0;
+	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
+	//uint32_t tiempo_transcurrido = 0;
 
 	while(tiempo_restante != 0){
 		sem_wait(tripu->sem_tripu);
 		sleep(RETARDO_CICLO_CPU);
-		tiempo_transcurrido++;
+		//tiempo_transcurrido++;
 		tiempo_restante--;
 		sem_post(tripu->sem_tripu);
 	}
 }
 
-void descartar_basura(uint32_t duracionTarea,tripulante_plani* tripu) {
+void descartar_basura(tripulante_plani* tripu) {
 
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 	sleep(RETARDO_CICLO_CPU);
-	//running_block(tripulante->id_tripulante);
-	sem_post(sem_a_block);
-	sem_wait(ya_pase_a_block);
+	running_block(tripu);
+	sem_post(tripu->sem_tripu);
+	running_block(tripu);
 
 	//if(SI ESTA EL ARCHIVO) {
 	//	eliminar_archivo("Basura.ims");
@@ -406,13 +436,32 @@ void descartar_basura(uint32_t duracionTarea,tripulante_plani* tripu) {
 	//	log_info(logger, "El archivo 'Basura.ims' no existe. \n");
 	//}
 
-	uint32_t tiempo_restante = duracionTarea;
-	uint32_t tiempo_transcurrido = 0;
+	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
+	//uint32_t tiempo_transcurrido = 0;
 
 	while(tiempo_restante != 0){
 		sem_wait(tripu->sem_tripu);
 		sleep(RETARDO_CICLO_CPU);
-		tiempo_transcurrido++;
+		//tiempo_transcurrido++;
+		tiempo_restante--;
+		sem_post(tripu->sem_tripu);
+	}
+}
+
+void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado){
+	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
+
+	while(tiempo_restante != 0){
+		sem_wait(tripu->sem_tripu);
+		if(*cantidadRealizado==QUANTUM){
+			running_ready(tripu);
+			sem_wait(mutex_valorMultitarea);
+			multitarea_Disponible++;
+			sem_post(mutex_valorMultitarea);
+			*cantidadRealizado=0;
+			sem_wait(tripu->sem_tripu);
+		}
+		sleep(RETARDO_CICLO_CPU);
 		tiempo_restante--;
 		sem_post(tripu->sem_tripu);
 	}

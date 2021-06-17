@@ -12,8 +12,8 @@
 #include <string.h>
 
 #include "utils/estructuras.h"
-#include "planificador.h"
-#include "planificador.c"
+
+
 
 
 

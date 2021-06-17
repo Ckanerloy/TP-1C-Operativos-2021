@@ -160,10 +160,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 						tareas_de_la_patota[i] = obtener_la_tarea(parser_tarea[i]);
 
 						printf("Operacion: %u \n", tareas_de_la_patota[i]->operacion);
-						printf(" - Cantidad: %u \n", tareas_de_la_patota[i]->parametros->cantidad);
-						printf(" - Posicion X: %u \n", tareas_de_la_patota[i]->parametros->posicion_x);
-						printf(" - Posicion Y:%u \n", tareas_de_la_patota[i]->parametros->posicion_y);
-						printf(" - Tiempo: %u \n\n", tareas_de_la_patota[i]->parametros->tiempo);
+						printf(" - Cantidad: %u \n", tareas_de_la_patota[i]->cantidad);
+						printf(" - Posicion X: %u \n", tareas_de_la_patota[i]->posicion_x);
+						printf(" - Posicion Y:%u \n", tareas_de_la_patota[i]->posicion_y);
+						printf(" - Tiempo: %u \n\n", tareas_de_la_patota[i]->tiempo);
 					}
 
 					// GUARDO EL PCB Y LAS TAREAS EN LA TABLA DE SEGMENTOS/PAGINACION DE LA PATOTA
