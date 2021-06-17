@@ -19,7 +19,6 @@
 
 char** obtener_tareas(char* tareas_patota);
 t_tarea* obtener_la_tarea(char* tarea_tripulante);
-t_parametros_tarea* recibir_parametros(char* parametros);
 //void realizar_tarea_de_io(codigo_tarea tarea, char* PARAMETROS);
 
 #endif /* TAREAS_H_ */

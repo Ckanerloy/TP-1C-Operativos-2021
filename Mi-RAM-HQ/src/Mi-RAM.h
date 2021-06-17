@@ -33,6 +33,9 @@ char* PATH_SWAP;
 char* ALGORITMO_REEMPLAZO;
 char* CRITERIO_SELECCION;
 
+criterio_seleccion criterio_elegido;
+algoritmo_reemplazo algoritmo_elegido;
+
 
 void* MEMORIA_PRINCIPAL;
 void* AREA_SWAP;

@@ -1,9 +1,8 @@
 #ifndef UTILS_ESTRUCTURAS_H_
 #define UTILS_ESTRUCTURAS_H_
-#include <semaphore.h>
-#include <pthread.h>
 
 #include <semaphore.h>
+#include <pthread.h>
 
 typedef enum
 {
@@ -16,8 +15,8 @@ typedef enum
 	RECIBIR_PATOTA,
 	TERMINAR_PROGRAMA,
 	INICIAR_TRIPULANTE,
-	RECIBIR_UBICACION_TRIPULANTE,
-	ENVIAR_PROXIMA_TAREA,
+	ACTUALIZAR_UBICACION_TRIPULANTE,
+	PEDIDO_PROXIMA_TAREA,
 
 	RESPUESTA_INICIAR_PATOTA
 } codigo_operacion;
@@ -48,6 +47,19 @@ typedef enum
 	PAGINACION,
 	SEGMENTACION
 } codigo_memoria;
+
+typedef enum
+{
+	LRU,
+	CLOCK
+} algoritmo_reemplazo;
+
+
+typedef enum
+{
+	BEST_FIT,
+	FIRST_FIT
+} criterio_seleccion;
 
 
 // Estructura para la Respuesta
@@ -121,23 +133,18 @@ typedef struct {
 	uint32_t id_proxima_instruccion;	// Linea del archivo de texto
 	uint32_t puntero_PCB;				// Dirección de memoria del PCB de la patota
 } t_tcb;
-// Tamaño del TCB = 17 bytes
+// Tamaño del TCB = 24 bytes
 
 
 
 
 // Estructuras de Tareas
-typedef struct{
+typedef struct {
+	codigo_tarea operacion;
 	int32_t cantidad;
 	uint32_t posicion_x;
 	uint32_t posicion_y;
 	int32_t tiempo;
-} t_parametros_tarea;
-
-
-typedef struct {
-	codigo_tarea operacion;
-	t_parametros_tarea* parametros;
 } t_tarea;
 
 

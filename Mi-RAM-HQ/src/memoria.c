@@ -42,6 +42,55 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 	}
 }
 
+
+algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo)
+{
+	algoritmo_reemplazo algoritmo_reemplazo;
+
+	if(strcmp(algoritmo, "LRU") == 0) {
+		algoritmo_reemplazo = LRU;
+	}
+	if(strcmp(algoritmo, "CLOCK") == 0) {
+		algoritmo_reemplazo = CLOCK;
+	}
+
+	return algoritmo_reemplazo;
+}
+
+
+criterio_seleccion elegir_criterio_seleccion(char* criterio)
+{
+	criterio_seleccion criterio_seleccionado;
+
+	if(strcmp(criterio, "BEST_FIT") == 0) {
+		criterio_seleccionado = BEST_FIT;
+	}
+	if(strcmp(criterio, "FIRST_FIT") == 0) {
+		criterio_seleccionado = FIRST_FIT;
+	}
+
+	return criterio_seleccionado;
+}
+
+
+
+void guardar_estructura(void* estructura)
+{
+	if(esquema_elegido == 'P') {
+
+	}
+	if(esquema_elegido == 'S') {
+		//crear_segmento
+	}
+}
+
+
+
+
+
+
+
+
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 	pthread_mutex_lock(&mutexTablasDeSegmentos);
 	t_tabla_segmentos_patota* tabla = malloc(sizeof(t_tabla_segmentos_patota));
@@ -55,15 +104,4 @@ t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 	return tabla;
 
 }
-
-void guardar_estructura(void* estructura)
-{
-	if(esquema_elegido == 'P') {
-
-	}
-	if(esquema_elegido == 'S') {
-		//crear_segmento
-	}
-}
-
 

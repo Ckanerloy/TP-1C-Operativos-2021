@@ -41,9 +41,9 @@ int main(void)
 		abort();
 	}
 
-	// Elige el ESQUEMA DE MEMORIA elegido en el Config
 	elegir_esquema_de_memoria(ESQUEMA_MEMORIA);
-
+	criterio_elegido = elegir_criterio_seleccion(CRITERIO_SELECCION);
+	algoritmo_elegido = elegir_algoritmo_reemplazo(ALGORITMO_REEMPLAZO);
 
 	//esto va a depender de si la configuracion es segmentacion o paginacion
 
@@ -144,7 +144,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				char* ids_enviar = string_new();
 
-				t_pcb* nueva_patota = crear_pcb();
 
 				// Tareas de UNA Patota
 				string_trim(&patota_recibida->tareas_de_patota);
@@ -159,78 +158,121 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				}
 
 
-				for(uint32_t c=0; c<cant_tareas; c++) {
-					t_tarea* tarea_ejemplo = malloc(sizeof(t_tarea));
-					tarea_ejemplo = queue_pop(tareas_de_la_patota);
+				tamanio_patota = sizeof(t_pcb) + (sizeof(t_tarea)* queue_size(tareas_de_la_patota)) + (sizeof(t_tcb) * patota_recibida->cantidad_tripulantes);
 
-					printf("Operacion: %u \n", tarea_ejemplo->operacion);
-					printf(" - Cantidad: %u \n", tarea_ejemplo->parametros->cantidad);
-					printf(" - Posicion X: %u \n", tarea_ejemplo->parametros->posicion_x);
-					printf(" - Posicion Y:%u \n", tarea_ejemplo->parametros->posicion_y);
-					printf(" - Tiempo: %u \n\n", tarea_ejemplo->parametros->tiempo);
-
-					free(tarea_ejemplo);
-				}
-
-				tamanio_patota = sizeof(nueva_patota) + queue_size(tareas_de_la_patota);
+				/*
+				 * ESTOS BYTES SON LOS QUE SE GUARDAN EN MEMORIA_PRINCIPAL, es decir, LOS QUE SE RESTAN EN MEMORIA RESTANTE UNA VEZ QUE
+				 * GUARDO EN LAS TABLAS DE SEGMENTO
+				 */
 
 
-				//calcular direccion logica de la misma
-				for(int i=0;i<patota_recibida->cantidad_tripulantes;i++)
-				{
-					t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
-
-					tamanio_patota += sizeof(nuevo_tripulante);
-
-					string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
-					contador_id_tripu++;
-					free(nuevo_tripulante);
-				}
-				strcat(ids_enviar,"\0");
-
-				printf("Tamanio patota %d \n", tamanio_patota);
-				printf("Tamanio memoria Principal %d \n\n", TAMANIO_MEMORIA);
-
-				respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
-
+				printf("pcb %d\n", sizeof(t_pcb));
+				printf("tcb %d\n", sizeof(t_tcb));
+				printf("tarea %d\n", sizeof(t_tarea));
 
 				// Verifica si hay espacio para guardar en memoria
 				if(validar_espacio_por_patota(tamanio_patota) == 0) {
+					respuesta_iniciar_patota->numero_de_patota = 0;
 					respuesta_iniciar_patota->respuesta = 0;
 					respuesta_iniciar_patota->tamanio_ids = 0;
 					respuesta_iniciar_patota->ids_tripu = "";
 
-					MEMORIA_RESTANTE += tamanio_patota;
+					//MEMORIA_RESTANTE += tamanio_patota;
 				}
-				else{ // Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
+				else { // Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
+
+					t_pcb* nueva_patota = crear_pcb();
+
+
 					t_tabla_segmentos_patota* tabla = crear_tabla_segmentos(nueva_patota);
 					//int resultado_guardado = guardar_patota();
+
+					/*
+					 * Aca voy a guardar una patota en un segmento
+					 * EN ESTE CASO: EL TAMANIO DEL SEGMENTO = sizeof(t_pcb);
+					 */
+					//administrar_guardar_patota(nueva_patota);
+
+
+					/*
+					 * Aca voy a guardar las tareas en otro segmento
+					 * EN ESTE CASO: EL TAMANIO DEL SEGMENTO = sizeof(t_tarea)* queue_size(tareas_de_la_patota);
+					 */
+					//administrar_guardar_tareas(tareas_de_la_patota);
+
+
+					// Solamente esta para PROBAR que llegan las tareas
+					for(uint32_t c=0; c<cant_tareas; c++) {
+						t_tarea* tarea_ejemplo = malloc(sizeof(t_tarea));
+						tarea_ejemplo = queue_pop(tareas_de_la_patota);
+
+						printf("Operacion: %u \n", tarea_ejemplo->operacion);
+						printf(" - Cantidad: %u \n", tarea_ejemplo->cantidad);
+						printf(" - Posicion X: %u \n", tarea_ejemplo->posicion_x);
+						printf(" - Posicion Y:%u \n", tarea_ejemplo->posicion_y);
+						printf(" - Tiempo: %u \n\n", tarea_ejemplo->tiempo);
+
+						free(tarea_ejemplo);
+					}
+					// DESPUES SE ELIMINA
+
+
+
+
+					for(int i=0;i<patota_recibida->cantidad_tripulantes;i++)
+					{
+						t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
+
+
+						/*
+						 *  Aca voy a guardar cada tripulante en un segmento
+						 *  EN ESTE CASO: EL TAMANIO DEL SEGMENTO = sizeof(t_tcb);
+						 */
+						//administrar_guardar_tripulante(nuevo_tripulante);
+
+
+
+						string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
+						contador_id_tripu++;
+						free(nuevo_tripulante);
+					}
+					strcat(ids_enviar,"\0");
+
+
+
+
+					respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
 					respuesta_iniciar_patota->respuesta = 1;
 					respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
 					respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
 					strcpy(respuesta_iniciar_patota->ids_tripu,ids_enviar);
 
 					contador_id_patota++;
+					free(nueva_patota);
+					free(respuesta_iniciar_patota->ids_tripu);
 				}
+
+				printf("Tamanio patota %d \n", tamanio_patota);
+				printf("Tamanio memoria Principal %d \n\n", TAMANIO_MEMORIA);
+
+
 				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
+
 				free(ids_enviar);
-				free(nueva_patota);
 				free(parser_tarea);
 				free(tareas_de_la_patota);
-				free(respuesta_iniciar_patota->ids_tripu);
+
 				free(respuesta_iniciar_patota);
 				free(patota_recibida->tareas_de_patota);
 				free(patota_recibida->posiciones);
 				free(patota_recibida);
 				break;
 
-				//guardar_patota();
-
-			case RECIBIR_UBICACION_TRIPULANTE:
+			case ACTUALIZAR_UBICACION_TRIPULANTE:
 
 				break;
 
-			case ENVIAR_PROXIMA_TAREA:
+			case PEDIDO_PROXIMA_TAREA:
 				break;
 
 			case EXPULSAR_TRIPULANTE:
@@ -261,14 +303,14 @@ t_pcb* crear_pcb(){
 	return proceso_patota;
 }
 
-t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x,uint32_t posicion_y,uint32_t dir_logica_prox_instruc){
+t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x,uint32_t posicion_y,uint32_t id_proxima_tarea){
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
 	tripulante->id_tripulante = contador_id_tripu;
 	tripulante->estado_tripulante = 'N';
 	tripulante->posicion_x = posicion_x;
 	tripulante->posicion_y = posicion_y;
-	tripulante->id_proxima_instruccion = dir_logica_prox_instruc;
+	tripulante->id_proxima_instruccion = id_proxima_tarea;
 	tripulante->puntero_PCB = dir_logica_pcb;
 
 	return tripulante;
