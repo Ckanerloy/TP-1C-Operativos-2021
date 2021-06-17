@@ -31,12 +31,14 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			tabla_paginas = list_create();
 
 			break;
+
 		case SEGMENTACION:
 
 			esquema_elegido = 'S';
 			tablas_segmentos = list_create();
 
 			break;
+
 		default:
 			break;
 	}
@@ -73,8 +75,6 @@ criterio_seleccion elegir_criterio_seleccion(char* criterio)
 }
 
 
-
-
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 	pthread_mutex_lock(&mutexTablasDeSegmentos);
 	t_tabla_segmentos_patota* tabla = malloc(sizeof(t_tabla_segmentos_patota));
@@ -88,7 +88,6 @@ t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 	return tabla;
 
 }
-
 
 
 
@@ -154,16 +153,33 @@ uint32_t administrar_guardar_tripulante(t_tcb* nuevo_tripulante)
 }
 
 
-void crear_segmento(void* estructura, tipo_segmento tipo_de_segmento)
+
+void crear_estructura_a_guardar(void* estructura, tipo_estructura tipo_estructura)
+{
+	if(esquema_elegido == 'S') {
+		crear_segmento(estructura, tipo_estructura);
+	}
+	else if(esquema_elegido  == 'P') {
+		//crear_pagina(estructura, tipo_estructura);
+	}
+	else {
+		log_error(logger, "No se puede guardar la estructura en Memoria");
+	}
+}
+
+
+
+
+void crear_segmento(void* estructura, tipo_estructura tipo_estructura)
 {
 	t_segmento* segmento = malloc(sizeof(t_segmento));
 
 	segmento->numero_de_segmento = contador_segmento;
-	segmento->tipo_de_segmento = tipo_de_segmento;
+	segmento->tipo_estructura = tipo_estructura;
 
 	segmento->inicio = inicio;
 
-	switch(tipo_de_segmento){
+	switch(tipo_estructura){
 		case PATOTA:
 			segmento->tamanio_segmento = administrar_guardar_patota(estructura);
 			break;

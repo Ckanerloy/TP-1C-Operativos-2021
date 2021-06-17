@@ -356,27 +356,25 @@ void obtener_orden_input()
 
 		case TERMINAR_PROGRAMA:
 
-			while(queue_size(cola_ready)>0){
-				tripulante_plani* tripulante_a_ready = queue_pop(cola_new);
-				printf("id tripulante: %u",tripulante_a_ready->id_tripulante);
+			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+				if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+					break;
 			}
-			sem_getvalue(contador_tripulantes_en_new,&valor_semaforo);
 
-		//	printf("%d",valor_semaforo);
-	//		printf("%d",queue_size(cola_new));
+			enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
 
-			/*printf("Terminando programa... \n");
+			cerrar_conexion(logger, conexion_mi_ram);
+
+			printf("Terminando programa... \n");
 			sleep(1);
 			printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
 			// Libero memoria
 			free(parser_consola);
 			free(cadena_ingresada);
-			finalizar_semaforos();
+			//finalizar_semaforos();
 			terminar_programa(config, logger);
-			break;
 			exit(0);
-*/
-			break;
+
 		default:
 			printf("No se reconoce ese comando. Por favor, ingrese un comando válido.\n");
 			break;

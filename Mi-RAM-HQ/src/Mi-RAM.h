@@ -33,35 +33,36 @@ char* PATH_SWAP;
 char* ALGORITMO_REEMPLAZO;
 char* CRITERIO_SELECCION;
 
+void* memoria_principal;
+void* area_swap;
+
+char esquema_elegido;
 criterio_seleccion criterio_elegido;
 algoritmo_reemplazo algoritmo_elegido;
 
+// Contadores
+uint32_t contador_segmento;
+uint32_t contador_id_tripu;
+uint32_t contador_id_patota;
 
-void* memoria_principal;
-void* AREA_SWAP;
-
+int32_t inicio;
 int32_t memoria_restante;
 
 sem_t* espera;
 
 pthread_t hilo_recibir_mensajes;
-
 pthread_mutex_t mutexTablasDeSegmentos;
+
+t_list* ids;
+char** parser_posiciones;
+
+uint32_t cantidad_tareas(char** parser_tarea);
 
 void iniciar_comunicacion(void);
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
 int32_t validar_espacio_por_patota(uint32_t tamanio);
-
-
-t_list* ids;
-
-uint32_t cantidad_tareas(char** parser_tarea);
-char** parser_posiciones;
-
-uint32_t contador_id_tripu;
-uint32_t contador_id_patota;
 
 t_pcb* crear_pcb(void);
 t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x,uint32_t posicion_y,uint32_t dir_logica_prox_instruc);

@@ -172,6 +172,9 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 			deserializar_respuesta_patota(mensaje, conexion);
 			break;
 
+		case CERRAR_MODULO:
+			break;
+
 		default:
 			printf("404 operacion NOT FOUND.\n");
 			break;

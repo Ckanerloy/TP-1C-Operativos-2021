@@ -15,12 +15,11 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			break;
 
 		case INICIAR_TRIPULANTE:
-				tamanio_preparado = serializar_paquete_tripulante(paquete, mensaje);
-				break;
+			tamanio_preparado = serializar_paquete_tripulante(paquete, mensaje);
+			break;
 
 		case OBTENER_BITACORA:
 			tamanio_preparado = serializar_paquete_id_tripulante(paquete, mensaje);
-			// Este lo enviaria al Mongo Store mepa
 			break;
 
 		case EXPULSAR_TRIPULANTE:
@@ -29,6 +28,12 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 
 		case RESPUESTA_INICIAR_PATOTA:
 			tamanio_preparado = serializar_respuesta_iniciar_patota(paquete, mensaje);
+			break;
+
+		case CERRAR_MODULO:
+			paquete->buffer->size = 0;
+			paquete->buffer->stream = NULL;
+			tamanio_preparado = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
 			break;
 
 		default:

@@ -17,6 +17,7 @@ typedef enum
 	INICIAR_TRIPULANTE,
 	ACTUALIZAR_UBICACION_TRIPULANTE,
 	PEDIDO_PROXIMA_TAREA,
+	CERRAR_MODULO,
 
 	RESPUESTA_INICIAR_PATOTA
 } codigo_operacion;
@@ -60,7 +61,7 @@ typedef enum
 	PATOTA,
 	TAREAS,
 	TRIPULANTE
-} tipo_segmento;
+} tipo_estructura;
 
 typedef enum
 {

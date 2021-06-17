@@ -3,12 +3,13 @@
 int main(void)
 {
 	memoria_principal = NULL;
-	AREA_SWAP = NULL;
+	area_swap = NULL;
 	config = crear_config(CONFIG_PATH);
 	contador_id_tripu=1;
 	contador_id_patota=1;
-	ids=list_create();     //CREA LA LISTA DE IDS
+	ids = list_create();
 	inicio = 0;
+	contador_segmento = 0;
 
 	obtener_datos_de_config(config);
 	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
@@ -32,8 +33,8 @@ int main(void)
 		abort();
 	}
 
-	AREA_SWAP = malloc(TAMANIO_SWAP);
-	if(AREA_SWAP != NULL){
+	area_swap = malloc(TAMANIO_SWAP);
+	if(area_swap != NULL){
 		printf("Area de Swap iniciada...\n");
 	}
 	else{
@@ -46,45 +47,10 @@ int main(void)
 	criterio_elegido = elegir_criterio_seleccion(CRITERIO_SELECCION);
 	algoritmo_elegido = elegir_algoritmo_reemplazo(ALGORITMO_REEMPLAZO);
 
-	//esto va a depender de si la configuracion es segmentacion o paginacion
-
-	//t_segmentos_patota* segmento_patota = malloc(sizeof(t_segmentos_patota));
-	//inicializar_tabla_segmentos_de_patota(segmento_patota);
 	pthread_mutex_init(&mutexTablasDeSegmentos,NULL);
 
 	iniciar_comunicacion();
 
-
-	//espera = malloc(sizeof(sem_t));
-	//sem_init(espera, 0, 1);
-	/*sem_recibir = malloc(sizeof(sem_t));
-	sem_init(sem_recibir, 0, 1);
-
-	sem_enviar = malloc(sizeof(sem_t));
-	sem_init(sem_enviar, 0, 0);*/
-
-	/*int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
-	log_info(logger, "Servidor activo, esperando instrucciones ... \n");
-	while(1) {
-
-		//sem_wait(sem_recibir);
-		int32_t* conexion_cliente = esperar_conexion(conexion_servidor);
-
-		pthread_create(&hilo_recibir_mensajes, NULL,(void*)escuchar_conexion, conexion_cliente);
-
-		pthread_detach(hilo_recibir_mensajes);
-
-		sem_wait(sem_enviar);
-
-	}*/
-
-
-	free(memoria_principal);
-	printf("Memoria Principal liberada...\n");
-	free(AREA_SWAP);
-	printf("Area de Swap liberada...\n");
-
-	terminar_programa(config, logger);
 	return EXIT_SUCCESS;
 }
 
@@ -158,17 +124,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					queue_push(tareas_de_la_patota, obtener_la_tarea(parser_tarea[i]));
 				}
 
-
 				tamanio_patota = sizeof(t_pcb) + (sizeof(t_tarea)* queue_size(tareas_de_la_patota)) + (sizeof(t_tcb) * patota_recibida->cantidad_tripulantes);
 
-				/*
-				 * ESTOS BYTES SON LOS QUE SE GUARDAN EN MEMORIA_PRINCIPAL, es decir, LOS QUE SE RESTAN EN MEMORIA RESTANTE UNA VEZ QUE
-				 * GUARDO EN LAS TABLAS DE SEGMENTO
-				 */
 
-
-				printf("pcb %d\n", sizeof(t_pcb));
-				printf("tcb %d\n", sizeof(t_tcb));
+				printf("Tamanio de un PCB: %d\n", sizeof(t_pcb));
+				printf("Tamanio de un TCB: %d\n", sizeof(t_tcb));
 				printf("tarea %d\n", sizeof(t_tarea));
 
 				// Verifica si hay espacio para guardar en memoria
@@ -184,17 +144,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 					t_pcb* nueva_patota = crear_pcb();
 
-
-					t_tabla_segmentos_patota* tabla = crear_tabla_segmentos(nueva_patota);
-
 			// Mutex
-					crear_segmento(nueva_patota, PATOTA);
-					//administrar_guardar_patota(nueva_patota);
+					crear_estructura_a_guardar(nueva_patota, PATOTA);
 			// Mutex
 
 
 			// Mutex
-					crear_segmento(tareas_de_la_patota, TAREAS);
+					crear_estructura_a_guardar(tareas_de_la_patota, TAREAS);
 			// Mutex
 
 					// Esta estructura apunta a donde arranca el segmento de todas las tareas
@@ -215,16 +171,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					}
 					// DESPUES SE ELIMINA
 
-
-
-
 					for(int i=0;i<patota_recibida->cantidad_tripulantes;i++)
 					{
 						t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
 
 
 				// Mutex
-						crear_segmento(nuevo_tripulante, TRIPULANTE);
+						crear_estructura_a_guardar(nuevo_tripulante, TRIPULANTE);
+						//crear_segmento(nuevo_tripulante, TRIPULANTE);
 				// Mutex
 
 
@@ -247,8 +201,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				}
 
-				printf("Tamanio patota %d \n", tamanio_patota);
-				printf("Tamanio memoria Principal %d \n\n", TAMANIO_MEMORIA);
+				printf("Tamanio Patota %d \n", tamanio_patota);
+				printf("Tamanio Memoria Principal %d \n\n", TAMANIO_MEMORIA);
 				printf("Memoria Restante: %d \n", memoria_restante);
 
 
@@ -273,6 +227,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				break;
 
 			case PEDIDO_PROXIMA_TAREA:
+
+				// return queue_pop(tareas_de_la_patota);
 				break;
 
 			case EXPULSAR_TRIPULANTE:
@@ -284,6 +240,19 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				free(tripulante_a_eliminar);
 				break;
+
+			case CERRAR_MODULO:
+				cerrar_conexion(logger, conexion);
+
+				printf("Terminando programa... \n");
+				sleep(1);
+				printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
+				free(memoria_principal);
+				printf("Memoria Principal liberada...\n");
+				free(area_swap);
+				printf("Area de Swap liberada...\n\n");
+				terminar_programa(config, logger);
+				exit(0);
 
 			default:
 				log_warning(logger, "Operacion desconocida. No quieras meter la pata");
