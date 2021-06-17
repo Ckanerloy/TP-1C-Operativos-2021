@@ -99,14 +99,10 @@ typedef struct {
 	uint32_t id_patota;
 } t_id_tripulante;
 
-
 typedef struct {
 	uint32_t id_tripulante;
 	//sem_t* sem_execute;
 } tripulante_plani;
-
-
-
 
 // Patota Control Block (PCB)
 typedef struct {

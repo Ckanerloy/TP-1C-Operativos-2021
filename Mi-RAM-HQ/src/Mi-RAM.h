@@ -43,13 +43,11 @@ sem_t* espera;
 
 pthread_t hilo_recibir_mensajes;
 
-
+pthread_mutex_t mutexTablasDeSegmentos;
 
 void iniciar_comunicacion(void);
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
-
-
 
 int32_t validar_espacio_por_patota(uint32_t tamanio);
 

@@ -45,9 +45,11 @@ int main(void)
 	elegir_esquema_de_memoria(ESQUEMA_MEMORIA);
 
 
+	//esto va a depender de si la configuracion es segmentacion o paginacion
+
 	//t_segmentos_patota* segmento_patota = malloc(sizeof(t_segmentos_patota));
 	//inicializar_tabla_segmentos_de_patota(segmento_patota);
-
+	pthread_mutex_init(&mutexTablasDeSegmentos,NULL);
 
 	iniciar_comunicacion();
 
@@ -186,12 +188,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				}
 				strcat(ids_enviar,"\0");
 
-
-
 				printf("Tamanio patota %d \n", tamanio_patota);
 				printf("Tamanio memoria Principal %d \n\n", TAMANIO_MEMORIA);
-
-
 
 				respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
 
@@ -203,54 +201,30 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					respuesta_iniciar_patota->ids_tripu = "";
 
 					MEMORIA_RESTANTE += tamanio_patota;
-
-					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
-
-
-					//liberar_memoria = todas las estructuras usadas por iniciar patota
-					free(nueva_patota);
-					free(parser_tarea);
-					free(ids_enviar);
-
-					free(tareas_de_la_patota);
-
-					free(respuesta_iniciar_patota->ids_tripu);
-					free(respuesta_iniciar_patota);
-
-					free(patota_recibida->tareas_de_patota);
-					free(patota_recibida->posiciones);
-					free(patota_recibida);
-					break;
 				}
+				else{ // Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
+					t_tabla_segmentos_patota* tabla = crear_tabla_segmentos(nueva_patota);
+					//int resultado_guardado = guardar_patota();
+					respuesta_iniciar_patota->respuesta = 1;
+					respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
+					respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
+					strcpy(respuesta_iniciar_patota->ids_tripu,ids_enviar);
 
-
-				// Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
-
-				//guardar_patota();
-
-				respuesta_iniciar_patota->respuesta = 1;
-				respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
-				respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
-				strcpy(respuesta_iniciar_patota->ids_tripu,ids_enviar);
-
+					contador_id_patota++;
+				}
 				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
-
-				contador_id_patota++;
-
-
 				free(ids_enviar);
-
 				free(nueva_patota);
 				free(parser_tarea);
 				free(tareas_de_la_patota);
-
 				free(respuesta_iniciar_patota->ids_tripu);
 				free(respuesta_iniciar_patota);
-
 				free(patota_recibida->tareas_de_patota);
 				free(patota_recibida->posiciones);
 				free(patota_recibida);
 				break;
+
+				//guardar_patota();
 
 			case RECIBIR_UBICACION_TRIPULANTE:
 
@@ -275,19 +249,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 			}
 }
 
-
-int32_t validar_espacio_por_patota(uint32_t tamanio)
-{
+int32_t validar_espacio_por_patota(uint32_t tamanio){
 	int32_t restante = MEMORIA_RESTANTE - tamanio;
-	if(restante > 0) {
-		return 1;
-	}
-	else {
-		return 0;
-	}
+	return (restante > 0);
 }
-
-
 
 t_pcb* crear_pcb(){
 	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));

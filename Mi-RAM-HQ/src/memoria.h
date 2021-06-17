@@ -6,7 +6,7 @@
 
 char esquema_elegido;
 
-t_list* tabla_segmentos;
+t_list* tablas_segmentos;
 t_list* tabla_paginas;
 
 
@@ -14,15 +14,6 @@ void elegir_esquema_de_memoria(char* ESQUEMA);
 
 
 // Estructuras para Mi RAM HQ
-
-// PAGINACION
-typedef struct tabla_paginas
-{
-	int32_t numero_de_marco;
-	uint32_t numero_de_pagina;
-
-} t_paginas;
-
 
 // SEGMENTACION
 typedef struct segmento
@@ -37,15 +28,16 @@ typedef struct segmento
 typedef struct	tabla_segmentos_patota
 {
 	t_pcb* patota;
-	//t_list* segmentos;
-} t_segmentos_patota;
+	t_list* segmentos;
+} t_tabla_segmentos_patota; //una por patota
 
-typedef struct
+// PAGINACION
+typedef struct tabla_paginas
 {
+	int32_t numero_de_marco;
+	uint32_t numero_de_pagina;
 
-};
-
-
+} t_paginas;
 
 typedef struct espacio
 {
@@ -55,5 +47,6 @@ typedef struct espacio
 	struct espacio* sig_espacio;
 } espacio;
 
+t_tabla_segmentos_patota* crear_tabla_segmentos(nueva_patota);
 
 #endif /* MEMORIA_H_ */

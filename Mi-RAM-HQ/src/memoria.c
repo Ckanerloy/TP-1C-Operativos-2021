@@ -34,7 +34,7 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 		case SEGMENTACION:
 
 			esquema_elegido = 'S';
-			tabla_segmentos = list_create();
+			tablas_segmentos = list_create();
 
 			break;
 		default:
@@ -42,11 +42,19 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 	}
 }
 
+t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
+	pthread_mutex_lock(&mutexTablasDeSegmentos);
+	t_tabla_segmentos_patota* tabla = malloc(sizeof(t_tabla_segmentos_patota));
+	tabla->patota = malloc(sizeof(t_pcb));
+	tabla->patota = nueva_patota;
+	tabla->segmentos = list_create();
 
+	list_add(tablas_segmentos,tabla);
+	pthread_mutex_unlock(&mutexTablasDeSegmentos);//preguntar a nico y cami
 
+	return tabla;
 
-
-
+}
 
 void guardar_estructura(void* estructura)
 {
