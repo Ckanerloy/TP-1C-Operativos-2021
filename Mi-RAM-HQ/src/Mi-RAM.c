@@ -11,6 +11,9 @@ int main(void)
 	inicio = 0;
 	contador_segmento = 0;
 
+	crear_segmento_sem = malloc(sizeof(sem_t));
+	sem_init(crear_segmento_sem, 0, 0);
+
 	obtener_datos_de_config(config);
 	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
 
@@ -154,16 +157,20 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 						t_segmento* segmento_patota = crear_segmento(nueva_patota, PATOTA);
 						list_add(tabla->segmentos,segmento_patota);
-						// sem_wait(algo)
+						sem_wait(crear_segmento_sem);
 						free(segmento_patota);
 
 
 						t_segmento* segmento_tareas = crear_segmento(tareas_de_la_patota, TAREAS);
 						list_add(tabla->segmentos,segmento_tareas);
 
+
 						tabla->patota->tareas = segmento_tareas->inicio;
 
 						// Mutex OFF
+
+						sem_wait(crear_segmento_sem);
+
 						free(segmento_tareas);
 
 						for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
@@ -174,7 +181,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 							t_segmento* segmento_tripulante = crear_segmento(nuevo_tripulante, TRIPULANTE);
 							list_add(tabla->segmentos,segmento_tripulante);
-							// Mutex OFF
+							sem_wait(crear_segmento_sem);
 							free(segmento_tripulante);
 
 							string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
@@ -185,11 +192,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 						list_add(tablas_segmentos,tabla);
 
 
+
 						// Tengo que buscar por la tabla de segmentos y encuentro cada tabla de patota
 						//   y de acuerdo a esa tabla de patota, tengo que buscar en cada segmento y traducir esos bytes para
 						// obtener los valores de cada estructura
 						printf("PID: %u \n", tabla->patota->pid);
 						printf("Direccion Tareas: %u\n\n", tabla->patota->tareas);
+
+						free(crear_segmento_sem);
 
 					}
 

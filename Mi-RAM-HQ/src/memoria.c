@@ -45,8 +45,7 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 }
 
 
-algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo)
-{
+algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo){
 	algoritmo_reemplazo algoritmo_reemplazo;
 
 	if(strcmp(algoritmo, "LRU") == 0) {
@@ -60,8 +59,7 @@ algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo)
 }
 
 
-criterio_seleccion elegir_criterio_seleccion(char* criterio)
-{
+criterio_seleccion elegir_criterio_seleccion(char* criterio){
 	criterio_seleccion criterio_seleccionado;
 
 	if(strcmp(criterio, "BEST_FIT") == 0) {
@@ -77,20 +75,16 @@ criterio_seleccion elegir_criterio_seleccion(char* criterio)
 
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 
-	//sem_wait(mutex_tablas_segmentos);
 	t_tabla_segmentos_patota* tabla = malloc(sizeof(t_tabla_segmentos_patota));
 	tabla->patota = malloc(sizeof(t_pcb));
 	tabla->patota = nueva_patota;
 	tabla->segmentos = list_create();
 
-	pthread_mutex_unlock(&mutexTablasDeSegmentos);//preguntar a nico y cami
-
 	return tabla;
 }
 
 
-uint32_t administrar_guardar_patota(t_pcb* nueva_patota)
-{
+uint32_t administrar_guardar_patota(t_pcb* nueva_patota){
 	int32_t desplazamiento = 0;
 	uint32_t tamanio_segmento;
 
@@ -177,8 +171,7 @@ t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
 	contador_segmento++;
 
 	memoria_restante -= segmento->tamanio_segmento;
-
-	//sem_post(algo)
+	sem_post(crear_segmento_sem);
 
 	return segmento;
 
@@ -193,6 +186,7 @@ void* buscar_estructura(void* estructura, tipo_estructura tipo_estructura)
 
 
 
+
 	// PARA ENVIAR LA PROXIMA TAREA A ENVIAR
 	traducir
 	tripulante->puntero_PCB = 0;
@@ -204,6 +198,7 @@ void* buscar_estructura(void* estructura, tipo_estructura tipo_estructura)
 	return queue_pop(tareas_de_la_patota) 		SI hago el pop, tambien tengo que actualizar la memoria => segmento
 }
 */
+
 
 /*
 
