@@ -11,6 +11,9 @@ int main(void)
 	inicio = 0;
 	contador_segmento = 0;
 
+	crear_segmento_sem = malloc(sizeof(sem_t));
+	sem_init(crear_segmento_sem, 0, 0);
+
 	obtener_datos_de_config(config);
 	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
 
@@ -151,14 +154,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 						t_segmento* segmento_patota = crear_segmento(nueva_patota, PATOTA);
 						list_add(tabla->segmentos,segmento_patota);
-						// sem_wait(algo)
+						sem_wait(crear_segmento_sem);
 						free(segmento_patota);
 
 
 
 						t_segmento* segmento_tareas = crear_segmento(tareas_de_la_patota, TAREAS);
 						list_add(tabla->segmentos,segmento_tareas);
-						// Mutex OFF
+						sem_wait(crear_segmento_sem);
 						free(segmento_tareas);
 
 						for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
@@ -167,7 +170,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 							t_segmento* segmento_tripulante = crear_segmento(nuevo_tripulante, TRIPULANTE);
 							list_add(tabla->segmentos,segmento_tripulante);
-							// Mutex OFF
+							sem_wait(crear_segmento_sem);
 							free(segmento_tripulante);
 
 							string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
@@ -175,6 +178,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 							free(nuevo_tripulante);
 						}
 						list_add(tablas_segmentos,tabla);
+						free(crear_segmento_sem);
 					}
 					else if(esquema_elegido  == 'P') {
 						//crear_pagina(estructura, tipo_estructura);
