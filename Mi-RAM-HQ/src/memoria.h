@@ -49,8 +49,7 @@ criterio_seleccion elegir_criterio_seleccion(char* criterio);
 algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo);
 
 
-void crear_segmento(void* estructura, tipo_estructura tipo_estructura);
-void crear_estructura_a_guardar(void* estructura, tipo_estructura tipo_estructura);
+t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura);
 
 uint32_t administrar_guardar_patota(t_pcb* nueva_patota);
 uint32_t administrar_guardar_tareas(t_queue* tareas_de_la_patota);
