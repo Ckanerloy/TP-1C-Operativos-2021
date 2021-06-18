@@ -137,6 +137,7 @@ typedef struct {
 	char estado;
 	t_tarea* tarea_a_realizar;
 	sem_t* sem_tripu;
+	sem_t* sem_planificacion;
 } tripulante_plani;
 
 // Estructuras para Mi RAM HQ

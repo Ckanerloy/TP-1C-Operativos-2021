@@ -134,7 +134,9 @@ void obtener_orden_input(){
 		//	if(valor_semaforo == 0){
 				printf("Iniciando Planificacion....... \n");
 			//}
-			//lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
+
+
+			lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
 			sem_post(planificacion_on);
 			sem_post(planificacion_on_ready_running);
 
@@ -153,7 +155,7 @@ void obtener_orden_input(){
 			lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
 			sem_wait(planificacion_on);
 			sem_wait(planificacion_on_ready_running);
-
+			//A
 			// PAUSA LA PLANIFICACION DE LOS TRIPULANTES, ES DECIR TODOS EN PAUSA? o se mete algun WAIT(signal)
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO BLOCK I/O
 			break;
@@ -161,7 +163,7 @@ void obtener_orden_input(){
 		case INICIAR_PATOTA:
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
-
+			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
 				break;
@@ -252,6 +254,11 @@ void obtener_orden_input(){
 						tripulante->id_tripulante = atoi(parser_ids[i]);
 						tripulante->numero_patota = 5;
 						tripulante->estado='N';//A
+
+						sem_t* sem_plani=malloc(sizeof(sem_t));
+						sem_init(sem_plani,0,0);
+
+						tripulante->sem_planificacion= sem_plani;
 
 						sem_t* semaforo_exec= malloc(sizeof(sem_t));
 						sem_init(semaforo_exec, 0, 0);
@@ -449,12 +456,32 @@ void arreglar_sabotaje() {
 
 
 void poner_en_cero_semaforos(sem_t* semaforo){
-	sem_wait(semaforo);
+	int valor;
+	sem_getvalue(semaforo,&valor);
+	printf("aca");
+	if(valor==1){
+		sem_wait(semaforo);
+	}else{
+		pthread_create(&hilo_solucion,NULL,(void*)esperadorDeUno,semaforo);
+		pthread_detach(hilo_solucion);
+	}
+
+
 }
 
 void poner_en_uno_semaforos(sem_t* semaforo){
 	sem_post(semaforo);
 }
 
+
+
+void esperadorDeUno(sem_t* semaforo){
+	int valor;
+	sem_getvalue(semaforo,&valor);
+	printf("hola");
+	//while(valor!=1);
+	//sem_wait(semaforo);
+
+}
 
 
