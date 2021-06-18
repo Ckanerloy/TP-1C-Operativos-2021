@@ -184,9 +184,26 @@ t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
 
 }
 
+/*
+void* buscar_estructura(void* estructura, tipo_estructura tipo_estructura)
+{
+
+	segmento->tipo_de_estructura = tipo_estructura;
+	buscar en la tabla de segmentos: segmento->id_tripulante
 
 
 
+	// PARA ENVIAR LA PROXIMA TAREA A ENVIAR
+	traducir
+	tripulante->puntero_PCB = 0;
+	buscar la direccion 0 (buscar por el que coincida con segmento->inicio)
+	traducir
+	patota->tareas = DIRECCION
+	buscar la direccion DIRECCION (buscar por el que coincida con segmento->inicio)
+	traducir
+	return queue_pop(tareas_de_la_patota) 		SI hago el pop, tambien tengo que actualizar la memoria => segmento
+}
+*/
 
 /*
 

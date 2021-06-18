@@ -104,6 +104,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
+				t_tabla_segmentos_patota* tabla;
+
+
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
 				printf("Contenido de tareas: %s \n", patota_recibida->tareas_de_patota);
 				printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
@@ -146,7 +149,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 					if(esquema_elegido == 'S') {
 
-						t_tabla_segmentos_patota* tabla = crear_tabla_segmentos(nueva_patota);
+						tabla = crear_tabla_segmentos(nueva_patota);
 
 
 						t_segmento* segmento_patota = crear_segmento(nueva_patota, PATOTA);
@@ -155,13 +158,17 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 						free(segmento_patota);
 
 
-
 						t_segmento* segmento_tareas = crear_segmento(tareas_de_la_patota, TAREAS);
 						list_add(tabla->segmentos,segmento_tareas);
+
+						tabla->patota->tareas = segmento_tareas->inicio;
+
 						// Mutex OFF
 						free(segmento_tareas);
 
 						for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
+
+							///uint32_t direccion_pcb = segmento_patota->inicio;
 							t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
 
 
@@ -174,11 +181,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 							contador_id_tripu++;
 							free(nuevo_tripulante);
 						}
+
 						list_add(tablas_segmentos,tabla);
+
+
+						// Tengo que buscar por la tabla de segmentos y encuentro cada tabla de patota
+						//   y de acuerdo a esa tabla de patota, tengo que buscar en cada segmento y traducir esos bytes para
+						// obtener los valores de cada estructura
+						printf("PID: %u \n", tabla->patota->pid);
+						printf("Direccion Tareas: %u\n\n", tabla->patota->tareas);
+
 					}
+
 					else if(esquema_elegido  == 'P') {
 						//crear_pagina(estructura, tipo_estructura);
 					}
+
 					else {
 						log_error(logger, "No se puede guardar la estructura en Memoria");
 					}
@@ -195,6 +213,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					free(nueva_patota);
 
 				}
+
+
 
 				printf("Tamanio Patota %d \n", tamanio_patota);
 				printf("Tamanio Memoria Principal %d \n", TAMANIO_MEMORIA);
@@ -222,6 +242,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 			case PEDIDO_PROXIMA_TAREA:
 
+				if(esquema_elegido == 'S') {
+
+				}
+				else if(esquema_elegido == 'P') {
+
+				}
 				// return queue_pop(tareas_de_la_patota);
 				break;
 
@@ -230,6 +256,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				recibir_mensaje(tripulante_a_eliminar, operacion, conexion);
 
 				printf("Tripulante a Expulsar: %u \n", tripulante_a_eliminar->id_tripulante);
+
+				if(esquema_elegido == 'S') {
+
+				}
+				else if(esquema_elegido == 'P') {
+
+				}
 				// Eliminar el tripulante o hilo dentro de la memoria y del mapa
 
 				free(tripulante_a_eliminar);
