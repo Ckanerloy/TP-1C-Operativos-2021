@@ -32,12 +32,13 @@ typedef enum{
 t_queue* cola_new;
 t_queue* cola_ready;
 t_queue* cola_exit;
-t_queue* cola_suspendido;
 
 //Lista de los semaforos de los tripulantes
 t_list* lista_semaforos_tripulantes;
 t_list* lista_tripulantes;
 
+
+t_list* bloquedo_suspendido;
 //Semaforos
 
 sem_t* mutex_ready;

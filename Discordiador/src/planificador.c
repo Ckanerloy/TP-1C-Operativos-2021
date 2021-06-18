@@ -410,7 +410,14 @@ void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
 	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
 	tripu->tarea_a_realizar= NULL;
 	if(tripu->tarea_a_realizar!=NULL){
-		block_ready(tripu);
+		//sem_wait(mutex_sabotaje);
+		//int b=valorSabotaje;
+		//sem_post(mutex_sabotaje);
+		//if(b==0){
+		//	block_ready(tripu);
+		//}else{
+		//	sem_wait(tripu->sem_planificacion);
+		//}
 
 	}else{
 		block_exit(tripu);

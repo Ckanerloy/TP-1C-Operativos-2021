@@ -18,9 +18,11 @@ typedef enum
 	INICIAR_TRIPULANTE,
 	RECIBIR_UBICACION_TRIPULANTE,
 	ENVIAR_PROXIMA_TAREA,
-
+	RECIBIR_SABOTAJE,
 	RESPUESTA_INICIAR_PATOTA
 } codigo_operacion;
+
+
 
 
 typedef enum
@@ -50,6 +52,10 @@ typedef struct {
 	uint32_t tamanio_ids;
 } t_respuesta;
 
+typedef struct {
+	uint32_t sabotaje_on;
+
+} t_respuesta_mongo;
 
 // Estructuras de Sockets
 typedef struct

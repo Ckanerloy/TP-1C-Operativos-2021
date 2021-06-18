@@ -51,7 +51,12 @@ pthread_t hilo_sabotaje;
 pthread_t hilo_tripulante;
 pthread_t hilo_new_ready;
 pthread_t hilo_ready_running;
-pthread_t hilo_solucion;
+pthread_t hilo_solucion;   //preguntar
+
+pthread_t hilo_sabotaje;
+
+
+
 t_log* logger;
 t_config* config;
 
@@ -60,7 +65,7 @@ void iniciar_escucha_por_consola();
 void obtener_datos_de_config(t_config* config);
 void obtener_orden_input();						// Leo lo que escriba por consola y ejecuta la operacion a realizar
 void crear_hilos();
-
+void iniciar_escucha_sabotaje();
 
 void esperadorDeUno(sem_t* semaforo);
 void solucionadorProblemas(sem_t*);
@@ -68,8 +73,9 @@ void solucionadorProblemas(sem_t*);
 void poner_en_cero_semaforos(sem_t* semaforo);
 void poner_en_uno_semaforos(sem_t* semaforo);
 
+bool menorId(tripulante_plani* tripulante1,tripulante_plani* tripulante2);
 // POR AHORA SON UNA IDEA
-void obtener_orden_sabotaje(void);
+
 void arreglar_sabotaje(void);
 
 t_pcb* crear_pcb(void);

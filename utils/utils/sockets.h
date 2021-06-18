@@ -53,5 +53,5 @@ void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion);
 void deserializar_respuesta_patota(t_respuesta* mensaje, int32_t conexion);
 void deserealizar_tripulante(t_tcb* mensaje, int32_t conexion);
 void deseralizar_id_tripulante(t_id_tripulante* mensaje, int32_t conexion);
-
+void deserealizar_sabotaje(t_respuesta_mongo* mensaje,int32_t conexion);
 #endif /* UTILS_SOCKETS_H_ */

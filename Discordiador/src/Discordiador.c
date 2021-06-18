@@ -53,6 +53,10 @@ void crear_hilos(){
 	pthread_create(&hilo_consola, NULL,(void*)iniciar_escucha_por_consola, NULL);
 	pthread_detach(hilo_consola);
 
+	pthread_create(&hilo_sabotaje, NULL,(void*)iniciar_escucha_sabotaje, NULL);
+	pthread_detach(hilo_sabotaje);
+
+
 	pthread_create(&hilo_new_ready, NULL,(void*)new_ready, NULL);
 	pthread_detach(hilo_new_ready);
 
@@ -61,13 +65,55 @@ void crear_hilos(){
 
 }
 
-//void iniciar_escucha_sabotaje(void){
-//	while(1){
-//		obtener_orden_sabotaje();
-//	}
-//}
+void iniciar_escucha_sabotaje(void){
 
+	//conexion_sabotaje = iniciar_servidor(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+	//if(resultado_conexion(conexion_sabotaje, logger, "i-mongo") == -1){
+	//	exit(-1);
+	//}
+	t_respuesta_mongo* respuesta;
+	while(1){
+		//recibir_mensaje(respuesta, RECIBIR_SABOTAJE, conexion_sabotaje);
+
+		int largo;
+		largo=list_size(lista_tripulantes);
+		tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+		for(int i=0;i<largo;i++){
+			tripulante=list_get(lista_tripulantes,i);
+			if(tripulante->estado == 'E'){
+				list_add_sorted(bloquedo_suspendido, (void*) tripulante,(void*)menorId);
+			}
+		}
+		bloquedo_suspendido = list_map(bloquedo_suspendido, (void*) poner_en_cero_semaforos);
+
+		list_clean(bloquedo_suspendido);
+
+		for(int i=0;i<largo;i++){
+			tripulante=list_get(lista_tripulantes,i);
+			if(tripulante->estado == 'R'){
+				list_add_sorted(bloquedo_suspendido, (void*) tripulante,(void*)menorId);
+			}
+		}
+		bloquedo_suspendido = list_map(bloquedo_suspendido, (void*) poner_en_cero_semaforos);
+
+		//recorrer la lista de tripulantes
+	}
+}
+bool menorId(tripulante_plani* tripulante1,tripulante_plani* tripulante2){
+	return tripulante1->id_tripulante<tripulante2->id_tripulante;
+}
+
+/**
+	* @NAME: list_add_sorted
+	* @DESC: Agrega un elemento a una lista ordenada, manteniendo el
+	* orden definido por el comparador
+	* El comparador devuelve si el primer parametro debe aparecer antes que el
+	* segundo en la lista
+
+	int list_add_sorted(t_list *self, void* data, bool (*comparator)(void*,void*));
+*/
 void iniciar_escucha_por_consola(){
+
 	while(1){
 		sem_wait(comando_para_ejecutar);
 		obtener_orden_input();
@@ -320,13 +366,13 @@ void obtener_orden_input(){
 
 
 			int largo=list_size(lista_tripulantes);
-			printf("largo de la lista %d",largo);
-			int recorrido;
 
+			int recorrido;
+			listar_tripulantes();
 			tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 			for(recorrido=0;recorrido<largo;recorrido++){
 				tripulante=list_get(lista_tripulantes, recorrido);
-				printf("el tripulante %u esta en el estado %c \n ",tripulante->id_tripulante,tripulante->estado);
+				printf("Tripulante: %u           Patota: %u      Status: %c \n",tripulante->id_tripulante,tripulante->numero_patota,tripulante->estado);
 
 			}
 
@@ -335,9 +381,7 @@ void obtener_orden_input(){
 			//	printf("id tripulante (COLA exit): %u \n",tripulante_a_ready->id_tripulante);
 			//}
 
-			printf("-----------------\n");
 
-			listar_tripulantes();
 			break;
 
 		case OBTENER_BITACORA:
@@ -433,21 +477,9 @@ void obtener_orden_input(){
 }
 
 
-/*
-t_pcb* crear_pcb(void){
-	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));
-	proceso_patota->pid = process_getpid();
-	proceso_patota->tareas = 0; //Hay que buscar que es la direccion logica del archivo de tareas
-	return proceso_patota;
-}*/
 
 
-void obtener_orden_sabotaje(void){
 
-	//conexion_mongo_store = crear_conexion(IP_MONGO_STORE,PUERTO_MONGO_STORE);
-	conexion_sabotaje = iniciar_servidor(IP_MONGO_STORE, PUERTO_MONGO_STORE);
-	// SABOTAJE -> BLOQUEAR A TODOS LOS TRIPULANTES
-}
 
 
 void arreglar_sabotaje() {

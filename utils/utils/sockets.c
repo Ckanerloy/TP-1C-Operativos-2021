@@ -195,6 +195,9 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 		case RESPUESTA_INICIAR_PATOTA:
 			deserializar_respuesta_patota(mensaje, conexion);
 			break;
+		case RECIBIR_SABOTAJE:
+			deserealizar_sabotaje(mensaje,conexion);
+			break;
 
 		default:
 			printf("404 operacion NOT FOUND.\n");
@@ -214,6 +217,19 @@ void* recibir_buffer(uint32_t* size, int32_t conexion_cliente)
 	return buffer;
 }
 
+
+void deserealizar_sabotaje(t_respuesta_mongo* mensaje,int32_t conexion){
+	uint32_t tamanio;
+	uint32_t desplazamiento = 0;
+	void* buffer_deserializar;
+	buffer_deserializar = recibir_buffer(&tamanio, conexion);
+
+	memcpy(&(mensaje->sabotaje_on), buffer_deserializar + desplazamiento, sizeof(mensaje->sabotaje_on));
+	desplazamiento += sizeof(mensaje->sabotaje_on);
+
+	free(buffer_deserializar);
+
+}
 
 void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion)
 {
