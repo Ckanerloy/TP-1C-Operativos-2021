@@ -202,3 +202,59 @@ void crear_segmento(void* estructura, tipo_estructura tipo_estructura)
 	memoria_restante -= segmento->tamanio_segmento;
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+uint32_t cantidad_memoria_libre(){
+	uint32_t memoria_libre = 0;
+	for(int i = 0; i<sizeListaMutex(particionesLibres); i++){
+		t_segmento* segmento = (t_segmento*)getListaMutex(particionesLibres,i);
+		memoria_libre += segmento->sizeParticion;
+	}
+
+	return memoria_libre;
+}
+
+bool _(uint32_t tamStream){
+
+	for(int i =0; i<sizeListaMutex(particionesLibres); i++){
+		t_segmento* parti = (t_segmento*)getListaMutex(particionesLibres, i);
+		if(parti->sizeParticion>=tamStream){
+			return false;
+		}
+	}
+	return true;
+}
+t_segmento* obtener_segmento_libre(uint32_t tamanio_estructura){
+	if(noHayNingunaSuficientementeGrande(tamanio_estructura) || cantidadMemoriaLibre()<tamanio_estructura){
+
+		return NULL;
+	}
+	if (algoritmoParticionLibre == FIRST_FIT){
+
+		if(sizeListaMutex(particionesLibres)>1)
+			list_sort_Mutex(particionesLibres, menorAmayorSegunOffset);
+
+		t_segmento* pSeleccionadaFIRST = (t_segmento*)list_remove_by_condition_Mutex(particionesLibres, esSuficientementeGrandeParaElMSG);
+		return pSeleccionadaFIRST;
+	}else if(algoritmoParticionLibre == BEST_FIT){
+
+		if(sizeListaMutex(particionesLibres)>1)
+			list_sort_Mutex(particionesLibres, menorAmayorSegunSize);
+
+		t_segmento* pSeleccionadaBEST = (t_segmento*)list_remove_by_condition_Mutex(particionesLibres, esSuficientementeGrandeParaElMSG);
+		return pSeleccionadaBEST;
+	}
+	return NULL;
+}
