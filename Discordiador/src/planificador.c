@@ -35,7 +35,7 @@ void inicializar_semaforos_plani(){
 	sem_init(planificacion_on_ready_running, 0, 0);
 
 	mutex_valorMultitarea = malloc(sizeof(sem_t));
-	sem_init(mutex_valorMultitarea, 0 ,1);
+	sem_init(mutex_valorMultitarea, 0 , 1);
 
 
 
@@ -46,7 +46,7 @@ void inicializar_semaforos_plani(){
 	sem_init(mutex_exit, 0, 1);
 
 	mutex_prueba=malloc(sizeof(sem_t));
-	sem_init(mutex_prueba,0,1);
+	sem_init(mutex_prueba, 0, 1);
 }
 
 
@@ -127,12 +127,12 @@ void new_ready() {
 		tripulante_a_ready = queue_pop(cola_new);
 		sem_post(mutex_new);
 
-		sem_post(tripulante_a_ready->sem_tripu);
-		tripulante_a_ready->estado='R';
-
 		sem_wait(mutex_ready);
 		queue_push(cola_ready, tripulante_a_ready);
 		sem_post(mutex_ready);
+
+		sem_post(tripulante_a_ready->sem_tripu);
+		tripulante_a_ready->estado='R';
 
 		//Actualizar el estado del tripulante (R) EN Mi-Ram
 
@@ -151,7 +151,7 @@ void ready_running() {
 
 		tripulante_plani* tripulante_a_running = malloc(sizeof(tripulante_plani));
 
-		if(multitarea_Disponible != 0) {
+		if(multitarea_Disponible > 0) {
 			sem_wait(mutex_ready);
 			tripulante_a_running = queue_pop(cola_ready);
 			sem_post(mutex_ready);
@@ -168,6 +168,8 @@ void ready_running() {
 			//Actualizar el estado (a E) en Mi-Ram
 
 			sem_post(tripulante_a_running->sem_tripu);
+		}else{
+				sem_post(contador_tripulantes_en_ready);
 		}
 
 		sem_post(planificacion_on_ready_running);
@@ -175,6 +177,10 @@ void ready_running() {
 }
 
 void running_ready(tripulante_plani* tripu){
+
+	sem_wait(mutex_valorMultitarea);
+	multitarea_Disponible++;
+	sem_post(mutex_valorMultitarea);
 
 	sem_wait(mutex_ready);
 	queue_push(cola_ready, tripu);
@@ -223,7 +229,7 @@ void tripulante_hilo(void* tripulante){
 	sem_wait(tripu->sem_tripu);
 
 	//printf("tripu %u en R",tripu->id_tripulante);
-	prueba++;
+	//prueba++;
 
 	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
 

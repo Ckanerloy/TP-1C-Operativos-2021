@@ -134,7 +134,7 @@ void obtener_orden_input(){
 		//	if(valor_semaforo == 0){
 				printf("Iniciando Planificacion....... \n");
 			//}
-			lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
+			//lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
 			sem_post(planificacion_on);
 			sem_post(planificacion_on_ready_running);
 
@@ -160,7 +160,7 @@ void obtener_orden_input(){
 
 		case INICIAR_PATOTA:
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
