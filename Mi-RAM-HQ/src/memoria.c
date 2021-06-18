@@ -76,20 +76,16 @@ criterio_seleccion elegir_criterio_seleccion(char* criterio)
 
 
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
-	pthread_mutex_lock(&mutexTablasDeSegmentos);
+	//sem_wait(mutex_tablas_segmentos);
 	t_tabla_segmentos_patota* tabla = malloc(sizeof(t_tabla_segmentos_patota));
 	tabla->patota = malloc(sizeof(t_pcb));
 	tabla->patota = nueva_patota;
 	tabla->segmentos = list_create();
 
-	list_add(tablas_segmentos,tabla);
 	pthread_mutex_unlock(&mutexTablasDeSegmentos);//preguntar a nico y cami
 
 	return tabla;
-
 }
-
-
 
 
 uint32_t administrar_guardar_patota(t_pcb* nueva_patota)
@@ -153,25 +149,7 @@ uint32_t administrar_guardar_tripulante(t_tcb* nuevo_tripulante)
 }
 
 
-
-void crear_estructura_a_guardar(void* estructura, tipo_estructura tipo_estructura)
-{
-	if(esquema_elegido == 'S') {
-		crear_segmento(estructura, tipo_estructura);
-	}
-	else if(esquema_elegido  == 'P') {
-		//crear_pagina(estructura, tipo_estructura);
-	}
-	else {
-		log_error(logger, "No se puede guardar la estructura en Memoria");
-	}
-}
-
-
-
-
-void crear_segmento(void* estructura, tipo_estructura tipo_estructura)
-{
+t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
 	t_segmento* segmento = malloc(sizeof(t_segmento));
 
 	segmento->numero_de_segmento = contador_segmento;
@@ -195,11 +173,11 @@ void crear_segmento(void* estructura, tipo_estructura tipo_estructura)
 
 	inicio += segmento->tamanio_segmento;
 
-	// Guardar el segmento en la tabla
-
 	contador_segmento++;
 
 	memoria_restante -= segmento->tamanio_segmento;
+
+	return segmento;
 
 }
 

@@ -144,48 +144,35 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 					t_pcb* nueva_patota = crear_pcb();
 
-			// Mutex
-					crear_estructura_a_guardar(nueva_patota, PATOTA);
-			// Mutex
+					if(esquema_elegido == 'S') {
 
+						t_tabla_segmentos_patota* tabla = crear_tabla_segmentos(nueva_patota);
 
-			// Mutex
-					crear_estructura_a_guardar(tareas_de_la_patota, TAREAS);
-			// Mutex
+						t_segmento* segmento_patota = crear_segmento(nueva_patota, PATOTA);
+						list_add(tabla->segmentos,segmento_patota);
+						free(segmento_patota);
 
-					// Esta estructura apunta a donde arranca el segmento de todas las tareas
-					//nueva_patota->tareas = inicio;
+						t_segmento* segmento_tareas = crear_segmento(tareas_de_la_patota, TAREAS);
+						list_add(tabla->segmentos,segmento_tareas);
+						free(segmento_tareas);
 
-					// Solamente esta para PROBAR que llegan las tareas
-					for(uint32_t c=0; c<cant_tareas; c++) {
-						t_tarea* tarea_ejemplo = malloc(sizeof(t_tarea));
-						tarea_ejemplo = queue_pop(tareas_de_la_patota);
+						for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
+							t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
 
-						printf("Operacion: %u \n", tarea_ejemplo->operacion);
-						printf(" - Cantidad: %u \n", tarea_ejemplo->cantidad);
-						printf(" - Posicion X: %u \n", tarea_ejemplo->posicion_x);
-						printf(" - Posicion Y:%u \n", tarea_ejemplo->posicion_y);
-						printf(" - Tiempo: %u \n\n", tarea_ejemplo->tiempo);
-
-						free(tarea_ejemplo);
+							t_segmento* segmento_tripulante = crear_segmento(nuevo_tripulante, TRIPULANTE);
+							list_add(tabla->segmentos,segmento_tripulante);
+							free(segmento_tripulante);
+							string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
+							contador_id_tripu++;
+							free(nuevo_tripulante);
+						}
+						list_add(tablas_segmentos,tabla);
 					}
-					// DESPUES SE ELIMINA
-
-					for(int i=0;i<patota_recibida->cantidad_tripulantes;i++)
-					{
-						t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
-
-
-				// Mutex
-						crear_estructura_a_guardar(nuevo_tripulante, TRIPULANTE);
-						//crear_segmento(nuevo_tripulante, TRIPULANTE);
-				// Mutex
-
-
-						string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
-
-						contador_id_tripu++;
-						free(nuevo_tripulante);
+					else if(esquema_elegido  == 'P') {
+						//crear_pagina(estructura, tipo_estructura);
+					}
+					else {
+						log_error(logger, "No se puede guardar la estructura en Memoria");
 					}
 
 					strcat(ids_enviar,"\0");
