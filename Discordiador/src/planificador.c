@@ -37,11 +37,7 @@ void inicializar_semaforos_plani(){
 	mutex_valorMultitarea = malloc(sizeof(sem_t));
 	sem_init(mutex_valorMultitarea, 0 ,1);
 
-	sem_a_block = malloc(sizeof(sem_t));
-	sem_init(sem_a_block, 0, 0);
 
-	ya_pase_a_block = malloc(sizeof(sem_t));
-	sem_init(ya_pase_a_block, 0, 0);
 
 	contador_tripulantes_en_ready = malloc(sizeof(sem_t));
 	sem_init(contador_tripulantes_en_ready,0 ,0);
@@ -57,13 +53,15 @@ void inicializar_semaforos_plani(){
 void finalizar_semaforos_plani() {
 	free(mutex_prueba);
 	free(contador_tripulantes_en_new);
+
 	free(mutex_new);
 	free(mutex_ready);
 	free(mutex_exit);
+
 	free(planificacion_on);
 	free(planificacion_on_ready_running);
 	free(mutex_valorMultitarea);
-	free(sem_a_block);
+
 	free(contador_tripulantes_en_ready);
 }
 
@@ -130,6 +128,7 @@ void new_ready() {
 		sem_post(mutex_new);
 
 		sem_post(tripulante_a_ready->sem_tripu);
+		tripulante_a_ready->estado='R';
 
 		sem_wait(mutex_ready);
 		queue_push(cola_ready, tripulante_a_ready);
@@ -160,32 +159,38 @@ void ready_running() {
 			sem_wait(mutex_valorMultitarea);
 			multitarea_Disponible--;
 			sem_post(mutex_valorMultitarea);
+
 			sem_wait(mutex_prueba);
 			prueba++;
 			sem_post(mutex_prueba);
+
+			tripulante_a_running->estado='E';
 			//Actualizar el estado (a E) en Mi-Ram
 
 			sem_post(tripulante_a_running->sem_tripu);
 		}
 
 		sem_post(planificacion_on_ready_running);
-		sleep(RETARDO_CICLO_CPU);
 	}
 }
 
-void running_ready(tripulante_plani* tripulante){
+void running_ready(tripulante_plani* tripu){
 
 	sem_wait(mutex_ready);
-	queue_push(cola_ready, tripulante);
+	queue_push(cola_ready, tripu);
 	sem_post(mutex_ready);
+
+	tripu->estado='R';
 	//Actualizar el estado del tripulante (R) EN Mi-Ram
 }
 
-void running_block(tripulante_plani* tripulante){
-	//Actualizar el estado del tripulante (B) EN Mi-Ram
+void running_block(tripulante_plani* tripu){
 	sem_wait(mutex_valorMultitarea);
 	multitarea_Disponible++;
 	sem_post(mutex_valorMultitarea);
+
+	//Actualizar el estado del tripulante (B) EN Mi-Ram
+	tripu->estado='B';
 }
 
 void block_ready(tripulante_plani* tripu){
@@ -193,6 +198,8 @@ void block_ready(tripulante_plani* tripu){
 	queue_push(cola_ready, tripu);
 	sem_post(mutex_ready);
 
+
+	tripu->estado='R';
 	//Actualizar el estado del tripulante (R) EN Mi-Ram
 }
 
@@ -200,9 +207,12 @@ void block_exit(tripulante_plani* tripu){
 	sem_wait(mutex_prueba);
 	prueba++;
 	sem_post(mutex_prueba);
+
 	sem_wait(mutex_exit);
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
+
+	tripu->estado='T';
 
 	//Actualizar el estado del tripulante (E) EN Mi-Ram
 }
@@ -407,9 +417,13 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 	sleep(RETARDO_CICLO_CPU);
 	sem_post(tripu->sem_tripu);
+
+
 	sem_wait(mutex_prueba);
 	prueba++;
 	sem_post(mutex_prueba);
+
+
 	running_block(tripu);
 
 	//if(SI ESTA EL ARCHIVO) {

@@ -8,7 +8,7 @@ int main(void) {
 	obtener_planificacion_de_config(config);
 
 	inicializar_semaforos();
-
+	inicializar_listas();
 	iniciar_planificacion();
 
 	crear_hilos();
@@ -24,6 +24,11 @@ int main(void) {
 	return EXIT_SUCCESS;
 }
 
+void inicializar_listas(){
+	lista_semaforos_tripulantes=list_create();
+
+	lista_tripulantes=list_create();
+}
 
 void inicializar_semaforos(){
 	sabotaje = malloc(sizeof(sem_t));
@@ -50,6 +55,9 @@ void crear_hilos(){
 
 	pthread_create(&hilo_new_ready, NULL,(void*)new_ready, NULL);
 	pthread_detach(hilo_new_ready);
+
+	pthread_create(&hilo_ready_running, NULL,(void*)ready_running, NULL);
+	pthread_detach(hilo_ready_running);
 
 }
 
@@ -121,11 +129,11 @@ void obtener_orden_input(){
 		case INICIAR_PLANIFICACION:
 
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
-			sem_getvalue(planificacion_on,&valor_semaforo);
+	//		sem_getvalue(planificacion_on,&valor_semaforo);
 
-			if(valor_semaforo == 0){
+		//	if(valor_semaforo == 0){
 				printf("Iniciando Planificacion....... \n");
-			}
+			//}
 			lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
 			sem_post(planificacion_on);
 			sem_post(planificacion_on_ready_running);
@@ -140,10 +148,6 @@ void obtener_orden_input(){
 
 		case PAUSAR_PLANIFICACION:
 
-			sem_getvalue(planificacion_on,&valor_semaforo);
-			if(valor_semaforo == 1){
-				sem_wait(planificacion_on);
-			}
 
 
 			lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
@@ -156,7 +160,7 @@ void obtener_orden_input(){
 
 		case INICIAR_PATOTA:
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
 
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
@@ -246,7 +250,8 @@ void obtener_orden_input(){
 					for(int i=0;mensaje_patota->cantidad_tripulantes>i;i++){
 						tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 						tripulante->id_tripulante = atoi(parser_ids[i]);
-						tripulante->numero_patota = 5;         //A
+						tripulante->numero_patota = 5;
+						tripulante->estado='N';//A
 
 						sem_t* semaforo_exec= malloc(sizeof(sem_t));
 						sem_init(semaforo_exec, 0, 0);
@@ -257,15 +262,15 @@ void obtener_orden_input(){
 						pthread_detach(hilo_tripulante);
 
 						list_add(lista_semaforos_tripulantes, tripulante->sem_tripu);
+						list_add(lista_tripulantes,tripulante);
 
 						sem_wait(mutex_new);
 						queue_push(cola_new,tripulante);
 						sem_post(mutex_new);
 
-                   //     free(tripulante);
+
 						sem_post(contador_tripulantes_en_new);
 					}
-					//tripulante_plani* aux=queue_pop(cola_new);
 
 				}
 				else {
@@ -303,11 +308,25 @@ void obtener_orden_input(){
 			if(parser_consola[1] != NULL) {
 				log_warning(logger, "Sobran argumentos. Debe iniciarse de la forma LISTAR_TRIPULANTES.");
 				break;
+
 			}
-			while(queue_size(cola_exit)>0){
-				tripulante_plani* tripulante_a_ready = queue_pop(cola_exit);
-				printf("id tripulante (COLA exit): %u \n",tripulante_a_ready->id_tripulante);
+
+
+			int largo=list_size(lista_tripulantes);
+			printf("largo de la lista %d",largo);
+			int recorrido;
+
+			tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+			for(recorrido=0;recorrido<largo;recorrido++){
+				tripulante=list_get(lista_tripulantes, recorrido);
+				printf("el tripulante %u esta en el estado %c \n ",tripulante->id_tripulante,tripulante->estado);
+
 			}
+
+			//while(queue_size(cola_exit)>0){
+			//	tripulante_plani* tripulante_a_ready = queue_pop(cola_exit);
+			//	printf("id tripulante (COLA exit): %u \n",tripulante_a_ready->id_tripulante);
+			//}
 
 			printf("-----------------\n");
 

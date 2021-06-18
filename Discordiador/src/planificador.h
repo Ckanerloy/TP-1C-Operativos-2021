@@ -36,19 +36,22 @@ t_queue* cola_suspendido;
 
 //Lista de los semaforos de los tripulantes
 t_list* lista_semaforos_tripulantes;
+t_list* lista_tripulantes;
 
 //Semaforos
-sem_t* sem_ready;
+
 sem_t* mutex_ready;
 sem_t* mutex_exit;
-sem_t* contador_tripulantes_en_new;
 sem_t* mutex_new;
+
+
 sem_t* planificacion_on;
 sem_t* planificacion_on_ready_running;
+
 sem_t* mutex_valorMultitarea;
-sem_t* sem_a_block;
-sem_t* ya_pase_a_block;
+
 sem_t* contador_tripulantes_en_ready;
+sem_t* contador_tripulantes_en_new;
 
 //Hilos
 //pthread_t hilo_new_ready;			Por que se pone aca, pero tambien esta en planificador.c?
@@ -73,6 +76,7 @@ void new_ready();
 void ready_running();
 void iniciar_planificacion();
 void inicializar_semaforos();
+void inicializar_listas();
 void pulso_rafaga();
 void running_ready(tripulante_plani* tripulante);
 void tripulante_hilo(void* tripulante);

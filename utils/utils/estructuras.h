@@ -134,6 +134,7 @@ typedef struct {
 typedef struct {
 	uint32_t id_tripulante;
 	uint32_t numero_patota;
+	char estado;
 	t_tarea* tarea_a_realizar;
 	sem_t* sem_tripu;
 } tripulante_plani;
