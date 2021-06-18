@@ -76,6 +76,7 @@ criterio_seleccion elegir_criterio_seleccion(char* criterio)
 
 
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
+
 	//sem_wait(mutex_tablas_segmentos);
 	t_tabla_segmentos_patota* tabla = malloc(sizeof(t_tabla_segmentos_patota));
 	tabla->patota = malloc(sizeof(t_pcb));
@@ -177,6 +178,8 @@ t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
 
 	memoria_restante -= segmento->tamanio_segmento;
 
+	//sem_post(algo)
+
 	return segmento;
 
 }
@@ -185,54 +188,50 @@ t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
 
 
 
+/*
 
-
-
-
-
-
-
-
-
-uint32_t cantidad_memoria_libre(){
-	uint32_t memoria_libre = 0;
-	for(int i = 0; i<sizeListaMutex(particionesLibres); i++){
-		t_segmento* segmento = (t_segmento*)getListaMutex(particionesLibres,i);
-		memoria_libre += segmento->sizeParticion;
-	}
-
-	return memoria_libre;
-}
-
-bool _(uint32_t tamStream){
+bool noHayNingunaSuficientementeGrande(uint32_t tamStream){
 
 	for(int i =0; i<sizeListaMutex(particionesLibres); i++){
-		t_segmento* parti = (t_segmento*)getListaMutex(particionesLibres, i);
-		if(parti->sizeParticion>=tamStream){
+		t_segmento* segmento = (t_segmento*)getListaMutex(particionesLibres, i);
+		if(segmento->tamanio_segmento >= tamStream){
 			return false;
 		}
 	}
 	return true;
 }
-t_segmento* obtener_segmento_libre(uint32_t tamanio_estructura){
-	if(noHayNingunaSuficientementeGrande(tamanio_estructura) || cantidadMemoriaLibre()<tamanio_estructura){
 
+
+t_segmento* obtener_segmento_libre(uint32_t tamanio){
+
+	if(noHayNingunaSuficientementeGrande(tamanio) || memoria_restante < tamanio){
+		log_error(logger, "No hay espacio suficiente para guardar el segmento.");
 		return NULL;
 	}
-	if (algoritmoParticionLibre == FIRST_FIT){
+
+	if (criterio_elegido == FIRST_FIT){
 
 		if(sizeListaMutex(particionesLibres)>1)
+		{
 			list_sort_Mutex(particionesLibres, menorAmayorSegunOffset);
+		}
 
 		t_segmento* pSeleccionadaFIRST = (t_segmento*)list_remove_by_condition_Mutex(particionesLibres, esSuficientementeGrandeParaElMSG);
+
 		return pSeleccionadaFIRST;
-	}else if(algoritmoParticionLibre == BEST_FIT){
+
+	} else if(criterio_elegido == BEST_FIT){
 
 		if(sizeListaMutex(particionesLibres)>1)
+		{
 			list_sort_Mutex(particionesLibres, menorAmayorSegunSize);
+		}
 
 		t_segmento* pSeleccionadaBEST = (t_segmento*)list_remove_by_condition_Mutex(particionesLibres, esSuficientementeGrandeParaElMSG);
+
 		return pSeleccionadaBEST;
 	}
+
 	return NULL;
 }
+*/

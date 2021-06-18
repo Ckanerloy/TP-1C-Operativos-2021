@@ -96,8 +96,6 @@ int32_t iniciar_servidor(char* IP, char* PUERTO)
 
     freeaddrinfo(servinfo);
 
-    //log_trace(logger, "Listo para escuchar a mi cliente");
-
     return socket_servidor;
 }
 

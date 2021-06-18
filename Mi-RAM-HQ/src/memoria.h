@@ -25,6 +25,8 @@ typedef struct	tabla_segmentos_patota
 	t_list* segmentos;
 } t_tabla_segmentos_patota; //una por patota
 
+
+
 // PAGINACION
 typedef struct tabla_paginas
 {
@@ -33,13 +35,6 @@ typedef struct tabla_paginas
 
 } t_paginas;
 
-typedef struct espacio
-{
-	uint32_t numeroDeEspacio;
-	uint32_t espacioOcupado;
-
-	struct espacio* sig_espacio;
-} espacio;
 
 
 

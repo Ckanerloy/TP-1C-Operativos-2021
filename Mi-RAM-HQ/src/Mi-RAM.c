@@ -148,20 +148,28 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 						t_tabla_segmentos_patota* tabla = crear_tabla_segmentos(nueva_patota);
 
+
 						t_segmento* segmento_patota = crear_segmento(nueva_patota, PATOTA);
 						list_add(tabla->segmentos,segmento_patota);
+						// sem_wait(algo)
 						free(segmento_patota);
+
+
 
 						t_segmento* segmento_tareas = crear_segmento(tareas_de_la_patota, TAREAS);
 						list_add(tabla->segmentos,segmento_tareas);
+						// Mutex OFF
 						free(segmento_tareas);
 
 						for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
 							t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
 
+
 							t_segmento* segmento_tripulante = crear_segmento(nuevo_tripulante, TRIPULANTE);
 							list_add(tabla->segmentos,segmento_tripulante);
+							// Mutex OFF
 							free(segmento_tripulante);
+
 							string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
 							contador_id_tripu++;
 							free(nuevo_tripulante);
@@ -189,12 +197,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				}
 
 				printf("Tamanio Patota %d \n", tamanio_patota);
-				printf("Tamanio Memoria Principal %d \n\n", TAMANIO_MEMORIA);
+				printf("Tamanio Memoria Principal %d \n", TAMANIO_MEMORIA);
 				printf("Memoria Restante: %d \n", memoria_restante);
 
-
 				printf("Inicio de proximo segmento: %d \n", inicio);
-				printf("Numero de proximo segmento: %d \n", contador_segmento);
+				printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
 
 
 				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
