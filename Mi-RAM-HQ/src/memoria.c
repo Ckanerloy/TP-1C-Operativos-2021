@@ -28,7 +28,7 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 		case PAGINACION:
 
 			esquema_elegido = 'P';
-			tabla_paginas = list_create();
+			tablas_paginas = list_create();
 
 			break;
 
