@@ -4,16 +4,19 @@ int main(void)
 {
 	memoria_principal = NULL;
 	area_swap = NULL;
-	config = crear_config(CONFIG_PATH);
-	contador_id_tripu=1;
-	contador_id_patota=1;
-	ids = list_create();
-	inicio = 0;
+	inicio_segmento = 0;
+
+	contador_id_tripu = 1;
+	contador_id_patota = 1;
 	contador_segmento = 0;
+	ids = list_create();
+
+
 
 	crear_segmento_sem = malloc(sizeof(sem_t));
 	sem_init(crear_segmento_sem, 0, 0);
 
+	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
 	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
 
@@ -229,7 +232,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				printf("Tamanio Memoria Principal %d \n", TAMANIO_MEMORIA);
 				printf("Memoria Restante: %d \n", memoria_restante);
 
-				printf("Inicio de proximo segmento: %d \n", inicio);
+				printf("Inicio de proximo segmento: %d \n", inicio_segmento);
 				printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
 
 				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
@@ -270,8 +273,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					t_segmento* segmento = malloc(sizeof(t_segmento));
 					segmento = buscar_por_tipo_de_segmento(tablas_segmentos, PATOTA);
 
-//					t_pcb* patota = traducir_segmento(segmento);
-	//				printf("PID patota buscada: %u\n\n", patota->pid);
+					//t_pcb* patota = traducir_segmento(segmento);
+					//printf("PID patota buscada: %u\n\n", patota->pid);
 
 
 				}

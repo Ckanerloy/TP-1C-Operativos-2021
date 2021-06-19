@@ -45,7 +45,7 @@ uint32_t contador_segmento;
 uint32_t contador_id_tripu;
 uint32_t contador_id_patota;
 
-int32_t inicio;
+int32_t inicio_segmento;
 int32_t memoria_restante;
 
 sem_t* crear_segmento_sem;

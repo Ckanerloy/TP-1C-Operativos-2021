@@ -36,6 +36,7 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 
 			esquema_elegido = 'S';
 			tablas_segmentos = list_create();
+			//crear dos tablas de segmentos, los que estan ocupados y los que estan libres?
 
 			break;
 
@@ -150,7 +151,7 @@ t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
 	segmento->numero_de_segmento = contador_segmento;
 	segmento->tipo_estructura = tipo_estructura;
 
-	segmento->inicio = inicio;
+	segmento->inicio = inicio_segmento;
 
 	switch(tipo_estructura){
 		case PATOTA:
@@ -166,7 +167,7 @@ t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
 			break;
 	}
 
-	inicio += segmento->tamanio_segmento;
+	inicio_segmento += segmento->tamanio_segmento;
 
 	contador_segmento++;
 
@@ -176,36 +177,43 @@ t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
 	return segmento;
 
 }
-/*
- * IMPLEMENTACION DE BUSQUEDA DE SEGMENTO LIBRE
- *
-bool* memoria_igual_o_mas_grande(void* elemento, uint32_t tamanio_buscado){
-	return tamanio_buscado >= ((t_segmento*)elemento)->tamanio_segmento;
+
+//IMPLEMENTACION DE BUSQUEDA DE SEGMENTO LIBRE
+
+bool memoria_igual_o_mas_grande(t_segmento* segmento, uint32_t tamanio_buscado)
+{
+	return tamanio_buscado >= segmento->tamanio_segmento;
 }
 
-bool* menor_a_mayor(void* elemento, void* elemento_siguiente){
-	return ((t_segmento*)elemento)->tamanio_segmento < ((t_segmento*)elemento_siguiente)->tamanio_segmento;
+bool menor_a_mayor(t_segmento* segmento, t_segmento* segmento_siguiente)
+{
+	return (segmento->tamanio_segmento < segmento_siguiente->tamanio_segmento);
 }
 
-t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado){
+t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado)
+{
 	if (memoria_restante < tamanio_buscado){
 		log_error(logger, "No hay espacio suficiente para guardar el segmento");
 		return NULL;
 	}
-	else (criterio_seleccionado == BEST_FIT){
-		t_list* segmentos_con_espacio = list_filter(segmentos_libres, memoria_igual_o_mas_grande);
-		t_list* segmentos_con_espacio_ordenados = list_sorted(segmentos_con_espacio, menor_a_mayor);
-		t_segmento* segmento_con_espacio = (t_segmento*) list_get(segmentos_con_espacio_ordenados, 0);
+	else if(criterio_elegido == BEST_FIT){
+		t_list* segmentos_con_espacio = list_filter(segmentos_libres, (void*)memoria_igual_o_mas_grande);
+		t_list* segmentos_con_espacio_ordenados = list_sorted(segmentos_con_espacio, (void*)menor_a_mayor);
+
+		t_segmento* mejor_segmento = (t_segmento*) list_get(segmentos_con_espacio_ordenados, 0);
 		//list_remove_and_destroy_element(segmentos_libres, INDEX, FREE);
-		return segmento_con_espacio;
+		list_remove_by_condition(segmentos_con_espacio_ordenados, );
+		return mejor_segmento;
 	}
-	else (criterio_seleccionado == FIRST_FIT){
-		t_segmento* segmento_con_espacio = (t_segmento*) list_find(segmentos_libres, memoria_igual_o_mas_grande);
+	else if(criterio_elegido == FIRST_FIT){
+		t_segmento* primer_segmento = (t_segmento*) list_find(segmentos_libres, (void*)memoria_igual_o_mas_grande);
 		//list_remove_and_destroy_element(segmentos_libres, INDEX, FREE);
-		return segmento_con_espacio;
+		return primer_segmento;
 	}
+
+	return NULL;
 }
-*/
+
 
 
 t_tabla_segmentos_patota* buscar_tabla_de_patota(t_pcb* patota_buscada)
@@ -250,12 +258,7 @@ t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_estructura tipo_de_s
 	t_tabla_segmentos_patota* segmento_patota = malloc(sizeof(t_tabla_segmentos_patota));
 	segmento_patota = list_get(tabla, 0);
 
-	//t_segmento* segmento_buscado = list_find(segmento_patota->segmentos, (void*) mismo_tipo_segmento);
-	t_segmento* segmento_buscado = segmento_patota->segmentos->head->data;
-
-	while(segmento_buscado->tipo_estructura != tipo_de_segmento) {
-		segmento_buscado = (t_segmento*)segmento_patota->segmentos->head->next;
-	}
+	t_segmento* segmento_buscado = list_find(segmento_patota->segmentos, (void*) mismo_tipo_segmento);
 
 	return segmento_buscado;
 }
