@@ -5,7 +5,7 @@
 #include "utils/estructuras.h"
 
 t_list* tablas_segmentos;
-t_list* tabla_paginas;
+t_list* tablas_paginas;
 
 
 // Estructuras para Mi RAM HQ
@@ -26,18 +26,25 @@ typedef struct	tabla_segmentos_patota
 } t_tabla_segmentos_patota; //una por patota
 
 
+t_list* segmentos_libres;
 
 // PAGINACION
-typedef struct tabla_paginas
+typedef struct pagina
 {
 	int32_t numero_de_marco;
 	uint32_t numero_de_pagina;
+	int32_t ocupado;
 
-} t_paginas;
+} t_pagina;
+
+typedef struct tabla_paginas_patota{
+	t_list* paginas;
+
+}t_tabla_paginas_patota;
 
 
-
-
+bool* memoria_igual_o_mas_grande(void* elemento, uint32_t tamanio_buscado);
+t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado);
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
 void elegir_esquema_de_memoria(char* ESQUEMA);
 criterio_seleccion elegir_criterio_seleccion(char* criterio);
