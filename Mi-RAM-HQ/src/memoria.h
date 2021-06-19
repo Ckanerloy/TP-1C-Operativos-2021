@@ -45,9 +45,16 @@ algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo);
 
 
 t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura);
+t_tabla_segmentos_patota* buscar_tabla_de_patota(t_pcb* patota_buscada);
+t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_estructura tipo_de_segmento);
+
+void* traducir_segmento(t_segmento* segmento_a_traducir);
+t_pcb* encontrar_patota(t_segmento* segmento);
+t_list* encontrar_tarea(t_segmento* segmento);
+t_tcb* encontrar_tripulante(t_segmento* segmento);
 
 uint32_t administrar_guardar_patota(t_pcb* nueva_patota);
-uint32_t administrar_guardar_tareas(t_queue* tareas_de_la_patota);
+uint32_t administrar_guardar_tareas(t_list* tareas_de_la_patota);
 uint32_t administrar_guardar_tripulante(t_tcb* nuevo_tripulante);
 
 #endif /* MEMORIA_H_ */

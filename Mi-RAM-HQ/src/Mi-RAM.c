@@ -94,7 +94,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 {
 	t_iniciar_patota* patota_recibida;
 	int32_t tamanio_patota;
-	t_queue* tareas_de_la_patota;
+	t_list* tareas_de_la_patota;
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 
 	t_id_tripulante* tripulante_a_eliminar;
@@ -124,13 +124,27 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				uint32_t cant_tareas = cantidad_tareas(parser_tarea);
 
-				tareas_de_la_patota = queue_create();
+				tareas_de_la_patota = list_create();
 
 				for(uint32_t i=0; i<cant_tareas; i++){
-					queue_push(tareas_de_la_patota, obtener_la_tarea(parser_tarea[i]));
+					//tareas_de_la_patota[i] = obtener_la_tarea(parser_tarea[i]);
+					list_add_in_index(tareas_de_la_patota, i, obtener_la_tarea(parser_tarea[i]));
 				}
 
-				tamanio_patota = sizeof(t_pcb) + (sizeof(t_tarea)* queue_size(tareas_de_la_patota)) + (sizeof(t_tcb) * patota_recibida->cantidad_tripulantes);
+
+				for(uint32_t c=0; c<cant_tareas; c++) {
+					t_tarea* tarea_ejemplo = list_get(tareas_de_la_patota, c);
+
+					printf("Operacion: %u\n", tarea_ejemplo->operacion);
+					printf(" - Cantidad: %u\n", tarea_ejemplo->cantidad);
+					printf(" - Posicion X: %u\n", tarea_ejemplo->posicion_x);
+					printf(" - Posicion Y: %u\n", tarea_ejemplo->posicion_y);
+					printf(" - Tiempo: %u\n", tarea_ejemplo->tiempo);
+
+					free(tarea_ejemplo);
+				}
+
+				tamanio_patota = sizeof(t_pcb) + sizeof(t_tarea) * list_size(tareas_de_la_patota) + (sizeof(t_tcb) * patota_recibida->cantidad_tripulantes);
 
 
 				printf("Tamanio de un PCB: %d\n", sizeof(t_pcb));
@@ -154,30 +168,19 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 						tabla = crear_tabla_segmentos(nueva_patota);
 
-
 						t_segmento* segmento_patota = crear_segmento(nueva_patota, PATOTA);
 						list_add(tabla->segmentos,segmento_patota);
 						sem_wait(crear_segmento_sem);
-						free(segmento_patota);
-
 
 						t_segmento* segmento_tareas = crear_segmento(tareas_de_la_patota, TAREAS);
 						list_add(tabla->segmentos,segmento_tareas);
-
-
 						tabla->patota->tareas = segmento_tareas->inicio;
-
-						// Mutex OFF
-
 						sem_wait(crear_segmento_sem);
-
-						free(segmento_tareas);
 
 						for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
 
-							///uint32_t direccion_pcb = segmento_patota->inicio;
-							t_tcb* nuevo_tripulante = crear_tcb(0,atoi(parser_posiciones[i]),atoi(parser_posiciones[i+1]),0);
-
+							uint32_t direccion_pcb = segmento_patota->inicio;
+							t_tcb* nuevo_tripulante = crear_tcb(direccion_pcb, atoi(parser_posiciones[i]), atoi(parser_posiciones[i+1]));
 
 							t_segmento* segmento_tripulante = crear_segmento(nuevo_tripulante, TRIPULANTE);
 							list_add(tabla->segmentos,segmento_tripulante);
@@ -191,16 +194,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 						list_add(tablas_segmentos,tabla);
 
-
-
 						// Tengo que buscar por la tabla de segmentos y encuentro cada tabla de patota
 						//   y de acuerdo a esa tabla de patota, tengo que buscar en cada segmento y traducir esos bytes para
 						// obtener los valores de cada estructura
 						printf("PID: %u \n", tabla->patota->pid);
 						printf("Direccion Tareas: %u\n\n", tabla->patota->tareas);
 
-						free(crear_segmento_sem);
-
+						free(segmento_patota);
+						free(segmento_tareas);
 					}
 
 					else if(esquema_elegido  == 'P') {
@@ -224,15 +225,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				}
 
-
-
 				printf("Tamanio Patota %d \n", tamanio_patota);
 				printf("Tamanio Memoria Principal %d \n", TAMANIO_MEMORIA);
 				printf("Memoria Restante: %d \n", memoria_restante);
 
 				printf("Inicio de proximo segmento: %d \n", inicio);
 				printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
-
 
 				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
 
@@ -269,6 +267,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				if(esquema_elegido == 'S') {
 
+					t_segmento* segmento = malloc(sizeof(t_segmento));
+					segmento = buscar_por_tipo_de_segmento(tablas_segmentos, PATOTA);
+
+//					t_pcb* patota = traducir_segmento(segmento);
+	//				printf("PID patota buscada: %u\n\n", patota->pid);
+
+
 				}
 				else if(esquema_elegido == 'P') {
 
@@ -284,6 +289,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				printf("Terminando programa... \n");
 				sleep(1);
 				printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
+				free(crear_segmento_sem);
 				free(memoria_principal);
 				printf("Memoria Principal liberada...\n");
 				free(area_swap);
@@ -297,7 +303,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 			}
 }
 
-int32_t validar_espacio_por_patota(uint32_t tamanio){
+bool validar_espacio_por_patota(uint32_t tamanio){
 	int32_t restante = memoria_restante - tamanio;
 	return (restante > 0);
 }
@@ -309,14 +315,14 @@ t_pcb* crear_pcb(){
 	return proceso_patota;
 }
 
-t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion_y, uint32_t id_proxima_tarea){
+t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion_y){
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
 	tripulante->id_tripulante = contador_id_tripu;
 	tripulante->estado_tripulante = 'N';
 	tripulante->posicion_x = posicion_x;
 	tripulante->posicion_y = posicion_y;
-	tripulante->id_proxima_instruccion = id_proxima_tarea;
+	tripulante->id_proxima_instruccion = 0;
 	tripulante->puntero_PCB = dir_logica_pcb;
 
 	return tripulante;

@@ -101,15 +101,15 @@ uint32_t administrar_guardar_patota(t_pcb* nueva_patota){
 
 
 
-uint32_t administrar_guardar_tareas(t_queue* tareas_de_la_patota)
+uint32_t administrar_guardar_tareas(t_list* tareas_de_la_patota)
 {
 	int32_t desplazamiento = 0;
 	uint32_t tamanio_segmento;
 
-	memcpy(memoria_principal + desplazamiento, &(tareas_de_la_patota), (sizeof(t_tarea) * queue_size(tareas_de_la_patota)));
-	desplazamiento += (sizeof(t_tarea) * queue_size(tareas_de_la_patota));
+	memcpy(memoria_principal + desplazamiento, &(tareas_de_la_patota), (sizeof(t_tarea) * list_size(tareas_de_la_patota)));
+	desplazamiento += (sizeof(t_tarea) * list_size(tareas_de_la_patota));
 
-	tamanio_segmento = sizeof(t_tarea) * queue_size(tareas_de_la_patota);
+	tamanio_segmento = sizeof(t_tarea) * list_size(tareas_de_la_patota);
 
 	return tamanio_segmento;
 }
@@ -177,6 +177,166 @@ t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
 
 }
 
+
+t_tabla_segmentos_patota* buscar_tabla_de_patota(t_pcb* patota_buscada)
+{
+	bool se_encuentra_patota(void* tabla){
+
+		t_tabla_segmentos_patota* patota_tabla = (t_tabla_segmentos_patota*) tabla;
+
+		return patota_tabla->patota->pid == patota_buscada->pid;
+	}
+
+	t_tabla_segmentos_patota* tabla_buscada = (t_tabla_segmentos_patota*) list_find(tablas_segmentos, (void*) se_encuentra_patota);
+
+	return tabla_buscada;
+}
+
+/*
+t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_estructura tipo_de_segmento)
+{
+	bool mismo_tipo_segmento(void* segmento) {
+		t_segmento* segmento_a_buscar = (t_segmento*) segmento;
+		return (segmento_a_buscar->tipo_estructura == tipo_de_segmento);
+	}
+
+	t_tabla_segmentos_patota* segmento_patota = malloc(sizeof(t_tabla_segmentos_patota));
+	segmento_patota = (t_tabla_segmentos_patota*)list_get(tabla, 0);
+
+	t_segmento* segmento_buscado = (t_segmento*) list_find(segmento_patota->segmentos, (void*) mismo_tipo_segmento);
+
+	return segmento_buscado;
+}*/
+
+
+t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_estructura tipo_de_segmento)
+{
+	bool mismo_tipo_segmento(t_segmento* segmento) {
+		t_segmento* segmento_a_buscar = malloc(sizeof(t_segmento));
+		segmento_a_buscar = segmento;
+		return (segmento_a_buscar->tipo_estructura == tipo_de_segmento);
+	}
+
+	t_tabla_segmentos_patota* segmento_patota = malloc(sizeof(t_tabla_segmentos_patota));
+	segmento_patota = list_get(tabla, 0);
+
+	//t_segmento* segmento_buscado = list_find(segmento_patota->segmentos, (void*) mismo_tipo_segmento);
+	t_segmento* segmento_buscado = segmento_patota->segmentos->head->data;
+
+	while(segmento_buscado->tipo_estructura != tipo_de_segmento) {
+		segmento_buscado = (t_segmento*)segmento_patota->segmentos->head->next;
+	}
+
+	return segmento_buscado;
+}
+
+/*
+tabla general = tabla_segmentos patota
+
+		dentro de tabla_segmentos_patota = tabla_segmentos_patota->segmentos
+*/
+
+
+void* traducir_segmento(t_segmento* segmento_a_traducir)
+{
+	void* contenido;
+
+	switch(segmento_a_traducir->tipo_estructura) {
+		case PATOTA:
+			contenido = malloc(sizeof(t_pcb));
+			contenido = encontrar_patota(segmento_a_traducir);
+			break;
+		case TAREAS:
+			//contenido = malloc(sizeof(t_list));
+			//contenido = encontrar_tarea(segmento_a_traducir);
+			break;
+		case TRIPULANTE:
+			contenido = malloc(sizeof(t_tcb));
+			contenido = encontrar_tripulante(segmento_a_traducir);
+			break;
+		default:
+			break;
+	}
+
+	return contenido;
+}
+
+
+t_pcb* encontrar_patota(t_segmento* segmento)
+{
+	t_pcb* patota = malloc(sizeof(t_pcb));
+
+	void* inicio = (void*) segmento->inicio;
+	uint32_t desplazamiento = 0;
+
+	memcpy(&(patota->pid), inicio + desplazamiento, sizeof(patota->pid));
+	desplazamiento += sizeof(patota->pid);
+
+	memcpy(&(patota->tareas), inicio + desplazamiento, sizeof(patota->tareas));
+	desplazamiento += sizeof(patota->tareas);
+
+	if(segmento->tamanio_segmento == desplazamiento) {
+		return patota;
+	}
+	else {
+		return NULL;
+	}
+}
+
+
+t_list* encontrar_tarea(t_segmento* segmento)
+{
+	t_list* tareas_de_la_patota = list_create();
+
+	uint32_t tamanio_segmento = segmento->tamanio_segmento;
+
+	void* inicio = (void*) segmento->inicio;
+	uint32_t desplazamiento = 0;
+
+	memcpy(&(tareas_de_la_patota), inicio + desplazamiento, tamanio_segmento);
+	desplazamiento += tamanio_segmento;
+
+	if(segmento->tamanio_segmento == desplazamiento) {
+			return tareas_de_la_patota;
+	}
+	else {
+		return NULL;
+	}
+}
+
+t_tcb* encontrar_tripulante(t_segmento* segmento)
+{
+	t_tcb* tripulante = malloc(sizeof(t_tcb));
+
+	void* inicio = (void*) segmento->inicio;
+	uint32_t desplazamiento = 0;
+
+	memcpy(&(tripulante->id_tripulante), inicio + desplazamiento, sizeof(tripulante->id_tripulante));
+	desplazamiento += sizeof(tripulante->id_tripulante);
+
+	memcpy(&(tripulante->estado_tripulante), inicio + desplazamiento, sizeof(tripulante->estado_tripulante));
+	desplazamiento += sizeof(tripulante->estado_tripulante);
+
+	memcpy(&(tripulante->posicion_x), inicio + desplazamiento, sizeof(tripulante->posicion_x));
+	desplazamiento += sizeof(tripulante->posicion_x);
+
+	memcpy(&(tripulante->posicion_y), inicio + desplazamiento, sizeof(tripulante->posicion_y));
+	desplazamiento += sizeof(tripulante->posicion_y);
+
+	memcpy(&(tripulante->id_proxima_instruccion), inicio + desplazamiento, sizeof(tripulante->id_proxima_instruccion));
+	desplazamiento += sizeof(tripulante->id_proxima_instruccion);
+
+	memcpy(&(tripulante->puntero_PCB), inicio + desplazamiento, sizeof(tripulante->puntero_PCB));
+	desplazamiento += sizeof(tripulante->puntero_PCB);
+
+	if(segmento->tamanio_segmento == desplazamiento) {
+			return tripulante;
+	}
+	else {
+		return NULL;
+	}
+}
+
 /*
 void* buscar_estructura(void* estructura, tipo_estructura tipo_estructura)
 {
@@ -185,17 +345,16 @@ void* buscar_estructura(void* estructura, tipo_estructura tipo_estructura)
 	buscar en la tabla de segmentos: segmento->id_tripulante
 
 
+// PARA ENVIAR LA PROXIMA TAREA A ENVIAR
+	recibo un ID_TRIPULANTE
+	lo busco en los segmentos (tpo_segmento == TRIPULANTE)
+	una vez que encuentro el segmento por el ID de tripulante -> obtener el id_proxima_instruccion
+	y obtener la direccion logica del PCB
+	una vez que voy a la direccion del segmento de esa patota -> obtener la direccion de las tareas
+	y en las tareas : TRADUCIRLAS de bytes a una t_list
+	y buscar el ID_PROXIMA INSTRUCCION
+	retornar esa tarea al Discordiador
 
-
-	// PARA ENVIAR LA PROXIMA TAREA A ENVIAR
-	traducir
-	tripulante->puntero_PCB = 0;
-	buscar la direccion 0 (buscar por el que coincida con segmento->inicio)
-	traducir
-	patota->tareas = DIRECCION
-	buscar la direccion DIRECCION (buscar por el que coincida con segmento->inicio)
-	traducir
-	return queue_pop(tareas_de_la_patota) 		SI hago el pop, tambien tengo que actualizar la memoria => segmento
 }
 */
 

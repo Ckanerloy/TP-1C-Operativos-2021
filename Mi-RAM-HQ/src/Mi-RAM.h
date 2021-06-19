@@ -64,10 +64,10 @@ void iniciar_comunicacion(void);
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
-int32_t validar_espacio_por_patota(uint32_t tamanio);
+bool validar_espacio_por_patota(uint32_t tamanio);
 
 t_pcb* crear_pcb(void);
-t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x,uint32_t posicion_y,uint32_t dir_logica_prox_instruc);
+t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion_y);
 
 void mostrar_tripulante(t_tcb* tripulante);
 
