@@ -303,7 +303,7 @@ void obtener_orden_input()
 			}
 			strcat(parser_consola[1], "\0");
 
-			t_id_tripulante* id_tripulante_x_bitacora = malloc(sizeof(t_id_tripulante));
+			t_tripulante* id_tripulante_x_bitacora = malloc(sizeof(t_tripulante));
 			id_tripulante_x_bitacora->id_tripulante = atoi(parser_consola[1]);
 
 			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
@@ -331,8 +331,10 @@ void obtener_orden_input()
 			}
 			strcat(parser_consola[1], "\0");
 
-			t_id_tripulante* id_tripulante_a_expulsar = malloc(sizeof(t_id_tripulante));
+			t_tripulante* id_tripulante_a_expulsar = malloc(sizeof(t_tripulante));
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
+			// Busqueda de Patota que pertenece este tripulante
+			id_tripulante_a_expulsar->id_patota = 2;
 
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){

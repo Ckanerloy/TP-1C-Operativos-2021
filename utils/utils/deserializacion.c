@@ -93,7 +93,7 @@ void deserealizar_tripulante(t_tcb* mensaje, int32_t conexion) {
 }
 
 
-void deseralizar_id_tripulante(t_id_tripulante* mensaje, int32_t conexion)
+void deseralizar_id_tripulante(t_tripulante* mensaje, int32_t conexion)
 {
 	uint32_t tamanio;
 	uint32_t desplazamiento = 0;
@@ -102,6 +102,9 @@ void deseralizar_id_tripulante(t_id_tripulante* mensaje, int32_t conexion)
 
 	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
 	desplazamiento += sizeof(mensaje->id_tripulante);
+
+	memcpy(&(mensaje->id_patota), buffer_deserializar + desplazamiento, sizeof(mensaje->id_patota));
+	desplazamiento += sizeof(mensaje->id_patota);
 
 	free(buffer_deserializar);
 }

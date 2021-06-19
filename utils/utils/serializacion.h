@@ -19,7 +19,7 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota* mensaje);
 uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta_iniciar_patota* mensaje);
 uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tcb* mensaje);
-uint32_t serializar_paquete_id_tripulante(t_paquete* paquete, t_id_tripulante* mensaje);
+uint32_t serializar_paquete_id_tripulante(t_paquete* paquete, t_tripulante* mensaje);
 
 
 #endif /* UTILS_SERIALIZACION_H_ */

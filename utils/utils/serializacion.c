@@ -225,7 +225,7 @@ uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tcb* mensaje)
 
 
 
-uint32_t serializar_paquete_id_tripulante(t_paquete* paquete, t_id_tripulante* mensaje)
+uint32_t serializar_paquete_id_tripulante(t_paquete* paquete, t_tripulante* mensaje)
 {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
@@ -233,7 +233,7 @@ uint32_t serializar_paquete_id_tripulante(t_paquete* paquete, t_id_tripulante* m
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(uint32_t);
+	buffer->size = sizeof(uint32_t) + sizeof(uint32_t);
 
 	void* stream_auxiliar = malloc(buffer->size);
 
@@ -241,7 +241,11 @@ uint32_t serializar_paquete_id_tripulante(t_paquete* paquete, t_id_tripulante* m
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
 	desplazamiento += sizeof(mensaje->id_tripulante);
 
-	tamanio_a_enviar = sizeof(mensaje->id_tripulante);
+	// Id de Patota que pertenece
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_patota), sizeof(mensaje->id_patota));
+	desplazamiento += sizeof(mensaje->id_patota);
+
+	tamanio_a_enviar = sizeof(mensaje->id_tripulante) + sizeof(mensaje->id_patota);
 
 	if(desplazamiento != tamanio_a_enviar)
 	{

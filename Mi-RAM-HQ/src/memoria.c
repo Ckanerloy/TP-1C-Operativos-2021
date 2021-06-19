@@ -36,6 +36,8 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 
 			esquema_elegido = 'S';
 			tablas_segmentos = list_create();
+			segmentos_libres = list_create();
+			segmentos_ocupados = list_create();
 			//crear dos tablas de segmentos, los que estan ocupados y los que estan libres?
 
 			break;
@@ -79,6 +81,7 @@ t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 	t_tabla_segmentos_patota* tabla = malloc(sizeof(t_tabla_segmentos_patota));
 	tabla->patota = malloc(sizeof(t_pcb));
 	tabla->patota = nueva_patota;
+	tabla->ids_tripus = string_new();
 	tabla->segmentos = list_create();
 
 	return tabla;
@@ -86,7 +89,7 @@ t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 
 
 uint32_t administrar_guardar_patota(t_pcb* nueva_patota){
-	int32_t desplazamiento = 0;
+	int32_t desplazamiento = 0; // INICIO DEL SEGMENTO
 	uint32_t tamanio_segmento;
 
 	memcpy(memoria_principal + desplazamiento, &(nueva_patota->pid), sizeof(nueva_patota->pid));
@@ -145,7 +148,7 @@ uint32_t administrar_guardar_tripulante(t_tcb* nuevo_tripulante)
 }
 
 
-t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
+t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_estructura){
 	t_segmento* segmento = malloc(sizeof(t_segmento));
 
 	segmento->numero_de_segmento = contador_segmento;
@@ -202,7 +205,7 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado)
 
 		t_segmento* mejor_segmento = (t_segmento*) list_get(segmentos_con_espacio_ordenados, 0);
 		//list_remove_and_destroy_element(segmentos_libres, INDEX, FREE);
-		list_remove_by_condition(segmentos_con_espacio_ordenados, );
+		//list_remove_by_condition(segmentos_con_espacio_ordenados, );
 		return mejor_segmento;
 	}
 	else if(criterio_elegido == FIRST_FIT){
@@ -247,7 +250,7 @@ t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_estructura tipo_de_s
 }*/
 
 
-t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_estructura tipo_de_segmento)
+t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_segmento tipo_de_segmento)
 {
 	bool mismo_tipo_segmento(t_segmento* segmento) {
 		t_segmento* segmento_a_buscar = malloc(sizeof(t_segmento));

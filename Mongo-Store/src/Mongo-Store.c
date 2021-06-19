@@ -37,12 +37,12 @@ void obtener_datos_de_config(t_config* config) {
 
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
-	t_id_tripulante* tripulante_por_bitacora;
+	t_tripulante* tripulante_por_bitacora;
 
 	switch(operacion)
 {
 			case OBTENER_BITACORA:
-				tripulante_por_bitacora = malloc(sizeof(t_id_tripulante));
+				tripulante_por_bitacora = malloc(sizeof(t_tripulante));
 				recibir_mensaje(tripulante_por_bitacora, operacion, conexion);
 
 				// Recibe un id tripulante, y le envia la BITACORA del tripulante buscado

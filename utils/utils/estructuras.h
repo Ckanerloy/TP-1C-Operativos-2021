@@ -61,7 +61,13 @@ typedef enum
 	PATOTA,
 	TAREAS,
 	TRIPULANTE
-} tipo_estructura;
+} tipo_segmento;
+
+typedef enum
+{
+	LIBRE,
+	OCUPADO
+} estado;
 
 typedef enum
 {
@@ -117,7 +123,7 @@ typedef struct {
 typedef struct {
 	uint32_t id_tripulante;
 	uint32_t id_patota;
-} t_id_tripulante;
+} t_tripulante;
 
 typedef struct {
 	uint32_t id_tripulante;

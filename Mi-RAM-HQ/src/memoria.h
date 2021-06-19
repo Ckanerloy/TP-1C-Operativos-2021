@@ -5,8 +5,10 @@
 #include "utils/estructuras.h"
 
 t_list* tablas_segmentos;
-t_list* tablas_paginas;
+t_list* segmentos_libres;
+t_list* segmentos_ocupados;
 
+t_list* tablas_paginas;
 
 // Estructuras para Mi RAM HQ
 // SEGMENTACION
@@ -15,19 +17,19 @@ typedef struct segmento
 	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento
 	uint32_t inicio;					// Direccion fisica de donde empieza el segmento
 	uint32_t tamanio_segmento;			// Tamanio total del segmento
-	tipo_estructura tipo_estructura;
-	//estado_segmento estado;				// Si esta LIBRE u OCUPADO
+	tipo_segmento tipo_estructura;		// Si es una PATOTA, TAREAS, TRIPULANTE
+	estado estado_segemento;			// Si esta LIBRE u OCUPADO
 } t_segmento;
 
 
 typedef struct	tabla_segmentos_patota
 {
 	t_pcb* patota;
+	char* ids_tripus;
 	t_list* segmentos;
 } t_tabla_segmentos_patota; //una por patota
 
 
-t_list* segmentos_libres;
 
 // PAGINACION
 typedef struct pagina
@@ -55,9 +57,9 @@ algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo);
 
 
 
-t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura);
+t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_estructura);
 t_tabla_segmentos_patota* buscar_tabla_de_patota(t_pcb* patota_buscada);
-t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_estructura tipo_de_segmento);
+t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_segmento tipo_de_segmento);
 
 void* traducir_segmento(t_segmento* segmento_a_traducir);
 t_pcb* encontrar_patota(t_segmento* segmento);

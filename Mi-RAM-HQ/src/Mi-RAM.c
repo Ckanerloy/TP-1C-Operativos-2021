@@ -100,7 +100,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 	t_list* tareas_de_la_patota;
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 
-	t_id_tripulante* tripulante_a_eliminar;
+	t_tripulante* tripulante_a_eliminar;
 
 	switch(operacion)
 {
@@ -152,7 +152,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				printf("Tamanio de un PCB: %d\n", sizeof(t_pcb));
 				printf("Tamanio de un TCB: %d\n", sizeof(t_tcb));
-				printf("tarea %d\n", sizeof(t_tarea));
+				printf("Tamanio de una tarea: %d\n", sizeof(t_tarea));
 
 				// Verifica si hay espacio para guardar en memoria
 				if(validar_espacio_por_patota(tamanio_patota) == 0) {
@@ -200,8 +200,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 						// Tengo que buscar por la tabla de segmentos y encuentro cada tabla de patota
 						//   y de acuerdo a esa tabla de patota, tengo que buscar en cada segmento y traducir esos bytes para
 						// obtener los valores de cada estructura
-						printf("PID: %u \n", tabla->patota->pid);
-						printf("Direccion Tareas: %u\n\n", tabla->patota->tareas);
 
 						free(segmento_patota);
 						free(segmento_tareas);
@@ -216,6 +214,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					}
 
 					strcat(ids_enviar,"\0");
+
+					tabla->ids_tripus = malloc(strlen(ids_enviar)+1);
+					strcpy(tabla->ids_tripus,ids_enviar);
 
 					respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
 					respuesta_iniciar_patota->respuesta = 1;
@@ -263,18 +264,37 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				break;
 
 			case EXPULSAR_TRIPULANTE:
-				tripulante_a_eliminar = malloc(sizeof(t_id_tripulante));
+				tripulante_a_eliminar = malloc(sizeof(t_tripulante));
 				recibir_mensaje(tripulante_a_eliminar, operacion, conexion);
 
 				printf("Tripulante a Expulsar: %u \n", tripulante_a_eliminar->id_tripulante);
 
 				if(esquema_elegido == 'S') {
 
-					t_segmento* segmento = malloc(sizeof(t_segmento));
-					segmento = buscar_por_tipo_de_segmento(tablas_segmentos, PATOTA);
-
+					//t_segmento* segmento = malloc(sizeof(t_segmento));
+					//segmento = buscar_por_tipo_de_segmento(tablas_segmentos, PATOTA);
 					//t_pcb* patota = traducir_segmento(segmento);
 					//printf("PID patota buscada: %u\n\n", patota->pid);
+
+
+					t_tabla_segmentos_patota* tabla_ejemplo = malloc(sizeof(t_tabla_segmentos_patota));
+					tabla_ejemplo = list_get(tablas_segmentos, 1);
+
+
+					printf("ID de la Patota: %u \n", tabla_ejemplo->patota->pid);
+					printf("Direccion Tareas: %u\n", tabla_ejemplo->patota->tareas);
+					printf("Tripus que contiene: %s\n", tabla_ejemplo->ids_tripus);
+					//while(tablas_segmentos->head->data != NULL) {
+						//tabla_ejemplo = (t_tabla_segmentos_patota*)tablas_segmentos->head->data;
+
+
+
+					//	tablas_segmentos->head = tablas_segmentos->head->next;
+				//	}
+
+
+
+
 
 
 				}
