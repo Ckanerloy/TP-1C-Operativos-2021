@@ -176,6 +176,36 @@ t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_estructura){
 	return segmento;
 
 }
+/*
+ * IMPLEMENTACION DE BUSQUEDA DE SEGMENTO LIBRE
+ *
+bool* memoria_igual_o_mas_grande(void* elemento, uint32_t tamanio_buscado){
+	return tamanio_buscado >= ((t_segmento*)elemento)->tamanio_segmento;
+}
+
+bool* menor_a_mayor(void* elemento, void* elemento_siguiente){
+	return ((t_segmento*)elemento)->tamanio_segmento < ((t_segmento*)elemento_siguiente)->tamanio_segmento;
+}
+
+t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado){
+	if (memoria_restante < tamanio_buscado){
+		log_error(logger, "No hay espacio suficiente para guardar el segmento");
+		return NULL;
+	}
+	else (criterio_seleccionado == BEST_FIT){
+		t_list* segmentos_con_espacio = list_filter(segmentos_libres, memoria_igual_o_mas_grande);
+		t_list* segmentos_con_espacio_ordenados = list_sorted(segmentos_con_espacio, menor_a_mayor);
+		t_segmento* segmento_con_espacio = (t_segmento*) list_get(segmentos_con_espacio_ordenados, 0);
+		//list_remove_and_destroy_element(segmentos_libres, INDEX, FREE);
+		return segmento_con_espacio;
+	}
+	else (criterio_seleccionado == FIRST_FIT){
+		t_segmento* segmento_con_espacio = (t_segmento*) list_find(segmentos_libres, memoria_igual_o_mas_grande);
+		//list_remove_and_destroy_element(segmentos_libres, INDEX, FREE);
+		return segmento_con_espacio;
+	}
+}
+*/
 
 /*
 void* buscar_estructura(void* estructura, tipo_estructura tipo_estructura)
@@ -183,9 +213,6 @@ void* buscar_estructura(void* estructura, tipo_estructura tipo_estructura)
 
 	segmento->tipo_de_estructura = tipo_estructura;
 	buscar en la tabla de segmentos: segmento->id_tripulante
-
-
-
 
 	// PARA ENVIAR LA PROXIMA TAREA A ENVIAR
 	traducir
@@ -196,54 +223,5 @@ void* buscar_estructura(void* estructura, tipo_estructura tipo_estructura)
 	buscar la direccion DIRECCION (buscar por el que coincida con segmento->inicio)
 	traducir
 	return queue_pop(tareas_de_la_patota) 		SI hago el pop, tambien tengo que actualizar la memoria => segmento
-}
-*/
-
-
-/*
-
-bool noHayNingunaSuficientementeGrande(uint32_t tamStream){
-
-	for(int i =0; i<sizeListaMutex(particionesLibres); i++){
-		t_segmento* segmento = (t_segmento*)getListaMutex(particionesLibres, i);
-		if(segmento->tamanio_segmento >= tamStream){
-			return false;
-		}
-	}
-	return true;
-}
-
-
-t_segmento* obtener_segmento_libre(uint32_t tamanio){
-
-	if(noHayNingunaSuficientementeGrande(tamanio) || memoria_restante < tamanio){
-		log_error(logger, "No hay espacio suficiente para guardar el segmento.");
-		return NULL;
-	}
-
-	if (criterio_elegido == FIRST_FIT){
-
-		if(sizeListaMutex(particionesLibres)>1)
-		{
-			list_sort_Mutex(particionesLibres, menorAmayorSegunOffset);
-		}
-
-		t_segmento* pSeleccionadaFIRST = (t_segmento*)list_remove_by_condition_Mutex(particionesLibres, esSuficientementeGrandeParaElMSG);
-
-		return pSeleccionadaFIRST;
-
-	} else if(criterio_elegido == BEST_FIT){
-
-		if(sizeListaMutex(particionesLibres)>1)
-		{
-			list_sort_Mutex(particionesLibres, menorAmayorSegunSize);
-		}
-
-		t_segmento* pSeleccionadaBEST = (t_segmento*)list_remove_by_condition_Mutex(particionesLibres, esSuficientementeGrandeParaElMSG);
-
-		return pSeleccionadaBEST;
-	}
-
-	return NULL;
 }
 */

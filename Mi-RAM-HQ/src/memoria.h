@@ -26,6 +26,7 @@ typedef struct	tabla_segmentos_patota
 } t_tabla_segmentos_patota; //una por patota
 
 
+t_list* segmentos_libres;
 
 // PAGINACION
 typedef struct tabla_paginas
@@ -36,8 +37,8 @@ typedef struct tabla_paginas
 } t_paginas;
 
 
-
-
+bool* memoria_igual_o_mas_grande(void* elemento, uint32_t tamanio_buscado);
+t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado);
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
 void elegir_esquema_de_memoria(char* ESQUEMA);
 criterio_seleccion elegir_criterio_seleccion(char* criterio);
