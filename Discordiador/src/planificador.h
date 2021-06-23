@@ -50,21 +50,16 @@ sem_t* planificacion_on;
 sem_t* planificacion_on_ready_running;
 
 sem_t* mutex_valorMultitarea;
-sem_t* mutex_cantidad_ready;
 
 sem_t* contador_tripulantes_en_ready;
 sem_t* contador_tripulantes_en_new;
-
-int cantidad_ready;
 
 //Hilos
 //pthread_t hilo_new_ready;			Por que se pone aca, pero tambien esta en planificador.c?
 //pthread_t hilo_block_ready;
 
 
-sem_t* mutex_prueba;
 
-int prueba;
 int valor_sabotaje;
 
 

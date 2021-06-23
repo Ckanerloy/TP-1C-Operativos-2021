@@ -130,16 +130,6 @@ bool menorId(tripulante_plani* tripulante1,tripulante_plani* tripulante2){
 }
 
 
-
-/** bool y
-	* @NAME: list_add_sorted
-	* @DESC: Agrega un elemento a una lista ordenada, manteniendo el
-	* orden definido por el comparador
-	* El comparador devuelve si el primer parametro debe aparecer antes que el
-	* segundo en la lista
-
-	int list_add_sorted(t_list *self, void* data, bool (*comparator)(void*,void*));
-*/
 void iniciar_escucha_por_consola(){
 
 	while(1){
@@ -192,11 +182,10 @@ void obtener_orden_input(){
 	 sem_post(comando_para_ejecutar);
 	 operacion = mapeo_valor_consola(comando_ingresado);
 	 free(comando_ingresado);
-	 int32_t valor_semaforo;
+	 //int32_t valor_semaforo;
 	 tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 	 int largo;
 	 int recorrido;
-	 //tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
 	 switch(operacion){
 
 
@@ -214,12 +203,6 @@ void obtener_orden_input(){
 			sem_post(planificacion_on);
 			sem_post(planificacion_on_ready_running);
 
-			// LOS TRIPULANTES ESTAN DEFINIDOS POR HILO -> CADA HILO IRIA A UNA COLA
-			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO EXECUTE
-
-
-
-
 			break;
 
 		case PAUSAR_PLANIFICACION:
@@ -228,9 +211,7 @@ void obtener_orden_input(){
 			list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
 			sem_wait(planificacion_on);
 			sem_wait(planificacion_on_ready_running);
-			//A
-			// PAUSA LA PLANIFICACION DE LOS TRIPULANTES, ES DECIR TODOS EN PAUSA? o se mete algun WAIT(signal)
-			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO BLOCK I/O
+
 			break;
 
 		case INICIAR_PATOTA:
@@ -478,13 +459,7 @@ void obtener_orden_input(){
 			break;
 
 		case TERMINAR_PROGRAMA:
-
-
-
-		//	printf("%d",prueba);
-		//	printf("%d",queue_size(cola_exit));
-
-			/*printf("Terminando programa... \n");
+			printf("Terminando programa... \n");
 			sleep(1);
 			printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
 			// Libero memoria
@@ -492,9 +467,9 @@ void obtener_orden_input(){
 			free(cadena_ingresada);
 			finalizar_semaforos();
 			terminar_programa(config, logger);
-			breack
+			//break
 			exit(0);
-*/
+
 			break;
 		default:
 			printf("No se reconoce ese comando. Por favor, ingrese un comando válido.\n");
@@ -503,18 +478,10 @@ void obtener_orden_input(){
 
 	sem_post(termino_operacion);
 
-
-
 	free(parser_consola);
 	free(cadena_ingresada);
 
 }
-
-
-
-
-
-
 
 void arreglar_sabotaje() {
 	// MANDA TRIPULANTE MAS CERCANO A LA UBICACION DEL SABOTAJE PARA QUE LO SOLUCIONE

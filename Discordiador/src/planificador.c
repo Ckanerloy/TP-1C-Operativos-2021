@@ -44,31 +44,20 @@ void inicializar_semaforos_plani(){
 	mutex_exit = malloc(sizeof(sem_t));
 	sem_init(mutex_exit, 0, 1);
 
-	mutex_prueba=malloc(sizeof(sem_t));
-	sem_init(mutex_prueba, 0, 1);
-
-	mutex_cantidad_ready=malloc(sizeof(sem_t));
-	sem_init(mutex_cantidad_ready, 0, 1);
 }
 
 
 void finalizar_semaforos_plani() {
-	free(mutex_prueba);
 	free(contador_tripulantes_en_new);
+	free(contador_tripulantes_en_ready);
 
 	free(mutex_new);
 	free(mutex_ready);
 	free(mutex_exit);
+	free(mutex_valorMultitarea);
 
 	free(planificacion_on);
 	free(planificacion_on_ready_running);
-	free(mutex_valorMultitarea);
-
-
-	free(mutex_cantidad_ready);
-
-
-	free(contador_tripulantes_en_ready);
 }
 
 
@@ -94,7 +83,6 @@ void elegir_algoritmo() {
 
 		case RR:
 			printf("Eligio el algoritmo Round Robin con un Quantum de %u. \n", QUANTUM);
-			//tripulante_planificado = obtener_siguiente_rr();
 			break;
 
 		default:
@@ -106,7 +94,7 @@ void elegir_algoritmo() {
 void iniciar_planificacion() {
 
 	cola_new = queue_create();
-	//cola_ready = list_create();
+
 	cola_ready = queue_create();
 
 	cola_exit = queue_create();
@@ -144,9 +132,6 @@ void new_ready() {
 
 		sem_post(planificacion_on);
 
-		sem_wait(mutex_cantidad_ready);
-		//cantidad_ready++;
-		sem_post(mutex_cantidad_ready);
 		sem_post(contador_tripulantes_en_ready);
 
 	}
@@ -176,10 +161,6 @@ void ready_running() {
             multitarea_Disponible--;
             sem_post(mutex_valorMultitarea);
 
-            sem_wait(mutex_prueba);
-            prueba++;
-            sem_post(mutex_prueba);
-
             tripulante_a_running->estado='E';
             //Actualizar el estado (a E) en Mi-Ram
 
@@ -205,9 +186,6 @@ void running_ready(tripulante_plani* tripu){
 
 	tripu->estado='R';
 	sem_post(contador_tripulantes_en_ready);
-	//sem_wait(mutex_cantidad_ready);
-	//cantidad_ready++;
-	//sem_post(mutex_cantidad_ready);
 	//Actualizar el estado del tripulante (R) EN Mi-Ram
 }
 
@@ -233,10 +211,6 @@ void block_ready(tripulante_plani* tripu){
 
 void block_exit(tripulante_plani* tripu){
 
-	sem_wait(mutex_prueba);
-	prueba++;
-	sem_post(mutex_prueba);
-
 	sem_wait(mutex_exit);
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
@@ -248,8 +222,6 @@ void block_exit(tripulante_plani* tripu){
 
 void tripulante_hilo(void* tripulante){
 	tripulante_plani* tripu = tripulante;
-	int valor_semaforo;
-
 
 	sem_wait(tripu->sem_planificacion);
 
@@ -261,7 +233,6 @@ void tripulante_hilo(void* tripulante){
 
 	while(tripu->tarea_a_realizar != NULL){
 		sem_wait(tripu->sem_planificacion);
-		sem_getvalue(tripu->sem_planificacion,&valor_semaforo);
 		posiciones* posicion_tarea;
 		posicion_tarea = malloc(sizeof(posiciones));
 		posicion_tarea->posicion_x = tripu->tarea_a_realizar->posicion_x;
@@ -276,18 +247,11 @@ void tripulante_hilo(void* tripulante){
 
 				if(cantidadRealizado==QUANTUM){
 					running_ready(tripu);
-
-
-
-					int valor_semaforo;
-
 					cantidadRealizado=0;
-					sem_getvalue(tripu->sem_planificacion,&valor_semaforo);
 					sem_wait(tripu->sem_planificacion);
 				}
 
 			}
-	//		sem_wait(mutexayda);
 
 			sem_wait(tripu->sem_tripu);
 			sleep(RETARDO_CICLO_CPU);
@@ -296,7 +260,6 @@ void tripulante_hilo(void* tripulante){
 			distancia--;
 
 			sem_post(tripu->sem_tripu);
-		//	sem_post(mutexayda);
 		}
 		if(algoritmo_elegido==QUANTUM){
 			if(cantidadRealizado==QUANTUM){
@@ -459,12 +422,6 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 	sleep(RETARDO_CICLO_CPU);
 	sem_post(tripu->sem_tripu);
-
-
-	sem_wait(mutex_prueba);
-	prueba++;
-	sem_post(mutex_prueba);
-
 
 	running_block(tripu);
 
