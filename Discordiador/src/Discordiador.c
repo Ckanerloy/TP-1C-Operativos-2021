@@ -31,8 +31,8 @@ void inicializar_listas(){
 }
 
 void inicializar_semaforos(){
-	sabotaje = malloc(sizeof(sem_t));
-	sem_init(sabotaje, 0, 1);
+	mutex_sabotaje = malloc(sizeof(sem_t));
+	sem_init(mutex_sabotaje, 0, 1);
 
 	comando_para_ejecutar = malloc(sizeof(sem_t));
 	sem_init(comando_para_ejecutar, 0, 1);
@@ -43,7 +43,7 @@ void inicializar_semaforos(){
 
 
 void finalizar_semaforos() {
-	free(sabotaje);
+	//free(sabotaje);
 	free(termino_operacion);
 	free(comando_para_ejecutar);
 }
@@ -53,8 +53,8 @@ void crear_hilos(){
 	pthread_create(&hilo_consola, NULL,(void*)iniciar_escucha_por_consola, NULL);
 	pthread_detach(hilo_consola);
 
-	pthread_create(&hilo_sabotaje, NULL,(void*)iniciar_escucha_sabotaje, NULL);
-	pthread_detach(hilo_sabotaje);
+	//pthread_create(&hilo_sabotaje, NULL,(void*)iniciar_escucha_sabotaje, NULL);
+	//pthread_detach(hilo_sabotaje);
 
 
 	pthread_create(&hilo_new_ready, NULL,(void*)new_ready, NULL);
@@ -64,7 +64,7 @@ void crear_hilos(){
 	pthread_detach(hilo_ready_running);
 
 }
-
+/*
 void iniciar_escucha_sabotaje(void){
 
 	//conexion_sabotaje = iniciar_servidor(IP_MONGO_STORE, PUERTO_MONGO_STORE);
@@ -74,36 +74,64 @@ void iniciar_escucha_sabotaje(void){
 	t_respuesta_mongo* respuesta;
 	while(1){
 		//recibir_mensaje(respuesta, RECIBIR_SABOTAJE, conexion_sabotaje);
+		sem_wait(mutex_sabotaje);
+		valor_sabotaje = 1;
+		sem_post(mutex_sabotaje);
+		//filesystem esperar señal server espeando posible sabotaje
 
+		//la señal te llega  filesystem tiene ip y puerto de disc
 		int largo;
-		largo=list_size(lista_tripulantes);
+
+		tripulante_plani* tripuMasCercano = malloc(sizeof(tripulante_plani));
+
 		tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+
+
+		largo = list_size(lista_tripulantes);
 		for(int i=0;i<largo;i++){
-			tripulante=list_get(lista_tripulantes,i);
+			tripulante = list_get(lista_tripulantes,i);
 			if(tripulante->estado == 'E'){
 				list_add_sorted(bloquedo_suspendido, (void*) tripulante,(void*)menorId);
 			}
 		}
 		bloquedo_suspendido = list_map(bloquedo_suspendido, (void*) poner_en_cero_semaforos);
 
-		list_clean(bloquedo_suspendido);
+		//tripu_mas_cercano = list_fold1(bloquedo_suspendido, (void*) mas_cercano);
 
+		list_clean(bloquedo_suspendido);
 		for(int i=0;i<largo;i++){
-			tripulante=list_get(lista_tripulantes,i);
+			tripulante = list_get(lista_tripulantes,i);
 			if(tripulante->estado == 'R'){
 				list_add_sorted(bloquedo_suspendido, (void*) tripulante,(void*)menorId);
 			}
 		}
 		bloquedo_suspendido = list_map(bloquedo_suspendido, (void*) poner_en_cero_semaforos);
 
-		//recorrer la lista de tripulantes
+		//tripu_mas_cercano
+
+		sem_wait(mutex_sabotaje);
+		valor_sabotaje=0;
+		sem_post(mutex_sabotaje);
 	}
 }
+*/
+
+/*
+tripulante_plani* mas_cercano(tripulante_plani* tripulante1,tripulante_plani* tripulante2){
+	//tenemos variable global q dice la posicion del sabotaje
+	obtener_distancia(tripulante1->, posiciones* posicion_tarea);
+
+}
+
+*/
+
 bool menorId(tripulante_plani* tripulante1,tripulante_plani* tripulante2){
 	return tripulante1->id_tripulante<tripulante2->id_tripulante;
 }
 
-/**
+
+
+/** bool y
 	* @NAME: list_add_sorted
 	* @DESC: Agrega un elemento a una lista ordenada, manteniendo el
 	* orden definido por el comparador
@@ -166,11 +194,11 @@ void obtener_orden_input(){
 	 free(comando_ingresado);
 	 int32_t valor_semaforo;
 	 tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+	 int largo;
+	 int recorrido;
 	 //tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
 	 switch(operacion){
 
-
-	// Arranca todo pausado
 
 		case INICIAR_PLANIFICACION:
 
@@ -180,16 +208,16 @@ void obtener_orden_input(){
 		//	if(valor_semaforo == 0){
 				printf("Iniciando Planificacion....... \n");
 			//}
+			elegir_algoritmo();
 
-
-			lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
+			list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
 			sem_post(planificacion_on);
 			sem_post(planificacion_on_ready_running);
 
 			// LOS TRIPULANTES ESTAN DEFINIDOS POR HILO -> CADA HILO IRIA A UNA COLA
 			// PONE A TODOS LOS TRIPULANTES EN EL ESTADO EXECUTE
 
-			elegir_algoritmo();
+
 
 
 			break;
@@ -197,8 +225,7 @@ void obtener_orden_input(){
 		case PAUSAR_PLANIFICACION:
 
 
-
-			lista_semaforos_tripulantes = list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
+			list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
 			sem_wait(planificacion_on);
 			sem_wait(planificacion_on_ready_running);
 			//A
@@ -208,7 +235,7 @@ void obtener_orden_input(){
 
 		case INICIAR_PATOTA:
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
@@ -298,8 +325,8 @@ void obtener_orden_input(){
 					for(int i=0;mensaje_patota->cantidad_tripulantes>i;i++){
 						tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 						tripulante->id_tripulante = atoi(parser_ids[i]);
-						tripulante->numero_patota = 5;
-						tripulante->estado='N';//A
+						tripulante->numero_patota = 5; //esto lo devuelve mi ram
+						tripulante->estado='N';
 
 						sem_t* sem_plani=malloc(sizeof(sem_t));
 						sem_init(sem_plani,0,0);
@@ -365,21 +392,16 @@ void obtener_orden_input(){
 			}
 
 
-			int largo=list_size(lista_tripulantes);
+			largo=list_size(lista_tripulantes);
 
-			int recorrido;
+
 			listar_tripulantes();
-			tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+
 			for(recorrido=0;recorrido<largo;recorrido++){
 				tripulante=list_get(lista_tripulantes, recorrido);
 				printf("Tripulante: %u           Patota: %u      Status: %c \n",tripulante->id_tripulante,tripulante->numero_patota,tripulante->estado);
 
 			}
-
-			//while(queue_size(cola_exit)>0){
-			//	tripulante_plani* tripulante_a_ready = queue_pop(cola_exit);
-			//	printf("id tripulante (COLA exit): %u \n",tripulante_a_ready->id_tripulante);
-			//}
 
 
 			break;
@@ -428,7 +450,18 @@ void obtener_orden_input(){
 				break;
 			}
 
+			largo = list_size(lista_tripulantes);
 
+
+
+			for(recorrido=0;recorrido<largo;recorrido++){
+					tripulante=list_get(lista_tripulantes, recorrido);
+					if(id_tripulante_a_expulsar->id_tripulante==tripulante->id_tripulante){
+						sem_wait(tripulante->sem_tripu);
+						free(list_remove(lista_tripulantes,recorrido));
+					}
+
+			}
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 			// ENVIA EL ID DEL TRIPULANTE A EXPULSAR: LO ELIMINA DEL MAPA, LO ELIMINA DE LA MEMORIA
@@ -438,6 +471,7 @@ void obtener_orden_input(){
 
 
 			enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
+
 
 			free(id_tripulante_a_expulsar);
 			cerrar_conexion(logger,conexion_mi_ram);
@@ -488,7 +522,10 @@ void arreglar_sabotaje() {
 
 
 void poner_en_cero_semaforos(sem_t* semaforo){
-	int valor;
+
+
+	sem_wait(semaforo);
+	/*int valor;
 	sem_getvalue(semaforo,&valor);
 	printf("aca");
 	if(valor==1){
@@ -497,7 +534,7 @@ void poner_en_cero_semaforos(sem_t* semaforo){
 		pthread_create(&hilo_solucion,NULL,(void*)esperadorDeUno,semaforo);
 		pthread_detach(hilo_solucion);
 	}
-
+	*/
 
 }
 
@@ -515,5 +552,6 @@ void esperadorDeUno(sem_t* semaforo){
 	//sem_wait(semaforo);
 
 }
+
 
 

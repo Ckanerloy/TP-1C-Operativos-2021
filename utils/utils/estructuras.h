@@ -74,7 +74,7 @@ typedef struct
 
 
 
-// Estructuras del Discordiador
+// Estructuras del Discordiador      //rev
 typedef struct {
 	uint32_t id_tripulante;
 	pthread_t hilo_id_tripulante;

@@ -42,7 +42,7 @@ int32_t conexion_sabotaje;
 
 // Semaforos
 sem_t* comando_para_ejecutar;
-sem_t* sabotaje;
+sem_t* mutex_sabotaje;
 sem_t* termino_operacion;
 
 // Hilos
@@ -72,6 +72,9 @@ void solucionadorProblemas(sem_t*);
 
 void poner_en_cero_semaforos(sem_t* semaforo);
 void poner_en_uno_semaforos(sem_t* semaforo);
+
+
+tripulante_plani* mas_cercano(tripulante_plani* tripulante1,tripulante_plani* tripulante2);
 
 bool menorId(tripulante_plani* tripulante1,tripulante_plani* tripulante2);
 // POR AHORA SON UNA IDEA
