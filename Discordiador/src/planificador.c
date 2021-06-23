@@ -252,9 +252,11 @@ void tripulante_hilo(void* tripulante){
 				}
 
 			}
-
+			//printf("antes del wait/n");
+			//fflush(stdout);
 			sem_wait(tripu->sem_tripu);
-			sleep(RETARDO_CICLO_CPU);
+			//printf("despues del wait");
+			//sleep(RETARDO_CICLO_CPU);
 			//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
 			cantidadRealizado ++;
 			distancia--;
@@ -279,14 +281,20 @@ void tripulante_hilo(void* tripulante){
 	sem_wait(tripu->sem_tripu);
 }
 
+//TAREA SABOTAJE
+void hilo_tripulante_sabotaje(tripulante_plani* tripu){
+
+}
+
+
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
 
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 
 	tarea->operacion=GENERAR_OXIGENO;
 	tarea->cantidad=5;
-	tarea->posicion_x=5;
-	tarea->posicion_y=5;
+	tarea->posicion_x=20;
+	tarea->posicion_y=16;
 	tarea->tiempo=5;
 	return tarea;
 

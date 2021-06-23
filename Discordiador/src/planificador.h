@@ -38,7 +38,8 @@ t_list* lista_semaforos_tripulantes;
 t_list* lista_tripulantes;
 
 
-t_list* bloquedo_suspendido;
+t_list* bloqueado_suspendido;
+t_list* bloqueado_suspendido_ready;
 //Semaforos
 
 sem_t* mutex_ready;
@@ -81,6 +82,7 @@ void inicializar_listas();
 void pulso_rafaga();
 void running_ready(tripulante_plani* tripulante);
 void tripulante_hilo(void* tripulante);
+void hilo_tripulante_sabotaje(tripulante_plani* tripu);
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota);
 posiciones* obtener_posiciones(uint32_t tripulante);
 uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);

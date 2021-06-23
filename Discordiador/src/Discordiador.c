@@ -64,7 +64,7 @@ void crear_hilos(){
 	pthread_detach(hilo_ready_running);
 
 }
-/*
+
 void iniciar_escucha_sabotaje(void){
 
 	//conexion_sabotaje = iniciar_servidor(IP_MONGO_STORE, PUERTO_MONGO_STORE);
@@ -82,48 +82,61 @@ void iniciar_escucha_sabotaje(void){
 		//la señal te llega  filesystem tiene ip y puerto de disc
 		int largo;
 
-		tripulante_plani* tripuMasCercano = malloc(sizeof(tripulante_plani));
+		tripulante_plani* tripu_mas_cercano = malloc(sizeof(tripulante_plani));
 
 		tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+
 
 
 		largo = list_size(lista_tripulantes);
 		for(int i=0;i<largo;i++){
 			tripulante = list_get(lista_tripulantes,i);
 			if(tripulante->estado == 'E'){
-				list_add_sorted(bloquedo_suspendido, (void*) tripulante,(void*)menorId);
+				//sem_wait(tripulante->sem_tripu);
+				list_add_sorted(bloqueado_suspendido, (void*) tripulante,(void*)menorId);
 			}
 		}
-		bloquedo_suspendido = list_map(bloquedo_suspendido, (void*) poner_en_cero_semaforos);
+		list_map(bloqueado_suspendido, (void*) poner_en_cero_semaforos);
 
-		//tripu_mas_cercano = list_fold1(bloquedo_suspendido, (void*) mas_cercano);
-
-		list_clean(bloquedo_suspendido);
 		for(int i=0;i<largo;i++){
 			tripulante = list_get(lista_tripulantes,i);
 			if(tripulante->estado == 'R'){
-				list_add_sorted(bloquedo_suspendido, (void*) tripulante,(void*)menorId);
+				list_add_sorted(bloqueado_suspendido_ready, (void*) tripulante,(void*)menorId);
 			}
 		}
-		bloquedo_suspendido = list_map(bloquedo_suspendido, (void*) poner_en_cero_semaforos);
+		list_map(bloqueado_suspendido_ready, (void*) poner_en_cero_semaforos);
 
-		//tripu_mas_cercano
+		list_add_all(bloqueado_suspendido,bloqueado_suspendido_ready);
 
+		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
+
+		pthread_create(&hilo_tripulante_sabo,NULL,(void*)hilo_tripulante_sabotaje,tripu_mas_cercano);
+		pthread_detach(hilo_tripulante_sabo);
+
+
+
+
+
+
+		//FINAL
 		sem_wait(mutex_sabotaje);
 		valor_sabotaje=0;
 		sem_post(mutex_sabotaje);
 	}
 }
-*/
 
-/*
+
+
 tripulante_plani* mas_cercano(tripulante_plani* tripulante1,tripulante_plani* tripulante2){
 	//tenemos variable global q dice la posicion del sabotaje
-	obtener_distancia(tripulante1->, posiciones* posicion_tarea);
-
+	posiciones* posicion_tripu1;
+	posicion_tripu1 = malloc(sizeof(posiciones));
+	posiciones* posicion_tripu2;
+	posicion_tripu2 = malloc(sizeof(posiciones));
+	obtener_distancia(posicion_tripu1, posicion_tripu2);
 }
 
-*/
+
 
 bool menorId(tripulante_plani* tripulante1,tripulante_plani* tripulante2){
 	return tripulante1->id_tripulante<tripulante2->id_tripulante;
@@ -199,7 +212,8 @@ void obtener_orden_input(){
 			//}
 			elegir_algoritmo();
 
-			list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
+			//list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
+			list_iterate(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
 			sem_post(planificacion_on);
 			sem_post(planificacion_on_ready_running);
 
@@ -208,7 +222,9 @@ void obtener_orden_input(){
 		case PAUSAR_PLANIFICACION:
 
 
-			list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
+			//list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
+			list_iterate(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
+
 			sem_wait(planificacion_on);
 			sem_wait(planificacion_on_ready_running);
 
@@ -490,8 +506,8 @@ void arreglar_sabotaje() {
 
 void poner_en_cero_semaforos(sem_t* semaforo){
 
-
-	sem_wait(semaforo);
+    sem_wait(semaforo);
+	//return semaforo;
 	/*int valor;
 	sem_getvalue(semaforo,&valor);
 	printf("aca");
@@ -519,6 +535,3 @@ void esperadorDeUno(sem_t* semaforo){
 	//sem_wait(semaforo);
 
 }
-
-
-

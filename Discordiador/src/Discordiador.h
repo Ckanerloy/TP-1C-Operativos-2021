@@ -54,8 +54,7 @@ pthread_t hilo_ready_running;
 pthread_t hilo_solucion;   //preguntar
 
 pthread_t hilo_sabotaje;
-
-
+pthread_t hilo_tripulante_sabo;
 
 t_log* logger;
 t_config* config;
