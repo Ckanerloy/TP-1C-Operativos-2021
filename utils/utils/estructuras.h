@@ -52,9 +52,16 @@ typedef struct {
 	uint32_t tamanio_ids;
 } t_respuesta;
 
+
+typedef struct {
+	uint32_t posicion_x;
+	uint32_t posicion_y;
+} posiciones;
+
 typedef struct {
 	uint32_t sabotaje_on;
-
+//	t_tarea* tarea_sabotaje;
+	posiciones* posicion_sabotaje;
 } t_respuesta_mongo;
 
 // Estructuras de Sockets
@@ -98,10 +105,7 @@ typedef struct {
 } t_id_tripulante;
 
 
-typedef struct {
-	uint32_t posicion_x;
-	uint32_t posicion_y;
-} posiciones;
+
 
 
 
@@ -136,6 +140,14 @@ typedef struct {
     uint32_t posicion_y;
     int32_t tiempo;
 } t_tarea;
+
+typedef struct {
+	posiciones* posicion_sabotaje;
+	posiciones* posicion_inicial;
+	uint32_t id_tripulante;
+	uint32_t id_patota;
+} tripulante_sabotaje;
+
 
 typedef struct {
 	uint32_t id_tripulante;

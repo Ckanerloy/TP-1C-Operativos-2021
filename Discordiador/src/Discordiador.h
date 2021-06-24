@@ -37,6 +37,7 @@ int32_t conexion_mi_ram;
 int DURACION_SABOTAJE;
 int RETARDO_CICLO_CPU;
 
+
 //int32_t conexion_socket;
 int32_t conexion_sabotaje;
 

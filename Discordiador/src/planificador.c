@@ -229,7 +229,7 @@ void tripulante_hilo(void* tripulante){
 
 	posiciones* posicion_tripu;
 	posicion_tripu = malloc(sizeof(posiciones));
-	posicion_tripu = obtener_posiciones(tripu->id_tripulante);
+	posicion_tripu = obtener_posiciones(tripu->id_tripulante,tripu->numero_patota);
 
 	while(tripu->tarea_a_realizar != NULL){
 		sem_wait(tripu->sem_planificacion);
@@ -256,7 +256,7 @@ void tripulante_hilo(void* tripulante){
 			//fflush(stdout);
 			sem_wait(tripu->sem_tripu);
 			//printf("despues del wait");
-			//sleep(RETARDO_CICLO_CPU);
+			sleep(RETARDO_CICLO_CPU);
 			//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
 			cantidadRealizado ++;
 			distancia--;
@@ -280,12 +280,40 @@ void tripulante_hilo(void* tripulante){
 	}
 	sem_wait(tripu->sem_tripu);
 }
-
+/*
 //TAREA SABOTAJE
-void hilo_tripulante_sabotaje(tripulante_plani* tripu){
+void hilo_tripulante_sabotaje(tripulante_sabotaje* tripu){
+
+	posiciones* posicion_tarea;
+	posicion_tarea = malloc(sizeof(posiciones));
+	posicion_tarea->posicion_x = tripu->posicion_sabotaje->posicion_x;
+	posicion_tarea->posicion_y = tripu->posicion_sabotaje->posicion_y;
+
+
+	posiciones* posicion_tripu;
+	posicion_tripu = malloc(sizeof(posiciones));
+	posicion_tripu = obtener_posiciones(tripu->id_tripulante,tripu->id_patota);
+
+
+	posiciones* posicion_tripu_inicial;
+	posicion_tripu_inicial = malloc(sizeof(posiciones));
+	posicion_tripu_inicial->posicion_x=posicion_tripu->posicion_x;
+	posicion_tripu_inicial->posicion_y=posicion_tripu->posicion_y;
+
+
+	uint32_t distancia = obtener_distancia(posicion_tripu,posicion_tarea);
+
+	while(distancia > 0){
+		//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
+		sleep(RETARDO_CICLO_CPU);
+		distancia--;
+	}
+	//avisar q estas en posicion de resolucion de sabotaje y mandar orden de ejecucion a imongo
+	sleep(DURACION_SABOTAJE);
+
 
 }
-
+*/
 
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
 
@@ -304,7 +332,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
 	//return obtener_la_tarea(tarea_tripulante);
 }
 
-posiciones* obtener_posiciones(uint32_t tripulante){
+posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota){
 	//le mandamos el id del tripulante a Mi_Ram y nos dice su ubicacion
 	posiciones* posicion= malloc(sizeof(posiciones));
 	posicion->posicion_x=1;

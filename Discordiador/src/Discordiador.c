@@ -71,6 +71,7 @@ void iniciar_escucha_sabotaje(void){
 	//if(resultado_conexion(conexion_sabotaje, logger, "i-mongo") == -1){
 	//	exit(-1);
 	//}
+	/*
 	t_respuesta_mongo* respuesta;
 	while(1){
 		//recibir_mensaje(respuesta, RECIBIR_SABOTAJE, conexion_sabotaje);
@@ -81,6 +82,8 @@ void iniciar_escucha_sabotaje(void){
 
 		//la señal te llega  filesystem tiene ip y puerto de disc
 		int largo;
+
+
 
 		tripulante_plani* tripu_mas_cercano = malloc(sizeof(tripulante_plani));
 
@@ -96,6 +99,7 @@ void iniciar_escucha_sabotaje(void){
 				list_add_sorted(bloqueado_suspendido, (void*) tripulante,(void*)menorId);
 			}
 		}
+
 		list_map(bloqueado_suspendido, (void*) poner_en_cero_semaforos);
 
 		for(int i=0;i<largo;i++){
@@ -110,7 +114,16 @@ void iniciar_escucha_sabotaje(void){
 
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
-		pthread_create(&hilo_tripulante_sabo,NULL,(void*)hilo_tripulante_sabotaje,tripu_mas_cercano);
+		tripulante_sabotaje* tripu_sabotaje = malloc(sizeof(tripulante_plani));
+
+		tripu_sabotaje->id_tripulante=tripu_mas_cercano->id_tripulante;
+		tripu_sabotaje->id_patota=tripu_mas_cercano->numero_patota;
+		tripu_sabotaje->posicion_sabotaje=respuesta->posicion_sabotaje;
+	//	tripu_sabotaje->posicion_inicial=
+
+		tripu_mas_cercano->estado='E';
+
+		pthread_create(&hilo_tripulante_sabo,NULL,(void*)hilo_tripulante_sabotaje,tripu_sabotaje);
 		pthread_detach(hilo_tripulante_sabo);
 
 
@@ -123,6 +136,7 @@ void iniciar_escucha_sabotaje(void){
 		valor_sabotaje=0;
 		sem_post(mutex_sabotaje);
 	}
+	*/
 }
 
 
@@ -162,6 +176,7 @@ void obtener_datos_de_config(t_config* config) {
 
 	DURACION_SABOTAJE = config_get_int_value(config, "DURACION_SABOTAJE");
 	RETARDO_CICLO_CPU = config_get_int_value(config, "RETARDO_CICLO_CPU");
+
 }
 
 void obtener_orden_input(){
