@@ -88,6 +88,7 @@ typedef struct {
 	posiciones* posicion_sabotaje;
 } t_respuesta_mongo;
 
+
 // Estructuras de Sockets
 typedef struct
 {
@@ -122,6 +123,7 @@ typedef struct {
 	sem_t* sem_tripu;
 	sem_t* sem_planificacion;
 } tripulante_plani;
+
 
 
 
@@ -217,23 +219,6 @@ typedef struct {
 } t_tcb;
 // Tamaño del TCB = 24 bytes
 
-
-
-
-
-// Estructuras para Mi RAM HQ
-
-
-
-
-
-typedef struct espacio
-{
-	uint32_t numeroDeEspacio;
-	uint32_t espacioOcupado;
-
-	struct espacio* sig_espacio;
-} espacio;
 
 
 #endif /* UTILS_ESTRUCTURAS_H_ */

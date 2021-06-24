@@ -36,7 +36,8 @@ void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion)
 }
 
 
-void deserealizar_tripulante(t_tripulante* mensaje, int32_t conexion) {
+void deserializar_tripulante(t_tripulante* mensaje, int32_t conexion)
+{
 	uint32_t tamanio;
 	uint32_t desplazamiento = 0;
 	void* buffer_deserializar;
@@ -78,18 +79,18 @@ void deserializar_respuesta_patota(t_respuesta_iniciar_patota* mensaje, int32_t 
 }
 
 
-void deseralizar_id_tripulante(t_tripulante* mensaje, int32_t conexion)
+
+
+void deserializar_sabotaje(t_respuesta_mongo* mensaje,int32_t conexion)
 {
 	uint32_t tamanio;
 	uint32_t desplazamiento = 0;
 	void* buffer_deserializar;
 	buffer_deserializar = recibir_buffer(&tamanio, conexion);
 
-	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
-	desplazamiento += sizeof(mensaje->id_tripulante);
-
-	memcpy(&(mensaje->id_patota), buffer_deserializar + desplazamiento, sizeof(mensaje->id_patota));
-	desplazamiento += sizeof(mensaje->id_patota);
+	memcpy(&(mensaje->sabotaje_on), buffer_deserializar + desplazamiento, sizeof(mensaje->sabotaje_on));
+	desplazamiento += sizeof(mensaje->sabotaje_on);
 
 	free(buffer_deserializar);
+
 }

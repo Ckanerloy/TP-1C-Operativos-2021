@@ -155,22 +155,23 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 			break;
 
 		case INICIAR_TRIPULANTE:
-			deserealizar_tripulante(mensaje, conexion);
+			deserializar_tripulante(mensaje, conexion);
 			break;
 
 		case EXPULSAR_TRIPULANTE:
-			deseralizar_id_tripulante(mensaje, conexion);
+			deserializar_tripulante(mensaje, conexion);
 			break;
 
 		case OBTENER_BITACORA:
-			deseralizar_id_tripulante(mensaje, conexion);
+			deserializar_tripulante(mensaje, conexion);
 			break;
 
 		case RESPUESTA_INICIAR_PATOTA:
 			deserializar_respuesta_patota(mensaje, conexion);
 			break;
+
 		case RECIBIR_SABOTAJE:
-			deserealizar_sabotaje(mensaje,conexion);
+			deserializar_sabotaje(mensaje,conexion);
 			break;
 
 		case CERRAR_MODULO:
@@ -194,126 +195,6 @@ void* recibir_buffer(uint32_t* size, int32_t conexion_cliente)
 	return buffer;
 }
 
-
-<<<<<<< HEAD
-=======
-void deserealizar_sabotaje(t_respuesta_mongo* mensaje,int32_t conexion){
-	uint32_t tamanio;
-	uint32_t desplazamiento = 0;
-	void* buffer_deserializar;
-	buffer_deserializar = recibir_buffer(&tamanio, conexion);
-
-	memcpy(&(mensaje->sabotaje_on), buffer_deserializar + desplazamiento, sizeof(mensaje->sabotaje_on));
-	desplazamiento += sizeof(mensaje->sabotaje_on);
-
-	free(buffer_deserializar);
-
-}
-
-void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion)
-{
-	uint32_t tamanio;
-	uint32_t desplazamiento = 0;
-	void* buffer_deserializar;
-	buffer_deserializar = recibir_buffer(&tamanio, conexion);
-
-	// Cantidad de Tripulantes
-	memcpy(&(mensaje->cantidad_tripulantes), buffer_deserializar + desplazamiento, sizeof(mensaje->cantidad_tripulantes));
-	desplazamiento += sizeof(mensaje->cantidad_tripulantes);
-
-	// Tamanio de archivo de tareas
-	memcpy(&(mensaje->tamanio_tareas), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_tareas));
-	desplazamiento += sizeof(mensaje->tamanio_tareas);
-
-	mensaje->tareas_de_patota = malloc(mensaje->tamanio_tareas+1);
-
-	// Archivo de tareas
-	memcpy(mensaje->tareas_de_patota, buffer_deserializar + desplazamiento, mensaje->tamanio_tareas +1);
-	desplazamiento += mensaje->tamanio_tareas+1;
-
-	// Tamanio de posiciones
-	memcpy(&(mensaje->tamanio_posiciones), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_posiciones));
-	desplazamiento += sizeof(mensaje->tamanio_posiciones);
-
-	mensaje->posiciones = malloc(mensaje->tamanio_posiciones+1);
-
-	// Posiciones de los tripulantes
-	memcpy(mensaje->posiciones, buffer_deserializar + desplazamiento, mensaje->tamanio_posiciones+1);
-	desplazamiento += mensaje->tamanio_posiciones+1;
-
-	free(buffer_deserializar);
-}
-
-
-void deserializar_respuesta_patota(t_respuesta* mensaje, int32_t conexion) {
-	uint32_t tamanio;
-	uint32_t desplazamiento = 0;
-	void* buffer_deserializar;
-	buffer_deserializar = recibir_buffer(&tamanio, conexion);
-
-	memcpy(&(mensaje->respuesta), buffer_deserializar + desplazamiento, sizeof(mensaje->respuesta));
-	desplazamiento += sizeof(mensaje->respuesta);
-
-	memcpy(&(mensaje->tamanio_ids), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_ids));
-	desplazamiento += sizeof(mensaje->tamanio_ids);
-
-	mensaje->ids_tripu=malloc(mensaje->tamanio_ids+1);
-
-	memcpy(mensaje->ids_tripu, buffer_deserializar + desplazamiento, mensaje->tamanio_ids+1);
-	desplazamiento += mensaje->tamanio_ids+1;
-	free(buffer_deserializar);
-}
-
-
-void deserealizar_tripulante(t_tcb* mensaje, int32_t conexion) {
-	uint32_t tamanio;
-	uint32_t desplazamiento = 0;
-	void* buffer_deserializar;
-	buffer_deserializar = recibir_buffer(&tamanio, conexion);
-
-	// Id de Tripulante
-	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
-	desplazamiento += sizeof(mensaje->id_tripulante);
-
-	// Estado de Tripulante
-	memcpy(&(mensaje->estado_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->estado_tripulante));
-	desplazamiento += sizeof(mensaje->estado_tripulante);
-
-	// Posicion X
-	memcpy(&(mensaje->posicion_x), buffer_deserializar + desplazamiento, sizeof(mensaje->posicion_x));
-	desplazamiento += sizeof(mensaje->posicion_x);
-
-	// Posicion Y
-	memcpy(&(mensaje->posicion_y), buffer_deserializar + desplazamiento, sizeof(mensaje->posicion_y));
-	desplazamiento += sizeof(mensaje->posicion_y);
-
-	// Id proxima instruccion
-	memcpy(&(mensaje->id_proxima_instruccion), buffer_deserializar + desplazamiento, sizeof(mensaje->id_proxima_instruccion));
-	desplazamiento += sizeof(mensaje->id_proxima_instruccion);
-
-	// Puntero del PCB
-	memcpy(&(mensaje->puntero_PCB), buffer_deserializar + desplazamiento, sizeof(mensaje->puntero_PCB));
-	desplazamiento += sizeof(mensaje->puntero_PCB);
-
-	free(buffer_deserializar);
-}
-
-
-void deseralizar_id_tripulante(t_id_tripulante* mensaje, int32_t conexion)
-{
-	uint32_t tamanio;
-	uint32_t desplazamiento = 0;
-	void* buffer_deserializar;
-	buffer_deserializar = recibir_buffer(&tamanio, conexion);
-
-	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
-	desplazamiento += sizeof(mensaje->id_tripulante);
-
-	free(buffer_deserializar);
-}
-
-
->>>>>>> planificacion
 
 
 // FUNCIONES PARA ENVIAR UN MENSAJE
@@ -339,5 +220,3 @@ void crear_buffer(t_paquete* paquete)
 	paquete->buffer->size = 0;
 	paquete->buffer->stream = NULL;
 }
-
-
