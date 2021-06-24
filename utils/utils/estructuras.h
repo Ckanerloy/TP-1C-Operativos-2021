@@ -15,12 +15,20 @@ typedef enum
 	RECIBIR_PATOTA,
 	TERMINAR_PROGRAMA,
 	INICIAR_TRIPULANTE,
+<<<<<<< HEAD
 	ACTUALIZAR_UBICACION_TRIPULANTE,
 	PEDIDO_PROXIMA_TAREA,
 	CERRAR_MODULO,
 
+=======
+	RECIBIR_UBICACION_TRIPULANTE,
+	ENVIAR_PROXIMA_TAREA,
+	RECIBIR_SABOTAJE,
+>>>>>>> planificacion
 	RESPUESTA_INICIAR_PATOTA
 } codigo_operacion;
+
+
 
 
 typedef enum
@@ -85,6 +93,17 @@ typedef struct {
 } t_respuesta_iniciar_patota;
 
 
+typedef struct {
+	uint32_t posicion_x;
+	uint32_t posicion_y;
+} posiciones;
+
+typedef struct {
+	uint32_t sabotaje_on;
+//	t_tarea* tarea_sabotaje;
+	posiciones* posicion_sabotaje;
+} t_respuesta_mongo;
+
 // Estructuras de Sockets
 typedef struct
 {
@@ -102,7 +121,7 @@ typedef struct
 
 
 
-// Estructuras del Discordiador
+// Estructuras del Discordiador      //rev
 typedef struct {
 	uint32_t id_tripulante;
 	pthread_t hilo_id_tripulante;
@@ -125,10 +144,6 @@ typedef struct {
 	uint32_t id_patota;
 } t_tripulante;
 
-typedef struct {
-	uint32_t id_tripulante;
-	//sem_t* sem_execute;
-} tripulante_plani;
 
 // Patota Control Block (PCB)
 typedef struct {
@@ -153,13 +168,109 @@ typedef struct {
 
 
 // Estructuras de Tareas
+<<<<<<< HEAD
 typedef struct {
 	codigo_tarea operacion;
 	int32_t cantidad;
 	uint32_t posicion_x;
 	uint32_t posicion_y;
 	int32_t tiempo;
+=======
+
+typedef struct {
+    codigo_tarea operacion;
+    int32_t cantidad;
+    uint32_t posicion_x;
+    uint32_t posicion_y;
+    int32_t tiempo;
+>>>>>>> planificacion
 } t_tarea;
 
+typedef struct {
+	posiciones* posicion_sabotaje;
+	posiciones* posicion_inicial;
+	uint32_t id_tripulante;
+	uint32_t id_patota;
+} tripulante_sabotaje;
 
+
+<<<<<<< HEAD
+=======
+typedef struct {
+	uint32_t id_tripulante;
+	uint32_t numero_patota;
+	char estado;
+	t_tarea* tarea_a_realizar;
+	sem_t* sem_tripu;
+	sem_t* sem_planificacion;
+} tripulante_plani;
+
+// Estructuras para Mi RAM HQ
+
+// Tabla de Paginas
+typedef struct tabla_paginas
+{
+	int32_t numero_de_marco;
+	char* estado_proceso;				// Libre u Ocupado
+	uint32_t id_proceso;				// Proceso de Patota
+	uint32_t numero_de_pagina;
+
+
+	struct tabla_paginas* ant_pagina;
+	struct tabla_paginas* sig_pagina;
+} t_paginas;
+
+
+// Tabla de Segmentos de cada Tripulante
+typedef struct tabla_segmentos_tripulante
+{
+	t_tcb* tripulante;
+
+	struct tabla_segmentos_tripulante* ant_segmento;
+	struct tabla_segmentos_tripulante* sig_segmento;
+} t_segmentos_tripulantes;
+
+
+// Tabla de Segmentos de cada Tarea
+typedef struct tabla_segmentos_tarea
+{
+	t_tarea* tarea;
+
+	struct tabla_segmentos_tarea *ant_segmento;
+	struct tabla_segmentos_tarea *sig_segmento;
+} t_segmentos_tarea;
+
+
+// Tabla de Segmentos de cada Patota
+typedef struct tabla_segmentos_patota
+{
+	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento
+	uint32_t inicio;					// Direccion fisica de donde empieza el segmento
+	uint32_t tamanio_segmento;			// Tamanio total del segmento
+
+	t_pcb* patota;
+	uint32_t cantidad_tripulantes;
+	t_segmentos_tripulantes* tripulantes;
+
+	uint32_t cantidad_tareas;
+	t_segmentos_tarea* tareas;
+
+	struct tabla_segmentos_patota* ant_segmento;
+	struct tabla_segmentos_patota* sig_segmento;
+} t_segmentos_patota;
+
+
+
+
+typedef struct espacio
+{
+	uint32_t numeroDeEspacio;
+	uint32_t espacioOcupado;
+
+	struct espacio* sig_espacio;
+} espacio;
+
+
+
+>>>>>>> planificacion
 #endif /* UTILS_ESTRUCTURAS_H_ */

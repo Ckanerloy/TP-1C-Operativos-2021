@@ -43,4 +43,21 @@ void recibir_operacion(int32_t socket_cliente, codigo_operacion operacion);
 void* recibir_buffer(uint32_t* size, int32_t conexion_cliente);
 
 
+<<<<<<< HEAD
+=======
+// Serializaciones (para enviar un mensaje)
+void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, uint32_t* tamanio_paquete);
+uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota* mensaje);
+uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta* mensaje);
+uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tcb* mensaje);
+uint32_t serializar_paquete_id_tripulante(t_paquete* paquete, t_id_tripulante* mensaje);
+
+
+// Desserializaciones (para recibir un mensaje)
+void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion);
+void deserializar_respuesta_patota(t_respuesta* mensaje, int32_t conexion);
+void deserealizar_tripulante(t_tcb* mensaje, int32_t conexion);
+void deseralizar_id_tripulante(t_id_tripulante* mensaje, int32_t conexion);
+void deserealizar_sabotaje(t_respuesta_mongo* mensaje,int32_t conexion);
+>>>>>>> planificacion
 #endif /* UTILS_SOCKETS_H_ */

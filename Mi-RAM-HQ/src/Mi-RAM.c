@@ -147,6 +147,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					free(tarea_ejemplo);
 				}
 
+<<<<<<< HEAD
 				tamanio_patota = sizeof(t_pcb) + sizeof(t_tarea) * list_size(tareas_de_la_patota) + (sizeof(t_tcb) * patota_recibida->cantidad_tripulantes);
 
 
@@ -166,6 +167,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				else { // Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
 
 					t_pcb* nueva_patota = crear_pcb();
+=======
+						printf("Operacion: %u \n", tareas_de_la_patota[i]->operacion);
+						printf(" - Cantidad: %u \n", tareas_de_la_patota[i]->cantidad);
+						printf(" - Posicion X: %u \n", tareas_de_la_patota[i]->posicion_x);
+						printf(" - Posicion Y:%u \n", tareas_de_la_patota[i]->posicion_y);
+						printf(" - Tiempo: %u \n\n", tareas_de_la_patota[i]->tiempo);
+					}
+>>>>>>> planificacion
 
 					if(esquema_elegido == 'S') {
 

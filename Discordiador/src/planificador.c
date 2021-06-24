@@ -34,26 +34,30 @@ void inicializar_semaforos_plani(){
 	planificacion_on_ready_running = malloc(sizeof(sem_t));
 	sem_init(planificacion_on_ready_running, 0, 0);
 
-	nivel_multitarea = malloc(sizeof(sem_t));
-	sem_init(nivel_multitarea, 0 ,GRADO_MULTITAREA);
+	mutex_valorMultitarea = malloc(sizeof(sem_t));
+	sem_init(mutex_valorMultitarea, 0 , 1);
 
-	cantidad_hilo_en_ready = malloc(sizeof(sem_t));
-	sem_init(cantidad_hilo_en_ready,0,0);
 
-	mutex_running = malloc(sizeof(sem_t));
-	sem_init(mutex_running, 0, 1);
+	contador_tripulantes_en_ready = malloc(sizeof(sem_t));
+	sem_init(contador_tripulantes_en_ready,0 ,0);
+
+	mutex_exit = malloc(sizeof(sem_t));
+	sem_init(mutex_exit, 0, 1);
+
 }
 
 
 void finalizar_semaforos_plani() {
 	free(contador_tripulantes_en_new);
+	free(contador_tripulantes_en_ready);
+
 	free(mutex_new);
 	free(mutex_ready);
+	free(mutex_exit);
+	free(mutex_valorMultitarea);
+
 	free(planificacion_on);
 	free(planificacion_on_ready_running);
-	free(nivel_multitarea);
-	free(cantidad_hilo_en_ready);
-	free(mutex_running);
 }
 
 
@@ -62,28 +66,23 @@ void obtener_planificacion_de_config(t_config* config){
 	GRADO_MULTITAREA = config_get_int_value(config, "GRADO_MULTITAREA");
 	ALGORITMO = config_get_string_value(config, "ALGORITMO");
 	QUANTUM = config_get_int_value(config, "QUANTUM");
+	RETARDO_CICLO_CPU = config_get_int_value(config, "RETARDO_CICLO_CPU");
 }
 
 
 void elegir_algoritmo() {
 
-	algoritmo_planificacion algoritmo_elegido;
-	algoritmo_elegido = mapeo_algoritmo_planificacion(ALGORITMO);
 
-	t_tcb* tripulante_planificado;
+	algoritmo_elegido = mapeo_algoritmo_planificacion(ALGORITMO);
 
 	switch(algoritmo_elegido){
 
 		case FIFO:
 			printf("Eligio el algoritmo FIFO.\n");
-			sem_wait(sem_ready);
-			tripulante_planificado = list_remove(cola_ready, 0);
-			sem_post(sem_ready);
 			break;
 
 		case RR:
 			printf("Eligio el algoritmo Round Robin con un Quantum de %u. \n", QUANTUM);
-			//tripulante_planificado = obtener_siguiente_rr();
 			break;
 
 		default:
@@ -92,130 +91,29 @@ void elegir_algoritmo() {
 	}
 }
 
-
-
-
-
 void iniciar_planificacion() {
 
 	cola_new = queue_create();
-	//cola_ready = list_create();
+
 	cola_ready = queue_create();
 
-	cola_running = queue_create();
-	//cola_running;
-    //cola_block = list_create();
-	cola_block = queue_create();
+	cola_exit = queue_create();
 
-    inicializar_semaforos_plani();
+	multitarea_Disponible = GRADO_MULTITAREA;
 
-    //pthread_t hilo_block_ready;
-	//pthread_create(&hilo_block_ready, NULL, (void*)block_ready, NULL);
+	lista_semaforos_tripulantes = list_create();
 
-	//pthread_t hilo_new_ready;
-	//pthread_create(&hilo_new_ready, NULL, (void*)new_ready, NULL);
+	inicializar_semaforos_plani();
 
-	//pthread_t hilo_ready_running;
-	//pthread_create(&hilo_ready_running, NULL, (void*)ready_running, NULL);
-
-	//pthread_t threadHilosMaestro;
-	//pthread_create(&threadHilosMaestro, NULL, (void*)hiloCiclosMaestro, NULL);
-
-	// Genero un hilo por cada estado exec
-//	for (int i = 0; i < GRADO_MULTITAREA; i++){
-
-	//	pthread_t hilo_execute;
-		//int* numero_hilo = malloc(sizeof(int));
-
-		//*numero_hilo = i;
-
-		//pthread_create(&hilo_execute, NULL, (void*)execute, numero_hilo);
-	//}
 
 	//finalizar_semaforos_plani();
 }
 
-void execute(int* numero_hilo) {
-
-}
-
-/*
-void execute(int* numero_hilo) {
-	int numero_hilo_exec = *numero_hilo;
-
-	while(1){
-
-		t_tcb* tripulante_a_trabajar = obtener_siguiente_de_ready();
-
-		if (tripulante_a_trabajar != NULL){
-            sem_wait(semLog);
-			log_info(logger, "[EXEC-%d] Ingresa el repartidor %d con el pedido de idGlobal: %d e idResto: %d."
-					" Instruciones restantes para arribar al objetivo actual: %d",
-					numHiloExec, pedidoAEjecutar->repartidorAsignado->numeroRepartidor
-					,pedidoAEjecutar->pedidoIDGlobal, pedidoAEjecutar->pedidoID, pedidoAEjecutar->instruccionesTotales);
-            sem_post(semLog);
-			int cantidadCiclos = 1;
-
-			// Calculo si tiene que desalojar o no y por que razon
-			while (sigoEjecutando(tripulante_a_trabajar)){
-				waitSemaforoHabilitarCicloExec(numero_hilo_exec);
-
-				if(tripulante_a_trabajar->repartidorAsignado->movimientosRequeridosEnX == 0){
-
-					if(tripulante_a_trabajar->repartidorAsignado->movimientosRequeridosEnY > 0){
-						tripulante_a_trabajar->repartidorAsignado->movimientosRequeridosEnY--;
-						tripulante_a_trabajar->repartidorAsignado->posY++;
-					} else {
-						tripulante_a_trabajar->repartidorAsignado->movimientosRequeridosEnY++;
-						tripulante_a_trabajar->repartidorAsignado->posY--;
-					}
-
-				} else {
-
-					if(tripulante_a_trabajar->repartidorAsignado->movimientosRequeridosEnX > 0){
-						tripulante_a_trabajar->repartidorAsignado->movimientosRequeridosEnX--;
-						tripulante_a_trabajar->repartidorAsignado->posX++;
-					} else {
-						tripulante_a_trabajar->repartidorAsignado->movimientosRequeridosEnX++;
-						tripulante_a_trabajar->repartidorAsignado->posX--;
-					}
-
-				}
-				tripulante_a_trabajar->instruccionesRealizadas++;
-				tripulante_a_trabajar->repartidorAsignado->instruccionesRealizadas++;
-				sem_wait(semLog);
-				log_info(logger, "[EXEC-%d] Repartidor %d invierte ciclo en moverse hacia la posicion: [%d|%d] con el pedido de idGlobal: %d e idResto: %d."
-						" Para llegar al objetivo actual, todavia requiere %d movimiento/s adicional/es."
-						,numHiloExec , pedidoAEjecutar->repartidorAsignado->numeroRepartidor
-						,pedidoAEjecutar->repartidorAsignado->posX, pedidoAEjecutar->repartidorAsignado->posY
-						,pedidoAEjecutar->pedidoIDGlobal
-					    ,pedidoAEjecutar->pedidoID,pedidoAEjecutar->instruccionesTotales - pedidoAEjecutar->instruccionesRealizadas);
-                sem_post(semLog);
-				signalSemaforoFinalizarCicloExec(numero_hilo_exec);
-				cantidadCiclos++;
-			}
-
-			agregarABlock(tripulante_a_trabajar);
-
-		} else {
-			//*waitSemaforoHabilitarCicloExec(numHiloExec);
-			sem_wait(semLog);
-			log_trace(logger, "[EXEC-%d] Desperdicio un ciclo porque no hay nadie en ready.", numHiloExec);
-			sem_post(semLog);
-			signalSemaforoFinalizarCicloExec(numHiloExec);
-		}
-
-	}
-
-}
-*/
-
-
 void new_ready() {
 	while(1){
-		sem_wait(planificacion_on);
-
 		sem_wait(contador_tripulantes_en_new);
+
+		sem_wait(planificacion_on);
 
 		tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
 
@@ -227,54 +125,440 @@ void new_ready() {
 		queue_push(cola_ready, tripulante_a_ready);
 		sem_post(mutex_ready);
 
-		sem_post(cantidad_hilo_en_ready);
+		sem_post(tripulante_a_ready->sem_planificacion);
+		tripulante_a_ready->estado='R';
+
+		//Actualizar el estado del tripulante (R) EN Mi-Ram
 
 		sem_post(planificacion_on);
 
+		sem_post(contador_tripulantes_en_ready);
+
 	}
 }
+
+
 
 void ready_running() {
-	while(1){
+    while(1){
 
-		sem_wait(planificacion_on_ready_running);
+        sem_wait(planificacion_on_ready_running);
 
-		sem_wait(nivel_multitarea);
+        sem_wait(contador_tripulantes_en_ready);
 
-		sem_wait(cantidad_hilo_en_ready);
+        sem_wait(mutex_valorMultitarea);
 
-		tripulante_plani* tripulante_a_running = malloc(sizeof(tripulante_plani));
+        if(multitarea_Disponible > 0) {
 
-		sem_wait(mutex_ready);
-		tripulante_a_running = queue_pop(cola_ready);
-		sem_post(mutex_ready);
+        	sem_post(mutex_valorMultitarea);
+            tripulante_plani* tripulante_a_running = malloc(sizeof(tripulante_plani));
 
-		sem_wait(mutex_running);
-		queue_push(cola_running, tripulante_a_running);
-		sem_post(mutex_running);
+            sem_wait(mutex_ready);
+            tripulante_a_running = queue_pop(cola_ready);
+            sem_post(mutex_ready);
 
-		sem_post(planificacion_on_ready_running);
+            sem_wait(mutex_valorMultitarea);
+            multitarea_Disponible--;
+            sem_post(mutex_valorMultitarea);
 
-	}
+            tripulante_a_running->estado='E';
+            //Actualizar el estado (a E) en Mi-Ram
+
+            sem_post(tripulante_a_running->sem_planificacion);
+        }else{
+                sem_post(mutex_valorMultitarea);
+                sem_post(contador_tripulantes_en_ready);
+        }
+
+        sem_post(planificacion_on_ready_running);
+    }
 }
 
+void running_ready(tripulante_plani* tripu){
+
+	sem_wait(mutex_valorMultitarea);
+	multitarea_Disponible++;
+	sem_post(mutex_valorMultitarea);
+
+	sem_wait(mutex_ready);
+	queue_push(cola_ready, tripu);
+	sem_post(mutex_ready);
+
+	tripu->estado='R';
+	sem_post(contador_tripulantes_en_ready);
+	//Actualizar el estado del tripulante (R) EN Mi-Ram
+}
+
+void running_block(tripulante_plani* tripu){
+
+	sem_wait(mutex_valorMultitarea);
+	multitarea_Disponible++;
+	sem_post(mutex_valorMultitarea);
+
+	//Actualizar el estado del tripulante (B) EN Mi-Ram
+	tripu->estado='B';
+}
+
+void block_ready(tripulante_plani* tripu){
+	sem_wait(mutex_ready);
+	queue_push(cola_ready, tripu);
+	sem_post(mutex_ready);
+
+
+	tripu->estado='R';
+	//Actualizar el estado del tripulante (R) EN Mi-Ram
+}
+
+void block_exit(tripulante_plani* tripu){
+
+	sem_wait(mutex_exit);
+	queue_push(cola_exit, tripu);
+	sem_post(mutex_exit);
+
+	tripu->estado='T';
+
+	//Actualizar el estado del tripulante (E) EN Mi-Ram
+}
+
+void tripulante_hilo(void* tripulante){
+	tripulante_plani* tripu = tripulante;
+
+	sem_wait(tripu->sem_planificacion);
+
+	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+
+	posiciones* posicion_tripu;
+	posicion_tripu = malloc(sizeof(posiciones));
+	posicion_tripu = obtener_posiciones(tripu->id_tripulante,tripu->numero_patota);
+
+	while(tripu->tarea_a_realizar != NULL){
+		sem_wait(tripu->sem_planificacion);
+		posiciones* posicion_tarea;
+		posicion_tarea = malloc(sizeof(posiciones));
+		posicion_tarea->posicion_x = tripu->tarea_a_realizar->posicion_x;
+		posicion_tarea->posicion_y = tripu->tarea_a_realizar->posicion_y;
+
+		uint32_t distancia = obtener_distancia(posicion_tripu,posicion_tarea);
+		uint32_t cantidadRealizado = 0;
+
+		while(distancia > 0){
+
+			if(algoritmo_elegido==RR){
+
+				if(cantidadRealizado==QUANTUM){
+					running_ready(tripu);
+					cantidadRealizado=0;
+					sem_wait(tripu->sem_planificacion);
+				}
+
+			}
+			//printf("antes del wait/n");
+			//fflush(stdout);
+			sem_wait(tripu->sem_tripu);
+			//printf("despues del wait");
+			sleep(RETARDO_CICLO_CPU);
+			//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
+			cantidadRealizado ++;
+			distancia--;
+
+			sem_post(tripu->sem_tripu);
+		}
+		if(algoritmo_elegido==QUANTUM){
+			if(cantidadRealizado==QUANTUM){
+				running_ready(tripu);
+
+				sem_wait(mutex_valorMultitarea);
+				multitarea_Disponible++;
+				sem_post(mutex_valorMultitarea);
+
+				cantidadRealizado=0;
+				sem_wait(tripu->sem_planificacion);
+
+			}
+		}
+		realizar_tarea(tripu,&cantidadRealizado);
+	}
+	sem_wait(tripu->sem_tripu);
+}
 /*
-void block_ready() {
+//TAREA SABOTAJE
+void hilo_tripulante_sabotaje(tripulante_sabotaje* tripu){
 
-}
+	posiciones* posicion_tarea;
+	posicion_tarea = malloc(sizeof(posiciones));
+	posicion_tarea->posicion_x = tripu->posicion_sabotaje->posicion_x;
+	posicion_tarea->posicion_y = tripu->posicion_sabotaje->posicion_y;
 
-t_tripulante* obtener_siguiente_ready() {
 
-	t_tripulante* tripulante_planificado = NULL;
+	posiciones* posicion_tripu;
+	posicion_tripu = malloc(sizeof(posiciones));
+	posicion_tripu = obtener_posiciones(tripu->id_tripulante,tripu->id_patota);
 
-	if (list_size(cola_ready) > 0){
 
-	elegir_algoritmo();
+	posiciones* posicion_tripu_inicial;
+	posicion_tripu_inicial = malloc(sizeof(posiciones));
+	posicion_tripu_inicial->posicion_x=posicion_tripu->posicion_x;
+	posicion_tripu_inicial->posicion_y=posicion_tripu->posicion_y;
 
+
+	uint32_t distancia = obtener_distancia(posicion_tripu,posicion_tarea);
+
+	while(distancia > 0){
+		//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
+		sleep(RETARDO_CICLO_CPU);
+		distancia--;
 	}
+	//avisar q estas en posicion de resolucion de sabotaje y mandar orden de ejecucion a imongo
+	sleep(DURACION_SABOTAJE);
 
-	// Devuelve NULL si no hay nada en ready
-	// Caso contrario devuelve el que tiene mas prioridad segun el algoritmo que se este empleando
-	return tripulante_planificado;
+
 }
 */
+
+t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
+
+	t_tarea* tarea = malloc(sizeof(t_tarea));
+
+	tarea->operacion=GENERAR_OXIGENO;
+	tarea->cantidad=5;
+	tarea->posicion_x=20;
+	tarea->posicion_y=16;
+	tarea->tiempo=5;
+	return tarea;
+
+	//le mandamos el numero de la patota a Mi-Ram y nos devuelve un char* tarea_tripulante
+	//Si no hay una proxima tarea, devuelve un NULL
+
+	//return obtener_la_tarea(tarea_tripulante);
+}
+
+posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota){
+	//le mandamos el id del tripulante a Mi_Ram y nos dice su ubicacion
+	posiciones* posicion= malloc(sizeof(posiciones));
+	posicion->posicion_x=1;
+	posicion->posicion_y=1;
+	return posicion;
+}
+
+uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea){
+	return (abs(posicion_tripu->posicion_x - posicion_tarea->posicion_x) + abs(posicion_tripu->posicion_y - posicion_tarea->posicion_y) );
+}
+
+codigo_tarea mapeo_tareas_tripulantes(char* tarea) {
+
+	codigo_tarea tarea_a_realizar;
+
+	if(strcmp(tarea, "GENERAR_OXIGENO") == 0) {
+		tarea_a_realizar = GENERAR_OXIGENO;
+	}
+
+	if(strcmp(tarea, "CONSUMIR_OXIGENO") == 0) {
+		tarea_a_realizar = CONSUMIR_OXIGENO;
+	}
+
+	if(strcmp(tarea, "GENERAR_COMIDA") == 0) {
+		tarea_a_realizar = GENERAR_COMIDA;
+	}
+
+	if(strcmp(tarea, "CONSUMIR_COMIDA") == 0) {
+		tarea_a_realizar = CONSUMIR_COMIDA;
+	}
+
+	if(strcmp(tarea, "GENERAR_BASURA") == 0) {
+		tarea_a_realizar = GENERAR_BASURA;
+	}
+
+	if(strcmp(tarea, "DESCARTAR_BASURA") == 0) {
+		tarea_a_realizar = DESCARTAR_BASURA;
+	}
+
+	return tarea_a_realizar;
+}
+
+
+t_tarea* obtener_la_tarea(char* tarea_tripulante) {
+	char** parser_tarea = string_split(tarea_tripulante, " ");
+
+    char** parser_parametros = NULL;
+
+    t_tarea* tarea_nueva = malloc(sizeof(t_tarea));
+
+	tarea_nueva->operacion = mapeo_tareas_tripulantes(parser_tarea[0]);
+
+    parser_parametros = string_split(parser_tarea[1], ";");
+
+    tarea_nueva->cantidad = atoi(parser_parametros[0]);
+    tarea_nueva->posicion_x = atoi(parser_parametros[1]);
+    tarea_nueva->posicion_y = atoi(parser_parametros[2]);
+    tarea_nueva->tiempo = atoi(parser_parametros[3]);
+
+    free(parser_tarea);
+    free(parser_parametros);
+    return tarea_nueva;
+}
+
+void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
+
+	switch(tripu->tarea_a_realizar->operacion) {
+
+		case GENERAR_OXIGENO:
+			generar_insumo("Oxigeno.ims", 'O', tripu);
+			break;
+
+		case CONSUMIR_OXIGENO:
+			consumir_insumo("Oxigeno.ims", 'O', tripu);
+			break;
+
+		case GENERAR_COMIDA:
+			generar_insumo("Comida.ims", 'C', tripu);
+			break;
+
+		case CONSUMIR_COMIDA:
+			consumir_insumo("Comida.ims",'C', tripu);
+			break;
+
+		case GENERAR_BASURA:
+			generar_insumo("Basura.ims", 'B', tripu);
+			break;
+
+		case DESCARTAR_BASURA:
+			descartar_basura(tripu);
+			break;
+
+		default:
+			otras_tareas(tripu,cantidadRealizado);
+			break;
+		}
+
+	//sem_wait(mutex_sabotaje);
+	int valor=valor_sabotaje;
+	//sem_post(mutex_sabotaje);
+
+	if(valor==1){
+		sem_wait(tripu->sem_tripu);
+		sem_wait(tripu->sem_tripu);
+	}
+
+	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+
+	tripu->tarea_a_realizar= NULL;
+
+	if(tripu->tarea_a_realizar!=NULL){
+		block_ready(tripu);
+	}else{
+		block_exit(tripu);
+	}
+
+	//Es importante que sem_tripu quede en cero sino se autoejecuta.
+}
+
+void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu) {
+
+	sem_wait(tripu->sem_tripu);
+	//llamar al i-mongo y gastar 1 ciclo de cpu
+	sleep(RETARDO_CICLO_CPU);
+	sem_post(tripu->sem_tripu);
+
+	running_block(tripu);
+
+	//if(SI ESTA EL ARCHIVO) {
+	//	modificar_archivo(nombre_archivo, parametros->cantidad);
+	//}
+	//else {
+	//	crear_archivo(nombre_archivo, caracter_llenado);
+	//}
+
+	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
+
+
+	while(tiempo_restante != 0){
+		sem_wait(tripu->sem_tripu);
+		sleep(RETARDO_CICLO_CPU);
+		tiempo_restante--;
+		sem_post(tripu->sem_tripu);
+	}
+
+}
+
+void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu) {
+
+	sem_wait(tripu->sem_tripu);
+	//llamar al i-mongo y gastar 1 ciclo de cpu
+	sleep(RETARDO_CICLO_CPU);
+	running_block(tripu);
+	sem_post(tripu->sem_tripu);
+	running_block(tripu);
+
+	//if(SI ESTA EL ARCHIVO) {
+		//modificar_archivo(nombre_archivo, parametros->cantidad);
+	//}
+	//else {
+	//	crear_archivo(nombre_archivo, caracter_a_consumir);
+	//}
+
+	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
+
+
+	while(tiempo_restante != 0){
+		sem_wait(tripu->sem_tripu);
+		sleep(RETARDO_CICLO_CPU);
+		tiempo_restante--;
+		sem_post(tripu->sem_tripu);
+	}
+}
+
+void descartar_basura(tripulante_plani* tripu) {
+
+	sem_wait(tripu->sem_tripu);
+	//llamar al i-mongo y gastar 1 ciclo de cpu
+	sleep(RETARDO_CICLO_CPU);
+	running_block(tripu);
+	sem_post(tripu->sem_tripu);
+	running_block(tripu);
+
+	//if(SI ESTA EL ARCHIVO) {
+	//	eliminar_archivo("Basura.ims");
+	//}
+	//else {
+	//	log_info(logger, "El archivo 'Basura.ims' no existe. \n");
+	//}
+
+	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
+
+	while(tiempo_restante != 0){
+		sem_wait(tripu->sem_tripu);
+		sleep(RETARDO_CICLO_CPU);
+		tiempo_restante--;
+		sem_post(tripu->sem_tripu);
+	}
+	//sem_wait(mutex_sabotaje);
+//	int valor=valor_sabotaje;
+	//sem_post(mutex_sabotaje);
+
+	//if(valor==1){
+	//	sem_wait(tripu->sem_tripu);
+	//	sem_wait(tripu->sem_tripu);
+	//}
+}
+
+void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado){
+
+	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
+
+	while(tiempo_restante > 0){
+		sem_wait(tripu->sem_tripu);
+		if(*cantidadRealizado==QUANTUM){
+			running_ready(tripu);
+
+			sem_wait(mutex_valorMultitarea);
+			multitarea_Disponible++;
+			sem_post(mutex_valorMultitarea);
+
+			*cantidadRealizado=0;
+			sem_wait(tripu->sem_planificacion);
+		}
+		sleep(RETARDO_CICLO_CPU);
+		tiempo_restante--;
+		sem_post(tripu->sem_tripu);
+	}
+}
