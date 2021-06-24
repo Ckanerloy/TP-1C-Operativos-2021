@@ -136,8 +136,8 @@ uint32_t administrar_guardar_tripulante(t_tcb* nuevo_tripulante)
 	memcpy(memoria_principal + desplazamiento, &(nuevo_tripulante->posicion_y), sizeof(nuevo_tripulante->posicion_y));
 	desplazamiento += sizeof(nuevo_tripulante->posicion_y);
 
-	memcpy(memoria_principal + desplazamiento, &(nuevo_tripulante->id_proxima_instruccion), sizeof(nuevo_tripulante->id_proxima_instruccion));
-	desplazamiento += sizeof(nuevo_tripulante->id_proxima_instruccion);
+	memcpy(memoria_principal + desplazamiento, &(nuevo_tripulante->id_tarea_a_realizar), sizeof(nuevo_tripulante->id_tarea_a_realizar));
+	desplazamiento += sizeof(nuevo_tripulante->id_tarea_a_realizar);
 
 	memcpy(memoria_principal + desplazamiento, &(nuevo_tripulante->puntero_PCB), sizeof(nuevo_tripulante->puntero_PCB));
 	desplazamiento += sizeof(nuevo_tripulante->puntero_PCB);
@@ -359,8 +359,8 @@ t_tcb* encontrar_tripulante(t_segmento* segmento)
 	memcpy(&(tripulante->posicion_y), inicio + desplazamiento, sizeof(tripulante->posicion_y));
 	desplazamiento += sizeof(tripulante->posicion_y);
 
-	memcpy(&(tripulante->id_proxima_instruccion), inicio + desplazamiento, sizeof(tripulante->id_proxima_instruccion));
-	desplazamiento += sizeof(tripulante->id_proxima_instruccion);
+	memcpy(&(tripulante->id_tarea_a_realizar), inicio + desplazamiento, sizeof(tripulante->id_tarea_a_realizar));
+	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
 
 	memcpy(&(tripulante->puntero_PCB), inicio + desplazamiento, sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);

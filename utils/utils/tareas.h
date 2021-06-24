@@ -11,10 +11,25 @@
 #include <netdb.h>
 #include <string.h>
 
-#include "utils/estructuras.h"
+typedef enum
+{
+	GENERAR_OXIGENO,
+	CONSUMIR_OXIGENO,
+	GENERAR_COMIDA,
+	CONSUMIR_COMIDA,
+	GENERAR_BASURA,
+	DESCARTAR_BASURA,
+	MOVERSE
+} codigo_tarea;
 
 
-
+typedef struct {
+	codigo_tarea operacion;
+	int32_t cantidad;
+	uint32_t posicion_x;
+	uint32_t posicion_y;
+	int32_t tiempo;
+} t_tarea;
 
 
 char** obtener_tareas(char* tareas_patota);
