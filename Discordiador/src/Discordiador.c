@@ -30,7 +30,7 @@ void inicializar_listas(){
 	lista_tripulantes=list_create();
 }
 
-void inicializar_semaforos(){
+void inicializar_semaforos() {
 	mutex_sabotaje = malloc(sizeof(sem_t));
 	sem_init(mutex_sabotaje, 0, 1);
 
@@ -183,7 +183,7 @@ void obtener_orden_input(){
 	 char* cadena_ingresada = NULL;
 	 size_t longitud = 0;
 
-	 t_respuesta_iniciar_patota* respuesta;
+	 t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 
 	 sem_wait(termino_operacion);
 
@@ -231,7 +231,8 @@ void obtener_orden_input(){
 		//	if(valor_semaforo == 0){
 				printf("Iniciando Planificacion....... \n");
 			//}
-			elegir_algoritmo();
+
+			elegir_algoritmo(conexion_mi_ram);
 
 			//list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
 			list_iterate(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
@@ -264,7 +265,7 @@ void obtener_orden_input(){
 			uint32_t cantidad_posiciones = cantidad_argumentos - 3;
 			int cantidad_tripulantes = atoi(parser_consola[1]);
 			int posiciones_faltantes = cantidad_tripulantes - cantidad_posiciones;
-			respuesta = malloc(sizeof(t_respuesta_iniciar_patota));
+			respuesta_iniciar_patota = malloc(sizeof(t_respuesta_iniciar_patota));
 
 			if(posiciones_faltantes < 0) {
 				log_error(logger, "Se ingresaron posiciones demás. Solo puede como máximo haber tantas posiciones como cantidad de tripulantes.\n");
@@ -335,27 +336,31 @@ void obtener_orden_input(){
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
 
 			if(validacion_envio(conexion_mi_ram) == 1) {
-				recibir_mensaje(respuesta, RESPUESTA_INICIAR_PATOTA, conexion_mi_ram);
-				if(respuesta->respuesta == 1){
+				recibir_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion_mi_ram);
+
+				if(respuesta_iniciar_patota->respuesta == 1){
 					printf("La respuesta fue positiva. \n");
-					printf("los id de los tripulantes %s\n",respuesta->ids_tripu);
-					printf("Numero de patota: %u \n", respuesta->numero_de_patota);
-					char** parser_ids= string_split(respuesta->ids_tripu, "|");
-					for(int i=0;mensaje_patota->cantidad_tripulantes>i;i++){
+					printf("los id de los tripulantes %s\n",respuesta_iniciar_patota->ids_tripu);
+					printf("Numero de patota: %u \n", respuesta_iniciar_patota->numero_de_patota);
+
+					char** parser_ids = string_split(respuesta_iniciar_patota->ids_tripu, "|");
+
+					for(int i=0; mensaje_patota->cantidad_tripulantes>i; i++) {
+
 						tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 						tripulante->id_tripulante = atoi(parser_ids[i]);
-						tripulante->numero_patota = 5; //esto lo devuelve mi ram
-						tripulante->estado='N';
+						tripulante->numero_patota = respuesta_iniciar_patota->numero_de_patota; //esto lo devuelve mi ram
+						tripulante->estado = 'N';
 
 						sem_t* sem_plani=malloc(sizeof(sem_t));
 						sem_init(sem_plani,0,0);
 
-						tripulante->sem_planificacion= sem_plani;
+						tripulante->sem_planificacion = sem_plani;
 
-						sem_t* semaforo_exec= malloc(sizeof(sem_t));
+						sem_t* semaforo_exec = malloc(sizeof(sem_t));
 						sem_init(semaforo_exec, 0, 0);
 
-						tripulante->sem_tripu= semaforo_exec;
+						tripulante->sem_tripu = semaforo_exec;
 
 						pthread_create(&hilo_tripulante,NULL,(void*)tripulante_hilo,tripulante);
 						pthread_detach(hilo_tripulante);
@@ -382,7 +387,7 @@ void obtener_orden_input(){
 			// Libero la memoria usada
 			fclose(archivo_tareas);
 			free(tareas_totales);
-			free(respuesta);
+			free(respuesta_iniciar_patota);
 
 			free(posiciones);
 			free(parser_posiciones);
@@ -392,14 +397,6 @@ void obtener_orden_input(){
 			free(mensaje_patota);
 			cerrar_conexion(logger, conexion_mi_ram);
 			break;
-
-			/*
-			 * COSAS QUE FALTAN:
-			 * 	-Mi-Ram debe devolvernos el numero de patota cuando devuelve el numero de tripulante A
-			 * 	-Agregar las cosas a la serializacion
-			 *
-			 *
-			*/
 
 
 		case LISTAR_TRIPULANTES:
@@ -501,13 +498,16 @@ void obtener_orden_input(){
 		case TERMINAR_PROGRAMA:
 
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
-				if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
-					break;
+			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") != -1){
+				enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
+				cerrar_conexion(logger, conexion_mi_ram);
 			}
+			/*conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+	  		if(resultado_conexion(conexion_mongo_store, logger, "Mongo Store") != -1) {
+	  			enviar_mensaje("", CERRAR_MODULO, conexion_mongo_store);
+	 			cerrar_conexion(logger, conexion_mongo_store);
+	 			}*/
 
-			enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
-
-			cerrar_conexion(logger, conexion_mi_ram);
 
 
 			printf("Terminando programa... \n");
@@ -516,9 +516,9 @@ void obtener_orden_input(){
 			// Libero memoria
 			free(parser_consola);
 			free(cadena_ingresada);
-			//finalizar_semaforos();
+			finalizar_semaforos();
+			finalizar_semaforos_plani();
 			terminar_programa(config, logger);
-
 			exit(0);
 
 

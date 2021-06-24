@@ -18,7 +18,9 @@
 #include "commons/string.h"
 #include "commons/config.h"
 
+#include "Discordiador.h"
 #include "utils/estructuras.h"
+#include "utils/tareas.h"
 
 uint32_t multitarea_Disponible;
 
@@ -77,7 +79,10 @@ void obtener_planificacion_de_config(t_config* config);
 void new_ready();
 void ready_running();
 void iniciar_planificacion();
-void inicializar_semaforos();
+
+void inicializar_semaforos_plani();
+void finalizar_semaforos_plani();
+
 void inicializar_listas();
 void pulso_rafaga();
 void running_ready(tripulante_plani* tripulante);
@@ -87,8 +92,6 @@ t_tarea* obtener_siguiente_tarea(uint32_t numero_patota);
 posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota);
 uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
 
-//Pasar a utils O REVISAR
-t_tarea* obtener_la_tarea(char* tarea_tripulante);
 void realizar_tarea(tripulante_plani* tripulante,uint32_t* cantidadRealizado);
 void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu);
 void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu);

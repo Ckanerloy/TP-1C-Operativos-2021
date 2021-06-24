@@ -21,11 +21,8 @@ typedef enum
 	PEDIDO_TAREA,
 	PEDIR_UBICACION_TRIPULANTE,
 	ACTUALIZAR_ESTADO_TRIPULANTE,
-	CERRAR_MODULO,
-
-	RECIBIR_UBICACION_TRIPULANTE,
-	ENVIAR_PROXIMA_TAREA,
 	RECIBIR_SABOTAJE,
+	CERRAR_MODULO,
 
 	RESPUESTA_INICIAR_PATOTA,
 	RESPUESTA_OK_UBICACION,
@@ -76,19 +73,6 @@ typedef enum
 
 
 
-
-typedef struct {
-	uint32_t posicion_x;
-	uint32_t posicion_y;
-} posiciones;
-
-typedef struct {
-	uint32_t sabotaje_on;
-//	t_tarea* tarea_sabotaje;
-	posiciones* posicion_sabotaje;
-} t_respuesta_mongo;
-
-
 // Estructuras de Sockets
 typedef struct
 {
@@ -108,6 +92,12 @@ typedef struct
 
 // Estructuras para Discordiador
 typedef struct {
+	uint32_t posicion_x;
+	uint32_t posicion_y;
+} posiciones;
+
+
+typedef struct {
 	posiciones* posicion_sabotaje;
 	posiciones* posicion_inicial;
 	uint32_t id_tripulante;
@@ -123,6 +113,13 @@ typedef struct {
 	sem_t* sem_tripu;
 	sem_t* sem_planificacion;
 } tripulante_plani;
+
+
+typedef struct {
+	uint32_t sabotaje_on;
+//	t_tarea* tarea_sabotaje;
+	posiciones* posicion_sabotaje;
+} t_respuesta_mongo;
 
 
 
@@ -175,13 +172,6 @@ typedef struct {
 	uint32_t posicion_x;
 	uint32_t posicion_y;
 } t_respuesta_tripulante_ubicacion;
-
-
-typedef struct {
-	uint32_t respuesta;
-	uint32_t id_tripulante;
-	char estado;
-} t_respuesta_tripulante_estado;
 
 
 typedef struct {

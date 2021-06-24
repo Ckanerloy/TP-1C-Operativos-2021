@@ -144,7 +144,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				tareas_de_la_patota = list_create();
 
 				for(uint32_t i=0; i<cant_tareas; i++){
-					//tareas_de_la_patota[i] = obtener_la_tarea(parser_tarea[i]);
 					list_add_in_index(tareas_de_la_patota, i, obtener_la_tarea(parser_tarea[i]));
 				}
 

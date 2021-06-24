@@ -18,6 +18,7 @@ algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo) {
 	return algoritmo_elegido;
 }
 
+
 void inicializar_semaforos_plani(){
 	contador_tripulantes_en_new = malloc(sizeof(sem_t));
 	sem_init(contador_tripulantes_en_new,0, 0);
@@ -89,6 +90,8 @@ void elegir_algoritmo() {
 			printf("No se eligio ningún algoritmo.\n");
 			break;
 	}
+
+
 }
 
 void iniciar_planificacion() {
@@ -105,11 +108,41 @@ void iniciar_planificacion() {
 
 	inicializar_semaforos_plani();
 
-
+	// esto tiene que ir en otra parte
 	//finalizar_semaforos_plani();
 }
 
+
+void actualizar_estado(tripulante_plani* tripu, char estado) {
+
+	uint32_t conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+	t_tripulante_estado* tripulante_estado = malloc(sizeof(t_tripulante_estado));
+	t_respuesta_tripulante* respuesta = malloc(sizeof(t_respuesta_tripulante));
+
+	tripu->estado = estado;
+
+	tripulante_estado->id_tripulante = tripu->id_tripulante;
+	tripulante_estado->id_patota = tripu->numero_patota;
+	tripulante_estado->estado = tripu->estado;
+
+	enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion_mi_ram);
+
+	recibir_mensaje(respuesta, RESPUESTA_OK_ESTADO, conexion_mi_ram);
+
+	if(respuesta->respuesta == 1) {
+		if(respuesta->id_tripulante == tripu->id_tripulante) {
+			// VALIDAS QUE EL DATO SE ENVIO Y RECIBIO EXITOSAMENTE
+		}
+	}
+
+	close(conexion_mi_ram);
+
+	free(tripulante_estado);
+	free(respuesta);
+}
+
 void new_ready() {
+
 	while(1){
 		sem_wait(contador_tripulantes_en_new);
 
@@ -126,9 +159,12 @@ void new_ready() {
 		sem_post(mutex_ready);
 
 		sem_post(tripulante_a_ready->sem_planificacion);
-		tripulante_a_ready->estado='R';
+		///tripulante_a_ready->estado = 'R';
 
 		//Actualizar el estado del tripulante (R) EN Mi-Ram
+		//mutex
+		actualizar_estado(tripulante_a_ready, 'R');
+		//mutex
 
 		sem_post(planificacion_on);
 
@@ -161,11 +197,13 @@ void ready_running() {
             multitarea_Disponible--;
             sem_post(mutex_valorMultitarea);
 
-            tripulante_a_running->estado='E';
+            tripulante_a_running->estado = 'E';
             //Actualizar el estado (a E) en Mi-Ram
+            //enviar_mensaje();
 
             sem_post(tripulante_a_running->sem_planificacion);
-        }else{
+
+        } else {
                 sem_post(mutex_valorMultitarea);
                 sem_post(contador_tripulantes_en_ready);
         }
@@ -184,7 +222,7 @@ void running_ready(tripulante_plani* tripu){
 	queue_push(cola_ready, tripu);
 	sem_post(mutex_ready);
 
-	tripu->estado='R';
+	tripu->estado = 'R';
 	sem_post(contador_tripulantes_en_ready);
 	//Actualizar el estado del tripulante (R) EN Mi-Ram
 }
@@ -196,7 +234,9 @@ void running_block(tripulante_plani* tripu){
 	sem_post(mutex_valorMultitarea);
 
 	//Actualizar el estado del tripulante (B) EN Mi-Ram
-	tripu->estado='B';
+	tripu->estado = 'B';
+	// actualizar_estado(tripu, estado);
+
 }
 
 void block_ready(tripulante_plani* tripu){
@@ -205,7 +245,7 @@ void block_ready(tripulante_plani* tripu){
 	sem_post(mutex_ready);
 
 
-	tripu->estado='R';
+	tripu->estado = 'R';
 	//Actualizar el estado del tripulante (R) EN Mi-Ram
 }
 
@@ -215,7 +255,7 @@ void block_exit(tripulante_plani* tripu){
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
 
-	tripu->estado='T';
+	tripu->estado = 'T';
 
 	//Actualizar el estado del tripulante (E) EN Mi-Ram
 }
@@ -225,7 +265,7 @@ void tripulante_hilo(void* tripulante){
 
 	sem_wait(tripu->sem_planificacion);
 
-	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+	tripu->tarea_a_realizar = obtener_siguiente_tarea(tripu->numero_patota);
 
 	posiciones* posicion_tripu;
 	posicion_tripu = malloc(sizeof(posiciones));
@@ -319,12 +359,17 @@ t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
 
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 
-	tarea->operacion=GENERAR_OXIGENO;
-	tarea->cantidad=5;
-	tarea->posicion_x=20;
-	tarea->posicion_y=16;
-	tarea->tiempo=5;
+	tarea->operacion = GENERAR_OXIGENO;
+	tarea->cantidad = 5;
+	tarea->posicion_x = 20;
+	tarea->posicion_y = 16;
+	tarea->tiempo = 5;
 	return tarea;
+
+
+	// enviar_mensaje(t_tripulante, PEDIDO_TAREA, conexion_mi_ram);
+
+	// recibir_mensaje(t_respuesta_tarea_tripulante, RESPUESTA_NUEVA_TAREA, conexion_mi_ram);
 
 	//le mandamos el numero de la patota a Mi-Ram y nos devuelve un char* tarea_tripulante
 	//Si no hay una proxima tarea, devuelve un NULL
@@ -334,9 +379,9 @@ t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
 
 posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota){
 	//le mandamos el id del tripulante a Mi_Ram y nos dice su ubicacion
-	posiciones* posicion= malloc(sizeof(posiciones));
-	posicion->posicion_x=1;
-	posicion->posicion_y=1;
+	posiciones* posicion = malloc(sizeof(posiciones));
+	posicion->posicion_x = 1;
+	posicion->posicion_y = 1;
 	return posicion;
 }
 
@@ -344,58 +389,7 @@ uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tare
 	return (abs(posicion_tripu->posicion_x - posicion_tarea->posicion_x) + abs(posicion_tripu->posicion_y - posicion_tarea->posicion_y) );
 }
 
-codigo_tarea mapeo_tareas_tripulantes(char* tarea) {
 
-	codigo_tarea tarea_a_realizar;
-
-	if(strcmp(tarea, "GENERAR_OXIGENO") == 0) {
-		tarea_a_realizar = GENERAR_OXIGENO;
-	}
-
-	if(strcmp(tarea, "CONSUMIR_OXIGENO") == 0) {
-		tarea_a_realizar = CONSUMIR_OXIGENO;
-	}
-
-	if(strcmp(tarea, "GENERAR_COMIDA") == 0) {
-		tarea_a_realizar = GENERAR_COMIDA;
-	}
-
-	if(strcmp(tarea, "CONSUMIR_COMIDA") == 0) {
-		tarea_a_realizar = CONSUMIR_COMIDA;
-	}
-
-	if(strcmp(tarea, "GENERAR_BASURA") == 0) {
-		tarea_a_realizar = GENERAR_BASURA;
-	}
-
-	if(strcmp(tarea, "DESCARTAR_BASURA") == 0) {
-		tarea_a_realizar = DESCARTAR_BASURA;
-	}
-
-	return tarea_a_realizar;
-}
-
-
-t_tarea* obtener_la_tarea(char* tarea_tripulante) {
-	char** parser_tarea = string_split(tarea_tripulante, " ");
-
-    char** parser_parametros = NULL;
-
-    t_tarea* tarea_nueva = malloc(sizeof(t_tarea));
-
-	tarea_nueva->operacion = mapeo_tareas_tripulantes(parser_tarea[0]);
-
-    parser_parametros = string_split(parser_tarea[1], ";");
-
-    tarea_nueva->cantidad = atoi(parser_parametros[0]);
-    tarea_nueva->posicion_x = atoi(parser_parametros[1]);
-    tarea_nueva->posicion_y = atoi(parser_parametros[2]);
-    tarea_nueva->tiempo = atoi(parser_parametros[3]);
-
-    free(parser_tarea);
-    free(parser_parametros);
-    return tarea_nueva;
-}
 
 void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
 

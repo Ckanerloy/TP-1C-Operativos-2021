@@ -263,7 +263,7 @@ uint32_t serializar_paquete_estado_tripulante(t_paquete* paquete, t_tripulante_e
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_patota), sizeof(mensaje->id_patota));
 	desplazamiento += sizeof(mensaje->id_patota);
 
-
+	// Estado tripulante
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->estado), sizeof(mensaje->estado));
 	desplazamiento += sizeof(mensaje->estado);
 
@@ -363,6 +363,7 @@ uint32_t serializar_respuesta_tripulante(t_paquete* paquete, t_respuesta_tripula
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->respuesta), sizeof(mensaje->respuesta));
 	desplazamiento += sizeof(mensaje->respuesta);
 
+	// ID tripulante
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
 	desplazamiento += sizeof(mensaje->id_tripulante);
 
