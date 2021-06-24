@@ -30,12 +30,8 @@ void eliminar_paquete(t_paquete* paquete);
 int32_t resultado_conexion(int32_t conexion, t_log* logger, char* modulo) ;
 int32_t validacion_envio(int32_t conexion_cliente);
 
-// Envio de mensajes
-void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion);
 void crear_buffer(t_paquete* paquete);
 
-// Recepcion de mensajes
-void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion);
 void recibir_operacion(int32_t socket_cliente, codigo_operacion operacion);
 void* recibir_buffer(uint32_t* size, int32_t conexion_cliente);
 

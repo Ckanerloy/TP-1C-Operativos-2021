@@ -1,7 +1,6 @@
 #include "sockets.h"
 
 
-// FUNCIONES PARA MANEJAR CONEXIONES, SERVIDORES
 int32_t crear_conexion(char *ip, char* puerto)
 {
 	struct addrinfo hints;
@@ -144,47 +143,6 @@ void eliminar_paquete(t_paquete* paquete)
 }
 
 
-
-// FUNCIONES PARA RECIBIR UN MENSAJE
-void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion)
-{
-	switch(operacion) {
-
-		case INICIAR_PATOTA:
-			deserializar_iniciar_patota(mensaje, conexion);
-			break;
-
-		case INICIAR_TRIPULANTE:
-			deserializar_tripulante(mensaje, conexion);
-			break;
-
-		case EXPULSAR_TRIPULANTE:
-			deserializar_tripulante(mensaje, conexion);
-			break;
-
-		case OBTENER_BITACORA:
-			deserializar_tripulante(mensaje, conexion);
-			break;
-
-		case RESPUESTA_INICIAR_PATOTA:
-			deserializar_respuesta_patota(mensaje, conexion);
-			break;
-
-		case RECIBIR_SABOTAJE:
-			deserializar_sabotaje(mensaje,conexion);
-			break;
-
-		case CERRAR_MODULO:
-			break;
-
-		default:
-			printf("404 operacion NOT FOUND.\n");
-			break;
-
-	}
-}
-
-
 void* recibir_buffer(uint32_t* size, int32_t conexion_cliente)
 {
 	void * buffer;
@@ -193,24 +151,6 @@ void* recibir_buffer(uint32_t* size, int32_t conexion_cliente)
 	recv(conexion_cliente, buffer, *size, MSG_WAITALL);
 
 	return buffer;
-}
-
-
-
-// FUNCIONES PARA ENVIAR UN MENSAJE
-void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion)
-{
-	t_paquete* paquete_a_armar = malloc(sizeof(t_paquete));
-	crear_buffer(paquete_a_armar);
-	uint32_t tamanio_paquete = 0;
-
-	void* paquete_serializado = serializar_paquete(paquete_a_armar, mensaje, operacion, &tamanio_paquete);
-
-	send(conexion, paquete_serializado, tamanio_paquete, 0);
-
-	eliminar_paquete(paquete_a_armar);
-
-	free(paquete_serializado);
 }
 
 

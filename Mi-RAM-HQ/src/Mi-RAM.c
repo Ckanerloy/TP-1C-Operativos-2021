@@ -95,23 +95,29 @@ void iniciar_comunicacion(){
 
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 {
+	// INICIAR_PATOTA
 	t_iniciar_patota* patota_recibida;
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 	int32_t tamanio_patota;
 	t_list* tareas_de_la_patota;
 
+	// ACTUALIZAR_UBICACION_TRIPULANTE
 	t_tripulante_ubicacion* tripulante_por_ubicacion;
 	t_respuesta_tripulante* respuesta_ok_ubicacion;
 
+	// PEDIR_UBICACION_TRIPULANTE
 	t_tripulante* tripulante_para_ubicacion;
 	t_respuesta_tripulante_ubicacion* respuesta_por_ubicacion;
 
+	// ACTUALIZAR_ESTADO_TRIPULANTE
 	t_tripulante_estado* tripulante_por_estado;
 	t_respuesta_tripulante* respuesta_por_estado;
 
+	// PEDIDO_TAREA
 	t_tripulante* tripulante_para_tarea;
 	t_respuesta_tarea_tripulante* respuesta_tarea_tripulante;
 
+	// EXPULSAR_TRIPULANTE
 	t_tripulante* tripulante_a_eliminar;
 	t_respuesta_tripulante* respuesta_tripulante_eliminado;
 
@@ -264,7 +270,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 			case ACTUALIZAR_UBICACION_TRIPULANTE:
 				tripulante_por_ubicacion = malloc(sizeof(t_tripulante_ubicacion));
-				respuesta_por_ubicacion = malloc(sizeof(t_respuesta_tripulante));
+				respuesta_ok_ubicacion = malloc(sizeof(t_respuesta_tripulante));
 
 				recibir_mensaje(tripulante_por_ubicacion, operacion, conexion);
 
@@ -275,12 +281,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				 * - ACTUALIZAR LA POSICION DEL TRIPULANTE EN EL MAPA
 				 * - ENVIAR UNA RESPUESTA DE CONFIRMACION DE ACTUALIZACION DE POSICION?
 				 */
+				respuesta_ok_ubicacion->id_tripulante = tripulante_por_ubicacion->id_tripulante;
+				respuesta_ok_ubicacion->respuesta = 1;
 
-				enviar_mensaje(respuesta_por_ubicacion, RESPUESTA_OK_UBICACION, conexion);
+				enviar_mensaje(respuesta_ok_ubicacion, RESPUESTA_OK_UBICACION, conexion);
 				// LE CONFIRMO A DISCORDIADOR QUE SE ACTUALIZO EXITOSAMENTE LA UBICACION DEL TRIPULANTE
 
 				free(tripulante_por_ubicacion);
-				free(respuesta_por_ubicacion);
+				free(respuesta_ok_ubicacion);
 				break;
 
 			case PEDIR_UBICACION_TRIPULANTE:
@@ -314,6 +322,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				 *  - ACTUALIZAR EL ESTADO DEL TRIPULANTE EN MEMORIA
 				 *  - ENVIAR UNA RESPUESTA DE CONFIRMACION A DISCORDIADOR?
 				 */
+
+				respuesta_por_estado->id_tripulante = tripulante_por_estado->id_tripulante;
+				respuesta_por_estado->respuesta = 1;
+
+				printf("Tripulante: %u\n", respuesta_por_estado->id_tripulante);
+				printf("Estado: %c\n", tripulante_por_estado->estado);
 
 				enviar_mensaje(respuesta_por_estado, RESPUESTA_OK_ESTADO, conexion);
 				// LE CONFIRMA A DISCORDIADOR QUE SE REALIZO EXITOSAMENTE LA ACTUALIZACION DEL ESTADO DEL TRIPULANTE

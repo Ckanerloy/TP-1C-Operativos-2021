@@ -116,6 +116,7 @@ void iniciar_planificacion() {
 void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 	uint32_t conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
 	t_tripulante_estado* tripulante_estado = malloc(sizeof(t_tripulante_estado));
 	t_respuesta_tripulante* respuesta = malloc(sizeof(t_respuesta_tripulante));
 
@@ -129,11 +130,15 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 	recibir_mensaje(respuesta, RESPUESTA_OK_ESTADO, conexion_mi_ram);
 
-	if(respuesta->respuesta == 1) {
-		if(respuesta->id_tripulante == tripu->id_tripulante) {
-			// VALIDAS QUE EL DATO SE ENVIO Y RECIBIO EXITOSAMENTE
-		}
+	if(respuesta->respuesta != 1) {
+		log_error(logger, "La respuesta fue negativa.");
 	}
+	if(respuesta->id_tripulante != tripu->id_tripulante) {
+		// VALIDAS QUE EL DATO SE ENVIO Y RECIBIO EXITOSAMENTE
+		log_error(logger, "No es el tripulante que estoy buscando!");
+	}
+
+	printf("La respuesta fue %u del tripulante %u. \n", respuesta->respuesta, respuesta->id_tripulante);
 
 	close(conexion_mi_ram);
 
@@ -159,11 +164,11 @@ void new_ready() {
 		sem_post(mutex_ready);
 
 		sem_post(tripulante_a_ready->sem_planificacion);
-		///tripulante_a_ready->estado = 'R';
+		tripulante_a_ready->estado = 'R';
 
 		//Actualizar el estado del tripulante (R) EN Mi-Ram
 		//mutex
-		actualizar_estado(tripulante_a_ready, 'R');
+		//actualizar_estado(tripulante_a_ready, 'R');
 		//mutex
 
 		sem_post(planificacion_on);
@@ -199,7 +204,7 @@ void ready_running() {
 
             tripulante_a_running->estado = 'E';
             //Actualizar el estado (a E) en Mi-Ram
-            //enviar_mensaje();
+            //actualizar_estado(tripulante_a_running, 'E');
 
             sem_post(tripulante_a_running->sem_planificacion);
 
@@ -223,8 +228,11 @@ void running_ready(tripulante_plani* tripu){
 	sem_post(mutex_ready);
 
 	tripu->estado = 'R';
+	//actualizar_estado(tripu, 'R');
 	sem_post(contador_tripulantes_en_ready);
+
 	//Actualizar el estado del tripulante (R) EN Mi-Ram
+
 }
 
 void running_block(tripulante_plani* tripu){
@@ -235,7 +243,7 @@ void running_block(tripulante_plani* tripu){
 
 	//Actualizar el estado del tripulante (B) EN Mi-Ram
 	tripu->estado = 'B';
-	// actualizar_estado(tripu, estado);
+	//actualizar_estado(tripu, 'B');
 
 }
 
@@ -247,6 +255,7 @@ void block_ready(tripulante_plani* tripu){
 
 	tripu->estado = 'R';
 	//Actualizar el estado del tripulante (R) EN Mi-Ram
+	//actualizar_estado(tripu, 'R');
 }
 
 void block_exit(tripulante_plani* tripu){
@@ -256,8 +265,8 @@ void block_exit(tripulante_plani* tripu){
 	sem_post(mutex_exit);
 
 	tripu->estado = 'T';
-
 	//Actualizar el estado del tripulante (E) EN Mi-Ram
+	//actualizar_estado(tripu, 'T');
 }
 
 void tripulante_hilo(void* tripulante){

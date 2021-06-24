@@ -12,11 +12,14 @@
 #include "commons/config.h"
 #include "commons/collections/list.h"
 #include "estructuras.h"
+#include "sockets.h"
 
 t_log* logger;
 
+void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion);
 void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, uint32_t* tamanio_paquete);
 
+// Paquetes a enviar
 uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota* mensaje);
 uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tripulante* mensaje);
 uint32_t serializar_paquete_ubicacion_tripulante(t_paquete* paquete, t_tripulante_ubicacion* mensaje);

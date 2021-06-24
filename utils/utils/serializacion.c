@@ -1,5 +1,22 @@
 #include "serializacion.h"
 
+
+void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion)
+{
+	t_paquete* paquete_a_armar = malloc(sizeof(t_paquete));
+	crear_buffer(paquete_a_armar);
+	uint32_t tamanio_paquete = 0;
+
+	void* paquete_serializado = serializar_paquete(paquete_a_armar, mensaje, operacion, &tamanio_paquete);
+
+	send(conexion, paquete_serializado, tamanio_paquete, 0);
+
+	eliminar_paquete(paquete_a_armar);
+
+	free(paquete_serializado);
+}
+
+
 void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, uint32_t* tamanio_paquete)
 {
 
@@ -36,6 +53,9 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 
 		case OBTENER_BITACORA:
 			tamanio_preparado = serializar_paquete_tripulante(paquete, mensaje);
+			break;
+
+		case ENVIAR_SABOTAJE:
 			break;
 
 
@@ -291,6 +311,7 @@ uint32_t serializar_paquete_estado_tripulante(t_paquete* paquete, t_tripulante_e
 }
 
 
+//uint32_t serializar_paquete_sabotaje(t_paquete* paquete, tripulante_sabotaje* mensaje) {}
 
 
 
@@ -391,10 +412,114 @@ uint32_t serializar_respuesta_tripulante(t_paquete* paquete, t_respuesta_tripula
 
 uint32_t serializar_respuesta_nueva_ubicacion(t_paquete* paquete, t_respuesta_tripulante_ubicacion* mensaje)
 {
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
 
+	uint32_t tamanio_a_enviar = 0;
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->size = sizeof(mensaje->respuesta) + sizeof(mensaje->id_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y);
+
+	void* stream_auxiliar = malloc(buffer->size);
+
+	// Respuesta
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->respuesta), sizeof(mensaje->respuesta));
+	desplazamiento += sizeof(mensaje->respuesta);
+
+	// ID tripulante
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
+
+	// Posicion X
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->posicion_x), sizeof(mensaje->posicion_x));
+	desplazamiento += sizeof(mensaje->posicion_x);
+
+	// Posicion Y
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->posicion_y), sizeof(mensaje->posicion_y));
+	desplazamiento += sizeof(mensaje->posicion_y);
+
+
+	tamanio_a_enviar = sizeof(mensaje->respuesta) + sizeof(mensaje->id_tripulante) + sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y);
+
+	if(desplazamiento != tamanio_a_enviar)
+	{
+		puts("ERROR. Tamanio diferentes.\n");
+		//log_error(logger);
+		abort();
+	}
+
+	else
+	{
+
+		paquete->buffer = buffer;
+		paquete->buffer->size = desplazamiento;
+		paquete->buffer->stream = stream_auxiliar;
+
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+
+		return tamanio;
+	}
 }
 
 uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_tarea_tripulante* mensaje)
 {
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
 
+	uint32_t tamanio_a_enviar = 0;
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->size = sizeof(mensaje->respuesta) + sizeof(mensaje->id_tripulante) + sizeof(mensaje->tarea->cantidad) + sizeof(mensaje->tarea->operacion) + sizeof(mensaje->tarea->posicion_x) + sizeof(mensaje->tarea->posicion_y) + sizeof(mensaje->tarea->tiempo);
+
+	void* stream_auxiliar = malloc(buffer->size);
+
+	// Respuesta
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->respuesta), sizeof(mensaje->respuesta));
+	desplazamiento += sizeof(mensaje->respuesta);
+
+	// ID tripulante
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
+
+	// Cantidad de la tarea
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tarea->cantidad), sizeof(mensaje->tarea->cantidad));
+	desplazamiento += sizeof(mensaje->tarea->cantidad);
+
+	// Operacion de la tarea
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tarea->operacion), sizeof(mensaje->tarea->operacion));
+	desplazamiento += sizeof(mensaje->tarea->operacion);
+
+	// Posicion X de la tarea
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tarea->posicion_x), sizeof(mensaje->tarea->posicion_x));
+	desplazamiento += sizeof(mensaje->tarea->posicion_x);
+
+	// Posicion Y de la tarea
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tarea->posicion_y), sizeof(mensaje->tarea->posicion_y));
+	desplazamiento += sizeof(mensaje->tarea->posicion_y);
+
+	// Tiempo de la tarea
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tarea->tiempo), sizeof(mensaje->tarea->tiempo));
+	desplazamiento += sizeof(mensaje->tarea->tiempo);
+
+
+	tamanio_a_enviar = sizeof(mensaje->respuesta) + sizeof(mensaje->id_tripulante) + sizeof(mensaje->tarea->cantidad) + sizeof(mensaje->tarea->operacion) + sizeof(mensaje->tarea->posicion_x) + sizeof(mensaje->tarea->posicion_y) + sizeof(mensaje->tarea->tiempo);
+
+	if(desplazamiento != tamanio_a_enviar)
+	{
+		puts("ERROR. Tamanio diferentes.\n");
+		//log_error(logger);
+		abort();
+	}
+
+	else
+	{
+
+		paquete->buffer = buffer;
+		paquete->buffer->size = desplazamiento;
+		paquete->buffer->stream = stream_auxiliar;
+
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+
+		return tamanio;
+	}
 }
