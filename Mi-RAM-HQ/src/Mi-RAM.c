@@ -96,11 +96,25 @@ void iniciar_comunicacion(){
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 {
 	t_iniciar_patota* patota_recibida;
+	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 	int32_t tamanio_patota;
 	t_list* tareas_de_la_patota;
-	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
+
+	t_tripulante_ubicacion* tripulante_por_ubicacion;
+	t_respuesta_tripulante* respuesta_ok_ubicacion;
+
+	t_tripulante* tripulante_para_ubicacion;
+	t_respuesta_tripulante_ubicacion* respuesta_por_ubicacion;
+
+	t_tripulante_estado* tripulante_por_estado;
+	t_respuesta_tripulante* respuesta_por_estado;
+
+	t_tripulante* tripulante_para_tarea;
+	t_respuesta_tarea_tripulante* respuesta_tarea_tripulante;
 
 	t_tripulante* tripulante_a_eliminar;
+	t_respuesta_tripulante* respuesta_tripulante_eliminado;
+
 
 	switch(operacion)
 {
@@ -147,7 +161,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					free(tarea_ejemplo);
 				}
 
-<<<<<<< HEAD
 				tamanio_patota = sizeof(t_pcb) + sizeof(t_tarea) * list_size(tareas_de_la_patota) + (sizeof(t_tcb) * patota_recibida->cantidad_tripulantes);
 
 
@@ -167,14 +180,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				else { // Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
 
 					t_pcb* nueva_patota = crear_pcb();
-=======
 						printf("Operacion: %u \n", tareas_de_la_patota[i]->operacion);
 						printf(" - Cantidad: %u \n", tareas_de_la_patota[i]->cantidad);
 						printf(" - Posicion X: %u \n", tareas_de_la_patota[i]->posicion_x);
 						printf(" - Posicion Y:%u \n", tareas_de_la_patota[i]->posicion_y);
 						printf(" - Tiempo: %u \n\n", tareas_de_la_patota[i]->tiempo);
 					}
->>>>>>> planificacion
+
 
 					if(esquema_elegido == 'S') {
 
@@ -246,6 +258,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
 
 				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
+				// LE ENVIO A DISCORDIADOR LOS DATOS NECESARIOS PARA QUE GUARDE LA PATOTA EN SU DOMINIO
 
 				free(ids_enviar);
 				free(parser_tarea);
@@ -258,10 +271,81 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				break;
 
 			case ACTUALIZAR_UBICACION_TRIPULANTE:
+				tripulante_por_ubicacion = malloc(sizeof(t_tripulante_ubicacion));
+				respuesta_por_ubicacion = malloc(sizeof(t_respuesta_tripulante));
 
+				recibir_mensaje(tripulante_por_ubicacion, operacion, conexion);
+
+				/*
+				 * - BUSCAR TRIPULANTE EN LA MEMORIA (COINCIDIENDO POR ID_TRIPULANTE E ID_PATOTA)
+				 * - CAMBIAR LAS POSICIONES X E Y DEL TRIPULANTE GUARDADO EN MEMORIA
+				 * - GUARDARLO DE NUEVO
+				 * - ACTUALIZAR LA POSICION DEL TRIPULANTE EN EL MAPA
+				 * - ENVIAR UNA RESPUESTA DE CONFIRMACION DE ACTUALIZACION DE POSICION?
+				 */
+
+				enviar_mensaje(respuesta_por_ubicacion, RESPUESTA_OK_UBICACION, conexion);
+				// LE CONFIRMO A DISCORDIADOR QUE SE ACTUALIZO EXITOSAMENTE LA UBICACION DEL TRIPULANTE
+
+				free(tripulante_por_ubicacion);
+				free(respuesta_por_ubicacion);
 				break;
 
-			case PEDIDO_PROXIMA_TAREA:
+			case PEDIR_UBICACION_TRIPULANTE:
+				tripulante_para_ubicacion = malloc(sizeof(t_tripulante));
+				respuesta_por_ubicacion = malloc(sizeof(t_respuesta_tripulante_ubicacion));
+
+				recibir_mensaje(tripulante_para_ubicacion, operacion, conexion);
+
+				/*
+				 *  - BUSCAR TRIPULANTE EN LA MEMORIA (COINCIDIENDO POR ID_TRIPULANTE E ID_PATOTA)
+				 *  - OBTENER LAS POSICIONES X E Y DEL TRIPULANTE GUARDADO
+				 *  - GUARDARLAS EN LA ESTRUCTURA respuesta_por_ubicacion
+				 *  - ENVIAR ESTA RESPUESTA AL DISCORDIADOR
+				 */
+				enviar_mensaje(respuesta_por_ubicacion, RESPUESTA_NUEVA_UBICACION, conexion);
+				// LE ENVIA A DISCORDIADOR LA UBICACION ACTUAL DEL TRIPULANTE
+
+				free(tripulante_para_ubicacion);
+				free(respuesta_por_ubicacion);
+				break;
+
+			case ACTUALIZAR_ESTADO_TRIPULANTE:
+				tripulante_por_estado = malloc(sizeof(t_tripulante_estado));
+				respuesta_por_estado = malloc(sizeof(t_respuesta_tripulante));
+
+				recibir_mensaje(tripulante_por_estado, operacion, conexion);
+
+				/*
+				 *  - BUSCAR TRIPULANTE EN LA MEMORIA (COINCIDIENDO POR ID_TRIPULANTE E ID_PATOTA)
+				 *  - CAMBIAR EL ESTADO DEL TRIPULANTE POR EL QUE ME ENVIAN DESDE DISCORDIADOR
+				 *  - ACTUALIZAR EL ESTADO DEL TRIPULANTE EN MEMORIA
+				 *  - ENVIAR UNA RESPUESTA DE CONFIRMACION A DISCORDIADOR?
+				 */
+
+				enviar_mensaje(respuesta_por_estado, RESPUESTA_OK_ESTADO, conexion);
+				// LE CONFIRMA A DISCORDIADOR QUE SE REALIZO EXITOSAMENTE LA ACTUALIZACION DEL ESTADO DEL TRIPULANTE
+
+				free(tripulante_por_estado);
+				free(respuesta_por_estado);
+				break;
+
+			case PEDIDO_TAREA:
+				tripulante_para_tarea = malloc(sizeof(t_tripulante));
+				respuesta_tarea_tripulante = malloc(sizeof(t_respuesta_tarea_tripulante));
+
+				recibir_mensaje(tripulante_para_tarea, operacion, conexion);
+
+				/*
+				 * - BUSCAR TRIPULANTE EN LA MEMORIA (COINCIDIENDO POR ID_TRIPULANTE E ID_PATOTA)
+				 * - BUSCAR LA TAREA POR EL ID_PROXIMA_TAREA DEL TRIPULANTE EN MEMORIA
+				 * - GUARDAR LA TAREA EN LA ESTRUCTURA t_respuesta_tarea_tripulante
+				 * - ACTUALIZAR EL ID_TAREA_A_REALIZAR DEL TRIPULANTE Y GUARDARLO EN MEMORIA
+				 * - ENVIAR LA RESPUESTA CON EL TRIPULANTE Y LA TAREA A REALIZAR
+				 */
+
+				enviar_mensaje(respuesta_tarea_tripulante, RESPUESTA_NUEVA_TAREA, conexion);
+				// LE ENVIA A DISCORDIADOR LA TAREA A REALIZAR POR DICHO TRIPULANTE
 
 				if(esquema_elegido == 'S') {
 
@@ -269,50 +353,39 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				else if(esquema_elegido == 'P') {
 
 				}
-				// return queue_pop(tareas_de_la_patota);
+
+				free(tripulante_para_tarea);
+				free(respuesta_tarea_tripulante);
 				break;
 
 			case EXPULSAR_TRIPULANTE:
 				tripulante_a_eliminar = malloc(sizeof(t_tripulante));
+				respuesta_tripulante_eliminado = malloc(sizeof(t_respuesta_tripulante));
+
 				recibir_mensaje(tripulante_a_eliminar, operacion, conexion);
 
 				printf("Tripulante a Expulsar: %u \n", tripulante_a_eliminar->id_tripulante);
 
+				/*
+				 * - BUSCAR TRIPULANTE EN LA MEMORIA (COINCIDIENDO POR ID_TRIPULANTE E ID_PATOTA)
+				 * - LIBERAR EN LA MEMORIA EL SEGMENTO QUE HACE REFERENCIA A ESTE TRIPULANTE
+				 * - ELIMINARLO DEL MAPA
+				 * - ENVIAR UNA RESPUESTA DE CONFIRMACION AL DISCORDIADOR
+				 */
+
+				enviar_mensaje(respuesta_tripulante_eliminado, RESPUESTA_TRIPULANTE_ELIMINADO, conexion);
+				// LE AVISA A DISCORDIADOR QUE EL TRIPULANTE FUE ELIMINADO EXITOSAMENTE ASI LO ELIMINA DE SUS ESTRUCTURAS
+
 				if(esquema_elegido == 'S') {
-
-					//t_segmento* segmento = malloc(sizeof(t_segmento));
-					//segmento = buscar_por_tipo_de_segmento(tablas_segmentos, PATOTA);
-					//t_pcb* patota = traducir_segmento(segmento);
-					//printf("PID patota buscada: %u\n\n", patota->pid);
-
-
-					t_tabla_segmentos_patota* tabla_ejemplo = malloc(sizeof(t_tabla_segmentos_patota));
-					tabla_ejemplo = list_get(tablas_segmentos, 1);
-
-
-					printf("ID de la Patota: %u \n", tabla_ejemplo->patota->pid);
-					printf("Direccion Tareas: %u\n", tabla_ejemplo->patota->tareas);
-					printf("Tripus que contiene: %s\n", tabla_ejemplo->ids_tripus);
-					//while(tablas_segmentos->head->data != NULL) {
-						//tabla_ejemplo = (t_tabla_segmentos_patota*)tablas_segmentos->head->data;
-
-
-
-					//	tablas_segmentos->head = tablas_segmentos->head->next;
-				//	}
-
-
-
-
-
 
 				}
 				else if(esquema_elegido == 'P') {
 
 				}
-				// Eliminar el tripulante o hilo dentro de la memoria y del mapa
+
 
 				free(tripulante_a_eliminar);
+				free(respuesta_tripulante_eliminado);
 				break;
 
 			case CERRAR_MODULO:
@@ -354,7 +427,7 @@ t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion
 	tripulante->estado_tripulante = 'N';
 	tripulante->posicion_x = posicion_x;
 	tripulante->posicion_y = posicion_y;
-	tripulante->id_proxima_instruccion = 0;
+	tripulante->id_tarea_a_realizar = 0;
 	tripulante->puntero_PCB = dir_logica_pcb;
 
 	return tripulante;
@@ -376,6 +449,6 @@ void mostrar_tripulante(t_tcb* tripulante) {
 	printf("Estado tripulante: %c \n", tripulante->estado_tripulante);
 	printf("Posicion X: %i \n", tripulante->posicion_x);
 	printf("Posicion Y: %i \n", tripulante->posicion_y);
-	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_proxima_instruccion);
+	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_tarea_a_realizar);
 }
 

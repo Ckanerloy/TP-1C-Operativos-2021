@@ -210,16 +210,16 @@ void obtener_orden_input(){
 	 sem_post(comando_para_ejecutar);
 	 operacion = mapeo_valor_consola(comando_ingresado);
 	 free(comando_ingresado);
-<<<<<<< HEAD
+
 	 int32_t valor_semaforo;
 	// tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 	 //tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
-=======
+
 	 //int32_t valor_semaforo;
 	 tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 	 int largo;
 	 int recorrido;
->>>>>>> planificacion
+
 	 switch(operacion){
 
 
@@ -499,7 +499,6 @@ void obtener_orden_input(){
 			break;
 
 		case TERMINAR_PROGRAMA:
-<<<<<<< HEAD
 
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 				if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
@@ -510,8 +509,7 @@ void obtener_orden_input(){
 
 			cerrar_conexion(logger, conexion_mi_ram);
 
-=======
->>>>>>> planificacion
+
 			printf("Terminando programa... \n");
 			sleep(1);
 			printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
@@ -520,15 +518,10 @@ void obtener_orden_input(){
 			free(cadena_ingresada);
 			//finalizar_semaforos();
 			terminar_programa(config, logger);
-<<<<<<< HEAD
+
 			exit(0);
 
-=======
-			//break
-			exit(0);
 
-			break;
->>>>>>> planificacion
 		default:
 			printf("No se reconoce ese comando. Por favor, ingrese un comando válido.\n");
 			break;

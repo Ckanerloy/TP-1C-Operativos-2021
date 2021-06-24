@@ -52,7 +52,7 @@ void mostrar_tripulante(t_tcb* tripulante) {
 	printf("Estado tripulante: %c \n", tripulante->estado_tripulante);
 	printf("Posicion X: %i \n", tripulante->posicion_x);
 	printf("Posicion Y: %i \n", tripulante->posicion_y);
-	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_proxima_instruccion);
+	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_tarea_a_realizar);
 }
 /*
 void liberar_tripulantes(uint32_t cantidad_tripulantes, t_tripulante** mensaje_tripulantes) {

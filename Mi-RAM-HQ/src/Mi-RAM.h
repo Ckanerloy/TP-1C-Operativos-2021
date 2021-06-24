@@ -13,7 +13,7 @@
 #include "utils/sockets.h"
 #include "utils/loader.h"
 #include "utils/estructuras.h"
-#include "tareas.h"
+#include "utils/tareas.h"
 #include "memoria.h"
 
 #define IP "127.0.0.1"
