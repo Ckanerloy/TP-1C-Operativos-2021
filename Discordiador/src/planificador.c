@@ -128,7 +128,11 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 	enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion_mi_ram);
 
+	printf("se envio\n");
+
 	recibir_mensaje(respuesta, RESPUESTA_OK_ESTADO, conexion_mi_ram);
+
+	printf("La respuesta fue %u del tripulante %u. \n", respuesta->respuesta, respuesta->id_tripulante);
 
 	if(respuesta->respuesta != 1) {
 		log_error(logger, "La respuesta fue negativa.");
@@ -253,9 +257,9 @@ void block_ready(tripulante_plani* tripu){
 	sem_post(mutex_ready);
 
 
-	tripu->estado = 'R';
+	//tripu->estado = 'R';
 	//Actualizar el estado del tripulante (R) EN Mi-Ram
-	//actualizar_estado(tripu, 'R');
+	actualizar_estado(tripu, 'R');
 }
 
 void block_exit(tripulante_plani* tripu){
@@ -292,11 +296,11 @@ void tripulante_hilo(void* tripulante){
 
 		while(distancia > 0){
 
-			if(algoritmo_elegido==RR){
+			if(algoritmo_elegido == RR){
 
-				if(cantidadRealizado==QUANTUM){
+				if(cantidadRealizado == QUANTUM){
 					running_ready(tripu);
-					cantidadRealizado=0;
+					cantidadRealizado = 0;
 					sem_wait(tripu->sem_planificacion);
 				}
 
@@ -312,15 +316,15 @@ void tripulante_hilo(void* tripulante){
 
 			sem_post(tripu->sem_tripu);
 		}
-		if(algoritmo_elegido==QUANTUM){
-			if(cantidadRealizado==QUANTUM){
+		if(algoritmo_elegido == QUANTUM){
+			if(cantidadRealizado == QUANTUM){
 				running_ready(tripu);
 
 				sem_wait(mutex_valorMultitarea);
 				multitarea_Disponible++;
 				sem_post(mutex_valorMultitarea);
 
-				cantidadRealizado=0;
+				cantidadRealizado = 0;
 				sem_wait(tripu->sem_planificacion);
 
 			}
@@ -394,7 +398,7 @@ posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota){
 	return posicion;
 }
 
-uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea){
+int32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea){
 	return (abs(posicion_tripu->posicion_x - posicion_tarea->posicion_x) + abs(posicion_tripu->posicion_y - posicion_tarea->posicion_y) );
 }
 

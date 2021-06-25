@@ -59,6 +59,8 @@ pthread_t hilo_tripulante_sabo;
 t_log* logger;
 t_config* config;
 
+posiciones* posicion_sabotaje;
+
 //void iniciar_escucha_sabotaje(void);
 void iniciar_escucha_por_consola();
 void obtener_datos_de_config(t_config* config);
@@ -74,9 +76,9 @@ void poner_en_cero_semaforos(sem_t* semaforo);
 void poner_en_uno_semaforos(sem_t* semaforo);
 
 
-tripulante_plani* mas_cercano(tripulante_plani* tripulante1,tripulante_plani* tripulante2);
+tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2);
 
-bool menorId(tripulante_plani* tripulante1,tripulante_plani* tripulante2);
+bool menorId(tripulante_plani* tripulante1, tripulante_plani* tripulante2);
 // POR AHORA SON UNA IDEA
 
 void arreglar_sabotaje(void);

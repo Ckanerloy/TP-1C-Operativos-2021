@@ -90,7 +90,7 @@ void tripulante_hilo(void* tripulante);
 //void hilo_tripulante_sabotaje(tripulante_plani* tripu);
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota);
 posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota);
-uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
+int32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
 
 void realizar_tarea(tripulante_plani* tripulante,uint32_t* cantidadRealizado);
 void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu);

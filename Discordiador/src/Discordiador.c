@@ -141,18 +141,26 @@ void iniciar_escucha_sabotaje(void){
 
 
 
-tripulante_plani* mas_cercano(tripulante_plani* tripulante1,tripulante_plani* tripulante2){
+tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
 	//tenemos variable global q dice la posicion del sabotaje
-	posiciones* posicion_tripu1;
-	posicion_tripu1 = malloc(sizeof(posiciones));
-	posiciones* posicion_tripu2;
-	posicion_tripu2 = malloc(sizeof(posiciones));
-	obtener_distancia(posicion_tripu1, posicion_tripu2);
+	posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
+
+	posiciones* posicion_tripu2 = malloc(sizeof(posiciones));
+
+	int32_t distancia1 = obtener_distancia(posicion_tripu1, posicion_sabotaje);
+	int32_t distancia2 = obtener_distancia(posicion_tripu2, posicion_sabotaje);
+
+	if(distancia1 <= distancia2) {
+		return tripulante1;
+	}
+	else {
+		return tripulante2;
+	}
 }
 
 
 
-bool menorId(tripulante_plani* tripulante1,tripulante_plani* tripulante2){
+bool menorId(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
 	return tripulante1->id_tripulante<tripulante2->id_tripulante;
 }
 
@@ -211,7 +219,7 @@ void obtener_orden_input(){
 	 operacion = mapeo_valor_consola(comando_ingresado);
 	 free(comando_ingresado);
 
-	 int32_t valor_semaforo;
+	 //int32_t valor_semaforo;
 	// tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 	 //tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
 
