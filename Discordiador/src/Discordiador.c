@@ -263,6 +263,7 @@ void obtener_orden_input(){
 		case INICIAR_PATOTA:
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
 			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
@@ -386,7 +387,7 @@ void obtener_orden_input(){
 
 				}
 				else {
-					printf("La respuesta fue negativa. \n");			// Salgo del Switch, ya que no pudo crearse la Patota en Mi-RAM HQ
+					log_error(logger, "No hay espacio para almacenar la patota con sus tripulantes. \n");			// Salgo del Switch, ya que no pudo crearse la Patota en Mi-RAM HQ
 					break;
 				}
 			}

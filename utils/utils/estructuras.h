@@ -209,7 +209,7 @@ typedef struct {
 	uint32_t puntero_PCB;				// Dirección de memoria del PCB de la patota
 } t_tcb;
 // Tamaño del TCB = 24 bytes
-
+// Deberia ser 21 bytes
 
 
 #endif /* UTILS_ESTRUCTURAS_H_ */

@@ -4,7 +4,7 @@ int main(void)
 {
 	memoria_principal = NULL;
 	area_swap = NULL;
-	inicio_segmento = 0;
+	base_segmento = 0;
 
 	contador_id_tripu = 1;
 	contador_id_patota = 1;
@@ -98,7 +98,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 	// INICIAR_PATOTA
 	t_iniciar_patota* patota_recibida;
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
-	int32_t tamanio_patota;
+	int32_t tamanio_total;
 	t_list* tareas_de_la_patota;
 
 	// ACTUALIZAR_UBICACION_TRIPULANTE
@@ -166,20 +166,26 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					free(tarea_ejemplo);
 				}
 
-				tamanio_patota = sizeof(t_pcb) + sizeof(t_tarea) * list_size(tareas_de_la_patota) + (sizeof(t_tcb) * patota_recibida->cantidad_tripulantes);
+				tamanio_tripulante = sizeof(uint32_t) + sizeof(char) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t);
+				tamanio_tripulantes = tamanio_tripulante * patota_recibida->cantidad_tripulantes;
+				tamanio_patota = sizeof(t_pcb);
+				tamanio_tareas = sizeof(t_tarea) * list_size(tareas_de_la_patota);
 
+				tamanio_total = tamanio_patota + tamanio_tareas + tamanio_tripulantes;
 
 				printf("Tamanio de un PCB: %d\n", sizeof(t_pcb));
-				printf("Tamanio de un TCB: %d\n", sizeof(t_tcb));
+				printf("Tamanio de un TCB: %d\n", tamanio_tripulante);
 				printf("Tamanio de una tarea: %d\n", sizeof(t_tarea));
 
 				// Verifica si hay espacio para guardar en memoria
-				if(validar_espacio_por_patota(tamanio_patota) == 0) {
+				if(validar_espacio_por_patota(tamanio_total) == 0) {
 					respuesta_iniciar_patota->numero_de_patota = 0;
 					respuesta_iniciar_patota->respuesta = 0;
 					respuesta_iniciar_patota->tamanio_ids = 0;
 					respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
 					strcpy(respuesta_iniciar_patota->ids_tripu, "");
+
+					log_error(logger, "No hay espacio suficiente para guardar la patota y sus tripulantes. \n");
 
 				}
 				else { // Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
@@ -190,12 +196,15 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 						tabla = crear_tabla_segmentos(nueva_patota);
 
-						t_segmento* segmento_patota = crear_segmento(nueva_patota, PATOTA);
-						list_add(tabla->segmentos,segmento_patota);
+						t_segmento* segmento_patota = validar_segmento_disponible(nueva_patota, PATOTA, tamanio_patota);
+						list_add(tabla->segmentos, segmento_patota);
+						// Validar por el numero de segmento, si el numero se repite, no se guarda
+						// si el id no se encuentra, entonces lo agrego a la lista
 						sem_wait(crear_segmento_sem);
 
-						t_segmento* segmento_tareas = crear_segmento(tareas_de_la_patota, TAREAS);
-						list_add(tabla->segmentos,segmento_tareas);
+						t_segmento* segmento_tareas = validar_segmento_disponible(tareas_de_la_patota, TAREAS, tamanio_tareas);
+						list_add(tabla->segmentos, segmento_tareas);
+
 						tabla->patota->tareas = segmento_tareas->inicio;
 						sem_wait(crear_segmento_sem);
 
@@ -204,8 +213,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 							uint32_t direccion_pcb = segmento_patota->inicio;
 							t_tcb* nuevo_tripulante = crear_tcb(direccion_pcb, atoi(parser_posiciones[i]), atoi(parser_posiciones[i+1]));
 
-							t_segmento* segmento_tripulante = crear_segmento(nuevo_tripulante, TRIPULANTE);
+							t_segmento* segmento_tripulante = validar_segmento_disponible(nuevo_tripulante, TRIPULANTE, tamanio_tripulante);
 							list_add(tabla->segmentos,segmento_tripulante);
+
 							sem_wait(crear_segmento_sem);
 							free(segmento_tripulante);
 
@@ -214,11 +224,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 							free(nuevo_tripulante);
 						}
 
-						list_add(tablas_segmentos,tabla);
-
-						// Tengo que buscar por la tabla de segmentos y encuentro cada tabla de patota
-						//   y de acuerdo a esa tabla de patota, tengo que buscar en cada segmento y traducir esos bytes para
-						// obtener los valores de cada estructura
+						list_add(tablas_segmentos, tabla);
 
 						free(segmento_patota);
 						free(segmento_tareas);
@@ -234,8 +240,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 					strcat(ids_enviar,"\0");
 
-					tabla->ids_tripus = malloc(strlen(ids_enviar)+1);
-					strcpy(tabla->ids_tripus,ids_enviar);
 
 					respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
 					respuesta_iniciar_patota->respuesta = 1;
@@ -246,13 +250,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 					contador_id_patota++;
 					free(nueva_patota);
 
+					log_info(logger, "Se ha guardado en memoria la patota y sus tripulantes. \n");
 				}
 
-				printf("Tamanio Patota %d \n", tamanio_patota);
+				printf("Tamanio Patota %d \n", tamanio_total);
 				printf("Tamanio Memoria Principal %d \n", TAMANIO_MEMORIA);
 				printf("Memoria Restante: %d \n", memoria_restante);
 
-				printf("Inicio de proximo segmento: %d \n", inicio_segmento);
+				printf("Inicio de proximo segmento: %d \n", base_segmento);
 				printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
 
 				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
@@ -371,6 +376,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				recibir_mensaje(tripulante_a_eliminar, operacion, conexion);
 
 				printf("Tripulante a Expulsar: %u \n", tripulante_a_eliminar->id_tripulante);
+				printf("Patota del tripulante: %u \n", tripulante_a_eliminar->id_patota);
 
 				/*
 				 * - BUSCAR TRIPULANTE EN LA MEMORIA (COINCIDIENDO POR ID_TRIPULANTE E ID_PATOTA)
