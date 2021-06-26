@@ -166,7 +166,9 @@ void recuperar_tripulante(t_tcb* nuevo_tripulante) {
 
 t_segmento* validar_segmento_disponible(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio_estructura) {
 
-	t_list* segmentos_lib = segmentos_libres();
+	t_list* segmentos_lib = list_create();
+	segmentos_lib = segmentos_libres();
+
 	// HAY ERROR, LEE UNA LISTA VACIA
 	if(list_is_empty(segmentos_lib)) {
 		return crear_segmento(estructura, tipo_segmento);
@@ -276,6 +278,14 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado)
 	else*/
 
 	t_list* segmentos_vacios = segmentos_libres();
+
+	/*
+	 * Ir por la lista de segmentos libres y verificar que haya alguno que alcance para guardar segun el tamanio buscado
+	 * SI es si: verifico por los criterios de ABAJO
+	 * SI es NO: COMPACTO
+	 * 			pregunto si puedo seguir guardando en alguno de los bloques libres
+	 */
+
 
 	if(criterio_elegido == BEST_FIT){
 		t_list* segmentos_con_espacio = list_filter(segmentos_vacios, (void*)memoria_igual_o_mas_grande);

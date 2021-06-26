@@ -25,9 +25,9 @@ int main(void) {
 }
 
 void inicializar_listas(){
-	lista_semaforos_tripulantes=list_create();
+	lista_semaforos_tripulantes = list_create();
 
-	lista_tripulantes=list_create();
+	lista_tripulantes = list_create();
 }
 
 void inicializar_semaforos() {
@@ -188,10 +188,15 @@ void obtener_datos_de_config(t_config* config) {
 }
 
 void obtener_orden_input(){
+
+	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
+
+	tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+	int largo;
+	int recorrido;
+
 	 char* cadena_ingresada = NULL;
 	 size_t longitud = 0;
-
-	 t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 
 	 sem_wait(termino_operacion);
 
@@ -224,9 +229,6 @@ void obtener_orden_input(){
 	 //tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
 
 	 //int32_t valor_semaforo;
-	 tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
-	 int largo;
-	 int recorrido;
 
 	 switch(operacion){
 
@@ -234,9 +236,9 @@ void obtener_orden_input(){
 		case INICIAR_PLANIFICACION:
 
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
-	//		sem_getvalue(planificacion_on,&valor_semaforo);
+			//sem_getvalue(planificacion_on,&valor_semaforo);
 
-		//	if(valor_semaforo == 0){
+			//if(valor_semaforo == 0){
 				printf("Iniciando Planificacion....... \n");
 			//}
 
@@ -347,7 +349,7 @@ void obtener_orden_input(){
 			if(validacion_envio(conexion_mi_ram) == 1) {
 				recibir_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion_mi_ram);
 
-				if(respuesta_iniciar_patota->respuesta == 1){
+				if(respuesta_iniciar_patota->respuesta == 1) {
 					printf("La respuesta fue positiva. \n");
 					printf("los id de los tripulantes %s\n",respuesta_iniciar_patota->ids_tripu);
 					printf("Numero de patota: %u \n", respuesta_iniciar_patota->numero_de_patota);

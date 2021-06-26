@@ -28,12 +28,12 @@ int32_t resultado_conexion(int32_t conexion, t_log* logger, char* modulo) {
 
 	if(conexion == -1)
 	{
-		log_warning(logger, "¡Error! No se ha podido conectar a %s. \n", modulo);
+		log_error(logger, "¡Error! No se ha podido conectar a %s. \n", modulo);
 		return -1;
 	}
 	else
 	{
-		log_info(logger, "Se pudo conectar a %s. \n", modulo);
+		//log_info(logger, "Se pudo conectar a %s. \n", modulo);
 		return conexion;
 	}
 }
@@ -56,9 +56,8 @@ void cerrar_conexion(t_log* logger, int32_t socket)
 		log_error(logger, "No existe tal conexion.\n");
 	}
 	else {
-		log_info(logger, "Cerrando conexion...\n");
+		//log_info(logger, "Cerrando conexion...\n");
 		close(socket);
-		sleep(1);
 	}
 }
 

@@ -212,4 +212,6 @@ typedef struct {
 // Deberia ser 21 bytes
 
 
+// TODO porque cuando hago sizeof(t_tcb) = 24, pero cuando hago la suma de cada sizeof(registro) = 21 bytes?
+
 #endif /* UTILS_ESTRUCTURAS_H_ */

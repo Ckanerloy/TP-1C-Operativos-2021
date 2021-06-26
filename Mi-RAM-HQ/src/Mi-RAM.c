@@ -76,7 +76,7 @@ void obtener_datos_de_config(t_config* config)
 
 
 void iniciar_comunicacion(){
-	log_info(logger, "Servidor activo, esperando instrucciones ... \n");
+	//log_info(logger, "Servidor activo, esperando instrucciones ... \n");
 
 	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
 
