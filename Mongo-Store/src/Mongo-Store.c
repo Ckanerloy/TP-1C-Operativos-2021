@@ -1,7 +1,10 @@
 #include "Mongo-Store.h"
+#include "iniciarFileSystem.h"
 
 int main(void)
 {
+
+
 	config = crear_config(CONFIG_PATH);
 
 	obtener_datos_de_config(config);
@@ -9,16 +12,18 @@ int main(void)
 	logger = crear_log("mongo-store.log", "Mongo Store");
 	log_info(logger, "Servidor Mongo Store activo...");
 
-	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
 
-	while(1)
+	//int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
+	inicializar_file_system();
+
+	/*while(1)
 	{
 		int32_t* conexion_cliente = esperar_conexion(conexion_servidor);
 
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, conexion_cliente);
 		pthread_detach(hilo_recibir_mensajes);
 
-	}
+	}*/
 
 	terminar_programa(config, logger);
 	return EXIT_SUCCESS;
@@ -31,6 +36,8 @@ void obtener_datos_de_config(t_config* config) {
 	PUNTO_MONTAJE = config_get_string_value(config, "PUNTO_MONTAJE");
 	TIEMPO_SINCRONIZACION = config_get_int_value(config, "TIEMPO_SINCRONIZACION");
 	POSICIONES_SABOTAJE = config_get_array_value(config, "POSICIONES_SABOTAJE");
+	BLOCK_SIZE = config_get_int_value(config, "BLOCK_SIZE");
+	BLOCKS= config_get_int_value(config, "BLOCKS");
 
 }
 
