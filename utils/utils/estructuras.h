@@ -111,6 +111,7 @@ typedef struct {
 	uint32_t numero_patota;
 	char estado;
 	t_tarea* tarea_a_realizar;
+	bool expulsado;
 	sem_t* sem_tripu;
 	sem_t* sem_planificacion;
 } tripulante_plani;

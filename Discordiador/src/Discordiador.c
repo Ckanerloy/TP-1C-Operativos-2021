@@ -108,13 +108,16 @@ void iniciar_escucha_sabotaje(void){
 				list_add_sorted(bloqueado_suspendido_ready, (void*) tripulante,(void*)menorId);
 			}
 		}
-		list_map(bloqueado_suspendido_ready, (void*) poner_en_cero_semaforos);
+
+		list_iterate(bloqueado_suspendido_ready, (void*) poner_en_uno_semaforos);
 
 		list_add_all(bloqueado_suspendido,bloqueado_suspendido_ready);
 
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
 		tripulante_sabotaje* tripu_sabotaje = malloc(sizeof(tripulante_plani));
+
+
 
 		tripu_sabotaje->id_tripulante=tripu_mas_cercano->id_tripulante;
 		tripu_sabotaje->id_patota=tripu_mas_cercano->numero_patota;
@@ -460,39 +463,38 @@ void obtener_orden_input(){
 
 			t_tripulante* id_tripulante_a_expulsar = malloc(sizeof(t_tripulante));
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
-			// Busqueda de Patota que pertenece este tripulante
-			id_tripulante_a_expulsar->id_patota = 2;
 
-			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
-			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
-				break;
+			bool mismo_id(tripulante_plani* tripu)
+			{
+				return tripu->id_tripulante == id_tripulante_a_expulsar->id_tripulante;
 			}
 
-			largo = list_size(lista_tripulantes);
+			tripulante_plani* tripulante_a_expulsar = malloc(sizeof(tripulante_plani));
+			tripulante_a_expulsar = list_find(lista_tripulantes, (void*)mismo_id);
 
+			if(tripulante_a_expulsar != NULL){
 
+				id_tripulante_a_expulsar->id_patota=tripulante_a_expulsar->numero_patota;
 
-			for(recorrido=0;recorrido<largo;recorrido++){
-					tripulante=list_get(lista_tripulantes, recorrido);
-					if(id_tripulante_a_expulsar->id_tripulante==tripulante->id_tripulante){
-						sem_wait(tripulante->sem_tripu);
-						free(list_remove(lista_tripulantes,recorrido));
-					}
+				//printf("id del tripu a eliminar: %u \n",id_tripulante_a_expulsar->id_tripulante);
+				//printf("id del patota a eliminar: %u \n",id_tripulante_a_expulsar->id_patota);
 
+				conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+				if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+					break;
+				}
+
+				enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
+
+				tripulante_a_expulsar->expulsado=1;
+
+				cerrar_conexion(logger,conexion_mi_ram);
+			}else{
+				log_error(logger, "No existe el tripulante que se desea eliminar");
 			}
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-			// ENVIA EL ID DEL TRIPULANTE A EXPULSAR: LO ELIMINA DEL MAPA, LO ELIMINA DE LA MEMORIA
-			// Y TAMBIEN HAY QUE ELIMINARLO DE LA LISTA QUE GUARDA DISCORDIADOR
-
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-			enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
-
 
 			free(id_tripulante_a_expulsar);
-			cerrar_conexion(logger,conexion_mi_ram);
+			free(tripulante_a_expulsar);
 			break;
 
 		case TERMINAR_PROGRAMA:
@@ -568,5 +570,5 @@ void esperadorDeUno(sem_t* semaforo){
 	printf("hola");
 	//while(valor!=1);
 	//sem_wait(semaforo);
-
 }
+

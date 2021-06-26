@@ -289,6 +289,8 @@ void tripulante_hilo(void* tripulante){
 
 	sem_wait(tripu->sem_planificacion);
 
+	//Aca iria un if preguntando si esta expulsado
+
 	tripu->tarea_a_realizar = obtener_siguiente_tarea(tripu->numero_patota);
 
 	posiciones* posicion_tripu;
@@ -297,6 +299,7 @@ void tripulante_hilo(void* tripulante){
 
 	while(tripu->tarea_a_realizar != NULL){
 		sem_wait(tripu->sem_planificacion);
+		//Aca iria un if preguntando si esta expulsado con BREAK
 		posiciones* posicion_tarea;
 		posicion_tarea = malloc(sizeof(posiciones));
 		posicion_tarea->posicion_x = tripu->tarea_a_realizar->posicion_x;
@@ -316,10 +319,12 @@ void tripulante_hilo(void* tripulante){
 				}
 
 			}
+			//Aca iria un if preguntando si esta expulsado con BREAK
 			//printf("antes del wait/n");
 			//fflush(stdout);
 			sem_wait(tripu->sem_tripu);
 			//printf("despues del wait");
+			//Aca iria un if preguntando si esta expulsado con BREAK
 			sleep(RETARDO_CICLO_CPU);
 			//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
 			cantidadRealizado ++;
@@ -327,6 +332,7 @@ void tripulante_hilo(void* tripulante){
 
 			sem_post(tripu->sem_tripu);
 		}
+		//Aca iria un if preguntando si esta expulsado con BREAK
 		if(algoritmo_elegido==QUANTUM){
 			if(cantidadRealizado==QUANTUM){
 				running_ready(tripu);
@@ -338,7 +344,7 @@ void tripulante_hilo(void* tripulante){
 		}
 		realizar_tarea(tripu,&cantidadRealizado);
 	}
-	sem_wait(tripu->sem_tripu);
+	//sem_wait(tripu->sem_tripu);
 }
 /*
 //TAREA SABOTAJE
@@ -468,6 +474,7 @@ void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
 
 void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu) {
 
+	//Aca iria un if preguntando si esta expulsado
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 	sleep(RETARDO_CICLO_CPU);
@@ -487,11 +494,12 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 
 	while(tiempo_restante != 0){
 		sem_wait(tripu->sem_tripu);
+		//Aca iria un if preguntando si esta expulsado con BREAK
 		sleep(RETARDO_CICLO_CPU);
 		tiempo_restante--;
 		sem_post(tripu->sem_tripu);
 	}
-
+	//Aca iria un if preguntando si esta expulsado con BREAK
 	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
 
 	tripu->tarea_a_realizar= NULL;
