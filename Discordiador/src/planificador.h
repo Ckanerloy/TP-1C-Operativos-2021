@@ -86,6 +86,7 @@ void finalizar_semaforos_plani();
 void inicializar_listas();
 void pulso_rafaga();
 void running_ready(tripulante_plani* tripulante);
+void running_exit(tripulante_plani* tripu);
 void tripulante_hilo(void* tripulante);
 //void hilo_tripulante_sabotaje(tripulante_plani* tripu);
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota);

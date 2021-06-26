@@ -265,7 +265,22 @@ void block_exit(tripulante_plani* tripu){
 	sem_post(mutex_exit);
 
 	tripu->estado = 'T';
-	//Actualizar el estado del tripulante (E) EN Mi-Ram
+	//Actualizar el estado del tripulante (T) EN Mi-Ram
+	//actualizar_estado(tripu, 'T');
+}
+
+void running_exit(tripulante_plani* tripu){
+
+	sem_wait(mutex_exit);
+	queue_push(cola_exit, tripu);
+	sem_post(mutex_exit);
+
+	sem_wait(mutex_valorMultitarea);
+	multitarea_Disponible++;
+	sem_post(mutex_valorMultitarea);
+
+	tripu->estado = 'T';
+	//Actualizar el estado del tripulante (T) EN Mi-Ram
 	//actualizar_estado(tripu, 'T');
 }
 
@@ -316,10 +331,6 @@ void tripulante_hilo(void* tripulante){
 			if(cantidadRealizado==QUANTUM){
 				running_ready(tripu);
 
-				sem_wait(mutex_valorMultitarea);
-				multitarea_Disponible++;
-				sem_post(mutex_valorMultitarea);
-
 				cantidadRealizado=0;
 				sem_wait(tripu->sem_planificacion);
 
@@ -368,10 +379,10 @@ t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
 
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 
-	tarea->operacion = GENERAR_OXIGENO;
+	tarea->operacion = MOVERSE;
 	tarea->cantidad = 5;
-	tarea->posicion_x = 20;
-	tarea->posicion_y = 16;
+	tarea->posicion_x = 4;
+	tarea->posicion_y = 4;
 	tarea->tiempo = 5;
 	return tarea;
 
@@ -432,7 +443,7 @@ void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
 			otras_tareas(tripu,cantidadRealizado);
 			break;
 		}
-
+/*
 	//sem_wait(mutex_sabotaje);
 	int valor=valor_sabotaje;
 	//sem_post(mutex_sabotaje);
@@ -441,7 +452,7 @@ void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
 		sem_wait(tripu->sem_tripu);
 		sem_wait(tripu->sem_tripu);
 	}
-
+*/
 	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
 
 	tripu->tarea_a_realizar= NULL;
@@ -481,6 +492,17 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 		sem_post(tripu->sem_tripu);
 	}
 
+	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+
+	tripu->tarea_a_realizar= NULL;
+
+	if(tripu->tarea_a_realizar!=NULL){
+		block_ready(tripu);
+	}else{
+		block_exit(tripu);
+	}
+
+		//Es importante que sem_tripu quede en cero sino se autoejecuta.
 }
 
 void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu) {
@@ -508,6 +530,15 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 		tiempo_restante--;
 		sem_post(tripu->sem_tripu);
 	}
+	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+
+	tripu->tarea_a_realizar= NULL;
+
+	if(tripu->tarea_a_realizar!=NULL){
+		block_ready(tripu);
+	}else{
+		block_exit(tripu);
+	}
 }
 
 void descartar_basura(tripulante_plani* tripu) {
@@ -534,14 +565,15 @@ void descartar_basura(tripulante_plani* tripu) {
 		tiempo_restante--;
 		sem_post(tripu->sem_tripu);
 	}
-	//sem_wait(mutex_sabotaje);
-//	int valor=valor_sabotaje;
-	//sem_post(mutex_sabotaje);
+	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
 
-	//if(valor==1){
-	//	sem_wait(tripu->sem_tripu);
-	//	sem_wait(tripu->sem_tripu);
-	//}
+	tripu->tarea_a_realizar= NULL;
+
+	if(tripu->tarea_a_realizar!=NULL){
+		block_ready(tripu);
+	}else{
+		block_exit(tripu);
+	}
 }
 
 void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado){
@@ -549,19 +581,24 @@ void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado){
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
 	while(tiempo_restante > 0){
-		sem_wait(tripu->sem_tripu);
 		if(*cantidadRealizado==QUANTUM){
 			running_ready(tripu);
-
-			sem_wait(mutex_valorMultitarea);
-			multitarea_Disponible++;
-			sem_post(mutex_valorMultitarea);
 
 			*cantidadRealizado=0;
 			sem_wait(tripu->sem_planificacion);
 		}
+		sem_wait(tripu->sem_tripu);
 		sleep(RETARDO_CICLO_CPU);
 		tiempo_restante--;
 		sem_post(tripu->sem_tripu);
+	}
+	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+
+	tripu->tarea_a_realizar= NULL;
+
+	if(tripu->tarea_a_realizar!=NULL){
+		running_ready(tripu);
+	}else{
+		running_exit(tripu);
 	}
 }
