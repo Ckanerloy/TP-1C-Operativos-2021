@@ -51,8 +51,7 @@ typedef struct tabla_paginas_patota{
 
 }t_tabla_paginas_patota;
 
-
-
+// Eleccion de algoritmos para la memoria
 void elegir_esquema_de_memoria(char* ESQUEMA);
 criterio_seleccion elegir_criterio_seleccion(char* criterio);
 algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo);

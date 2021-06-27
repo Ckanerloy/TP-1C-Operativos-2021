@@ -57,6 +57,8 @@ sem_t* mutex_valorMultitarea;
 sem_t* contador_tripulantes_en_ready;
 sem_t* contador_tripulantes_en_new;
 
+sem_t* mutex_tripulante;
+
 //Hilos
 //pthread_t hilo_new_ready;			Por que se pone aca, pero tambien esta en planificador.c?
 //pthread_t hilo_block_ready;

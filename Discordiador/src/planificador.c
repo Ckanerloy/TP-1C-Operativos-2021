@@ -45,6 +45,8 @@ void inicializar_semaforos_plani(){
 	mutex_exit = malloc(sizeof(sem_t));
 	sem_init(mutex_exit, 0, 1);
 
+	mutex_tripulante = malloc(sizeof(sem_t));
+	sem_init(mutex_tripulante, 0, 1);
 }
 
 
@@ -133,10 +135,15 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 		abort();
 	}
 
+	sem_wait(mutex_tripulante);
 	enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion_mi_ram);
+	sem_post(mutex_tripulante);
 
 	if(validacion_envio(conexion_mi_ram) == 1) {
+
+		sem_wait(mutex_tripulante);
 		recibir_mensaje(respuesta_estado, RESPUESTA_OK_ESTADO, conexion_mi_ram);
+		sem_post(mutex_tripulante);
 
 		if(respuesta_estado->respuesta != 1) {
 			log_error(logger, "La respuesta fue negativa.");

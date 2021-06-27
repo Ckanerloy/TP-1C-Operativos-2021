@@ -1,7 +1,28 @@
 #include "Mi-RAM.h"
 
-int main(void)
-{
+int main(void) {
+
+	obtener_datos_de_config(config);
+	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
+
+	iniciar_variables_y_semaforos();
+
+	inicializar_memoria();
+	elegir_esquema_de_memoria(ESQUEMA_MEMORIA);
+	criterio_elegido = elegir_criterio_seleccion(CRITERIO_SELECCION);
+	algoritmo_elegido = elegir_algoritmo_reemplazo(ALGORITMO_REEMPLAZO);
+
+	iniciar_mapa();
+
+	iniciar_dump_memoria();
+
+	iniciar_comunicacion();
+
+	return EXIT_SUCCESS;
+}
+
+void iniciar_variables_y_semaforos(void) {
+
 	memoria_principal = NULL;
 	area_swap = NULL;
 
@@ -12,11 +33,9 @@ int main(void)
 
 	crear_segmento_sem = malloc(sizeof(sem_t));
 	sem_init(crear_segmento_sem, 0, 0);
+}
 
-	config = crear_config(CONFIG_PATH);
-	obtener_datos_de_config(config);
-	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
-
+void inicializar_memoria(void) {
 	printf("Tamanio de Memoria Principal: %u \n", TAMANIO_MEMORIA);
 	printf("Esquema de Memoria utilizado: %s \n", ESQUEMA_MEMORIA);
 	printf("Tamanio de Pagina: %u \n", TAMANIO_PAGINA);
@@ -26,9 +45,6 @@ int main(void)
 
 	memoria_principal = malloc(TAMANIO_MEMORIA);
 	memoria_restante = TAMANIO_MEMORIA;
-
-	memoria_libre_por_segmento = 0;
-	memoria_compactada = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
 
 	if(memoria_principal != NULL){
 		printf("Memoria Principal iniciada... \n");
@@ -48,22 +64,25 @@ int main(void)
 		sleep(1);
 		abort();
 	}
-
-	elegir_esquema_de_memoria(ESQUEMA_MEMORIA);
-	criterio_elegido = elegir_criterio_seleccion(CRITERIO_SELECCION);
-	algoritmo_elegido = elegir_algoritmo_reemplazo(ALGORITMO_REEMPLAZO);
-
-	pthread_mutex_init(&mutexTablasDeSegmentos,NULL);
-
-	iniciar_comunicacion();
-
-	return EXIT_SUCCESS;
 }
 
+void iniciar_mapa(void) {
 
+	//nivel_gui_inicializar();
 
-void obtener_datos_de_config(t_config* config)
-{
+	//nivel_gui_get_area_nivel(&columnas, &filas);
+
+	//amongOs = nivel_crear("A-MongOs");
+}
+
+void iniciar_dump_memoria(void) {
+
+}
+
+void obtener_datos_de_config(t_config* config) {
+
+	config = crear_config(CONFIG_PATH);
+
 	PUERTO = config_get_string_value(config, "PUERTO");
 	TAMANIO_MEMORIA = config_get_int_value(config, "TAMANIO_MEMORIA");
 	ESQUEMA_MEMORIA = config_get_string_value(config, "ESQUEMA_MEMORIA");
@@ -75,8 +94,7 @@ void obtener_datos_de_config(t_config* config)
 }
 
 
-void iniciar_comunicacion(){
-	//log_info(logger, "Servidor activo, esperando instrucciones ... \n");
+void iniciar_comunicacion() {
 
 	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
 
@@ -93,8 +111,8 @@ void iniciar_comunicacion(){
 
 
 
-void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
-{
+void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
+
 	// INICIAR_PATOTA
 	t_iniciar_patota* patota_recibida;
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
@@ -218,6 +236,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 							t_segmento* segmento_tripulante = administrar_guardar_segmento(nuevo_tripulante, TRIPULANTE, tamanio_tripulante);
 							list_add(tabla_patota->segmentos, segmento_tripulante);
+
+
+							//personaje_crear(amongOs, nuevo_tripulante->id_tripulante, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
+
 
 							sem_wait(crear_segmento_sem);
 							free(segmento_tripulante);
@@ -491,14 +513,14 @@ bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
 
 
 
-t_pcb* crear_pcb(){
+t_pcb* crear_pcb() {
 	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));
 	proceso_patota->pid = contador_id_patota;
 	proceso_patota->tareas = 0; //Direccion de memoria de las tareas
 	return proceso_patota;
 }
 
-t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion_y){
+t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion_y) {
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
 	tripulante->id_tripulante = contador_id_tripu;
@@ -518,15 +540,5 @@ uint32_t cantidad_tareas(char** parser_tarea) {
 		cantidad++;
 	}
 	return cantidad;
-}
-
-
-void mostrar_tripulante(t_tcb* tripulante) {
-
-	printf("Id tripulante: %u \n", tripulante->id_tripulante);
-	printf("Estado tripulante: %c \n", tripulante->estado_tripulante);
-	printf("Posicion X: %i \n", tripulante->posicion_x);
-	printf("Posicion Y: %i \n", tripulante->posicion_y);
-	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_tarea_a_realizar);
 }
 

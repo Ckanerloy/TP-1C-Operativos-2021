@@ -16,7 +16,7 @@ codigo_memoria mapeo_esquema_memoria(char* ESQUEMA)
 	return esquema_memoria;
 }
 
-
+// Elige el esquema de memoria a utilizar e inicializa la misma
 void elegir_esquema_de_memoria(char* ESQUEMA)
 {
 	codigo_memoria cod_mem;
@@ -29,6 +29,8 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 
 			esquema_elegido = 'P';
 			tablas_paginas = list_create();
+			// Poner la cantidad de paginas, los frames, etc.
+
 			break;
 
 		case SEGMENTACION:
@@ -36,6 +38,9 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			esquema_elegido = 'S';
 			tablas_segmentos = list_create();
 			segmentos = list_create();
+			memoria_libre_por_segmento = 0;
+			memoria_compactada = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
+
 			break;
 
 		default:

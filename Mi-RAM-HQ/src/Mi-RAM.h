@@ -36,6 +36,7 @@ char* CRITERIO_SELECCION;
 void* memoria_principal;
 void* area_swap;
 
+// Elección de algoritmos
 char esquema_elegido;
 criterio_seleccion criterio_elegido;
 algoritmo_reemplazo algoritmo_elegido;
@@ -45,38 +46,47 @@ uint32_t contador_segmento;
 uint32_t contador_id_tripu;
 uint32_t contador_id_patota;
 
+// Indicadores de Memoria
 uint32_t base_segmento;
 int32_t memoria_restante;
 int32_t memoria_libre_por_segmento;
 int32_t memoria_compactada;				// memoria_compactada = memoria_restante + memoria_libre_por_segmento;
 
+// Mapa
+//NIVEL* amongOs;
+int columnas, filas;
+
+// Tamanio de estructuras utilizadas
 uint32_t tamanio_tripulante;
 uint32_t tamanio_tripulantes;
 uint32_t tamanio_patota;
 uint32_t tamanio_tareas;
 
-
 sem_t* crear_segmento_sem;
-
 sem_t* espera;
 
 pthread_t hilo_recibir_mensajes;
-pthread_mutex_t mutexTablasDeSegmentos;
 
+// Datos de tripulantes
 t_list* ids;
 char** parser_posiciones;
 
-uint32_t cantidad_tareas(char** parser_tarea);
 
-void iniciar_comunicacion(void);
+// Inicio de Mi-RAM HQ
 void obtener_datos_de_config(t_config* config);
+void iniciar_variables_y_semaforos(void);
+void inicializar_memoria(void);
+void iniciar_mapa(void);
+void iniciar_dump_memoria(void);
+void iniciar_comunicacion(void);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
+// Validación de espacio por esquema de memoria
 bool validar_espacio_por_patota_segmentacion(uint32_t tamanio);
 
+
+uint32_t cantidad_tareas(char** parser_tarea);
 t_pcb* crear_pcb(void);
 t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion_y);
-
-void mostrar_tripulante(t_tcb* tripulante);
 
 #endif /* MI_RAM_H_ */
