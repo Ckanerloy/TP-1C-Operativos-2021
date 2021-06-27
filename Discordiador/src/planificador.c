@@ -146,8 +146,6 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 			log_error(logger, "¡No es el tripulante que estoy buscando!");
 			abort();
 		}
-
-		printf("La respuesta fue %u del tripulante %u. \n", respuesta_estado->respuesta, respuesta_estado->id_tripulante);
 	}
 	else {
 		log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");

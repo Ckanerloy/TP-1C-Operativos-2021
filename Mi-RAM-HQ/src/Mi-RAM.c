@@ -4,14 +4,11 @@ int main(void)
 {
 	memoria_principal = NULL;
 	area_swap = NULL;
-	base_segmento = 0;
 
 	contador_id_tripu = 1;
 	contador_id_patota = 1;
 	contador_segmento = 0;
 	ids = list_create();
-
-
 
 	crear_segmento_sem = malloc(sizeof(sem_t));
 	sem_init(crear_segmento_sem, 0, 0);
@@ -29,6 +26,9 @@ int main(void)
 
 	memoria_principal = malloc(TAMANIO_MEMORIA);
 	memoria_restante = TAMANIO_MEMORIA;
+
+	memoria_libre_por_segmento = 0;
+	memoria_compactada = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
 
 	if(memoria_principal != NULL){
 		printf("Memoria Principal iniciada... \n");
@@ -130,7 +130,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
-				t_tabla_segmentos_patota* tabla;
+				t_tabla_segmentos_patota* tabla_patota;
 
 
 				printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
@@ -177,44 +177,47 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				printf("Tamanio de un TCB: %d\n", tamanio_tripulante);
 				printf("Tamanio de una tarea: %d\n", sizeof(t_tarea));
 
-				// Verifica si hay espacio para guardar en memoria
-				if(validar_espacio_por_patota(tamanio_total) == 0) {
-					respuesta_iniciar_patota->numero_de_patota = 0;
-					respuesta_iniciar_patota->respuesta = 0;
-					respuesta_iniciar_patota->tamanio_ids = 0;
-					respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
-					strcpy(respuesta_iniciar_patota->ids_tripu, "");
 
-					log_error(logger, "No hay espacio suficiente para guardar la patota y sus tripulantes. \n");
+				if(esquema_elegido == 'S') {
+					t_pcb* nueva_patota = malloc(sizeof(t_pcb));
 
-				}
-				else { // Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
+					// Verifica si hay espacio para guardar en memoria
+					if(validar_espacio_por_patota_segmentacion(tamanio_total) == 0) {
+						respuesta_iniciar_patota->numero_de_patota = 0;
+						respuesta_iniciar_patota->respuesta = 0;
+						respuesta_iniciar_patota->tamanio_ids = 0;
+						respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
+						strcpy(respuesta_iniciar_patota->ids_tripu, "");
 
-					t_pcb* nueva_patota = crear_pcb();
+						log_error(logger, "No hay espacio suficiente para guardar la patota y sus tripulantes. \n");
+					}
+					else { // Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
 
-					if(esquema_elegido == 'S') {
+						nueva_patota = crear_pcb();
 
-						tabla = crear_tabla_segmentos(nueva_patota);
+						tabla_patota = crear_tabla_segmentos(nueva_patota);
 
-						t_segmento* segmento_patota = validar_segmento_disponible(nueva_patota, PATOTA, tamanio_patota);
-						list_add(tabla->segmentos, segmento_patota);
-						// Validar por el numero de segmento, si el numero se repite, no se guarda
-						// si el id no se encuentra, entonces lo agrego a la lista
+
+
+						t_segmento* segmento_patota = administrar_guardar_segmento(nueva_patota, PATOTA, tamanio_patota);
+						list_add(tabla_patota->segmentos, segmento_patota);
+						uint32_t direccion_pcb = segmento_patota->inicio;
+
 						sem_wait(crear_segmento_sem);
 
-						t_segmento* segmento_tareas = validar_segmento_disponible(tareas_de_la_patota, TAREAS, tamanio_tareas);
-						list_add(tabla->segmentos, segmento_tareas);
+						t_segmento* segmento_tareas = administrar_guardar_segmento(tareas_de_la_patota, TAREAS, tamanio_tareas);
+						list_add(tabla_patota->segmentos, segmento_tareas);
 
-						tabla->patota->tareas = segmento_tareas->inicio;
+						tabla_patota->patota->tareas = segmento_tareas->inicio;
 						sem_wait(crear_segmento_sem);
 
 						for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
 
-							uint32_t direccion_pcb = segmento_patota->inicio;
+							//uint32_t direccion_pcb = segmento_patota->inicio;
 							t_tcb* nuevo_tripulante = crear_tcb(direccion_pcb, atoi(parser_posiciones[i]), atoi(parser_posiciones[i+1]));
 
-							t_segmento* segmento_tripulante = validar_segmento_disponible(nuevo_tripulante, TRIPULANTE, tamanio_tripulante);
-							list_add(tabla->segmentos,segmento_tripulante);
+							t_segmento* segmento_tripulante = administrar_guardar_segmento(nuevo_tripulante, TRIPULANTE, tamanio_tripulante);
+							list_add(tabla_patota->segmentos, segmento_tripulante);
 
 							sem_wait(crear_segmento_sem);
 							free(segmento_tripulante);
@@ -224,44 +227,49 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 							free(nuevo_tripulante);
 						}
 
-						list_add(tablas_segmentos, tabla);
+						list_add(tablas_segmentos, tabla_patota);
 
+						strcat(ids_enviar,"\0");
+
+
+						respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
+						respuesta_iniciar_patota->respuesta = 1;
+						respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
+						respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
+						strcpy(respuesta_iniciar_patota->ids_tripu,ids_enviar);
+
+						contador_id_patota++;
+						free(nueva_patota);
 						free(segmento_patota);
 						free(segmento_tareas);
+
+						log_info(logger, "Se ha guardado en memoria la patota y sus tripulantes. \n");
 					}
 
-					else if(esquema_elegido  == 'P') {
-						//crear_pagina(estructura, tipo_estructura);
-					}
+					printf("Tamanio Patota %d \n", tamanio_total);
+					printf("Tamanio Memoria Principal %d \n", TAMANIO_MEMORIA);
+					printf("Memoria Restante: %d \n", memoria_restante);
 
-					else {
-						log_error(logger, "No se puede guardar la estructura en Memoria");
-					}
-
-					strcat(ids_enviar,"\0");
+					printf("Inicio de proximo segmento: %d \n", base_segmento);
+					printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
 
 
-					respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
-					respuesta_iniciar_patota->respuesta = 1;
-					respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
-					respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
-					strcpy(respuesta_iniciar_patota->ids_tripu,ids_enviar);
-
-					contador_id_patota++;
-					free(nueva_patota);
-
-					log_info(logger, "Se ha guardado en memoria la patota y sus tripulantes. \n");
+					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
 				}
 
-				printf("Tamanio Patota %d \n", tamanio_total);
-				printf("Tamanio Memoria Principal %d \n", TAMANIO_MEMORIA);
-				printf("Memoria Restante: %d \n", memoria_restante);
+				else if(esquema_elegido  == 'P') {
+					//crear_pagina(estructura, tipo_estructura);
 
-				printf("Inicio de proximo segmento: %d \n", base_segmento);
-				printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
 
-				enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
-				// LE ENVIO A DISCORDIADOR LOS DATOS NECESARIOS PARA QUE GUARDE LA PATOTA EN SU DOMINIO
+
+
+
+
+				}
+
+				else {
+					log_error(logger, "No se puede guardar la estructura en Memoria");
+				}
 
 				free(ids_enviar);
 				free(parser_tarea);
@@ -327,6 +335,61 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 				 *  - ACTUALIZAR EL ESTADO DEL TRIPULANTE EN MEMORIA
 				 *  - ENVIAR UNA RESPUESTA DE CONFIRMACION A DISCORDIADOR?
 				 */
+
+
+				if(esquema_elegido == 'S') {
+
+					t_tabla_segmentos_patota* patota_buscada = malloc(sizeof(t_tabla_segmentos_patota));
+					patota_buscada = buscar_tabla_de_patota(tripulante_por_estado->id_patota);
+					printf("Tamanio patota buscada: %u \n", sizeof(patota_buscada));
+// todO hay problemas de memoria cuando lee estos printf, pero aun asi los lee bien...
+					printf("Id patota buscada: %u\n", patota_buscada->patota->pid);
+					printf("Tareas de la patota buscada: %u\n\n", patota_buscada->patota->tareas);
+
+
+					t_segmento* segmento_buscado = malloc(sizeof(t_segmento));
+					segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_por_estado->id_tripulante);
+
+
+					printf("Id de segmento buscado: %u\n", segmento_buscado->id_segmento);
+					printf("Inicio segmento buscado %u\n", segmento_buscado->inicio);
+					printf("Tamanio segmento buscado %u\n\n", segmento_buscado->tamanio_segmento);
+
+					t_tcb* tripulante_buscado = malloc(sizeof(t_tcb));
+					tripulante_buscado = traducir_segmento(segmento_buscado);
+
+					tripulante_buscado->estado_tripulante = tripulante_por_estado->estado;
+
+					printf("ID tripulante buscado: %u\n", tripulante_buscado->id_tripulante);
+					printf("Estado tripulante buscado: %c\n", tripulante_buscado->estado_tripulante);
+					printf("Posicion X tripulante buscado: %u\n", tripulante_buscado->posicion_x);
+					printf("Posicion Y tripulante buscado: %u\n", tripulante_buscado->posicion_y);
+					printf("ID tarea del tripulante buscado: %u\n", tripulante_buscado->id_tarea_a_realizar);
+					printf("PCB puntero tripulante buscado: %u\n\n", tripulante_buscado->puntero_PCB);
+
+
+					/*
+					tablas_segmentos;
+					tripulante_por_estado->id_tripulante;
+
+
+					list_find     tabla_patota->patota->pid == tripulante_por_estado->id_patota;
+
+							list_filter(((t_segmento*)tabla_patota->segmentos)->tipo_segmento == TRIPULANTE)
+
+
+
+					tripulante_por_estado->estado*/
+					free(tripulante_buscado);
+					free(patota_buscada);
+					free(segmento_buscado);
+				}
+				else if(esquema_elegido  == 'P') {
+					//crear_pagina(estructura, tipo_estructura);
+				}
+				else {
+					log_error(logger, "No se puede guardar la estructura en Memoria");
+				}
 
 				respuesta_por_estado->id_tripulante = tripulante_por_estado->id_tripulante;
 				respuesta_por_estado->respuesta = 1;
@@ -420,10 +483,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion)
 			}
 }
 
-bool validar_espacio_por_patota(uint32_t tamanio){
-	int32_t restante = memoria_restante - tamanio;
-	return (restante > 0);
+
+bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
+	int32_t restante = memoria_compactada - tamanio;
+	return (restante >= 0);
 }
+
+
 
 t_pcb* crear_pcb(){
 	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));

@@ -45,8 +45,10 @@ uint32_t contador_segmento;
 uint32_t contador_id_tripu;
 uint32_t contador_id_patota;
 
-int32_t base_segmento;
+uint32_t base_segmento;
 int32_t memoria_restante;
+int32_t memoria_libre_por_segmento;
+int32_t memoria_compactada;				// memoria_compactada = memoria_restante + memoria_libre_por_segmento;
 
 uint32_t tamanio_tripulante;
 uint32_t tamanio_tripulantes;
@@ -70,7 +72,7 @@ void iniciar_comunicacion(void);
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
-bool validar_espacio_por_patota(uint32_t tamanio);
+bool validar_espacio_por_patota_segmentacion(uint32_t tamanio);
 
 t_pcb* crear_pcb(void);
 t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion_y);
