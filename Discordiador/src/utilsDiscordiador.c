@@ -61,17 +61,6 @@ void liberar_tripulantes(uint32_t cantidad_tripulantes, t_tripulante** mensaje_t
 	}
 }*/
 
-// Funcion para LISTAR TRIPULANTES
-void listar_tripulantes() {
-
-	printf("-------------------------------------------------------------------------\n");
-	printf("Estado de la nave: %s \n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
-
-
-	printf("Tripulante: ID_TRIPULANTE      Patota: NUM_PATOTA      Status:  STATUS \n");
-	printf("--------------------------------------------------------------------------\n\n");
-}
-
 
 
 // Obtener la cantidad de argumentos de parte del parser_consola

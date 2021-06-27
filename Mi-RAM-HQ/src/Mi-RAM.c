@@ -2,6 +2,7 @@
 
 int main(void) {
 
+	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
 	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
 
@@ -80,8 +81,6 @@ void iniciar_dump_memoria(void) {
 }
 
 void obtener_datos_de_config(t_config* config) {
-
-	config = crear_config(CONFIG_PATH);
 
 	PUERTO = config_get_string_value(config, "PUERTO");
 	TAMANIO_MEMORIA = config_get_int_value(config, "TAMANIO_MEMORIA");

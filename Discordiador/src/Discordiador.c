@@ -418,19 +418,16 @@ void obtener_orden_input(){
 
 			}
 
+			largo = list_size(lista_tripulantes);
 
-			largo=list_size(lista_tripulantes);
+			printf("-------------------------------------------------------------------------\n");
+			printf("Estado de la Nave: %s \n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
 
-
-			listar_tripulantes();
-
-			for(recorrido=0;recorrido<largo;recorrido++){
+			for(recorrido=0; recorrido<largo; recorrido++){
 				tripulante=list_get(lista_tripulantes, recorrido);
-				printf("Tripulante: %u           Patota: %u      Status: %c \n",tripulante->id_tripulante,tripulante->numero_patota,tripulante->estado);
-
+				printf("Tripulante: %u          Patota: %u          Status: %c \n", tripulante->id_tripulante, tripulante->numero_patota, tripulante->estado);
 			}
-
-
+			printf("--------------------------------------------------------------------------\n\n");
 			break;
 
 		case OBTENER_BITACORA:
