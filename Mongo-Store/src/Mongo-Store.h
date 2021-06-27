@@ -17,6 +17,8 @@
 #include "utils/sockets.h"
 #include "utils/loader.h"
 #include "utils/estructuras.h"
+#include "bitArray.h"
+#include "commons/bitarray.h"
 
 
 #define IP "127.0.0.1"
@@ -35,16 +37,7 @@ t_config* config;
 
 pthread_t hilo_recibir_mensajes;
 
-typedef enum {
-	/* Completa los bits en un byte priorizando el bit menos significativo:
-	 * 00000001 00000000
-	 */
-	LSB_FIRST,
-	/* Completa los bits en un byte priorizando el bit más significativo:
-	 * 10000000 00000000
-	 */
-	MSB_FIRST
-} bit_numbering_t;
+
 
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);

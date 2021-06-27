@@ -3,20 +3,17 @@
 
 
 #include "Mongo-Store.h"
-	#include <stdbool.h>
-	#include <limits.h>
-	#include <unistd.h>
+#include <stdbool.h>
+#include <limits.h>
+#include <unistd.h>
+
 
 void inicializar_file_system();
 int existeFileSystem();
 void crear_superbloque();
 void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio);
 
-typedef struct {
-	char *bitarray;
-	size_t size;
-	bit_numbering_t mode;
-} t_bitarray;
+
 
 typedef struct {
 	uint32_t tamanioBloque;

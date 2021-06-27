@@ -10,16 +10,20 @@
 
 void inicializar_file_system(){
 
-		//creacion_directorio(PUNTO_MONTAJE, "");
+
+		creacion_directorio(PUNTO_MONTAJE, "");//Se crea el path /home/utnso/polus TODO cambiar los parámetros que recibe para no poner ""
+		creacion_directorio(PUNTO_MONTAJE, "Files");//Se crea el path /home/utnso/polus/Files
+		creacion_directorio(PUNTO_MONTAJE, "Files/Bitacoras");//Se crea el path /home/utnso/polus/Files/Bitacoras
 		crear_superbloque();
+
 		//crear_blocks(tamanio_bloque,cantidad_bloques);
 
 		/*
-		creacion_directorio(PUNTO_MONTAJE, "Files");
-		creacion_directorio(PUNTO_MONTAJE, "Bitacoras");
 		log_info(logger_i_mongo_store, "FILESYSTEM INICIALIZADO DE 0 CON EXITO");
 		*/
 }
+
+
 
 
 void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio){
@@ -31,8 +35,9 @@ void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio)
 	strcat(direccion_carpeta, "/");
 	strcat(direccion_carpeta, nombre_directorio); //Concateno el nombre del directorio
 
-	mkdir(direccion_carpeta, 0777); //Hago uso de la función mkdir para crear el directorio () en el modo predeterminado 0777 (acceso más amplio posible)
-	//printf("%s", direccion_carpeta);
+	//Hago uso de la función mkdir para crear el directorio en el modo predeterminado 0777 (acceso más amplio posible)
+	mkdir(direccion_carpeta, 0777);
+
 	//return direccion_carpeta; //TODO No olvidarme de liberar memoria en MongoStore
 }
 
@@ -47,8 +52,9 @@ void crear_superbloque(){
 	int archivo;
 	void *super_bloque;
 	struct stat statbuf;
-
-
+	char* un_bitarray = malloc(BLOCKS/8);
+	t_bitarray* bitArraySB = crear_bitarray(un_bitarray);
+	vaciarBitArray(bitArraySB);
 
 	strcpy(direccion_superBloque, PUNTO_MONTAJE);
 	strcat(direccion_superBloque, "/SuperBloque.ims");
@@ -58,9 +64,7 @@ void crear_superbloque(){
 	superBloqueFile->tamanioBloque = BLOCK_SIZE;
 	superBloqueFile->cantidadBloques = BLOCKS;
 
-	char *segmento_bitmap = malloc(superBloqueFile->cantidadBloques/8);
-	t_bitarray *bitmap = bitarray_create_with_mode(segmento_bitmap, sizeof(superBloqueFile->cantidadBloques/8), "LSB_FIRST");
-	superBloqueFile->bitmap = bitmap;
+
 	//O_CREAT = si el fichero no existe, será creado. O_RDWR = lectura y escritura
 	archivo = open(direccion_superBloque, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
 
@@ -70,16 +74,15 @@ void crear_superbloque(){
 	    exit(1);
 	  }
 
-	ftruncate(archivo, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8);//Asigno memoria al archivo
+	//Trunco espacio al archivo
+	ftruncate(archivo, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8);
 	fstat(archivo, &statbuf);
 
 
 
 
-//Mediante PROT_READ Y PROT_WRITE permitimos leer y escribir. MAP_SHARED permite uqe las operaciones realizadas en el área de mapeo se reflejen en el disco
-	super_bloque = mmap(NULL, statbuf.st_size + sizeof(uint32_t), PROT_WRITE | PROT_READ, MAP_SHARED,archivo,0);
-	segmento_bitmap = mmap(NULL, statbuf.st_size + sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, PROT_READ | PROT_WRITE, MAP_SHARED, archivo, sizeof(uint32_t) * 2);
-
+	//Mediante PROT_READ Y PROT_WRITE permitimos leer y escribir. MAP_SHARED permite uqe las operaciones realizadas en el área de mapeo se reflejen en el disco
+	super_bloque = mmap(NULL, statbuf.st_size /*+ sizeof(uint32_t)+superBloqueFile->cantidadBloques/8*/, PROT_WRITE | PROT_READ, MAP_SHARED,archivo,0);
 
 
 	if(super_bloque == MAP_FAILED){
@@ -88,11 +91,6 @@ void crear_superbloque(){
 
 	}
 
-	if(segmento_bitmap == MAP_FAILED){
-			perror("Error mapping bitmap----------- \n");
-			//exit(1);
-
-		}
 
 
 		if(flag == 1){
@@ -101,11 +99,9 @@ void crear_superbloque(){
 
 			memcpy(super_bloque, &(superBloqueFile->tamanioBloque), sizeof(uint32_t));
 			memcpy(super_bloque+sizeof(uint32_t), &(superBloqueFile->cantidadBloques), sizeof(uint32_t));
-			memcpy(super_bloque+sizeof(uint32_t)*2, &(superBloqueFile->bitmap), superBloqueFile->cantidadBloques/8);
-//el bitmap se guarda en cantidad de bloques / 8 bytes
+			memcpy(super_bloque+sizeof(uint32_t)*2, un_bitarray, superBloqueFile->cantidadBloques/8);
 
-			//msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques, MS_SYNC);
-			//msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
+			msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
 
 
 
@@ -143,6 +139,9 @@ int existe_file_system(){
 	return existeArchivo;
 
 }
+
+
+
 
 
 
