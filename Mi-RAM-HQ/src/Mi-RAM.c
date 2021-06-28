@@ -360,16 +360,16 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				if(esquema_elegido == 'S') {
 
-					t_tabla_segmentos_patota* patota_buscada = malloc(sizeof(t_tabla_segmentos_patota));
-					patota_buscada = buscar_tabla_de_patota(tripulante_por_estado->id_patota);
+					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_por_estado->id_patota);
+
 					printf("Tamanio patota buscada: %u \n", sizeof(patota_buscada));
 // todO hay problemas de memoria cuando lee estos printf, pero aun asi los lee bien...
 					printf("Id patota buscada: %u\n", patota_buscada->patota->pid);
 					printf("Tareas de la patota buscada: %u\n\n", patota_buscada->patota->tareas);
 
 
-					t_segmento* segmento_buscado = malloc(sizeof(t_segmento));
-					segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_por_estado->id_tripulante);
+
+					t_segmento* segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_por_estado->id_tripulante);
 
 
 					printf("Id de segmento buscado: %u\n", segmento_buscado->id_segmento);
@@ -377,33 +377,23 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					printf("Tamanio segmento buscado %u\n\n", segmento_buscado->tamanio_segmento);
 
 					t_tcb* tripulante_buscado = malloc(sizeof(t_tcb));
-					tripulante_buscado = traducir_segmento(segmento_buscado);
+					tripulante_buscado = obtener_contenido_de_segmento(segmento_buscado);
+
+					printf("Estado tripulante antes: %c\n", tripulante_buscado->estado_tripulante);
 
 					tripulante_buscado->estado_tripulante = tripulante_por_estado->estado;
 
 					printf("ID tripulante buscado: %u\n", tripulante_buscado->id_tripulante);
-					printf("Estado tripulante buscado: %c\n", tripulante_buscado->estado_tripulante);
+					printf("Estado tripulante despues buscado: %c\n", tripulante_buscado->estado_tripulante);
 					printf("Posicion X tripulante buscado: %u\n", tripulante_buscado->posicion_x);
 					printf("Posicion Y tripulante buscado: %u\n", tripulante_buscado->posicion_y);
 					printf("ID tarea del tripulante buscado: %u\n", tripulante_buscado->id_tarea_a_realizar);
 					printf("PCB puntero tripulante buscado: %u\n\n", tripulante_buscado->puntero_PCB);
 
 
-					/*
-					tablas_segmentos;
-					tripulante_por_estado->id_tripulante;
+					actualizar_segmento(tripulante_buscado, TRIPULANTE, segmento_buscado);
 
-
-					list_find     tabla_patota->patota->pid == tripulante_por_estado->id_patota;
-
-							list_filter(((t_segmento*)tabla_patota->segmentos)->tipo_segmento == TRIPULANTE)
-
-
-
-					tripulante_por_estado->estado*/
 					free(tripulante_buscado);
-					free(patota_buscada);
-					free(segmento_buscado);
 				}
 				else if(esquema_elegido  == 'P') {
 					//crear_pagina(estructura, tipo_estructura);

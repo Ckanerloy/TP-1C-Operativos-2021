@@ -76,7 +76,7 @@ t_segmento* buscar_por_id_tripulante(t_list* segmentos, tipo_segmento tipo_de_se
 bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado);
 
 
-void* traducir_segmento(t_segmento* segmento_a_traducir);
+void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir);
 t_pcb* encontrar_patota(t_segmento* segmento);
 t_list* encontrar_tarea(t_segmento* segmento);
 t_tcb* encontrar_tripulante(t_segmento* segmento);

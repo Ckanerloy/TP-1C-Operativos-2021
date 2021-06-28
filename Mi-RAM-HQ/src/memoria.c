@@ -357,6 +357,8 @@ void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmen
 	segmento->tipo_segmento = tipo_segmento;
 	segmento->estado_segmento = OCUPADO;
 
+	memoria_restante += segmento->tamanio_segmento;
+
 	switch(tipo_segmento){
 		case PATOTA:
 			segmento->tamanio_segmento = tamanio_patota;
@@ -373,6 +375,7 @@ void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmen
 		default:
 			break;
 	}
+
 
 	memoria_restante -= segmento->tamanio_segmento;
 
@@ -436,21 +439,21 @@ tabla general = tabla_segmentos patota
 */
 
 
-void* traducir_segmento(t_segmento* segmento_a_traducir)
+void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir)
 {
 	void* contenido;
 
 	switch(segmento_a_traducir->tipo_segmento) {
 		case PATOTA:
-			contenido = malloc(sizeof(tamanio_patota));
+			contenido = malloc(segmento_a_traducir->tamanio_segmento);
 			contenido = encontrar_patota(segmento_a_traducir);
 			break;
 		case TAREAS:
-			//contenido = malloc(sizeof(t_list));
-			//contenido = encontrar_tarea(segmento_a_traducir);
+			contenido = malloc(segmento_a_traducir->tamanio_segmento);
+			contenido = encontrar_tarea(segmento_a_traducir);
 			break;
 		case TRIPULANTE:
-			contenido = malloc(sizeof(tamanio_tripulante));
+			contenido = malloc(segmento_a_traducir->tamanio_segmento);
 			contenido = encontrar_tripulante(segmento_a_traducir);
 			break;
 		default:
