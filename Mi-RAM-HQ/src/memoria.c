@@ -481,7 +481,7 @@ t_list* encontrar_tarea(t_segmento* segmento) {
 
 t_tcb* encontrar_tripulante(t_segmento* segmento) {
 
-	t_tcb* tripulante = malloc(sizeof(tamanio_tripulante));
+	t_tcb* tripulante = malloc(sizeof(t_tcb));
 
 //TODO revisar copia de memoria en estructura tripulante
 

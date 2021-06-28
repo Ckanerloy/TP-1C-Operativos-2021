@@ -18,6 +18,8 @@ int32_t crear_conexion(char *ip, char* puerto)
 	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
 		socket_cliente = -1;
 
+	// crear un hilo por cada conexion que realizara
+
 	freeaddrinfo(server_info);
 
 	return socket_cliente;
@@ -98,6 +100,7 @@ int32_t iniciar_servidor(char* IP, char* PUERTO)
 }
 
 
+// Crearia el hilo en esta parte??
 int32_t* esperar_conexion(int32_t socket_servidor)
 {
 	int32_t* socket_cliente = malloc(sizeof(int32_t));

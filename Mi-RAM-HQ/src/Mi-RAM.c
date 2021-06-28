@@ -381,8 +381,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					printf("ID tarea del tripulante buscado: %u\n", tripulante_buscado->id_tarea_a_realizar);
 					printf("PCB puntero tripulante buscado: %u\n\n", tripulante_buscado->puntero_PCB);
 
-
-
 					actualizar_segmento(tripulante_buscado, TRIPULANTE, segmento_buscado);
 
 
