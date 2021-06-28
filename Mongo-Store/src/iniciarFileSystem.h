@@ -7,11 +7,12 @@
 #include <limits.h>
 #include <unistd.h>
 
-
+char *concatenar_path(char*);
 void inicializar_file_system();
-int existeFileSystem();
+int existe_file_system();
 void crear_superbloque();
 void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio);
+void crear_archivo_blocks();
 
 
 

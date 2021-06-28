@@ -19,6 +19,7 @@
 #include "utils/estructuras.h"
 #include "bitArray.h"
 #include "commons/bitarray.h"
+#include "iniciarFileSystem.h"
 
 
 #define IP "127.0.0.1"

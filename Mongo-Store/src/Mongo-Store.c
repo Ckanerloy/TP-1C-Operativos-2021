@@ -1,5 +1,5 @@
 #include "Mongo-Store.h"
-#include "iniciarFileSystem.h"
+
 
 int main(void)
 {
@@ -14,7 +14,18 @@ int main(void)
 
 
 	//int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
-	inicializar_file_system();
+	//int prueba = existe_file_system();
+
+	if (existe_file_system() == -1){
+
+		printf("No se encontró el archivo Blocks.ims. Se inicializa un nuevo FileSystem \n");
+
+		inicializar_file_system();
+	}
+		else{
+			printf("Hay un FileSystem existente\n"); //TODO ver como utilizar un FS ya existente. Chequear este issue: https://github.com/sisoputnfrba/foro/issues/2140
+
+	}
 
 	/*while(1)
 	{
