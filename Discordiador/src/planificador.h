@@ -34,6 +34,7 @@ typedef enum{
 t_queue* cola_new;
 t_queue* cola_ready;
 t_queue* cola_exit;
+t_queue* cola_auxiliar_sabotaje;
 
 //Lista de los semaforos de los tripulantes
 t_list* lista_semaforos_tripulantes;
@@ -47,7 +48,7 @@ t_list* bloqueado_suspendido_ready;
 sem_t* mutex_ready;
 sem_t* mutex_exit;
 sem_t* mutex_new;
-
+sem_t* mutex_expulsado;
 
 sem_t* planificacion_on;
 sem_t* planificacion_on_ready_running;
@@ -79,6 +80,7 @@ void obtener_planificacion_de_config(t_config* config);
 void new_ready();
 void ready_running();
 void iniciar_planificacion();
+void ready_exit(tripulante_plani* tripu);
 
 void inicializar_semaforos_plani();
 void finalizar_semaforos_plani();
@@ -86,6 +88,7 @@ void finalizar_semaforos_plani();
 void inicializar_listas();
 void pulso_rafaga();
 void running_ready(tripulante_plani* tripulante);
+void block_exit(tripulante_plani* tripu);
 void running_exit(tripulante_plani* tripu);
 void tripulante_hilo(void* tripulante);
 //void hilo_tripulante_sabotaje(tripulante_plani* tripu);
