@@ -383,19 +383,13 @@ void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmen
 }
 
 
-
-
-
-
-
-
-
 t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota) {
 
 	bool se_encuentra_patota(t_tabla_segmentos_patota* tabla){
 		return tabla->patota->pid == id_patota;
 	}
-	t_tabla_segmentos_patota* tabla_buscada = list_find(tablas_segmentos, (void*)se_encuentra_patota);
+
+	 t_tabla_segmentos_patota* tabla_buscada = list_find(tablas_segmentos, se_encuentra_patota);
 
 	return tabla_buscada;
 }
@@ -427,15 +421,12 @@ void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir)
 
 	switch(segmento_a_traducir->tipo_segmento) {
 		case PATOTA:
-			contenido = malloc(segmento_a_traducir->tamanio_segmento);
 			contenido = encontrar_patota(segmento_a_traducir);
 			break;
 		case TAREAS:
-			contenido = malloc(segmento_a_traducir->tamanio_segmento);
 			contenido = encontrar_tarea(segmento_a_traducir);
 			break;
 		case TRIPULANTE:
-			contenido = malloc(segmento_a_traducir->tamanio_segmento);
 			contenido = encontrar_tripulante(segmento_a_traducir);
 			break;
 		default:
@@ -491,6 +482,8 @@ t_list* encontrar_tarea(t_segmento* segmento) {
 t_tcb* encontrar_tripulante(t_segmento* segmento) {
 
 	t_tcb* tripulante = malloc(sizeof(tamanio_tripulante));
+
+//TODO revisar copia de memoria en estructura tripulante
 
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;

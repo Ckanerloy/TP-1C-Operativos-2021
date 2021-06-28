@@ -241,7 +241,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 
 							sem_wait(crear_segmento_sem);
-							free(segmento_tripulante);
 
 							string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
 							contador_id_tripu++;
@@ -260,9 +259,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						strcpy(respuesta_iniciar_patota->ids_tripu,ids_enviar);
 
 						contador_id_patota++;
-						free(nueva_patota);
-						free(segmento_patota);
-						free(segmento_tareas);
 
 						log_info(logger, "Se ha guardado en memoria la patota y sus tripulantes. \n");
 					}
@@ -280,10 +276,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				else if(esquema_elegido  == 'P') {
 					//crear_pagina(estructura, tipo_estructura);
-
-
-
-
 
 
 				}
@@ -369,9 +361,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					printf("Id patota buscada: %u\n", patota_buscada->patota->pid);
 					printf("Tareas de la patota buscada: %u\n\n", patota_buscada->patota->tareas);
 
-
-
-					/*t_segmento* segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_por_estado->id_tripulante);
+					t_segmento* segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_por_estado->id_tripulante);
 
 
 					printf("Id de segmento buscado: %u\n", segmento_buscado->id_segmento);
@@ -392,7 +382,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					printf("PCB puntero tripulante buscado: %u\n\n", tripulante_buscado->puntero_PCB);
 
 
-					actualizar_segmento(tripulante_buscado, TRIPULANTE, segmento_buscado);*/
+
+					actualizar_segmento(tripulante_buscado, TRIPULANTE, segmento_buscado);
+
 
 				}
 				else if(esquema_elegido  == 'P') {
@@ -411,7 +403,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				enviar_mensaje(respuesta_por_estado, RESPUESTA_OK_ESTADO, conexion);
 				// LE CONFIRMA A DISCORDIADOR QUE SE REALIZO EXITOSAMENTE LA ACTUALIZACION DEL ESTADO DEL TRIPULANTE
 
-				free(tripulante_por_estado);
 				free(respuesta_por_estado);
 				break;
 
