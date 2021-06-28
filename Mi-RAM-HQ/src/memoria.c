@@ -392,31 +392,13 @@ void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmen
 
 t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota) {
 
-	bool se_encuentra_patota(void* tabla){
-		return ((t_tabla_segmentos_patota*)tabla)->patota->pid == id_patota;
+	bool se_encuentra_patota(t_tabla_segmentos_patota* tabla){
+		return tabla->patota->pid == id_patota;
 	}
-
-	t_tabla_segmentos_patota* tabla_buscada = malloc(sizeof(t_tabla_segmentos_patota));
-	tabla_buscada = list_find(tablas_segmentos, se_encuentra_patota);
+	t_tabla_segmentos_patota* tabla_buscada = list_find(tablas_segmentos, (void*)se_encuentra_patota);
 
 	return tabla_buscada;
 }
-
-/*
-t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_estructura tipo_de_segmento)
-{
-	bool mismo_tipo_segmento(void* segmento) {
-		t_segmento* segmento_a_buscar = (t_segmento*) segmento;
-		return (segmento_a_buscar->tipo_estructura == tipo_de_segmento);
-	}
-
-	t_tabla_segmentos_patota* segmento_patota = malloc(sizeof(t_tabla_segmentos_patota));
-	segmento_patota = (t_tabla_segmentos_patota*)list_get(tabla, 0);
-
-	t_segmento* segmento_buscado = (t_segmento*) list_find(segmento_patota->segmentos, (void*) mismo_tipo_segmento);
-
-	return segmento_buscado;
-}*/
 
 
 t_segmento* buscar_por_id_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t valor) {

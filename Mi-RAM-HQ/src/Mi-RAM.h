@@ -66,6 +66,7 @@ sem_t* crear_segmento_sem;
 sem_t* espera;
 
 pthread_t hilo_recibir_mensajes;
+pthread_t hilo_actualizar_estado;
 
 // Datos de tripulantes
 t_list* ids;
