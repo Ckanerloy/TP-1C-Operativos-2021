@@ -41,6 +41,8 @@ t_list* lista_semaforos_tripulantes;
 t_list* lista_tripulantes;
 
 
+
+
 t_list* bloqueado_suspendido;
 t_list* bloqueado_suspendido_ready;
 //Semaforos
@@ -49,6 +51,7 @@ sem_t* mutex_ready;
 sem_t* mutex_exit;
 sem_t* mutex_new;
 sem_t* mutex_expulsado;
+sem_t* mutex_tripulante_estado;
 
 sem_t* planificacion_on;
 sem_t* planificacion_on_ready_running;

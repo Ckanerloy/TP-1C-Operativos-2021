@@ -151,6 +151,8 @@ tripulante_plani* mas_cercano(tripulante_plani* tripulante1,tripulante_plani* tr
 	posiciones* posicion_tripu2;
 	posicion_tripu2 = malloc(sizeof(posiciones));
 	obtener_distancia(posicion_tripu1, posicion_tripu2);
+
+	//aca esTA MAL
 }
 
 
@@ -223,8 +225,14 @@ void obtener_orden_input(){
 	 int largo;
 	 int recorrido;
 
-	 tripulante_plani* tripulante_a_expulsar = malloc(sizeof(tripulante_plani));
-	 t_tripulante* id_tripulante_a_expulsar = malloc(sizeof(t_tripulante));
+	 tripulante_plani* tripulante_a_expulsar;
+	 t_tripulante* id_tripulante_a_expulsar;
+
+
+
+	 sem_t* saca=malloc(sizeof(sem_t));
+
+
 	 switch(operacion){
 
 
@@ -254,6 +262,7 @@ void obtener_orden_input(){
 
 			sem_wait(planificacion_on);
 			sem_wait(planificacion_on_ready_running);
+
 
 			break;
 
@@ -464,6 +473,7 @@ void obtener_orden_input(){
 			}
 			strcat(parser_consola[1], "\0");
 
+			id_tripulante_a_expulsar = malloc(sizeof(t_tripulante));
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
 
 			bool mismo_id(tripulante_plani* tripu)
@@ -471,14 +481,19 @@ void obtener_orden_input(){
 				return tripu->id_tripulante == id_tripulante_a_expulsar->id_tripulante;
 			}
 
+			tripulante_a_expulsar = malloc(sizeof(tripulante_plani));
+
 			tripulante_a_expulsar = list_find(lista_tripulantes, (void*)mismo_id);
 
-			printf("id del tripu a eliminar: %u \n",id_tripulante_a_expulsar->id_tripulante);
-			printf("id del patota a eliminar: %u \n",id_tripulante_a_expulsar->id_patota);
 
 			if(tripulante_a_expulsar != NULL){
 
 				id_tripulante_a_expulsar->id_patota = tripulante_a_expulsar->numero_patota;
+				printf("id del tripu a eliminar: %u \n",id_tripulante_a_expulsar->id_tripulante);
+				printf("id del patota a eliminar: %u \n",id_tripulante_a_expulsar->id_patota);
+
+
+
 				switch(tripulante_a_expulsar->estado){
 					case 'R':
 							tripulante_a_expulsar->expulsado = 1;
@@ -504,7 +519,7 @@ void obtener_orden_input(){
 					break;
 				}
 
-				//enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
+				enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
 
 				cerrar_conexion(logger,conexion_mi_ram);
 			}else{
@@ -512,7 +527,7 @@ void obtener_orden_input(){
 			}
 
 			free(id_tripulante_a_expulsar);
-			free(tripulante_a_expulsar);
+			//free(tripulante_a_expulsar);
 			break;
 
 		case TERMINAR_PROGRAMA:
