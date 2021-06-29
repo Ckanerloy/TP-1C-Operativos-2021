@@ -138,7 +138,7 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
 
 
 
-
+// TODO no le estamos pasando el segmento para modificar, sino que nos basamos en el segmento libre que encuentre, pero no si le estoy pasando uno para modificarlo
 t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio) {
 
 	if (memoria_restante >= tamanio) {
@@ -146,7 +146,16 @@ t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_se
 	}
 	else if(validar_existencia_segmento_libre_suficiente(tamanio)) {
 			t_segmento* segmento_libre = obtener_segmento_libre(tamanio);
+			int32_t diferencia = segmento_libre->tamanio_segmento - tamanio;
+
+			if(diferencia > 0){
+				crear_segmento_libre(tamanio, diferencia);
+				memoria_libre_por_segmento+= diferencia;
+				segmento_libre->tamanio_segmento = tamanio;
+			}
 			actualizar_segmento(estructura, tipo_segmento, segmento_libre);
+
+
 			return segmento_libre;
 		}
 	else {
@@ -374,36 +383,53 @@ void recuperar_tripulante(t_tcb* nuevo_tripulante) {
 }
 
 
+void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento) {
+
+	void* inicio = (void*) memoria_principal + inicio_segmento;
+	uint32_t desplazamiento = 0;
+
+	memcpy(inicio + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
+	desplazamiento += sizeof(tripulante->id_tripulante);
+
+	memcpy(inicio + desplazamiento, &(tripulante->estado_tripulante), sizeof(tripulante->estado_tripulante));
+	desplazamiento += sizeof(tripulante->estado_tripulante);
+
+	memcpy(inicio + desplazamiento, &(tripulante->posicion_x), sizeof(tripulante->posicion_x));
+	desplazamiento += sizeof(tripulante->posicion_x);
+
+	memcpy(inicio + desplazamiento, &(tripulante->posicion_y), sizeof(tripulante->posicion_y));
+	desplazamiento += sizeof(tripulante->posicion_y);
+
+	memcpy(inicio + desplazamiento, &(tripulante->id_tarea_a_realizar), sizeof(tripulante->id_tarea_a_realizar));
+	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+
+	memcpy(inicio + desplazamiento, &(tripulante->puntero_PCB), sizeof(tripulante->puntero_PCB));
+	desplazamiento += sizeof(tripulante->puntero_PCB);
+
+}
 
 
-void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmento* segmento) {
+void actualizar_segmento(void* estructura_actualizar, tipo_segmento tipo_segmento_a_guardar, t_segmento* segmento_libre) {
 
-	segmento->tipo_segmento = tipo_segmento;
-	segmento->estado_segmento = OCUPADO;
+	segmento_libre->tipo_segmento = tipo_segmento_a_guardar;
 
-	memoria_restante += segmento->tamanio_segmento;
+	segmento_libre->estado_segmento = OCUPADO;
 
-	switch(tipo_segmento){
+	switch(tipo_segmento_a_guardar){
 		case PATOTA:
-			segmento->tamanio_segmento = sizeof(t_pcb);
-			segmento->id_segmento = ((t_pcb*)estructura)->pid;
-			guardar_patota(estructura);
+			guardar_patota(estructura_actualizar);
 			break;
 		case TAREAS:
-			segmento->tamanio_segmento = sizeof(t_tarea) * list_size(estructura);
-			guardar_tareas(estructura);
+			//segmento_libre->tamanio_segmento = sizeof(t_tarea) * list_size(estructura_actualizar);
+			guardar_tareas(estructura_actualizar);
 			break;
+
 		case TRIPULANTE:
-			segmento->tamanio_segmento = sizeof(t_tcb);
-			segmento->id_segmento = ((t_tcb*)estructura)->id_tripulante;
-			guardar_tripulante(estructura);
+			actualizar_tripulante(estructura_actualizar, segmento_libre->inicio);
 			break;
 		default:
 			break;
 	}
-
-
-	memoria_restante -= segmento->tamanio_segmento;
 
 	sem_post(crear_segmento_sem);
 }
@@ -411,13 +437,25 @@ void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmen
 
 t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota) {
 
-	bool se_encuentra_patota(t_tabla_segmentos_patota* tabla){
-		return tabla->patota->pid == id_patota;
+	bool se_encuentra_patota(void* tabla){
+		return ((t_tabla_segmentos_patota*)tabla)->patota->pid == id_patota;
 	}
 
 	 t_tabla_segmentos_patota* tabla_buscada = list_find(tablas_segmentos, se_encuentra_patota);
 
 	return tabla_buscada;
+}
+
+
+int obtener_indice(t_list* lista, void* valor) {
+
+	int indice;
+	for(int i = 0; i<list_size(lista); i++) {
+		if(list_get(lista, i) == valor) {
+			indice = i;
+		}
+	}
+	return indice;
 }
 
 

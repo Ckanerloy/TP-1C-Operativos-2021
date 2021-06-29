@@ -57,6 +57,9 @@ criterio_seleccion elegir_criterio_seleccion(char* criterio);
 algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo);
 
 
+int obtener_indice(t_list* lista, void* valor);
+
+
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
 
 t_segmento* registrar_segmento(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio_estructura);
@@ -67,6 +70,7 @@ t_list* segmentos_libres(void);
 
 void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmento* segmento);
 t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_estructura);
+t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libre_segmento);
 
 t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio);
 

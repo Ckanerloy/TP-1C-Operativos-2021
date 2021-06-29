@@ -354,13 +354,17 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				if(esquema_elegido == 'S') {
 
+					int indice = 0;
+
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_por_estado->id_patota);
 
 					t_segmento* segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_por_estado->id_tripulante);
 
-					t_tcb* tripulante_buscado = obtener_contenido_de_segmento(segmento_buscado);
+					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
-					printf("Estado tripulante VIEJO: %c\n", tripulante_buscado->estado_tripulante);
+					printf("Indice: %u\n\n", indice);
+
+					t_tcb* tripulante_buscado = obtener_contenido_de_segmento(segmento_buscado);
 
 					char estado_anterior = tripulante_buscado->estado_tripulante;
 
@@ -368,17 +372,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					log_info(logger, "El tripulante %u de la Patota %u cambió del Estado %c al Estado %c.\n", tripulante_buscado->id_tripulante, tripulante_por_estado->id_patota, estado_anterior, tripulante_buscado->estado_tripulante);
 
-					t_segmento* segmento_nuevo = administrar_guardar_segmento(tripulante_buscado, TRIPULANTE, segmento_buscado);
+					//t_segmento* segmento_nuevo = administrar_guardar_segmento(tripulante_buscado, TRIPULANTE, sizeof(tripulante_buscado));
+					actualizar_segmento(tripulante_buscado, TRIPULANTE, segmento_buscado);
 
-					t_tcb* tripu = obtener_contenido_de_segmento(segmento_nuevo);
-
-					printf("Estado tripulante NUEVO: %c\n", tripu->estado_tripulante);
-					printf("ID tripulante: %u\n", tripu->id_tripulante);
+					list_replace(patota_buscada->segmentos, indice, segmento_buscado);
 
 				}
 				else if(esquema_elegido  == 'P') {
 					//crear_pagina(estructura, tipo_estructura);
-
 
 				}
 				else {
