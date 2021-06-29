@@ -199,6 +199,30 @@ t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_segmento) {
 
 }
 
+
+t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libre_segmento) {
+
+	t_segmento* segmento = malloc(sizeof(t_segmento));
+
+	segmento->numero_de_segmento = contador_segmento;
+	segmento->tipo_segmento = VACIO;
+
+	segmento->inicio = inicio_segmento;
+
+	segmento->id_segmento = 0;
+
+	segmento->tamanio_segmento = tamanio_libre_segmento;
+
+	segmento->estado_segmento = LIBRE;
+
+	contador_segmento++;
+
+	list_add(segmentos, segmento);
+
+	return segmento;
+}
+
+
 // Implementacion para obtener un segmento libre (segun BEST FIT o FIRST FIT)
 bool memoria_igual_o_mas_grande(t_segmento* segmento, uint32_t tamanio_buscado)
 {
@@ -361,7 +385,8 @@ void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmen
 
 	switch(tipo_segmento){
 		case PATOTA:
-			segmento->tamanio_segmento = tamanio_patota;
+			segmento->tamanio_segmento = sizeof(t_pcb);
+			segmento->id_segmento = ((t_pcb*)estructura)->pid;
 			guardar_patota(estructura);
 			break;
 		case TAREAS:
@@ -369,7 +394,8 @@ void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmen
 			guardar_tareas(estructura);
 			break;
 		case TRIPULANTE:
-			segmento->tamanio_segmento = tamanio_tripulante;
+			segmento->tamanio_segmento = sizeof(t_tcb);
+			segmento->id_segmento = ((t_tcb*)estructura)->id_tripulante;
 			guardar_tripulante(estructura);
 			break;
 		default:

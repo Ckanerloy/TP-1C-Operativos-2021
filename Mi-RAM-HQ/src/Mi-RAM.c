@@ -356,37 +356,30 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_por_estado->id_patota);
 
-					printf("Tamanio patota buscada: %u \n", sizeof(patota_buscada));
-// todO hay problemas de memoria cuando lee estos printf, pero aun asi los lee bien...
-					printf("Id patota buscada: %u\n", patota_buscada->patota->pid);
-					printf("Tareas de la patota buscada: %u\n\n", patota_buscada->patota->tareas);
-
 					t_segmento* segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_por_estado->id_tripulante);
-
-
-					printf("Id de segmento buscado: %u\n", segmento_buscado->id_segmento);
-					printf("Inicio segmento buscado %u\n", segmento_buscado->inicio);
-					printf("Tamanio segmento buscado %u\n\n", segmento_buscado->tamanio_segmento);
 
 					t_tcb* tripulante_buscado = obtener_contenido_de_segmento(segmento_buscado);
 
-					printf("Estado tripulante antes: %c\n", tripulante_buscado->estado_tripulante);
+					printf("Estado tripulante VIEJO: %c\n", tripulante_buscado->estado_tripulante);
+
+					char estado_anterior = tripulante_buscado->estado_tripulante;
 
 					tripulante_buscado->estado_tripulante = tripulante_por_estado->estado;
 
-					printf("ID tripulante buscado: %u\n", tripulante_buscado->id_tripulante);
-					printf("Estado tripulante despues buscado: %c\n", tripulante_buscado->estado_tripulante);
-					printf("Posicion X tripulante buscado: %u\n", tripulante_buscado->posicion_x);
-					printf("Posicion Y tripulante buscado: %u\n", tripulante_buscado->posicion_y);
-					printf("ID tarea del tripulante buscado: %u\n", tripulante_buscado->id_tarea_a_realizar);
-					printf("PCB puntero tripulante buscado: %u\n\n", tripulante_buscado->puntero_PCB);
+					log_info(logger, "El tripulante %u de la Patota %u cambió del Estado %c al Estado %c.\n", tripulante_buscado->id_tripulante, tripulante_por_estado->id_patota, estado_anterior, tripulante_buscado->estado_tripulante);
 
-					actualizar_segmento(tripulante_buscado, TRIPULANTE, segmento_buscado);
+					t_segmento* segmento_nuevo = administrar_guardar_segmento(tripulante_buscado, TRIPULANTE, segmento_buscado);
 
+					t_tcb* tripu = obtener_contenido_de_segmento(segmento_nuevo);
+
+					printf("Estado tripulante NUEVO: %c\n", tripu->estado_tripulante);
+					printf("ID tripulante: %u\n", tripu->id_tripulante);
 
 				}
 				else if(esquema_elegido  == 'P') {
 					//crear_pagina(estructura, tipo_estructura);
+
+
 				}
 				else {
 					log_error(logger, "No se puede guardar la estructura en Memoria");
@@ -394,9 +387,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				respuesta_por_estado->id_tripulante = tripulante_por_estado->id_tripulante;
 				respuesta_por_estado->respuesta = 1;
-
-				printf("Tripulante: %u\n", respuesta_por_estado->id_tripulante);
-				printf("Estado: %c\n", tripulante_por_estado->estado);
 
 				enviar_mensaje(respuesta_por_estado, RESPUESTA_OK_ESTADO, conexion);
 				// LE CONFIRMA A DISCORDIADOR QUE SE REALIZO EXITOSAMENTE LA ACTUALIZACION DEL ESTADO DEL TRIPULANTE

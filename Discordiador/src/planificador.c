@@ -75,7 +75,6 @@ void obtener_planificacion_de_config(t_config* config){
 
 void elegir_algoritmo() {
 
-
 	algoritmo_elegido = mapeo_algoritmo_planificacion(ALGORITMO);
 
 	switch(algoritmo_elegido){
@@ -92,8 +91,6 @@ void elegir_algoritmo() {
 			printf("No se eligio ningún algoritmo.\n");
 			break;
 	}
-
-
 }
 
 void iniciar_planificacion() {

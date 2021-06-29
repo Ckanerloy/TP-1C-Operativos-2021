@@ -76,7 +76,7 @@ int RETARDO_CICLO_CPU;
 
 algoritmo_planificacion algoritmo_elegido;
 algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo);
-void elegir_algoritmo();
+void elegir_algoritmo(void);
 void obtener_planificacion_de_config(t_config* config);
 void new_ready();
 void ready_running();

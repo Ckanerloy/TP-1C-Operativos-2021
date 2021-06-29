@@ -7,6 +7,7 @@ int main(void) {
 	obtener_datos_de_config(config);
 	obtener_planificacion_de_config(config);
 
+	elegir_algoritmo();
 	inicializar_semaforos();
 	inicializar_listas();
 	iniciar_planificacion();
@@ -241,8 +242,6 @@ void obtener_orden_input(){
 			//if(valor_semaforo == 0){
 				printf("Iniciando Planificacion....... \n");
 			//}
-
-			elegir_algoritmo(conexion_mi_ram);
 
 			//list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
 			list_iterate(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
@@ -480,7 +479,7 @@ void obtener_orden_input(){
 			largo = list_size(lista_tripulantes);
 
 
-
+/*
 			for(recorrido=0;recorrido<largo;recorrido++){
 					tripulante=list_get(lista_tripulantes, recorrido);
 					if(id_tripulante_a_expulsar->id_tripulante==tripulante->id_tripulante){
@@ -488,7 +487,7 @@ void obtener_orden_input(){
 						free(list_remove(lista_tripulantes,recorrido));
 					}
 
-			}
+			}*/
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 			// ENVIA EL ID DEL TRIPULANTE A EXPULSAR: LO ELIMINA DEL MAPA, LO ELIMINA DE LA MEMORIA

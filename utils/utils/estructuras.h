@@ -55,7 +55,8 @@ typedef enum
 {
 	PATOTA,
 	TAREAS,
-	TRIPULANTE
+	TRIPULANTE,
+	VACIO
 } tipo_segmento;
 
 
