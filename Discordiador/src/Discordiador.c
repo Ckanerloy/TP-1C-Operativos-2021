@@ -100,7 +100,7 @@ void iniciar_escucha_sabotaje(void){
 			}
 		}
 
-		list_map(bloqueado_suspendido, (void*) poner_en_cero_semaforos);
+		list_iterate(bloqueado_suspendido, (void*) poner_en_cero_semaforos);
 
 		for(int i=0;i<largo;i++){
 			tripulante = list_get(lista_tripulantes,i);

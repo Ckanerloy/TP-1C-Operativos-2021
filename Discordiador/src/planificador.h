@@ -24,6 +24,7 @@
 
 uint32_t multitarea_Disponible;
 
+uint32_t planificacionValor;
 
 typedef enum{
 	FIFO,
@@ -52,6 +53,8 @@ sem_t* mutex_exit;
 sem_t* mutex_new;
 sem_t* mutex_expulsado;
 sem_t* mutex_tripulante_estado;
+
+sem_t* mutex_planificionValor;
 
 sem_t* planificacion_on;
 sem_t* planificacion_on_ready_running;
@@ -104,5 +107,10 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu);
 void descartar_basura(tripulante_plani* tripu);
 void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado);
+
+posiciones* obtener_nueva_posicion(posicion_tripu,posicion_tarea);
+
+void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion);
+
 
 #endif /* PLANIFICADOR_H_ */

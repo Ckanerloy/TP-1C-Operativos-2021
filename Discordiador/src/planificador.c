@@ -1,4 +1,5 @@
 #include "planificador.h"
+#include <sys/types.h>
 
 algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo) {
 
@@ -49,6 +50,9 @@ void inicializar_semaforos_plani(){
 
 	mutex_tripulante_estado = malloc(sizeof(sem_t));
 	sem_init(mutex_tripulante_estado, 0, 1);
+
+	mutex_planificionValor= malloc (sizeof(sem_t));
+	sem_init(mutex_planificionValor, 0,1);
 }
 
 
@@ -401,6 +405,9 @@ void tripulante_hilo(void* tripulante){
 				sem_post(mutex_expulsado);
 			}
 
+			//aca habria q ver si esta asignado para sabotaje, si esta breck
+
+
 			if(algoritmo_elegido==RR){
 
 				if(cantidadRealizado==QUANTUM){
@@ -412,6 +419,7 @@ void tripulante_hilo(void* tripulante){
 			}
 			//printf("antes del wait/n");
 			//fflush(stdout);
+
 			sem_wait(tripu->sem_tripu);
 			//printf("despues del wait");
 			sleep(RETARDO_CICLO_CPU); //vale 0
@@ -421,11 +429,27 @@ void tripulante_hilo(void* tripulante){
 			distancia--;
 
 			sem_post(tripu->sem_tripu); //vale 1 0
+
 		}
 
 
-		sem_wait(mutex_expulsado);
+		//uint32_t x = pthread_self();
+		//printf("semaforo raro: %u",x);
+		//fflush(stdout);
 
+		int a;
+		sem_getvalue(tripu->sem_tripu,&a);
+
+		//fflush(stdout);
+		//if(a==1){
+		//	sem_wait(tripu->sem_tripu);
+		//}
+
+		sem_getvalue(tripu->sem_tripu,&a);
+		printf("semaforo raro: %u",a);
+		fflush(stdout);
+
+		sem_wait(mutex_expulsado);
 		if(tripu->expulsado){
 			sem_post(mutex_expulsado);
 			return;
@@ -449,9 +473,58 @@ void tripulante_hilo(void* tripulante){
 		}else{
 			sem_post(mutex_expulsado);
 		}
+
+
+
+
+
 		realizar_tarea(tripu,&cantidadRealizado);
 	}
 	//sem_wait(tripu->sem_tripu);
+}
+
+posiciones* obtener_nueva_posicion(posiciones* posicion_tripu,posiciones* posicion_tarea){
+	while(posicion_tripu->posicion_x != posicion_tarea->posicion_x){
+		if(posicion_tripu->posicion_x > posicion_tarea->posicion_x){
+			posicion_tripu->posicion_x = posicion_tripu->posicion_x - 1 ;
+			// actualziar en mi ram
+			return posicion_tripu;
+		}
+
+		if(posicion_tripu->posicion_x < posicion_tarea->posicion_x){
+			posicion_tripu->posicion_x = posicion_tripu->posicion_x + 1 ;
+			// actualziar en mi ram
+			return posicion_tripu;
+		}
+	}
+
+	while(posicion_tripu->posicion_y != posicion_tarea->posicion_y){
+			if(posicion_tripu->posicion_y > posicion_tarea->posicion_y){
+				posicion_tripu->posicion_y = posicion_tripu->posicion_y - 1 ;
+				// actualziar en mi ram
+				return posicion_tripu;
+			}
+
+			if(posicion_tripu->posicion_y < posicion_tarea->posicion_y){
+				posicion_tripu->posicion_y = posicion_tripu->posicion_y + 1 ;
+				// actualziar en mi ram
+				return posicion_tripu;
+			}
+	}
+
+}
+
+
+void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion){
+	uint32_t conexion_mi_ram;
+	//esta incompleta hay q hacer estructura para pasar datos pero lo encro asi noms
+	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
+
+	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
+		abort();
+	}
 }
 /*
 //TAREA SABOTAJE
@@ -518,6 +591,9 @@ posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota){
 	return posicion;
 }
 
+
+
+
 uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea){
 	return (abs(posicion_tripu->posicion_x - posicion_tarea->posicion_x) + abs(posicion_tripu->posicion_y - posicion_tarea->posicion_y) );
 }
@@ -527,8 +603,6 @@ uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tare
 void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
 
 
-	sem_wait(tripu->sem_tripu);
-	sem_post(tripu->sem_tripu);
 	switch(tripu->tarea_a_realizar->operacion) {
 
 		case GENERAR_OXIGENO:
@@ -602,10 +676,12 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 
 	while(tiempo_restante != 0){
 		sem_wait(tripu->sem_tripu);
-		//Aca iria un if preguntando si esta expulsado con BREAK
+
 		sleep(RETARDO_CICLO_CPU);
 		tiempo_restante--;
 		sem_post(tripu->sem_tripu);
+
+		//aca hay q pregunta rsi esta encargado de sabotjae, si es asi breck
 
 		sem_wait(mutex_expulsado);
 		if(tripu->expulsado){
@@ -615,6 +691,9 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 			sem_post(mutex_expulsado);
 		}
 	}
+
+	//preguntar si esta encargado, si esta la proximas seria tripu->tarea_a_realizar=tripu->tareasabotaje
+	//sino cargo la siguiente. En caso de haber arreglado un sabo, no tenes q pedir otra sino hacer la q tenes en tarea a realizar
 	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
 
 	tripu->tarea_a_realizar= NULL;
