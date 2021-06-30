@@ -307,7 +307,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_por_ubicacion->id_patota);
 
-					t_segmento* segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_por_ubicacion->id_tripulante);
+					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_por_ubicacion->id_tripulante);
 
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
@@ -353,7 +353,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_para_ubicacion->id_patota);
 
-					t_segmento* segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_para_ubicacion->id_tripulante);
+					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_para_ubicacion->id_tripulante);
 
 					t_tcb* tripulante_con_ubicacion = obtener_contenido_de_segmento(segmento_buscado);
 
@@ -398,7 +398,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_por_estado->id_patota);
 
-					t_segmento* segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_por_estado->id_tripulante);
+					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_por_estado->id_tripulante);
 
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
@@ -439,30 +439,20 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				recibir_mensaje(tripulante_para_tarea, operacion, conexion);
 
-				/*
-				 * - BUSCAR TRIPULANTE EN LA MEMORIA (COINCIDIENDO POR ID_TRIPULANTE E ID_PATOTA)
-				 * - BUSCAR LA TAREA POR EL ID_PROXIMA_TAREA DEL TRIPULANTE EN MEMORIA
-				 * - GUARDAR LA TAREA EN LA ESTRUCTURA t_respuesta_tarea_tripulante
-				 * - ACTUALIZAR EL ID_TAREA_A_REALIZAR DEL TRIPULANTE Y GUARDARLO EN MEMORIA
-				 * - ENVIAR LA RESPUESTA CON EL TRIPULANTE Y LA TAREA A REALIZAR
-				 */
-
 				if(esquema_elegido == 'S') {
 
 					int indice = 0;
 
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_para_tarea->id_patota);
 
-					t_segmento* segmento_buscado = buscar_por_id_tripulante(patota_buscada->segmentos, TRIPULANTE, tripulante_para_tarea->id_tripulante);
+					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_para_tarea->id_tripulante);
 
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
 					t_tcb* tripulante_con_tarea = obtener_contenido_de_segmento(segmento_buscado);
 					int id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
 
-					// Obtiene la tarea que coincida con el indice = id_proxima_tarea del tripulante pasado, cuyas tareas sean de la Patota pasada por parametro
-					// t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos_de_la_patota, TAREAS, uint32_t id_patota, uint32_t id_proxima_tarea_del_tripu);
-					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante(patota_buscada->segmentos, TAREAS, tripulante_para_tarea->id_patota, id_tarea_a_buscar_del_tripu);
+					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante(patota_buscada->segmentos, TAREAS, id_tarea_a_buscar_del_tripu);
 
 					respuesta_con_tarea_tripulante->tarea->cantidad = tarea_buscada->cantidad;
 					respuesta_con_tarea_tripulante->tarea->operacion = tarea_buscada->operacion;
@@ -512,7 +502,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				/*
 				 * - BUSCAR TRIPULANTE EN LA MEMORIA (COINCIDIENDO POR ID_TRIPULANTE E ID_PATOTA)
-				 * - LIBERAR EN LA MEMORIA EL SEGMENTO QUE HACE REFERENCIA A ESTE TRIPULANTE
+				 * - LIBERAR EN LA MEMORIA EL SEGMENTO QUE HACE REFERENCIA A ESTE TRIPULANTE -> marcar como "LIBRE"
+				 * - 	free(tripulante), tanto en segmentos como en patota_recibida->segmentos (removerlo de esta ultima lista)
 				 * - ELIMINARLO DEL MAPA
 				 * - ENVIAR UNA RESPUESTA DE CONFIRMACION AL DISCORDIADOR
 				 */

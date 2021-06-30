@@ -380,6 +380,7 @@ void hilo_tripulante_sabotaje(tripulante_sabotaje* tripu){
 }
 */
 
+//todo nos tienen que pasar el id de patota y el id de tripulante
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
 
 	t_tarea* tarea = malloc(sizeof(t_tarea));

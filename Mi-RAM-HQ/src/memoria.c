@@ -422,7 +422,6 @@ void actualizar_segmento(void* estructura_actualizar, tipo_segmento tipo_segment
 			guardar_patota(estructura_actualizar);
 			break;
 		case TAREAS:
-			//segmento_libre->tamanio_segmento = sizeof(t_tarea) * list_size(estructura_actualizar);
 			guardar_tareas(estructura_actualizar);
 			break;
 
@@ -461,13 +460,11 @@ int obtener_indice(t_list* lista, void* valor) {
 }
 
 
-t_segmento* buscar_por_id_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t valor) {
+t_segmento* buscar_por_id(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t valor) {
 
 	bool mismo_segmento(void* segmento) {
 		return (((t_segmento*)segmento)->tipo_segmento == tipo_de_segmento) && (((t_segmento*)segmento)->id_segmento == valor);
 	}
-
-	//t_list* segmentos_por_tipo = list_filter(segmentos, mismo_tipo_segmento);
 
 	t_segmento* segmento_buscado = list_find(segmentos, mismo_segmento);
 
@@ -475,26 +472,20 @@ t_segmento* buscar_por_id_tripulante(t_list* segmentos, tipo_segmento tipo_de_se
 }
 
 
-t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t id_patota, uint32_t id_proxima_tarea_del_tripu) {
+t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t id_proxima_tarea_del_tripu) {
 
+	bool misma_tarea(void* segmento) {
+		return ((t_segmento*)segmento)->tipo_segmento == tipo_de_segmento;
+	}
 
-// me dio fiaca, todo later
-	/*
-	 * Buscar las tareas, obtener su segmento
-	 * despues buscar dentro de esa lista de tareas la que coincida con el id_proxima_tarea (la cual seria el indice de donde estaria guardada)
-	 * usar funcion obtener_indice   =>   list_get(tareas, indice);
-	 * y listo el pollo
-	 */
-//	t_tarea* tarea_buscada = list_find(segmentos, )
+	t_segmento* segmento_tareas = list_find(segmentos, misma_tarea);
 
-	//return tarea_buscada;
+	t_list* tareas_de_la_patota = obtener_contenido_de_segmento(segmento_tareas);
+
+	t_tarea* tarea_buscada = list_get(tareas_de_la_patota, id_proxima_tarea_del_tripu);
+
+	return tarea_buscada;
 }
-
-/*
-tabla general = tabla_segmentos patota
-
-		dentro de tabla_segmentos_patota = tabla_segmentos_patota->segmentos
-*/
 
 
 void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir)
@@ -521,7 +512,7 @@ void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir)
 
 t_pcb* encontrar_patota(t_segmento* segmento) {
 
-	t_pcb* patota = malloc(sizeof(t_pcb));
+	t_pcb* patota = malloc(segmento->tamanio_segmento);
 
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
@@ -543,7 +534,7 @@ t_pcb* encontrar_patota(t_segmento* segmento) {
 
 t_list* encontrar_tarea(t_segmento* segmento) {
 
-	t_list* tareas_de_la_patota = list_create();
+	t_list* tareas_de_la_patota = malloc(segmento->tamanio_segmento);
 
 	uint32_t tamanio_segmento = segmento->tamanio_segmento;
 
@@ -563,9 +554,7 @@ t_list* encontrar_tarea(t_segmento* segmento) {
 
 t_tcb* encontrar_tripulante(t_segmento* segmento) {
 
-	t_tcb* tripulante = malloc(sizeof(t_tcb));
-
-//TODO revisar copia de memoria en estructura tripulante
+	t_tcb* tripulante = malloc(segmento->tamanio_segmento);
 
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
