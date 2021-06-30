@@ -30,12 +30,14 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			esquema_elegido = 'P';
 			tablas_paginas = list_create();
 			// Poner la cantidad de paginas, los frames, etc.
-
+			log_info(logger, "Las páginas tendran un tamaño de %u bytes cada una.\n", TAMANIO_PAGINA);
+			log_info(logger, "Se utilizará el algoritmo de %s para reemplazar las páginas.\n", ALGORITMO_REEMPLAZO);
 			break;
 
 		case SEGMENTACION:
 
 			esquema_elegido = 'S';
+			log_info(logger, "Se utilizará el criterio de %s para colocar el segmento en memoria.\n", CRITERIO_SELECCION);
 			tablas_segmentos = list_create();
 			segmentos = list_create();
 			memoria_libre_por_segmento = 0;
@@ -470,6 +472,22 @@ t_segmento* buscar_por_id_tripulante(t_list* segmentos, tipo_segmento tipo_de_se
 	t_segmento* segmento_buscado = list_find(segmentos, mismo_segmento);
 
 	return segmento_buscado;
+}
+
+
+t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t id_patota, uint32_t id_proxima_tarea_del_tripu) {
+
+
+// me dio fiaca, todo later
+	/*
+	 * Buscar las tareas, obtener su segmento
+	 * despues buscar dentro de esa lista de tareas la que coincida con el id_proxima_tarea (la cual seria el indice de donde estaria guardada)
+	 * usar funcion obtener_indice   =>   list_get(tareas, indice);
+	 * y listo el pollo
+	 */
+//	t_tarea* tarea_buscada = list_find(segmentos, )
+
+	//return tarea_buscada;
 }
 
 /*

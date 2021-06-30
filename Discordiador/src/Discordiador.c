@@ -262,10 +262,10 @@ void obtener_orden_input(){
 			break;
 
 		case INICIAR_PATOTA:
-			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
+			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
@@ -427,7 +427,7 @@ void obtener_orden_input(){
 				tripulante=list_get(lista_tripulantes, recorrido);
 				printf("Tripulante: %u          Patota: %u          Status: %c \n", tripulante->id_tripulante, tripulante->numero_patota, tripulante->estado);
 			}
-			printf("--------------------------------------------------------------------------\n\n");
+			printf( "--------------------------------------------------------------------------\n\n");
 			break;
 
 		case OBTENER_BITACORA:

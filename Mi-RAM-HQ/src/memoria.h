@@ -76,6 +76,7 @@ t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_se
 
 t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota_buscada);
 t_segmento* buscar_por_id_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t valor);
+t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t id_patota, uint32_t id_proxima_tarea_del_tripu);
 
 bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado);
 
