@@ -100,7 +100,7 @@ void iniciar_escucha_sabotaje(void){
 			}
 		}
 
-		list_map(bloqueado_suspendido, (void*) poner_en_cero_semaforos);
+		list_iterate(bloqueado_suspendido, (void*) poner_en_cero_semaforos);
 
 		for(int i=0;i<largo;i++){
 			tripulante = list_get(lista_tripulantes,i);
@@ -108,13 +108,16 @@ void iniciar_escucha_sabotaje(void){
 				list_add_sorted(bloqueado_suspendido_ready, (void*) tripulante,(void*)menorId);
 			}
 		}
-		list_map(bloqueado_suspendido_ready, (void*) poner_en_cero_semaforos);
+
+		list_iterate(bloqueado_suspendido_ready, (void*) poner_en_uno_semaforos);
 
 		list_add_all(bloqueado_suspendido,bloqueado_suspendido_ready);
 
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
 		tripulante_sabotaje* tripu_sabotaje = malloc(sizeof(tripulante_plani));
+
+
 
 		tripu_sabotaje->id_tripulante=tripu_mas_cercano->id_tripulante;
 		tripu_sabotaje->id_patota=tripu_mas_cercano->numero_patota;
@@ -141,8 +144,9 @@ void iniciar_escucha_sabotaje(void){
 
 
 
-tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
+/*tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
 	//tenemos variable global q dice la posicion del sabotaje
+
 	posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
 
 	posiciones* posicion_tripu2 = malloc(sizeof(posiciones));
@@ -156,7 +160,16 @@ tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* t
 	else {
 		return tripulante2;
 	}
-}
+
+	posiciones* posicion_tripu1;
+	posicion_tripu1 = malloc(sizeof(posiciones));
+	posiciones* posicion_tripu2;
+	posicion_tripu2 = malloc(sizeof(posiciones));
+	obtener_distancia(posicion_tripu1, posicion_tripu2);
+
+	//aca esTA MAL
+
+}*/
 
 
 
@@ -228,6 +241,14 @@ void obtener_orden_input(){
 	 int largo;
 	 int recorrido;
 
+	 tripulante_plani* tripulante_a_expulsar;
+	 t_tripulante* id_tripulante_a_expulsar;
+
+
+
+	// sem_t* saca = malloc(sizeof(sem_t));
+
+
 	 switch(operacion){
 
 
@@ -258,11 +279,12 @@ void obtener_orden_input(){
 			sem_wait(planificacion_on);
 			sem_wait(planificacion_on_ready_running);
 
+
 			break;
 
 		case INICIAR_PATOTA:
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5
 			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
@@ -359,6 +381,7 @@ void obtener_orden_input(){
 						tripulante->id_tripulante = atoi(parser_ids[i]);
 						tripulante->numero_patota = respuesta_iniciar_patota->numero_de_patota; //esto lo devuelve mi ram
 						tripulante->estado = 'N';
+						tripulante->expulsado=0;
 
 						sem_t* sem_plani=malloc(sizeof(sem_t));
 						sem_init(sem_plani,0,0);
@@ -466,41 +489,61 @@ void obtener_orden_input(){
 			}
 			strcat(parser_consola[1], "\0");
 
-			t_tripulante* id_tripulante_a_expulsar = malloc(sizeof(t_tripulante));
+			id_tripulante_a_expulsar = malloc(sizeof(t_tripulante));
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
-			// Busqueda de Patota que pertenece este tripulante
-			id_tripulante_a_expulsar->id_patota = 2;
 
-			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
-			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
-				break;
+			bool mismo_id(tripulante_plani* tripu)
+			{
+				return tripu->id_tripulante == id_tripulante_a_expulsar->id_tripulante;
 			}
 
-			largo = list_size(lista_tripulantes);
+			tripulante_a_expulsar = malloc(sizeof(tripulante_plani));
+
+			tripulante_a_expulsar = list_find(lista_tripulantes, (void*)mismo_id);
+
+
+			if(tripulante_a_expulsar != NULL){
+
+				id_tripulante_a_expulsar->id_patota = tripulante_a_expulsar->numero_patota;
+				printf("id del tripu a eliminar: %u \n",id_tripulante_a_expulsar->id_tripulante);
+				printf("id del patota a eliminar: %u \n",id_tripulante_a_expulsar->id_patota);
 
 
 
-			for(recorrido=0;recorrido<largo;recorrido++){
-					tripulante=list_get(lista_tripulantes, recorrido);
-					if(id_tripulante_a_expulsar->id_tripulante==tripulante->id_tripulante){
-						sem_wait(tripulante->sem_tripu);
-						free(list_remove(lista_tripulantes,recorrido));
-					}
+				switch(tripulante_a_expulsar->estado){
+					case 'R':
+							tripulante_a_expulsar->expulsado = 1;
+							sem_post(tripulante_a_expulsar->sem_planificacion);
+							ready_exit(tripulante_a_expulsar);
+							break;
 
+					case 'E':
+							tripulante_a_expulsar->expulsado = 1;
+							running_exit(tripulante_a_expulsar);
+							break;
+
+					case 'B':
+						tripulante_a_expulsar->expulsado = 1;
+						block_exit(tripulante_a_expulsar);
+						break;
+				}
+
+
+
+				conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+				if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+					break;
+				}
+
+				enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
+
+				cerrar_conexion(logger,conexion_mi_ram);
+			}else{
+				log_error(logger, "No existe el tripulante que se desea eliminar");
 			}
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-			// ENVIA EL ID DEL TRIPULANTE A EXPULSAR: LO ELIMINA DEL MAPA, LO ELIMINA DE LA MEMORIA
-			// Y TAMBIEN HAY QUE ELIMINARLO DE LA LISTA QUE GUARDA DISCORDIADOR
-
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-			enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
-
 
 			free(id_tripulante_a_expulsar);
-			cerrar_conexion(logger,conexion_mi_ram);
+			//free(tripulante_a_expulsar);
 			break;
 
 		case TERMINAR_PROGRAMA:
@@ -576,5 +619,5 @@ void esperadorDeUno(sem_t* semaforo){
 	printf("hola");
 	//while(valor!=1);
 	//sem_wait(semaforo);
-
 }
+

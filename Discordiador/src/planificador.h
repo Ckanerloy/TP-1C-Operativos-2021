@@ -24,6 +24,7 @@
 
 uint32_t multitarea_Disponible;
 
+uint32_t planificacionValor;
 
 typedef enum{
 	FIFO,
@@ -34,10 +35,13 @@ typedef enum{
 t_queue* cola_new;
 t_queue* cola_ready;
 t_queue* cola_exit;
+t_queue* cola_auxiliar_sabotaje;
 
 //Lista de los semaforos de los tripulantes
 t_list* lista_semaforos_tripulantes;
 t_list* lista_tripulantes;
+
+
 
 
 t_list* bloqueado_suspendido;
@@ -47,7 +51,10 @@ t_list* bloqueado_suspendido_ready;
 sem_t* mutex_ready;
 sem_t* mutex_exit;
 sem_t* mutex_new;
+sem_t* mutex_expulsado;
+sem_t* mutex_tripulante_estado;
 
+sem_t* mutex_planificionValor;
 
 sem_t* planificacion_on;
 sem_t* planificacion_on_ready_running;
@@ -79,6 +86,7 @@ void obtener_planificacion_de_config(t_config* config);
 void new_ready();
 void ready_running();
 void iniciar_planificacion();
+void ready_exit(tripulante_plani* tripu);
 
 void inicializar_semaforos_plani();
 void finalizar_semaforos_plani();
@@ -86,16 +94,24 @@ void finalizar_semaforos_plani();
 void inicializar_listas();
 void pulso_rafaga();
 void running_ready(tripulante_plani* tripulante);
+void block_exit(tripulante_plani* tripu);
+void running_exit(tripulante_plani* tripu);
 void tripulante_hilo(void* tripulante);
 //void hilo_tripulante_sabotaje(tripulante_plani* tripu);
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota);
 posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota);
-int32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
+uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
+
 
 void realizar_tarea(tripulante_plani* tripulante,uint32_t* cantidadRealizado);
 void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu);
 void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu);
 void descartar_basura(tripulante_plani* tripu);
 void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado);
+
+posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea);
+
+void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion);
+
 
 #endif /* PLANIFICADOR_H_ */
