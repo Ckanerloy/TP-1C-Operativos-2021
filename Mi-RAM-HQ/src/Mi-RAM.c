@@ -477,8 +477,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
-					//list_remove_and_destroy_element(patota_buscada->segmentos, indice, free);
-
 					log_info(logger, "Memoria Total antes de expulsar tripulante: %u.\n\n\n", memoria_libre_total);
 
 					list_remove(patota_buscada->segmentos, indice);

@@ -169,17 +169,17 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota){
 
 
-	t_tarea* tarea = malloc(sizeof(t_tarea));
+	/*t_tarea* tarea = malloc(sizeof(t_tarea));
 
 	tarea->operacion = GENERAR_OXIGENO;
 	tarea->cantidad = 5;
 	tarea->posicion_x = 4;
 	tarea->posicion_y = 4;
 	tarea->tiempo = 5;
-	return tarea;
+	return tarea;*/
 
 
-	/*uint32_t conexion_mi_ram;
+	uint32_t conexion_mi_ram;
 
 	t_tripulante* tripulante_consulta = malloc(sizeof(t_tripulante));
 	t_respuesta_tarea_tripulante* respuesta_tarea = malloc(sizeof(t_respuesta_tarea_tripulante));
@@ -222,7 +222,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 	free(tripulante_consulta);
 	free(respuesta_tarea);
 
-	return respuesta_tarea->tarea;*/
+	return respuesta_tarea->tarea;
 }
 
 
@@ -613,8 +613,8 @@ posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posic
 		if(posicion_tripu->posicion_x > posicion_tarea->posicion_x){
 			//posicion_tripu->posicion_x = posicion_tripu->posicion_x - 1 ;
 			posicion_tripu->posicion_x--;
-
 			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
+			return posicion_tripu;
 		}
 
 		if(posicion_tripu->posicion_x < posicion_tarea->posicion_x){
@@ -622,6 +622,7 @@ posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posic
 			posicion_tripu->posicion_x++;
 			// actualizar en mi ram
 			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
+			return posicion_tripu;
 		}
 	}
 
@@ -631,6 +632,7 @@ posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posic
 				posicion_tripu->posicion_y--;
 				// actualizar en mi ram
 				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
+				return posicion_tripu;
 			}
 
 			if(posicion_tripu->posicion_y < posicion_tarea->posicion_y){
@@ -638,6 +640,7 @@ posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posic
 				posicion_tripu->posicion_y++;
 				// actualizar en mi ram
 				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
+				return posicion_tripu;
 			}
 	}
 	return posicion_tripu;

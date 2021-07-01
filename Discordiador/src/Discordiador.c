@@ -221,14 +221,6 @@ void obtener_orden_input(){
 
 	 string_trim(&cadena_ingresada);
 
-	 if(strcmp(cadena_ingresada, "") == 0)
-	 {
-			printf("No se ha ingresado ninguna orden.\n");
-			free(cadena_ingresada);
-			sem_post(comando_para_ejecutar);
-			return;
-	 }
-
 	 parser_consola = string_split(cadena_ingresada, " ");
 
 	 char* comando_ingresado = malloc(strlen(parser_consola[0])+1);
@@ -262,7 +254,7 @@ void obtener_orden_input(){
 			//sem_getvalue(planificacion_on,&valor_semaforo);
 
 			//if(valor_semaforo == 0){
-				printf("Iniciando Planificacion....... \n");
+			log_info(logger, "Iniciando Planificacion....... \n");
 			//}
 
 			//list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
@@ -274,7 +266,7 @@ void obtener_orden_input(){
 
 		case PAUSAR_PLANIFICACION:
 
-
+			log_info(logger, "Pausando Planificacion........ \n");
 			//list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
 			list_iterate(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
 

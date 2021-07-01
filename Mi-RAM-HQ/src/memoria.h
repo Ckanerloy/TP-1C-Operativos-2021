@@ -36,6 +36,12 @@ typedef struct	tabla_segmentos_patota
 } t_tabla_segmentos_patota;
 
 
+typedef struct {
+	char* tarea;
+	uint32_t tamanio_tarea;
+} tareas_patota;
+
+
 
 // PAGINACION
 typedef struct pagina

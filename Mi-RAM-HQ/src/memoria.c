@@ -153,6 +153,7 @@ t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_se
 			if(diferencia > 0){
 				crear_segmento_libre(tamanio, diferencia);
 				memoria_libre_por_segmento+= diferencia;
+				memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
 				segmento_libre->tamanio_segmento = tamanio;
 			}
 			actualizar_segmento(estructura, tipo_segmento, segmento_libre);
@@ -201,6 +202,7 @@ t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_segmento) {
 	contador_segmento++;
 
 	memoria_restante -= segmento->tamanio_segmento;
+	memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
 
 	list_add(segmentos, segmento);
 
@@ -239,6 +241,7 @@ void liberar_segmento(t_segmento* segmento_a_liberar) {
 	segmento_a_liberar->estado_segmento = LIBRE;
 	segmento_a_liberar->id_segmento = 0;
 	memoria_libre_por_segmento += segmento_a_liberar->tamanio_segmento;
+	memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
 
 	printf("Memoria a liberar: %u\n", memoria_libre_por_segmento);
 }
@@ -304,16 +307,6 @@ bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado) {
 
 
 
-void libero_segmento(t_segmento* segmento) {
-
-	segmento->estado_segmento = LIBRE;
-	memoria_libre_por_segmento += segmento->tamanio_segmento;
-}
-
-
-
-
-
 // Funciones para guardar/recuperar Patota
 void guardar_patota(t_pcb* nueva_patota) {
 
@@ -336,12 +329,28 @@ void recuperar_patota(t_pcb* nueva_patota) {
 
 
 // Funciones para guardar/recuperar Tareas
-// TODO guardar tarea por tarea? PREGUNTAR
+
 void guardar_tareas(t_list* tareas_de_la_patota) {
 
-	memcpy(memoria_principal + base_segmento, &(tareas_de_la_patota), (sizeof(t_tarea) * list_size(tareas_de_la_patota)));
-	base_segmento += (sizeof(t_tarea) * list_size(tareas_de_la_patota));
+	uint32_t cantidad_tareas = list_size(tareas_de_la_patota);
+
+	for(int i=0; i<cantidad_tareas; i++){
+		t_tarea* tarea_a_guardar = malloc(sizeof(t_tarea));
+		tarea_a_guardar = list_get(tareas_de_la_patota, i);
+
+		memcpy(memoria_principal + base_segmento, &(tarea_a_guardar), sizeof(t_tarea));
+		base_segmento += sizeof(t_tarea);
+
+		free(tarea_a_guardar);
+	}
 }
+
+/* HAY QUE GUARDAR LAS TAREAS COMO SI FUESEN LINEAS DE TEXTO
+ EJEMPLO: GUARDAR_OXIGENO 3;4;5;2
+ y guardar ese String en memoria
+ el tema va en armar una estructura que tenga el tamaño de este string, el string, el id de la tarea
+*/
+//TODO char* asi se guardarian las tareas
 
 void recuperar_tareas(t_list* tareas_de_la_patota) {
 
@@ -544,7 +553,37 @@ t_pcb* encontrar_patota(t_segmento* segmento) {
 // TODO problemas al deserializar las tareas
 t_list* encontrar_tarea(t_segmento* segmento) {
 
+
+	// NO SIRVE DE ESTA MANERA
+
 	t_list* tareas_de_la_patota = list_create();
+	void* inicio = (void*) memoria_principal + segmento->inicio;
+	uint32_t desplazamiento = 0;
+
+	uint32_t cantidad_tareas = segmento->id_segmento;
+
+	for(int i=0; i<cantidad_tareas; i++){
+		t_tarea* tarea_a_sacar = malloc(sizeof(t_tarea));
+		memcpy(&(tarea_a_sacar), inicio + desplazamiento, sizeof(t_tarea));
+		desplazamiento += sizeof(t_tarea);
+
+
+
+		list_add(tareas_de_la_patota, tarea_a_sacar);
+		free(tarea_a_sacar);
+	}
+
+	printf("Tamanio segmento = %u\n", sizeof(t_tarea) * segmento->id_segmento);
+	printf("desplazamiento = %u\n", desplazamiento);
+
+	if(segmento->tamanio_segmento == desplazamiento) {
+			return tareas_de_la_patota;
+	}
+	else {
+		return NULL;
+	}
+
+	/*t_list* tareas_de_la_patota = list_create();
 	//malloc(sizeof(t_tarea) * segmento->id_segmento)
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
@@ -560,7 +599,7 @@ t_list* encontrar_tarea(t_segmento* segmento) {
 	}
 	else {
 		return NULL;
-	}
+	}*/
 }
 
 t_tcb* encontrar_tripulante(t_segmento* segmento) {
