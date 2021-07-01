@@ -82,7 +82,6 @@ void obtener_planificacion_de_config(t_config* config){
 
 void elegir_algoritmo() {
 
-
 	algoritmo_elegido = mapeo_algoritmo_planificacion(ALGORITMO);
 
 	switch(algoritmo_elegido){
@@ -124,6 +123,7 @@ void iniciar_planificacion() {
 }
 void actualizar_estado(tripulante_plani* tripu, char estado) {
 
+
     uint32_t conexion_mi_ram;
 
     t_tripulante_estado* tripulante_estado = malloc(sizeof(t_tripulante_estado));
@@ -135,42 +135,41 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
     tripulante_estado->id_patota = tripu->numero_patota;
     tripulante_estado->estado = tripu->estado;
 
-    conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
-    if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
-        log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
-        abort();
-    }
+	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
+		abort();
+	}
 
-    sem_wait(mutex_tripulante_estado);
-    enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion_mi_ram);
-    sem_post(mutex_tripulante_estado);
+	sem_wait(mutex_tripulante);
+	enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion_mi_ram);
+	sem_post(mutex_tripulante);
 
-    if(validacion_envio(conexion_mi_ram) == 1) {
+	if(validacion_envio(conexion_mi_ram) == 1) {
 
-        sem_wait(mutex_tripulante_estado);
-        recibir_mensaje(respuesta_estado, RESPUESTA_OK_ESTADO, conexion_mi_ram);
-        sem_post(mutex_tripulante_estado);
+		sem_wait(mutex_tripulante);
+		recibir_mensaje(respuesta_estado, RESPUESTA_OK_ESTADO, conexion_mi_ram);
+		sem_post(mutex_tripulante);
 
+		if(respuesta_estado->respuesta != 1) {
+			log_error(logger, "La respuesta fue negativa.");
+			abort();
+		}
+		if(respuesta_estado->id_tripulante != tripu->id_tripulante) {
+			log_error(logger, "¡No es el tripulante que estoy buscando!");
+			abort();
+		}
+	}
+	else {
+		log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
+		abort();
+	}
 
-        if(respuesta_estado->respuesta != 1) {
-            log_error(logger, "La respuesta fue negativa.");
-            abort();
-        }
-        if(respuesta_estado->id_tripulante != tripu->id_tripulante) {
-            log_error(logger, "¡No es el tripulante que estoy buscando!");
-            abort();
-        }
-    }
-    else {
-        log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
-        abort();
-    }
+	close(conexion_mi_ram);
 
-    close(conexion_mi_ram);
-
-    free(tripulante_estado);
-    free(respuesta_estado);
+	free(tripulante_estado);
+	free(respuesta_estado);
 }
 
 void new_ready() {
@@ -191,12 +190,8 @@ void new_ready() {
 		sem_post(mutex_ready);
 
 		sem_post(tripulante_a_ready->sem_planificacion);
-		//tripulante_a_ready->estado = 'R';
-
-
 
 		actualizar_estado(tripulante_a_ready, 'R');
-
 
 		sem_post(planificacion_on);
 
@@ -229,10 +224,7 @@ void ready_running() {
             multitarea_Disponible--;
             sem_post(mutex_valorMultitarea);
 
-            //tripulante_a_running->estado = 'E';
-
             actualizar_estado(tripulante_a_running, 'E');
-
             sem_post(tripulante_a_running->sem_planificacion);
 
         } else {
@@ -254,11 +246,9 @@ void running_ready(tripulante_plani* tripu){
 	queue_push(cola_ready, tripu);
 	sem_post(mutex_ready);
 
-	//tripu->estado = 'R';
 	actualizar_estado(tripu, 'R');
 	sem_post(contador_tripulantes_en_ready);
 
-	//Actualizar el estado del tripulante (R) EN Mi-Ram
 
 }
 
@@ -268,8 +258,6 @@ void running_block(tripulante_plani* tripu){
 	multitarea_Disponible++;
 	sem_post(mutex_valorMultitarea);
 
-	//Actualizar el estado del tripulante (B) EN Mi-Ram
-	//tripu->estado = 'B';
 	actualizar_estado(tripu, 'B');
 
 }
@@ -279,9 +267,6 @@ void block_ready(tripulante_plani* tripu){
 	queue_push(cola_ready, tripu);
 	sem_post(mutex_ready);
 
-
-	//tripu->estado = 'R';
-	//Actualizar el estado del tripulante (R) EN Mi-Ram
 	actualizar_estado(tripu, 'R');
 }
 
@@ -291,8 +276,6 @@ void block_exit(tripulante_plani* tripu){
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
 
-	//tripu->estado = 'T';
-	//Actualizar el estado del tripulante (T) EN Mi-Ram
 	actualizar_estado(tripu, 'T');
 }
 
@@ -306,8 +289,6 @@ void running_exit(tripulante_plani* tripu){
 	multitarea_Disponible++;
 	sem_post(mutex_valorMultitarea);
 
-	//tripu->estado = 'T';
-	//Actualizar el estado del tripulante (T) EN Mi-Ram
 	actualizar_estado(tripu, 'T');
 }
 
@@ -331,9 +312,8 @@ void ready_exit(tripulante_plani* tripu){
 			queue_push(cola_exit, tripulante);
 			sem_post(mutex_exit);
 			actualizar_estado(tripu, 'T');
-			//tripulante->estado ='T';
 
-		}else{
+		} else {
 			queue_push(cola_auxiliar_sabotaje, tripulante);
 		}
 
@@ -348,19 +328,13 @@ void ready_exit(tripulante_plani* tripu){
 		//printf("id del tripulante %u \n",tripulante->id_tripulante);
 		//printf("nro pato tripu %u \n",tripulante->numero_patota);
 		fflush(stdout);
-
 		queue_push(cola_ready, tripulante);
-
 	}
 
 	//recorro la lista de tripulantes igual q donde es listar
 
-
-
 	sem_wait(contador_tripulantes_en_ready);
 	sem_post(mutex_ready);
-
-
 
 	//free(tripulante);
 }
@@ -433,8 +407,6 @@ void tripulante_hilo(void* tripulante){
 			sem_post(tripu->sem_tripu); //vale 1 0
 
 		}
-
-
 
 		//uint32_t x = pthread_self();
 		//printf("semaforo raro: %u",x);
@@ -569,6 +541,7 @@ void hilo_tripulante_sabotaje(tripulante_sabotaje* tripu){
 }
 */
 
+//todo nos tienen que pasar el id de patota y el id de tripulante
 t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
 
 	/*t_tarea* tarea = malloc(sizeof(t_tarea));

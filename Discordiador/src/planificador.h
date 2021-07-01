@@ -64,6 +64,8 @@ sem_t* mutex_valorMultitarea;
 sem_t* contador_tripulantes_en_ready;
 sem_t* contador_tripulantes_en_new;
 
+sem_t* mutex_tripulante;
+
 //Hilos
 //pthread_t hilo_new_ready;			Por que se pone aca, pero tambien esta en planificador.c?
 //pthread_t hilo_block_ready;
@@ -81,7 +83,7 @@ int RETARDO_CICLO_CPU;
 
 algoritmo_planificacion algoritmo_elegido;
 algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo);
-void elegir_algoritmo();
+void elegir_algoritmo(void);
 void obtener_planificacion_de_config(t_config* config);
 void new_ready();
 void ready_running();

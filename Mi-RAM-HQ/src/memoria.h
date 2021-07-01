@@ -4,30 +4,36 @@
 #include "Mi-RAM.h"
 #include "utils/estructuras.h"
 
+// Segmentacion
 t_list* tablas_segmentos;
-t_list* segmentos_libres;
-t_list* segmentos_ocupados;
+t_list* segmentos;
 
+// Paginacion
 t_list* tablas_paginas;
 
 // Estructuras para Mi RAM HQ
 // SEGMENTACION
-typedef struct segmento
-{
+typedef struct segmento {
 	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento
 	uint32_t inicio;					// Direccion fisica de donde empieza el segmento
 	uint32_t tamanio_segmento;			// Tamanio total del segmento
-	tipo_segmento tipo_estructura;		// Si es una PATOTA, TAREAS, TRIPULANTE
-	estado estado_segemento;			// Si esta LIBRE u OCUPADO
+	tipo_segmento tipo_segmento;		// Si es una PATOTA, TAREAS, TRIPULANTE
+	estado estado_segmento;				// Si esta LIBRE u OCUPADO
+	uint32_t id_segmento;				// ID de Tripulante / Id de Patota / NULL por tarea
 } t_segmento;
+
+
+typedef struct {
+	uint32_t numero_de_segmento;
+	void* estructura;
+} id_segmento;
 
 
 typedef struct	tabla_segmentos_patota
 {
 	t_pcb* patota;
-	char* ids_tripus;
 	t_list* segmentos;
-} t_tabla_segmentos_patota; //una por patota
+} t_tabla_segmentos_patota;
 
 
 
@@ -45,29 +51,46 @@ typedef struct tabla_paginas_patota{
 
 }t_tabla_paginas_patota;
 
-
-bool memoria_igual_o_mas_grande(t_segmento* elemento, uint32_t tamanio_buscado);
-bool menor_a_mayor(t_segmento* segmento, t_segmento* segmento_siguiente);
-t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado);
-
-t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
+// Eleccion de algoritmos para la memoria
 void elegir_esquema_de_memoria(char* ESQUEMA);
 criterio_seleccion elegir_criterio_seleccion(char* criterio);
 algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo);
 
 
+int obtener_indice(t_list* lista, void* valor);
 
+
+t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
+
+t_segmento* registrar_segmento(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio_estructura);
+t_segmento* asignar_segmento(t_segmento* segmento_libre, tipo_segmento tipo_segmento, void* estructura, uint32_t tamanio_estructura);
+t_segmento* crear_primer_segmento(void);
+t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado);
+t_list* segmentos_libres(void);
+
+void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmento* segmento);
 t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_estructura);
-t_tabla_segmentos_patota* buscar_tabla_de_patota(t_pcb* patota_buscada);
-t_segmento* buscar_por_tipo_de_segmento(t_list* tabla, tipo_segmento tipo_de_segmento);
+t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libre_segmento);
 
-void* traducir_segmento(t_segmento* segmento_a_traducir);
+t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio);
+
+t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota_buscada);
+t_segmento* buscar_por_id(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t valor);
+t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t id_proxima_tarea_del_tripu);
+
+bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado);
+
+
+void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir);
 t_pcb* encontrar_patota(t_segmento* segmento);
 t_list* encontrar_tarea(t_segmento* segmento);
 t_tcb* encontrar_tripulante(t_segmento* segmento);
 
-uint32_t administrar_guardar_patota(t_pcb* nueva_patota);
-uint32_t administrar_guardar_tareas(t_list* tareas_de_la_patota);
-uint32_t administrar_guardar_tripulante(t_tcb* nuevo_tripulante);
+void guardar_patota(t_pcb* nueva_patota);
+void recuperar_patota(t_pcb* nueva_patota);
+void guardar_tareas(t_list* tareas_de_la_patota);
+void recuperar_tareas(t_list* tareas_de_la_patota);
+void guardar_tripulante(t_tcb* nuevo_tripulante);
+void recuperar_tripulante(t_tcb* nuevo_tripulante);
 
 #endif /* MEMORIA_H_ */

@@ -18,6 +18,8 @@ int32_t crear_conexion(char *ip, char* puerto)
 	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
 		socket_cliente = -1;
 
+	// crear un hilo por cada conexion que realizara
+
 	freeaddrinfo(server_info);
 
 	return socket_cliente;
@@ -28,7 +30,7 @@ int32_t resultado_conexion(int32_t conexion, t_log* logger, char* modulo) {
 
 	if(conexion == -1)
 	{
-		log_warning(logger, "¡Error! No se ha podido conectar a %s. \n", modulo);
+		log_error(logger, "¡Error! No se ha podido conectar a %s. \n", modulo);
 		return -1;
 	}
 	else
@@ -58,7 +60,6 @@ void cerrar_conexion(t_log* logger, int32_t socket)
 	else {
 		//log_info(logger, "Cerrando conexion...\n");
 		close(socket);
-		//sleep(1);
 	}
 }
 
@@ -99,6 +100,7 @@ int32_t iniciar_servidor(char* IP, char* PUERTO)
 }
 
 
+// Crearia el hilo en esta parte??
 int32_t* esperar_conexion(int32_t socket_servidor)
 {
 	int32_t* socket_cliente = malloc(sizeof(int32_t));
@@ -107,6 +109,8 @@ int32_t* esperar_conexion(int32_t socket_servidor)
 
 	// Espero que se conecte alguien ...
 	*socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
+
+	log_info(logger, "¡Se creó una conexión!");
 
 	return socket_cliente;
 }

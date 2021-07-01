@@ -7,6 +7,7 @@ int main(void) {
 	obtener_datos_de_config(config);
 	obtener_planificacion_de_config(config);
 
+	elegir_algoritmo();
 	inicializar_semaforos();
 	inicializar_listas();
 	iniciar_planificacion();
@@ -25,9 +26,9 @@ int main(void) {
 }
 
 void inicializar_listas(){
-	lista_semaforos_tripulantes=list_create();
+	lista_semaforos_tripulantes = list_create();
 
-	lista_tripulantes=list_create();
+	lista_tripulantes = list_create();
 }
 
 void inicializar_semaforos() {
@@ -201,10 +202,15 @@ void obtener_datos_de_config(t_config* config) {
 }
 
 void obtener_orden_input(){
+
+	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
+
+	tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+	int largo;
+	int recorrido;
+
 	 char* cadena_ingresada = NULL;
 	 size_t longitud = 0;
-
-	 t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 
 	 sem_wait(termino_operacion);
 
@@ -237,9 +243,6 @@ void obtener_orden_input(){
 	 //tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
 
 	 //int32_t valor_semaforo;
-	 tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
-	 int largo;
-	 int recorrido;
 
 	 tripulante_plani* tripulante_a_expulsar;
 	 t_tripulante* id_tripulante_a_expulsar;
@@ -255,13 +258,11 @@ void obtener_orden_input(){
 		case INICIAR_PLANIFICACION:
 
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
-	//		sem_getvalue(planificacion_on,&valor_semaforo);
+			//sem_getvalue(planificacion_on,&valor_semaforo);
 
-		//	if(valor_semaforo == 0){
+			//if(valor_semaforo == 0){
 				printf("Iniciando Planificacion....... \n");
 			//}
-
-			elegir_algoritmo(conexion_mi_ram);
 
 			//list_map(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
 			list_iterate(lista_semaforos_tripulantes, (void*) poner_en_uno_semaforos);
@@ -283,8 +284,10 @@ void obtener_orden_input(){
 			break;
 
 		case INICIAR_PATOTA:
-			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5
+			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1 2|0
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
@@ -368,7 +371,7 @@ void obtener_orden_input(){
 			if(validacion_envio(conexion_mi_ram) == 1) {
 				recibir_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion_mi_ram);
 
-				if(respuesta_iniciar_patota->respuesta == 1){
+				if(respuesta_iniciar_patota->respuesta == 1) {
 					printf("La respuesta fue positiva. \n");
 					printf("los id de los tripulantes %s\n",respuesta_iniciar_patota->ids_tripu);
 					printf("Numero de patota: %u \n", respuesta_iniciar_patota->numero_de_patota);
@@ -409,7 +412,7 @@ void obtener_orden_input(){
 
 				}
 				else {
-					printf("La respuesta fue negativa. \n");			// Salgo del Switch, ya que no pudo crearse la Patota en Mi-RAM HQ
+					log_error(logger, "No hay espacio para almacenar la patota con sus tripulantes. \n");			// Salgo del Switch, ya que no pudo crearse la Patota en Mi-RAM HQ
 					break;
 				}
 			}
@@ -438,19 +441,16 @@ void obtener_orden_input(){
 
 			}
 
+			largo = list_size(lista_tripulantes);
 
-			largo=list_size(lista_tripulantes);
+			printf("-------------------------------------------------------------------------\n");
+			printf("Estado de la Nave: %s \n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
 
-
-			listar_tripulantes();
-
-			for(recorrido=0;recorrido<largo;recorrido++){
+			for(recorrido=0; recorrido<largo; recorrido++){
 				tripulante=list_get(lista_tripulantes, recorrido);
-				printf("Tripulante: %u           Patota: %u      Status: %c \n",tripulante->id_tripulante,tripulante->numero_patota,tripulante->estado);
-
+				printf("Tripulante: %u          Patota: %u          Status: %c \n", tripulante->id_tripulante, tripulante->numero_patota, tripulante->estado);
 			}
-
-
+			printf( "--------------------------------------------------------------------------\n\n");
 			break;
 
 		case OBTENER_BITACORA:
@@ -501,13 +501,11 @@ void obtener_orden_input(){
 
 			tripulante_a_expulsar = list_find(lista_tripulantes, (void*)mismo_id);
 
-
 			if(tripulante_a_expulsar != NULL){
 
 				id_tripulante_a_expulsar->id_patota = tripulante_a_expulsar->numero_patota;
 				printf("id del tripu a eliminar: %u \n",id_tripulante_a_expulsar->id_tripulante);
 				printf("id del patota a eliminar: %u \n",id_tripulante_a_expulsar->id_patota);
-
 
 
 				switch(tripulante_a_expulsar->estado){

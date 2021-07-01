@@ -55,7 +55,8 @@ typedef enum
 {
 	PATOTA,
 	TAREAS,
-	TRIPULANTE
+	TRIPULANTE,
+	VACIO
 } tipo_segmento;
 
 
@@ -210,7 +211,9 @@ typedef struct {
 	uint32_t puntero_PCB;				// Dirección de memoria del PCB de la patota
 } t_tcb;
 // Tamaño del TCB = 24 bytes
+// Deberia ser 21 bytes
 
 
+// TODO porque cuando hago sizeof(t_tcb) = 24, pero cuando hago la suma de cada sizeof(registro) = 21 bytes?
 
 #endif /* UTILS_ESTRUCTURAS_H_ */
