@@ -41,7 +41,7 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			tablas_segmentos = list_create();
 			segmentos = list_create();
 			memoria_libre_por_segmento = 0;
-			memoria_compactada = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
+			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
 
 			break;
 
@@ -184,7 +184,7 @@ t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_segmento) {
 			break;
 		case TAREAS:
 			segmento->tamanio_segmento = sizeof(t_tarea) * list_size(estructura);
-			segmento->id_segmento = 0;
+			segmento->id_segmento = list_size((t_list*)estructura);
 			guardar_tareas(estructura);
 			break;
 		case TRIPULANTE:
@@ -233,6 +233,15 @@ t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libr
 	return segmento;
 }
 
+
+void liberar_segmento(t_segmento* segmento_a_liberar) {
+	segmento_a_liberar->tipo_segmento = VACIO;
+	segmento_a_liberar->estado_segmento = LIBRE;
+	segmento_a_liberar->id_segmento = 0;
+	memoria_libre_por_segmento += segmento_a_liberar->tamanio_segmento;
+
+	printf("Memoria a liberar: %u\n", memoria_libre_por_segmento);
+}
 
 // Implementacion para obtener un segmento libre (segun BEST FIT o FIRST FIT)
 bool memoria_igual_o_mas_grande(t_segmento* segmento, uint32_t tamanio_buscado)
@@ -327,6 +336,7 @@ void recuperar_patota(t_pcb* nueva_patota) {
 
 
 // Funciones para guardar/recuperar Tareas
+// TODO guardar tarea por tarea? PREGUNTAR
 void guardar_tareas(t_list* tareas_de_la_patota) {
 
 	memcpy(memoria_principal + base_segmento, &(tareas_de_la_patota), (sizeof(t_tarea) * list_size(tareas_de_la_patota)));
@@ -424,7 +434,6 @@ void actualizar_segmento(void* estructura_actualizar, tipo_segmento tipo_segment
 		case TAREAS:
 			guardar_tareas(estructura_actualizar);
 			break;
-
 		case TRIPULANTE:
 			actualizar_tripulante(estructura_actualizar, segmento_libre->inicio);
 			break;
@@ -512,7 +521,7 @@ void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir)
 
 t_pcb* encontrar_patota(t_segmento* segmento) {
 
-	t_pcb* patota = malloc(segmento->tamanio_segmento);
+	t_pcb* patota = malloc(sizeof(t_pcb));
 
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
@@ -532,17 +541,19 @@ t_pcb* encontrar_patota(t_segmento* segmento) {
 }
 
 
+// TODO problemas al deserializar las tareas
 t_list* encontrar_tarea(t_segmento* segmento) {
 
-	t_list* tareas_de_la_patota = malloc(segmento->tamanio_segmento);
-
-	uint32_t tamanio_segmento = segmento->tamanio_segmento;
-
+	t_list* tareas_de_la_patota = list_create();
+	//malloc(sizeof(t_tarea) * segmento->id_segmento)
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
 
-	memcpy(&(tareas_de_la_patota), inicio + desplazamiento, tamanio_segmento);
-	desplazamiento += tamanio_segmento;
+	memcpy(&(tareas_de_la_patota), inicio + desplazamiento, (sizeof(t_tarea) * segmento->id_segmento));
+	desplazamiento += (sizeof(t_tarea) * segmento->id_segmento);
+
+	printf("Tamanio segmento = %u\n", sizeof(t_tarea) * segmento->id_segmento);
+	printf("desplazamiento = %u\n", desplazamiento);
 
 	if(segmento->tamanio_segmento == desplazamiento) {
 			return tareas_de_la_patota;
@@ -554,7 +565,7 @@ t_list* encontrar_tarea(t_segmento* segmento) {
 
 t_tcb* encontrar_tripulante(t_segmento* segmento) {
 
-	t_tcb* tripulante = malloc(segmento->tamanio_segmento);
+	t_tcb* tripulante = malloc(sizeof(t_tcb));
 
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
@@ -584,24 +595,3 @@ t_tcb* encontrar_tripulante(t_segmento* segmento) {
 		return NULL;
 	}
 }
-
-/*
-void* buscar_estructura(void* estructura, tipo_estructura tipo_estructura)
-{
-
-	segmento->tipo_de_estructura = tipo_estructura;
-	buscar en la tabla de segmentos: segmento->id_tripulante
-
-
-
-// PARA ENVIAR LA PROXIMA TAREA A ENVIAR
-	recibo un ID_TRIPULANTE
-	lo busco en los segmentos (tpo_segmento == TRIPULANTE)
-	una vez que encuentro el segmento por el ID de tripulante -> obtener el id_proxima_instruccion
-	y obtener la direccion logica del PCB
-	una vez que voy a la direccion del segmento de esa patota -> obtener la direccion de las tareas
-	y en las tareas : TRADUCIRLAS de bytes a una t_list
-	y buscar el ID_PROXIMA INSTRUCCION
-	retornar esa tarea al Discordiador
-}
-*/

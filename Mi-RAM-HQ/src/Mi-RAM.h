@@ -50,7 +50,7 @@ uint32_t contador_id_patota;
 uint32_t base_segmento;
 int32_t memoria_restante;
 int32_t memoria_libre_por_segmento;
-int32_t memoria_compactada;				// memoria_compactada = memoria_restante + memoria_libre_por_segmento;
+int32_t memoria_libre_total;				// memoria_compactada = memoria_restante + memoria_libre_por_segmento;
 
 // Mapa
 //NIVEL* amongOs;

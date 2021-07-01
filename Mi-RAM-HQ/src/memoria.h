@@ -19,7 +19,7 @@ typedef struct segmento {
 	uint32_t tamanio_segmento;			// Tamanio total del segmento
 	tipo_segmento tipo_segmento;		// Si es una PATOTA, TAREAS, TRIPULANTE
 	estado estado_segmento;				// Si esta LIBRE u OCUPADO
-	uint32_t id_segmento;				// ID de Tripulante / Id de Patota / NULL por tarea
+	uint32_t id_segmento;				// ID de Tripulante si es TRIPULANTE/ Id de Patota si es PATOTA / Cantidad de tareas si es TAREA
 } t_segmento;
 
 
@@ -71,6 +71,7 @@ t_list* segmentos_libres(void);
 void actualizar_segmento(void* estructura, tipo_segmento tipo_segmento, t_segmento* segmento);
 t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_estructura);
 t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libre_segmento);
+void liberar_segmento(t_segmento* segmento_a_liberar) ;
 
 t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio);
 

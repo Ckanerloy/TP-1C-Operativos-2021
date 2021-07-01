@@ -37,13 +37,7 @@ void iniciar_variables_y_semaforos(void) {
 }
 
 void inicializar_memoria(void) {
-	//printf("Tamanio de Memoria Principal: %u \n", TAMANIO_MEMORIA);
 	log_info(logger, "Se utilizará %s como esquema de memoria.\n", ESQUEMA_MEMORIA);
-	//printf("Esquema de Memoria utilizado: %s \n", ESQUEMA_MEMORIA);
-	//printf("Tamanio de Pagina: %u \n", TAMANIO_PAGINA);
-	//printf("Tamanio Area Swap: %u \n", TAMANIO_SWAP);
-	//printf("Algoritmo de Reemplazo: %s \n", ALGORITMO_REEMPLAZO);
-	//printf("Criterio de Seleccion para meter en Segmentacion: %s \n", CRITERIO_SELECCION);
 
 	memoria_principal = malloc(TAMANIO_MEMORIA);
 	memoria_restante = TAMANIO_MEMORIA;
@@ -168,30 +162,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					list_add_in_index(tareas_de_la_patota, i, obtener_la_tarea(parser_tarea[i]));
 				}
 
-				// Muestra las tareas de la patota
-			/*	for(uint32_t c=0; c<cant_tareas; c++) {
-					t_tarea* tarea_ejemplo = list_get(tareas_de_la_patota, c);
-
-					printf("Operacion: %u\n", tarea_ejemplo->operacion);
-					printf(" - Cantidad: %u\n", tarea_ejemplo->cantidad);
-					printf(" - Posicion X: %u\n", tarea_ejemplo->posicion_x);
-					printf(" - Posicion Y: %u\n", tarea_ejemplo->posicion_y);
-					printf(" - Tiempo: %u\n", tarea_ejemplo->tiempo);
-
-					free(tarea_ejemplo);
-				}*/
-
 				tamanio_tripulante = sizeof(uint32_t) + sizeof(char) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t);
 				tamanio_tripulantes = tamanio_tripulante * patota_recibida->cantidad_tripulantes;
 				tamanio_patota = sizeof(t_pcb);
 				tamanio_tareas = sizeof(t_tarea) * list_size(tareas_de_la_patota);
 
 				tamanio_total = tamanio_patota + tamanio_tareas + tamanio_tripulantes;
-
-		//		printf("Tamanio de un PCB: %d\n", sizeof(t_pcb));
-		//		printf("Tamanio de un TCB: %d\n", tamanio_tripulante);
-		//		printf("Tamanio de una tarea: %d\n", sizeof(t_tarea));
-
 
 				if(esquema_elegido == 'S') {
 					t_pcb* nueva_patota;
@@ -387,8 +363,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				recibir_mensaje(tripulante_por_estado, operacion, conexion);
 
-				//pthread_create(&hilo_actualizar_estado, NULL, actualizar_estado_tripulante, tripulante_por_estado);
-
 				char estado_anterior;
 				t_tcb* tripulante_buscado_por_estado;
 
@@ -408,7 +382,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					tripulante_buscado_por_estado->estado_tripulante = tripulante_por_estado->estado;
 
-					//t_segmento* segmento_nuevo = administrar_guardar_segmento(tripulante_buscado, TRIPULANTE, sizeof(tripulante_buscado));
 					actualizar_segmento(tripulante_buscado_por_estado, TRIPULANTE, segmento_buscado);
 
 					list_replace(patota_buscada->segmentos, indice, segmento_buscado);
@@ -479,13 +452,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_con_tarea_tripulante, RESPUESTA_NUEVA_TAREA, conexion);
 
-				if(esquema_elegido == 'S') {
-
-				}
-				else if(esquema_elegido == 'P') {
-
-				}
-
 				free(tripulante_para_tarea);
 				free(respuesta_con_tarea_tripulante);
 				break;
@@ -500,14 +466,30 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				printf("Tripulante a Expulsar: %u \n", tripulante_a_eliminar->id_tripulante);
 				printf("Patota del tripulante: %u \n", tripulante_a_eliminar->id_patota);
 
-				/*
-				 * - BUSCAR TRIPULANTE EN LA MEMORIA (COINCIDIENDO POR ID_TRIPULANTE E ID_PATOTA)
-				 * - LIBERAR EN LA MEMORIA EL SEGMENTO QUE HACE REFERENCIA A ESTE TRIPULANTE -> marcar como "LIBRE"
-				 * - 	free(tripulante), tanto en segmentos como en patota_recibida->segmentos (removerlo de esta ultima lista)
-				 * - ELIMINARLO DEL MAPA
-				 * - ENVIAR UNA RESPUESTA DE CONFIRMACION AL DISCORDIADOR
-				 */
+
 				if(esquema_elegido == 'S') {
+
+					int indice = 0;
+
+					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_a_eliminar->id_patota);
+
+					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_a_eliminar->id_tripulante);
+
+					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
+
+					//list_remove_and_destroy_element(patota_buscada->segmentos, indice, free);
+
+					log_info(logger, "Memoria Total antes de expulsar tripulante: %u.\n\n\n", memoria_libre_total);
+
+					list_remove(patota_buscada->segmentos, indice);
+
+					liberar_segmento(segmento_buscado);
+
+					log_info(logger, "Memoria Total despues de expulsar tripulante: %u.\n\n\n", memoria_libre_total);
+
+// Verificar si es correcto eliminar el segmento dentro de los segmentos de patota
+//	y dejarlo dentro de los segmentos generales del sistema marcado como LIBRE
+
 
 				}
 				else if(esquema_elegido  == 'P') {
@@ -518,18 +500,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					log_error(logger, "No se puede guardar la estructura en Memoria");
 				}
 
+				respuesta_tripulante_eliminado->respuesta = 1;
+				respuesta_tripulante_eliminado->id_tripulante = tripulante_a_eliminar->id_tripulante;
+
 				log_info(logger, "Se ha expulsado al Tripulante %u de la Patota %u de la nave.\n", tripulante_a_eliminar->id_tripulante, tripulante_a_eliminar->id_patota);
 
 				enviar_mensaje(respuesta_tripulante_eliminado, RESPUESTA_TRIPULANTE_ELIMINADO, conexion);
-				// LE AVISA A DISCORDIADOR QUE EL TRIPULANTE FUE ELIMINADO EXITOSAMENTE ASI LO ELIMINA DE SUS ESTRUCTURAS
-
-				if(esquema_elegido == 'S') {
-
-				}
-				else if(esquema_elegido == 'P') {
-
-				}
-
 
 				free(tripulante_a_eliminar);
 				free(respuesta_tripulante_eliminado);
@@ -558,7 +534,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 
 bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
-	int32_t restante = memoria_compactada - tamanio;
+	int32_t restante = memoria_libre_total - tamanio;
 	return (restante >= 0);
 }
 

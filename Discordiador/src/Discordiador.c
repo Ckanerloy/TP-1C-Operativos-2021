@@ -204,6 +204,7 @@ void obtener_datos_de_config(t_config* config) {
 void obtener_orden_input(){
 
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
+	t_respuesta_tripulante* respuesta_al_expulsar_tripulante;
 
 	tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 	int largo;
@@ -473,6 +474,14 @@ void obtener_orden_input(){
 
 			enviar_mensaje(id_tripulante_x_bitacora, OBTENER_BITACORA, conexion_mongo_store);
 
+			/*
+			 * ACA TIENE QUE RECIBIR UN MENSAJE DE MONGO STORE PARA MOSTRAR LA BITACORA
+			 * 					O
+			 * MONGO STORE IMPRIME LA BITACORA
+			 *
+			 */
+
+
 			free(id_tripulante_x_bitacora);
 			cerrar_conexion(logger,conexion_mongo_store);
 			break;
@@ -491,6 +500,7 @@ void obtener_orden_input(){
 
 			id_tripulante_a_expulsar = malloc(sizeof(t_tripulante));
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
+			respuesta_al_expulsar_tripulante = malloc(sizeof(t_respuesta_tripulante));
 
 			bool mismo_id(tripulante_plani* tripu)
 			{
@@ -526,21 +536,35 @@ void obtener_orden_input(){
 						break;
 				}
 
-
-
 				conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
 				if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
 					break;
 				}
 
 				enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
 
+				if(validacion_envio(conexion_mi_ram) == 1) {
+						recibir_mensaje(respuesta_al_expulsar_tripulante, RESPUESTA_TRIPULANTE_ELIMINADO, conexion_mi_ram);
+
+						if(respuesta_al_expulsar_tripulante->respuesta != 1) {
+							log_error(logger, "No se pudo eliminar al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
+							abort();
+						}
+					log_info(logger, "Se expulsó al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
+					}
+					else {
+						log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
+						abort();
+					}
+
 				cerrar_conexion(logger,conexion_mi_ram);
-			}else{
+			}else {
 				log_error(logger, "No existe el tripulante que se desea eliminar");
 			}
 
 			free(id_tripulante_a_expulsar);
+			free(respuesta_al_expulsar_tripulante);
 			//free(tripulante_a_expulsar);
 			break;
 

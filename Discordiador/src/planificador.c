@@ -48,9 +48,6 @@ void inicializar_semaforos_plani(){
 	mutex_expulsado = malloc(sizeof(sem_t));
 	sem_init(mutex_expulsado,0, 1);
 
-	mutex_tripulante_estado = malloc(sizeof(sem_t));
-	sem_init(mutex_tripulante_estado, 0, 1);
-
 	mutex_planificionValor= malloc (sizeof(sem_t));
 	sem_init(mutex_planificionValor, 0,1);
 }
@@ -117,12 +114,13 @@ void iniciar_planificacion() {
 
 
 	inicializar_semaforos_plani();
-
 	// esto tiene que ir en otra parte
 	//finalizar_semaforos_plani();
 }
-void actualizar_estado(tripulante_plani* tripu, char estado) {
 
+
+// FUNCIONES PARA PEDIR DATOS A MI RAM
+void actualizar_estado(tripulante_plani* tripu, char estado) {
 
     uint32_t conexion_mi_ram;
 
@@ -142,15 +140,10 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 		abort();
 	}
 
-	sem_wait(mutex_tripulante);
 	enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion_mi_ram);
-	sem_post(mutex_tripulante);
 
 	if(validacion_envio(conexion_mi_ram) == 1) {
-
-		sem_wait(mutex_tripulante);
 		recibir_mensaje(respuesta_estado, RESPUESTA_OK_ESTADO, conexion_mi_ram);
-		sem_post(mutex_tripulante);
 
 		if(respuesta_estado->respuesta != 1) {
 			log_error(logger, "La respuesta fue negativa.");
@@ -171,6 +164,161 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 	free(tripulante_estado);
 	free(respuesta_estado);
 }
+
+
+t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota){
+
+
+	t_tarea* tarea = malloc(sizeof(t_tarea));
+
+	tarea->operacion = GENERAR_OXIGENO;
+	tarea->cantidad = 5;
+	tarea->posicion_x = 4;
+	tarea->posicion_y = 4;
+	tarea->tiempo = 5;
+	return tarea;
+
+
+	/*uint32_t conexion_mi_ram;
+
+	t_tripulante* tripulante_consulta = malloc(sizeof(t_tripulante));
+	t_respuesta_tarea_tripulante* respuesta_tarea = malloc(sizeof(t_respuesta_tarea_tripulante));
+
+	tripulante_consulta->id_patota = numero_patota;
+	tripulante_consulta->id_tripulante = id_tripulante;
+
+	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
+	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
+		abort();
+	}
+
+	enviar_mensaje(tripulante_consulta, PEDIDO_TAREA, conexion_mi_ram);
+
+	if(validacion_envio(conexion_mi_ram) == 1) {
+		recibir_mensaje(respuesta_tarea, RESPUESTA_NUEVA_TAREA, conexion_mi_ram);
+
+		if(respuesta_tarea->respuesta != 1) {
+			log_error(logger, "La respuesta fue negativa.");
+			abort();
+		}
+		if(respuesta_tarea->id_tripulante != id_tripulante) {
+			log_error(logger, "¡No es el tripulante que estoy buscando!");
+			abort();
+		}
+		if(respuesta_tarea->tarea == NULL) {
+			log_warning(logger, "No hay mas tareas para realizar.");
+			return NULL;
+		}
+	}
+	else {
+		log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
+		abort();
+	}
+
+	close(conexion_mi_ram);
+
+	free(tripulante_consulta);
+	free(respuesta_tarea);
+
+	return respuesta_tarea->tarea;*/
+}
+
+
+posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
+
+	uint32_t conexion_mi_ram;
+
+	t_tripulante* posiciones_tripulante = malloc(sizeof(t_tripulante));
+	t_respuesta_tripulante_ubicacion* respuesta_posiciones_tripu = malloc(sizeof(t_respuesta_tripulante_ubicacion));
+
+	posiciones_tripulante->id_patota = numero_patota;
+	posiciones_tripulante->id_tripulante = id_tripulante;
+
+	posiciones* posiciones_buscadas = malloc(sizeof(posiciones));
+
+	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
+	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
+		abort();
+	}
+
+	enviar_mensaje(posiciones_tripulante, PEDIR_UBICACION_TRIPULANTE, conexion_mi_ram);
+
+	if(validacion_envio(conexion_mi_ram) == 1) {
+		recibir_mensaje(respuesta_posiciones_tripu, RESPUESTA_NUEVA_UBICACION, conexion_mi_ram);
+
+		if(respuesta_posiciones_tripu->respuesta != 1) {
+			log_error(logger, "La respuesta fue negativa.");
+			abort();
+		}
+		if(respuesta_posiciones_tripu->id_tripulante != id_tripulante) {
+			log_error(logger, "¡No es el tripulante que estoy buscando!");
+			abort();
+		}
+	}
+	else {
+		log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
+		abort();
+	}
+
+	posiciones_buscadas->posicion_x = respuesta_posiciones_tripu->posicion_x;
+	posiciones_buscadas->posicion_y = respuesta_posiciones_tripu->posicion_y;
+
+	close(conexion_mi_ram);
+
+	free(posiciones_tripulante);
+	free(respuesta_posiciones_tripu);
+
+	return posiciones_buscadas;
+}
+
+
+void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_plani* tripu) {
+
+	t_tripulante_ubicacion* ubicaciones_a_enviar = malloc(sizeof(t_tripulante_ubicacion));
+	t_respuesta_tripulante* respuesta_ok_ubicacion = malloc(sizeof(t_respuesta_tripulante));
+
+	ubicaciones_a_enviar->id_patota = tripu->numero_patota;
+	ubicaciones_a_enviar->id_tripulante = tripu->id_tripulante;
+	ubicaciones_a_enviar->posicion_x = posiciones_tripu->posicion_x;
+	ubicaciones_a_enviar->posicion_y = posiciones_tripu->posicion_y;
+
+	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
+	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
+		abort();
+	}
+
+	enviar_mensaje(ubicaciones_a_enviar, ACTUALIZAR_UBICACION_TRIPULANTE, conexion_mi_ram);
+
+	if(validacion_envio(conexion_mi_ram) == 1) {
+		recibir_mensaje(respuesta_ok_ubicacion, RESPUESTA_OK_UBICACION, conexion_mi_ram);
+
+		if(respuesta_ok_ubicacion->respuesta != 1) {
+			log_error(logger, "La respuesta fue negativa.");
+			abort();
+		}
+		if(respuesta_ok_ubicacion->id_tripulante != tripu->id_tripulante) {
+			log_error(logger, "¡No es el tripulante que estoy buscando!");
+			abort();
+		}
+	}
+	else {
+		log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
+		abort();
+	}
+
+}
+
+uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea){
+
+	return (abs(posicion_tripu->posicion_x - posicion_tarea->posicion_x) + abs(posicion_tripu->posicion_y - posicion_tarea->posicion_y) );
+}
+
 
 void new_ready() {
 
@@ -344,11 +492,11 @@ void tripulante_hilo(void* tripulante){
 
 	sem_wait(tripu->sem_planificacion);
 
-	tripu->tarea_a_realizar = obtener_siguiente_tarea(tripu->numero_patota);
+	tripu->tarea_a_realizar = obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
 	posiciones* posicion_tripu;
 	posicion_tripu = malloc(sizeof(posiciones));
-	posicion_tripu = obtener_posiciones(tripu->id_tripulante,tripu->numero_patota);
+	posicion_tripu = obtener_posiciones(tripu->id_tripulante, tripu->numero_patota);
 
 	while(tripu->tarea_a_realizar != NULL){
 		sem_wait(tripu->sem_planificacion); //Le hacemos el signal para que no quede trabado
@@ -384,7 +532,7 @@ void tripulante_hilo(void* tripulante){
 			//aca habria q ver si esta asignado para sabotaje, si esta breck
 
 
-			if(algoritmo_elegido==RR){
+			if(algoritmo_elegido == RR){
 
 				if(cantidadRealizado == QUANTUM){
 					running_ready(tripu);
@@ -399,9 +547,8 @@ void tripulante_hilo(void* tripulante){
 			sem_wait(tripu->sem_tripu);
 			//printf("despues del wait");
 			sleep(RETARDO_CICLO_CPU); //vale 0
-			//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
+			posicion_tripu = obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
 			cantidadRealizado ++;
-
 			distancia--;
 
 			sem_post(tripu->sem_tripu); //vale 1 0
@@ -458,21 +605,23 @@ void tripulante_hilo(void* tripulante){
 	//sem_wait(tripu->sem_tripu);
 }
 
-posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea){
+
+// TODO segun esto, tripulante va a avanzar hasta que llegue a la tarea, esta bien esto?
+posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu){
 
 	while(posicion_tripu->posicion_x != posicion_tarea->posicion_x){
 		if(posicion_tripu->posicion_x > posicion_tarea->posicion_x){
 			//posicion_tripu->posicion_x = posicion_tripu->posicion_x - 1 ;
 			posicion_tripu->posicion_x--;
-			// actualizar en mi ram
-			//return posicion_tripu;
+
+			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
 		}
 
 		if(posicion_tripu->posicion_x < posicion_tarea->posicion_x){
 			//posicion_tripu->posicion_x = posicion_tripu->posicion_x + 1 ;
 			posicion_tripu->posicion_x++;
 			// actualizar en mi ram
-			//return posicion_tripu;
+			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
 		}
 	}
 
@@ -481,14 +630,14 @@ posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posic
 				//posicion_tripu->posicion_y = posicion_tripu->posicion_y - 1 ;
 				posicion_tripu->posicion_y--;
 				// actualizar en mi ram
-				//return posicion_tripu;
+				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
 			}
 
 			if(posicion_tripu->posicion_y < posicion_tarea->posicion_y){
 				//posicion_tripu->posicion_y = posicion_tripu->posicion_y + 1 ;
 				posicion_tripu->posicion_y++;
 				// actualizar en mi ram
-				//return posicion_tripu;
+				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
 			}
 	}
 	return posicion_tripu;
@@ -540,44 +689,6 @@ void hilo_tripulante_sabotaje(tripulante_sabotaje* tripu){
 
 }
 */
-
-//todo nos tienen que pasar el id de patota y el id de tripulante
-t_tarea* obtener_siguiente_tarea(uint32_t numero_patota){
-
-	/*t_tarea* tarea = malloc(sizeof(t_tarea));
-
-	tarea->operacion = GENERAR_OXIGENO;
-	tarea->cantidad = 5;
-	tarea->posicion_x = 4;
-	tarea->posicion_y = 4;
-	tarea->tiempo = 5;
-	return tarea;*/
-
-
-	//enviar_mensaje(t_tripulante, PEDIDO_TAREA, conexion_mi_ram);
-
-	//recibir_mensaje(t_respuesta_tarea_tripulante, RESPUESTA_NUEVA_TAREA, conexion_mi_ram);
-
-	//le mandamos el numero de la patota a Mi-Ram y nos devuelve un char* tarea_tripulante
-	//Si no hay una proxima tarea, devuelve un NULL
-
-	//return obtener_la_tarea(tarea_tripulante);
-}
-
-posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota){
-	//le mandamos el id del tripulante a Mi_Ram y nos dice su ubicacion
-	posiciones* posicion = malloc(sizeof(posiciones));
-	posicion->posicion_x = 1;
-	posicion->posicion_y = 1;
-	return posicion;
-}
-
-
-uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea){
-
-	return (abs(posicion_tripu->posicion_x - posicion_tarea->posicion_x) + abs(posicion_tripu->posicion_y - posicion_tarea->posicion_y) );
-}
-
 
 
 void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
