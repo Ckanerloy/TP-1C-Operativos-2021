@@ -115,6 +115,7 @@ typedef struct {
 	bool expulsado;
 	sem_t* sem_tripu;
 	sem_t* sem_planificacion;
+	sem_t* mutex_estado;
 } tripulante_plani;
 
 

@@ -22,10 +22,6 @@
 #include "utils/estructuras.h"
 #include "utils/tareas.h"
 
-uint32_t multitarea_Disponible;
-
-uint32_t planificacionValor;
-
 typedef enum{
 	FIFO,
 	RR
@@ -41,24 +37,26 @@ t_queue* cola_auxiliar_sabotaje;
 t_list* lista_semaforos_tripulantes;
 t_list* lista_tripulantes;
 
-
-
-
 t_list* bloqueado_suspendido;
 t_list* bloqueado_suspendido_ready;
+
+t_list* tripulantes_exec_block;
+
 //Semaforos
 
 sem_t* mutex_ready;
 sem_t* mutex_exit;
 sem_t* mutex_new;
 sem_t* mutex_expulsado;
-
-sem_t* mutex_planificionValor;
+sem_t* mutex_ready_running;
+sem_t* mutex_new_ready;
+sem_t* mutex_rafaga;
 
 sem_t* planificacion_on;
 sem_t* planificacion_on_ready_running;
+sem_t* planificion_rafaga;
 
-sem_t* mutex_valorMultitarea;
+sem_t* multitarea_disponible;
 
 sem_t* contador_tripulantes_en_ready;
 sem_t* contador_tripulantes_en_new;
@@ -71,7 +69,9 @@ sem_t* contador_tripulantes_en_new;
 
 
 int valor_sabotaje;
-
+uint32_t new_ready_off;
+uint32_t ready_running_off;
+uint32_t dar_pulsos_off;
 
 // Datos del Config
 int GRADO_MULTITAREA;
@@ -97,6 +97,11 @@ void running_ready(tripulante_plani* tripulante);
 void block_exit(tripulante_plani* tripu);
 void running_exit(tripulante_plani* tripu);
 void tripulante_hilo(void* tripulante);
+void rafaga_cpu(t_list* lista_todos_tripulantes);
+bool esta_exec_o_block(void* tripulante);
+void poner_en_uno_semaforo(tripulante_plani* tripulante);
+
+
 //void hilo_tripulante_sabotaje(tripulante_plani* tripu);
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota);
 posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota);

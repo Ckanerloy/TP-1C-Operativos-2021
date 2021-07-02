@@ -44,6 +44,7 @@ int RETARDO_CICLO_CPU;
 sem_t* comando_para_ejecutar;
 sem_t* mutex_sabotaje;
 sem_t* termino_operacion;
+sem_t* prueba;
 
 // Hilos
 pthread_t hilo_consola;
@@ -52,8 +53,8 @@ pthread_t hilo_tripulante;
 pthread_t hilo_new_ready;
 pthread_t hilo_ready_running;
 pthread_t hilo_solucion;   //preguntar
+pthread_t hilo_creador_rafagas;
 
-pthread_t hilo_sabotaje;
 pthread_t hilo_tripulante_sabo;
 
 t_log* logger;
@@ -69,11 +70,6 @@ void crear_hilos();
 void iniciar_escucha_sabotaje();
 void inicializar_semaforos();
 
-void esperadorDeUno(sem_t* semaforo);
-void solucionadorProblemas(sem_t*);
-
-void poner_en_cero_semaforos(sem_t* semaforo);
-void poner_en_uno_semaforos(sem_t* semaforo);
 
 
 tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2);

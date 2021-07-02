@@ -36,9 +36,6 @@ void inicializar_semaforos_plani(){
 	planificacion_on_ready_running = malloc(sizeof(sem_t));
 	sem_init(planificacion_on_ready_running, 0, 0);
 
-	mutex_valorMultitarea = malloc(sizeof(sem_t));
-	sem_init(mutex_valorMultitarea, 0 , 1);
-
 	contador_tripulantes_en_ready = malloc(sizeof(sem_t));
 	sem_init(contador_tripulantes_en_ready,0 ,0);
 
@@ -48,8 +45,20 @@ void inicializar_semaforos_plani(){
 	mutex_expulsado = malloc(sizeof(sem_t));
 	sem_init(mutex_expulsado,0, 1);
 
-	mutex_planificionValor= malloc (sizeof(sem_t));
-	sem_init(mutex_planificionValor, 0,1);
+	multitarea_disponible = malloc(sizeof(sem_t));
+	sem_init(multitarea_disponible, 0, GRADO_MULTITAREA);
+
+	planificion_rafaga = malloc(sizeof(sem_t));
+	sem_init(planificion_rafaga, 0, 0);
+
+	mutex_ready_running = malloc(sizeof(sem_t));
+	sem_init(mutex_ready_running, 0, 1);
+
+	mutex_new_ready = malloc(sizeof(sem_t));
+	sem_init(mutex_new_ready, 0, 1);
+
+	mutex_rafaga = malloc(sizeof(sem_t));
+	sem_init(mutex_rafaga, 0, 1);
 }
 
 
@@ -60,11 +69,16 @@ void finalizar_semaforos_plani() {
 	free(mutex_new);
 	free(mutex_ready);
 	free(mutex_exit);
-	free(mutex_valorMultitarea);
 	free(mutex_expulsado);
+	free(mutex_ready_running);
+	free(mutex_new_ready);
+	free(mutex_rafaga);
 
 	free(planificacion_on);
 	free(planificacion_on_ready_running);
+	free(planificion_rafaga);
+
+	free(multitarea_disponible);
 }
 
 
@@ -107,13 +121,13 @@ void iniciar_planificacion() {
 
 	cola_auxiliar_sabotaje = queue_create();
 
-	multitarea_Disponible = GRADO_MULTITAREA;
-
-	lista_semaforos_tripulantes = list_create();
-
-
+	tripulantes_exec_block=list_create();
 
 	inicializar_semaforos_plani();
+
+	new_ready_off = 0;
+	ready_running_off = 0;
+	dar_pulsos_off = 0;
 	// esto tiene que ir en otra parte
 	//finalizar_semaforos_plani();
 }
@@ -131,7 +145,9 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
     tripulante_estado->id_tripulante = tripu->id_tripulante;
     tripulante_estado->id_patota = tripu->numero_patota;
+    sem_wait(tripu->mutex_estado);
     tripulante_estado->estado = tripu->estado;
+    sem_post(tripu->mutex_estado);
 
 	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
@@ -169,16 +185,16 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota){
 
 
-	/*t_tarea* tarea = malloc(sizeof(t_tarea));
+	t_tarea* tarea = malloc(sizeof(t_tarea));
 
 	tarea->operacion = GENERAR_OXIGENO;
 	tarea->cantidad = 5;
 	tarea->posicion_x = 4;
 	tarea->posicion_y = 4;
 	tarea->tiempo = 5;
-	return tarea;*/
+	return tarea;
 
-
+/*
 	uint32_t conexion_mi_ram;
 
 	t_tripulante* tripulante_consulta = malloc(sizeof(t_tripulante));
@@ -223,6 +239,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 	free(respuesta_tarea);
 
 	return respuesta_tarea->tarea;
+*/
 }
 
 
@@ -341,6 +358,15 @@ void new_ready() {
 
 		actualizar_estado(tripulante_a_ready, 'R');
 
+		sem_wait(mutex_new_ready);
+
+		if(new_ready_off){
+			sem_wait(planificacion_on);
+			sem_post(mutex_new_ready);
+		}else{
+			sem_post(mutex_new_ready);
+		}
+
 		sem_post(planificacion_on);
 
 		sem_post(contador_tripulantes_en_ready);
@@ -357,38 +383,31 @@ void ready_running() {
 
         sem_wait(contador_tripulantes_en_ready);
 
-        sem_wait(mutex_valorMultitarea);
+        sem_wait(multitarea_disponible);
 
-        if(multitarea_Disponible > 0) {
+        tripulante_plani* tripulante_a_running = malloc(sizeof(tripulante_plani));
 
-        	sem_post(mutex_valorMultitarea);
-            tripulante_plani* tripulante_a_running = malloc(sizeof(tripulante_plani));
+        sem_wait(mutex_ready);
+        tripulante_a_running = queue_pop(cola_ready);
+        sem_post(mutex_ready);
 
-            sem_wait(mutex_ready);
-            tripulante_a_running = queue_pop(cola_ready);
-            sem_post(mutex_ready);
+        actualizar_estado(tripulante_a_running, 'E');
+        sem_post(tripulante_a_running->sem_planificacion);
 
-            sem_wait(mutex_valorMultitarea);
-            multitarea_Disponible--;
-            sem_post(mutex_valorMultitarea);
+		sem_wait(mutex_ready_running);
 
-            actualizar_estado(tripulante_a_running, 'E');
-            sem_post(tripulante_a_running->sem_planificacion);
-
-        } else {
-                sem_post(mutex_valorMultitarea);
-                sem_post(contador_tripulantes_en_ready);
-        }
+		if(ready_running_off){
+			sem_wait(planificacion_on_ready_running);
+			sem_post(mutex_ready_running);
+		}else{
+			sem_post(mutex_ready_running);
+		}
 
         sem_post(planificacion_on_ready_running);
     }
 }
 
 void running_ready(tripulante_plani* tripu){
-
-	sem_wait(mutex_valorMultitarea);
-	multitarea_Disponible++;
-	sem_post(mutex_valorMultitarea);
 
 	sem_wait(mutex_ready);
 	queue_push(cola_ready, tripu);
@@ -397,17 +416,15 @@ void running_ready(tripulante_plani* tripu){
 	actualizar_estado(tripu, 'R');
 	sem_post(contador_tripulantes_en_ready);
 
+	sem_post(multitarea_disponible);
 
 }
 
 void running_block(tripulante_plani* tripu){
 
-	sem_wait(mutex_valorMultitarea);
-	multitarea_Disponible++;
-	sem_post(mutex_valorMultitarea);
-
 	actualizar_estado(tripu, 'B');
 
+	sem_post(multitarea_disponible);
 }
 
 void block_ready(tripulante_plani* tripu){
@@ -416,6 +433,8 @@ void block_ready(tripulante_plani* tripu){
 	sem_post(mutex_ready);
 
 	actualizar_estado(tripu, 'R');
+
+	sem_post(contador_tripulantes_en_ready);
 }
 
 void block_exit(tripulante_plani* tripu){
@@ -433,11 +452,9 @@ void running_exit(tripulante_plani* tripu){
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
 
-	sem_wait(mutex_valorMultitarea);
-	multitarea_Disponible++;
-	sem_post(mutex_valorMultitarea);
-
 	actualizar_estado(tripu, 'T');
+
+	sem_post(multitarea_disponible);
 }
 
 void ready_exit(tripulante_plani* tripu){
@@ -451,9 +468,7 @@ void ready_exit(tripulante_plani* tripu){
 	for(int i=0;i<largo;i++){
 
 		tripulante = queue_pop(cola_ready);
-		//printf("id del tripulante %u \n",tripulante->id_tripulante);
-		//printf("nro pato tripu %u \n",tripulante->numero_patota);
-		//fflush(stdout);
+
 		if(tripu->id_tripulante == tripulante->id_tripulante){
 
 			sem_wait(mutex_exit);
@@ -473,9 +488,7 @@ void ready_exit(tripulante_plani* tripu){
 	for(int i=0;i<aux_largo;i++){
 
 		tripulante = queue_pop(cola_auxiliar_sabotaje);
-		//printf("id del tripulante %u \n",tripulante->id_tripulante);
-		//printf("nro pato tripu %u \n",tripulante->numero_patota);
-		fflush(stdout);
+
 		queue_push(cola_ready, tripulante);
 	}
 
@@ -484,7 +497,8 @@ void ready_exit(tripulante_plani* tripu){
 	sem_wait(contador_tripulantes_en_ready);
 	sem_post(mutex_ready);
 
-	//free(tripulante);
+	tripulante=NULL;
+	free(tripulante);
 }
 
 void tripulante_hilo(void* tripulante){
@@ -500,7 +514,6 @@ void tripulante_hilo(void* tripulante){
 
 	while(tripu->tarea_a_realizar != NULL){
 		sem_wait(tripu->sem_planificacion); //Le hacemos el signal para que no quede trabado
-
 
 		sem_wait(mutex_expulsado);
 		if(tripu->expulsado){
@@ -545,31 +558,11 @@ void tripulante_hilo(void* tripulante){
 			//fflush(stdout);
 
 			sem_wait(tripu->sem_tripu);
-			//printf("despues del wait");
-			sleep(RETARDO_CICLO_CPU); //vale 0
 			posicion_tripu = obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
 			cantidadRealizado ++;
 			distancia--;
 
-			sem_post(tripu->sem_tripu); //vale 1 0
-
 		}
-
-		//uint32_t x = pthread_self();
-		//printf("semaforo raro: %u",x);
-		//fflush(stdout);
-
-		int a;
-		sem_getvalue(tripu->sem_tripu,&a);
-
-		//fflush(stdout);
-		//if(a==1){
-		//	sem_wait(tripu->sem_tripu);
-		//}
-
-		sem_getvalue(tripu->sem_tripu,&a);
-		printf("semaforo raro: %u",a);
-		fflush(stdout);
 
 		sem_wait(mutex_expulsado);
 		if(tripu->expulsado){
@@ -595,16 +588,46 @@ void tripulante_hilo(void* tripulante){
 		}else{
 			sem_post(mutex_expulsado);
 		}
-
-
-
-
-
 		realizar_tarea(tripu,&cantidadRealizado);
 	}
-	//sem_wait(tripu->sem_tripu);
 }
 
+void rafaga_cpu(t_list* lista_todos_tripulantes){
+	while(1){
+	sem_wait(planificion_rafaga);
+
+	bool esta_exec_o_block(void* tripulante){
+		sem_wait(((tripulante_plani*)tripulante)->mutex_estado);
+		int valor = ((tripulante_plani*)tripulante)->estado == 'E' || ((tripulante_plani*)tripulante)->estado == 'B';
+
+		sem_post(((tripulante_plani*)tripulante)->mutex_estado);
+		return valor;
+	}
+
+	tripulantes_exec_block = list_filter(lista_todos_tripulantes,(void*) esta_exec_o_block);
+
+	//int largo=list_size(tripulantes_exec_block);
+
+	list_iterate(tripulantes_exec_block, (void*) poner_en_uno_semaforo);
+
+	sleep(RETARDO_CICLO_CPU);
+
+	sem_wait(mutex_rafaga);
+
+	if(dar_pulsos_off){
+		sem_wait(planificion_rafaga);
+		sem_post(mutex_rafaga);
+	}else{
+		sem_post(mutex_rafaga);
+	}
+
+	sem_post(planificion_rafaga);
+	}
+}
+
+void poner_en_uno_semaforo(tripulante_plani* tripulante){
+	sem_post(tripulante->sem_tripu);
+}
 
 // TODO segun esto, tripulante va a avanzar hasta que llegue a la tarea, esta bien esto?
 posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu){
@@ -745,8 +768,6 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 	//Aca iria un if preguntando si esta expulsado
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
-	sleep(RETARDO_CICLO_CPU);
-	sem_post(tripu->sem_tripu);
 
 	sem_wait(mutex_expulsado);
 	if(tripu->expulsado){
@@ -771,9 +792,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 	while(tiempo_restante != 0){
 		sem_wait(tripu->sem_tripu);
 
-		sleep(RETARDO_CICLO_CPU);
 		tiempo_restante--;
-		sem_post(tripu->sem_tripu);
 
 		//aca hay q pregunta rsi esta encargado de sabotjae, si es asi breck
 
@@ -805,8 +824,6 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
-	sleep(RETARDO_CICLO_CPU);
-	sem_post(tripu->sem_tripu);
 
 	sem_wait(mutex_expulsado);
 	if(tripu->expulsado){
@@ -830,9 +847,8 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 
 	while(tiempo_restante != 0){
 		sem_wait(tripu->sem_tripu);
-		sleep(RETARDO_CICLO_CPU);
+
 		tiempo_restante--;
-		sem_post(tripu->sem_tripu);
 
 		sem_wait(mutex_expulsado);
 		if(tripu->expulsado){
@@ -858,8 +874,6 @@ void descartar_basura(tripulante_plani* tripu) {
 
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
-	sleep(RETARDO_CICLO_CPU);
-	sem_post(tripu->sem_tripu);
 
 	sem_wait(mutex_expulsado);
 	if(tripu->expulsado){
@@ -882,9 +896,8 @@ void descartar_basura(tripulante_plani* tripu) {
 
 	while(tiempo_restante != 0){
 		sem_wait(tripu->sem_tripu);
-		sleep(RETARDO_CICLO_CPU);
+
 		tiempo_restante--;
-		sem_post(tripu->sem_tripu);
 
 		sem_wait(mutex_expulsado);
 		if(tripu->expulsado){
@@ -926,9 +939,8 @@ void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado){
 			}
 		}
 		sem_wait(tripu->sem_tripu);
-		sleep(RETARDO_CICLO_CPU);
+
 		tiempo_restante--;
-		sem_post(tripu->sem_tripu);
 
 		sem_wait(mutex_expulsado);
 		if(tripu->expulsado){
@@ -948,3 +960,4 @@ void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado){
 		running_exit(tripu);
 	}
 }
+
