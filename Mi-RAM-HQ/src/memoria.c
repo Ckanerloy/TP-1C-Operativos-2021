@@ -252,6 +252,14 @@ bool memoria_igual_o_mas_grande(t_segmento* segmento, uint32_t tamanio_buscado)
 	return tamanio_buscado >= segmento->tamanio_segmento;
 }
 
+bool menor_a_mayor_por_segmento(void* segmento, void* segmento_siguiente) {
+	return ((t_segmento*)segmento)->numero_de_segmento < ((t_segmento*)segmento_siguiente)->numero_de_segmento;
+}
+
+bool menor_a_mayor_por_pid(void* segmento, void* segmento_siguiente) {
+	return ((t_tabla_segmentos_patota*)segmento)->patota->pid < ((t_tabla_segmentos_patota*)segmento_siguiente)->patota->pid;
+}
+
 bool menor_a_mayor(t_segmento* segmento, t_segmento* segmento_siguiente)
 {
 	return (segmento->tamanio_segmento < segmento_siguiente->tamanio_segmento);
@@ -307,7 +315,7 @@ bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado) {
 
 
 
-// Funciones para guardar/recuperar Patota
+// Funciones para guardar la Patota
 void guardar_patota(t_pcb* nueva_patota) {
 
 	memcpy(memoria_principal + base_segmento, &(nueva_patota->pid), sizeof(nueva_patota->pid));
@@ -318,17 +326,9 @@ void guardar_patota(t_pcb* nueva_patota) {
 
 }
 
-void recuperar_patota(t_pcb* nueva_patota) {
-
-	memcpy(&(nueva_patota->pid), memoria_principal + base_segmento, sizeof(nueva_patota->pid));
-	base_segmento += sizeof(nueva_patota->pid);
-
-	memcpy(&(nueva_patota->tareas), memoria_principal + base_segmento, sizeof(nueva_patota->tareas));
-	base_segmento += sizeof(nueva_patota->tareas);
-}
 
 
-// Funciones para guardar/recuperar Tareas
+// Funciones para guardar las Tareas
 
 void guardar_tareas(t_list* tareas_de_la_patota) {
 
@@ -354,21 +354,8 @@ void guardar_tareas(t_list* tareas_de_la_patota) {
 	}
 }
 
-/* HAY QUE GUARDAR LAS TAREAS COMO SI FUESEN LINEAS DE TEXTO
- EJEMPLO: GUARDAR_OXIGENO 3;4;5;2
- y guardar ese String en memoria
- el tema va en armar una estructura que tenga el tamaño de este string, el string, el id de la tarea
-*/
-//TODO char* asi se guardarian las tareas
 
-void recuperar_tareas(t_list* tareas_de_la_patota) {
-
-	memcpy(&(tareas_de_la_patota), memoria_principal + base_segmento, (sizeof(t_tarea) * list_size(tareas_de_la_patota)));
-	base_segmento += (sizeof(t_tarea) * list_size(tareas_de_la_patota));
-}
-
-
-// Funciones para guardar/recuperar Tripulante
+// Funciones para guardar la Tripulante
 void guardar_tripulante(t_tcb* nuevo_tripulante) {
 
 	memcpy(memoria_principal + base_segmento, &(nuevo_tripulante->id_tripulante), sizeof(nuevo_tripulante->id_tripulante));
@@ -390,7 +377,7 @@ void guardar_tripulante(t_tcb* nuevo_tripulante) {
 	base_segmento += sizeof(nuevo_tripulante->puntero_PCB);
 
 }
-
+/*
 void recuperar_tripulante(t_tcb* nuevo_tripulante) {
 
 	memcpy(&(nuevo_tripulante->id_tripulante), memoria_principal + base_segmento, sizeof(nuevo_tripulante->id_tripulante));
@@ -411,7 +398,7 @@ void recuperar_tripulante(t_tcb* nuevo_tripulante) {
 	memcpy(&(nuevo_tripulante->puntero_PCB), memoria_principal + base_segmento, sizeof(nuevo_tripulante->puntero_PCB));
 	base_segmento += sizeof(nuevo_tripulante->puntero_PCB);
 }
-
+*/
 
 void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento) {
 

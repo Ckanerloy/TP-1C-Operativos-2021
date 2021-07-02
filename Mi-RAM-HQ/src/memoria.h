@@ -4,13 +4,6 @@
 #include "Mi-RAM.h"
 #include "utils/estructuras.h"
 
-// Segmentacion
-t_list* tablas_segmentos;
-t_list* segmentos;
-
-// Paginacion
-t_list* tablas_paginas;
-
 // Estructuras para Mi RAM HQ
 // SEGMENTACION
 typedef struct segmento {
@@ -57,6 +50,14 @@ typedef struct tabla_paginas_patota{
 
 }t_tabla_paginas_patota;
 
+
+// Segmentacion
+t_list* tablas_segmentos;
+t_list* segmentos;
+
+// Paginacion
+t_list* tablas_paginas;
+
 // Eleccion de algoritmos para la memoria
 void elegir_esquema_de_memoria(char* ESQUEMA);
 criterio_seleccion elegir_criterio_seleccion(char* criterio);
@@ -86,7 +87,8 @@ t_segmento* buscar_por_id(t_list* segmentos, tipo_segmento tipo_de_segmento, uin
 t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t id_proxima_tarea_del_tripu);
 
 bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado);
-
+bool menor_a_mayor_por_segmento(void* segmento, void* segmento_siguiente);
+bool menor_a_mayor_por_pid(void* segmento, void* segmento_siguiente);
 
 void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir);
 t_pcb* encontrar_patota(t_segmento* segmento);
