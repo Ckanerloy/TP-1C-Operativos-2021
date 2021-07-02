@@ -10,7 +10,7 @@
 char *concatenar_path(char*);
 void inicializar_file_system();
 int existe_file_system();
-void crear_superbloque();
+void iniciar_superbloque();
 void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio);
 void crear_archivo_blocks();
 

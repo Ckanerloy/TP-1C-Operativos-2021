@@ -42,7 +42,7 @@ void inicializar_file_system(){
 		creacion_directorio(PUNTO_MONTAJE, "");//Se crea el path /home/utnso/polus TODO cambiar los parámetros que recibe para no poner ""
 		creacion_directorio(PUNTO_MONTAJE, "Files");//Se crea el path /home/utnso/polus/Files
 		creacion_directorio(PUNTO_MONTAJE, "Files/Bitacoras");//Se crea el path /home/utnso/polus/Files/Bitacoras
-		crear_superbloque();
+		iniciar_superbloque();
 		crear_archivo_blocks();
 
 
@@ -73,7 +73,7 @@ void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio)
 
 
 
-void crear_superbloque(){
+void iniciar_superbloque(){
 
 	char *direccion_superBloque = concatenar_path("/SuperBloque.ims");
 	int archivo;
@@ -94,7 +94,7 @@ void crear_superbloque(){
 
 	if( -1 == archivo)
 	  {
-	    perror("Error al abrir el archivo \n");
+	    perror("Error al abrir el archivo SuperBloque.ims \n");
 	    exit(1);
 	  }
 

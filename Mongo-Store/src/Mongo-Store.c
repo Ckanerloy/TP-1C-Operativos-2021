@@ -23,8 +23,8 @@ int main(void)
 		inicializar_file_system();
 	}
 		else{
-			printf("Hay un FileSystem existente\n"); //TODO ver como utilizar un FS ya existente. Chequear este issue: https://github.com/sisoputnfrba/foro/issues/2140
-
+			printf("Hay un FileSystem existente\n");
+			iniciar_superbloque();//Inicio el FS existente
 	}
 
 	/*while(1)
