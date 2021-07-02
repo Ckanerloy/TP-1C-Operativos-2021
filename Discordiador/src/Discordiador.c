@@ -117,7 +117,7 @@ void iniciar_escucha_sabotaje(void){
 
 		list_add_all(bloqueado_suspendido,bloqueado_suspendido_ready);
 
-		//tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
+		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
 		tripulante_sabotaje* tripu_sabotaje = malloc(sizeof(tripulante_plani));
 
@@ -143,7 +143,7 @@ void iniciar_escucha_sabotaje(void){
 
 
 
-/*tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
+tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
 	//tenemos variable global q dice la posicion del sabotaje
 
 	posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
@@ -160,15 +160,11 @@ void iniciar_escucha_sabotaje(void){
 		return tripulante2;
 	}
 
-	posiciones* posicion_tripu1;
-	posicion_tripu1 = malloc(sizeof(posiciones));
-	posiciones* posicion_tripu2;
-	posicion_tripu2 = malloc(sizeof(posiciones));
 	obtener_distancia(posicion_tripu1, posicion_tripu2);
 
 	//aca esTA MAL
 
-}*/
+}
 
 
 

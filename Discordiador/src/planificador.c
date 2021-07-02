@@ -184,6 +184,15 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota){
 
+	t_tarea* tarea = malloc(sizeof(t_tarea));
+
+	tarea->operacion = GENERAR_OXIGENO;
+	tarea->cantidad = 5;
+	tarea->posicion_x = 4;
+	tarea->posicion_y = 4;
+	tarea->tiempo = 5;
+	return tarea;
+	/*
 	uint32_t conexion_mi_ram;
 
 	t_tripulante* tripulante_consulta = malloc(sizeof(t_tripulante));
@@ -232,7 +241,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 
 
 	return tarea_buscada;
-
+*/
 }
 
 posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
