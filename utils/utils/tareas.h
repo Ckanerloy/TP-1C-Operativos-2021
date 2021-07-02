@@ -25,11 +25,27 @@ typedef enum
 
 typedef struct {
 	codigo_tarea operacion;
-	int32_t cantidad;
+	uint32_t cantidad;
 	uint32_t posicion_x;
 	uint32_t posicion_y;
 	int32_t tiempo;
 } t_tarea;
+
+
+typedef enum
+{
+	SABOTAJE_SUPERBLOQUE,
+	SABOTAJE_FILES
+} codigo_sabotaje;
+
+
+typedef struct {
+	codigo_sabotaje operacion;
+	int32_t tiempo;
+	uint32_t posicion_x;
+	uint32_t posicion_y;
+
+} t_sabotaje;
 
 
 

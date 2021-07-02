@@ -99,29 +99,32 @@ typedef struct {
 } posiciones;
 
 
-typedef struct {
-	posiciones* posicion_sabotaje;
-	posiciones* posicion_inicial;
-	uint32_t id_tripulante;
-	uint32_t id_patota;
-} tripulante_sabotaje;
+
 
 
 typedef struct {
 	uint32_t id_tripulante;
 	uint32_t numero_patota;
 	char estado;
+
 	t_tarea* tarea_a_realizar;
+
+	bool elegido_sabotaje;
+	sem_t* mutex_elegido;
+	t_sabotaje* tarea_sabotaje;
+
 	bool expulsado;
+
 	sem_t* sem_tripu;
 	sem_t* sem_planificacion;
+
 	sem_t* mutex_estado;
 } tripulante_plani;
 
 
 typedef struct {
 	uint32_t sabotaje_on;
-//	t_tarea* tarea_sabotaje;
+	t_sabotaje* tarea_sabotaje;             //    ---------------
 	posiciones* posicion_sabotaje;
 } t_respuesta_mongo;
 

@@ -192,6 +192,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 	tarea->posicion_y = 4;
 	tarea->tiempo = 5;
 	return tarea;
+
 	/*
 	uint32_t conexion_mi_ram;
 
@@ -241,7 +242,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 
 
 	return tarea_buscada;
-*/
+	*/
 }
 
 posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
@@ -360,6 +361,7 @@ void new_ready() {
 		actualizar_estado(tripulante_a_ready, 'R');
 
 		sem_wait(mutex_new_ready);
+
 
 		if(new_ready_off){
 			sem_wait(planificacion_on);
@@ -509,8 +511,8 @@ void tripulante_hilo(void* tripulante){
 
 	tripu->tarea_a_realizar = obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
-	posiciones* posicion_tripu;
-	posicion_tripu = malloc(sizeof(posiciones));
+	posiciones* posicion_tripu = malloc(sizeof(posiciones));
+
 	posicion_tripu = obtener_posiciones(tripu->id_tripulante, tripu->numero_patota);
 
 	while(tripu->tarea_a_realizar != NULL){
@@ -519,9 +521,14 @@ void tripulante_hilo(void* tripulante){
 		sem_wait(mutex_expulsado);
 		if(tripu->expulsado){
 			sem_post(mutex_expulsado);
-			return;
+			break;
 		}else{
 			sem_post(mutex_expulsado);
+		}
+
+
+		if(tripu->elegido_sabotaje){
+			break;
 		}
 
 		posiciones* posicion_tarea;
@@ -534,6 +541,10 @@ void tripulante_hilo(void* tripulante){
 
 		while(distancia > 0){
 
+			if(tripu->elegido_sabotaje){
+				break;
+			}
+
 
 			sem_wait(mutex_expulsado);
 			if(tripu->expulsado){
@@ -544,16 +555,23 @@ void tripulante_hilo(void* tripulante){
 			}
 
 			//aca habria q ver si esta asignado para sabotaje, si esta breck
+			sem_wait(tripu->mutex_elegido);
 
+			if(tripu->elegido_sabotaje){
+				sem_post(tripu->mutex_elegido);
+				break;
 
-			if(algoritmo_elegido == RR){
+			}else{
+				sem_post(tripu->mutex_elegido);
+				if(algoritmo_elegido == RR){
 
-				if(cantidadRealizado == QUANTUM){
-					running_ready(tripu);
-					cantidadRealizado = 0;
-					sem_wait(tripu->sem_planificacion);
+					if(cantidadRealizado == QUANTUM){
+						running_ready(tripu);
+						cantidadRealizado = 0;
+						sem_wait(tripu->sem_planificacion);
+					}
+
 				}
-
 			}
 			//printf("antes del wait/n");
 			//fflush(stdout);
@@ -573,12 +591,19 @@ void tripulante_hilo(void* tripulante){
 			sem_post(mutex_expulsado);
 		}
 
-		if(algoritmo_elegido==RR){
-			if(cantidadRealizado==QUANTUM){
-				running_ready(tripu);
 
-				cantidadRealizado=0;
-				sem_wait(tripu->sem_planificacion);
+		sem_wait(tripu->mutex_elegido);
+			if(tripu->elegido_sabotaje){
+				sem_post(tripu->mutex_elegido);
+				break;
+			}else{
+				sem_post(tripu->mutex_elegido);
+				if(algoritmo_elegido == RR){
+					if(cantidadRealizado == QUANTUM){
+						running_ready(tripu);
+						cantidadRealizado = 0;
+						sem_wait(tripu->sem_planificacion);
+				}
 			}
 		}
 
@@ -616,8 +641,9 @@ void rafaga_cpu(t_list* lista_todos_tripulantes){
 	sem_wait(mutex_rafaga);
 
 	if(dar_pulsos_off){
-		sem_wait(planificion_rafaga);
 		sem_post(mutex_rafaga);
+		sem_wait(planificion_rafaga);
+
 	}else{
 		sem_post(mutex_rafaga);
 	}
@@ -681,40 +707,7 @@ void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion){
 		abort();
 	}
 }
-/*
-//TAREA SABOTAJE
-void hilo_tripulante_sabotaje(tripulante_sabotaje* tripu){
 
-	posiciones* posicion_tarea;
-	posicion_tarea = malloc(sizeof(posiciones));
-	posicion_tarea->posicion_x = tripu->posicion_sabotaje->posicion_x;
-	posicion_tarea->posicion_y = tripu->posicion_sabotaje->posicion_y;
-
-
-	posiciones* posicion_tripu;
-	posicion_tripu = malloc(sizeof(posiciones));
-	posicion_tripu = obtener_posiciones(tripu->id_tripulante,tripu->id_patota);
-
-
-	posiciones* posicion_tripu_inicial;
-	posicion_tripu_inicial = malloc(sizeof(posiciones));
-	posicion_tripu_inicial->posicion_x=posicion_tripu->posicion_x;
-	posicion_tripu_inicial->posicion_y=posicion_tripu->posicion_y;
-
-
-	uint32_t distancia = obtener_distancia(posicion_tripu,posicion_tarea);
-
-	while(distancia > 0){
-		//posicion_tripu = obtener_nueva_posicion(posicion_tripu,posicion_tarea);  Hay que actualizar la ubicacion en Mi_Ram
-		sleep(RETARDO_CICLO_CPU);
-		distancia--;
-	}
-	//avisar q estas en posicion de resolucion de sabotaje y mandar orden de ejecucion a imongo
-	sleep(DURACION_SABOTAJE);
-
-
-}
-*/
 
 
 void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
@@ -769,6 +762,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 
+
 	sem_wait(mutex_expulsado);
 	if(tripu->expulsado){
 		sem_post(mutex_expulsado);
@@ -776,6 +770,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 	}else{
 		sem_post(mutex_expulsado);
 	}
+
 
 	running_block(tripu);
 
@@ -803,14 +798,31 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 		}else{
 			sem_post(mutex_expulsado);
 		}
+
+
+		sem_wait(tripu->mutex_elegido);
+		if(tripu->elegido_sabotaje){
+			sem_post(tripu->mutex_elegido);
+			break;
+		}else{
+			sem_post(tripu->mutex_elegido);
+		}
 	}
 
 	//preguntar si esta encargado, si esta la proximas seria tripu->tarea_a_realizar=tripu->tareasabotaje
 	//sino cargo la siguiente. En caso de haber arreglado un sabo, no tenes q pedir otra sino hacer la q tenes en tarea a realizar
-	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
+
+	//esto adentro de un if para ver si tiene q pedir otra o cargar en tripu->tarea del sabotaje en la tarea normal y al revez
+
+	//if(tripu->elegido_sabotaje){
+		//pasame a "exe"
+		//tripu->tarea_a_realizar=
+//	}
+
+	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
 	// Por esto capaz se ponia en NULL
-	//tripu->tarea_a_realizar = NULL;
+	tripu->tarea_a_realizar = NULL;
 
 	if(tripu->tarea_a_realizar!=NULL){
 		block_ready(tripu);
@@ -860,7 +872,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 		}
 	}
 
-	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
+	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
 	tripu->tarea_a_realizar= NULL;
 
@@ -909,7 +921,7 @@ void descartar_basura(tripulante_plani* tripu) {
 		}
 	}
 
-	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
+	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
 	tripu->tarea_a_realizar= NULL;
 
@@ -951,7 +963,7 @@ void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado){
 			sem_post(mutex_expulsado);
 		}
 	}
-	tripu->tarea_a_realizar = obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
+	//tripu->tarea_a_realizar = obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
 	tripu->tarea_a_realizar= NULL;
 

@@ -30,6 +30,10 @@ void inicializar_listas(){
 	lista_semaforos_tripulantes = list_create();
 
 	lista_tripulantes = list_create();
+
+	bloqueado_suspendido=list_create(); //faltaba crear
+
+	bloqueado_suspendido_ready=list_create();
 }
 
 void inicializar_semaforos() {
@@ -95,9 +99,20 @@ void iniciar_escucha_sabotaje(void){
 
 		tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 
+
+		sem_wait(mutex_new_ready);
+		new_ready_off = 1;
+		sem_post(mutex_new_ready);
+
+		sem_wait(mutex_ready_running);
+		ready_running_off = 1;
+		sem_post(mutex_ready_running);
+
 		sem_wait(mutex_rafaga);
-		dar_pulsos_off = 1;     //Quiero bloquear todos
+		dar_pulsos_off = 1;
 		sem_post(mutex_rafaga);
+
+
 
 		largo = list_size(lista_tripulantes);
 		for(int i=0;i<largo;i++){
@@ -105,38 +120,89 @@ void iniciar_escucha_sabotaje(void){
 			if(tripulante->estado == 'E'){
 				//sem_wait(tripulante->sem_tripu);
 				list_add_sorted(bloqueado_suspendido, (void*) tripulante,(void*)menorId);
+				//actualizar_estado(tripulante, 'B');
 			}
+
+
 		}
+
+
 
 		for(int i=0;i<largo;i++){
 			tripulante = list_get(lista_tripulantes,i);
 			if(tripulante->estado == 'R'){
 				list_add_sorted(bloqueado_suspendido_ready, (void*) tripulante,(void*)menorId);
+				//actualizar_estado(tripulante, 'B');
 			}
 		}
 
 		list_add_all(bloqueado_suspendido,bloqueado_suspendido_ready);
 
-		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
+		posicion_sabotaje=malloc(sizeof(posiciones)); //esto vas a pedir memoria cuando aceptas el mensaje no aca
 
-		tripulante_sabotaje* tripu_sabotaje = malloc(sizeof(tripulante_plani));
+		//TODO RESPUESTA de imongo
+		posicion_sabotaje->posicion_x=10;
+		posicion_sabotaje->posicion_y=10;
+
+		int largoa = list_size(bloqueado_suspendido);
+		printf("larrrgo %u",largoa);
+		fflush(stdout);
+
+
+		if(largoa){
+			tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
+			printf("el id mas cercano al sabotaje es %u",tripu_mas_cercano->id_tripulante );
+			fflush(stdout);
+		}else{
+			printf("no hay nadie en ready o exe");
+			fflush(stdout);
+		}
+
+
+		list_clean(bloqueado_suspendido);
+
+		//tripu_mas_cercano->tarea_sabotaje=
 
 
 
-		tripu_sabotaje->id_tripulante=tripu_mas_cercano->id_tripulante;
-		tripu_sabotaje->id_patota=tripu_mas_cercano->numero_patota;
+
+
+		sem_wait(mutex_new_ready);
+		new_ready_off = 0;
+		sem_post(mutex_new_ready);
+
+
+		sem_wait(mutex_ready_running);
+		ready_running_off = 0;
+		sem_post(mutex_ready_running);
+
+		sem_wait(mutex_rafaga);
+		dar_pulsos_off = 0;
+		sem_post(mutex_rafaga);
+
+		sem_post(planificacion_on);
+		sem_post(planificacion_on_ready_running);
+		sem_post(planificion_rafaga);
+
+
+
+
+	//	tripu_sabotaje->id_tripulante=tripu_mas_cercano->id_tripulante;
+	//	tripu_sabotaje->id_patota=tripu_mas_cercano->numero_patota;
 		//tripu_sabotaje->posicion_sabotaje=respuesta->posicion_sabotaje;
 	//	tripu_sabotaje->posicion_inicial=
 
-		tripu_mas_cercano->estado='E';
+	//	tripu_mas_cercano->estado='E';
 
-		//pthread_create(&hilo_tripulante_sabo,NULL,(void*)hilo_tripulante_sabotaje,tripu_sabotaje);
-		//pthread_detach(hilo_tripulante_sabo);
 
+	tripu_mas_cercano=NULL;
+	tripulante=NULL;
+	free(tripulante);
+	free(tripu_mas_cercano);
 		//FINAL
-		sem_wait(mutex_sabotaje);
-		valor_sabotaje=0;
-		sem_post(mutex_sabotaje);
+	//	sem_wait(mutex_sabotaje);
+	//	valor_sabotaje=0;
+	//	sem_post(mutex_sabotaje);
 	//}
 
 }
@@ -147,8 +213,10 @@ tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* t
 	//tenemos variable global q dice la posicion del sabotaje
 
 	posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
+	posicion_tripu1 = obtener_posiciones(tripulante1->id_tripulante, tripulante1->numero_patota);
 
 	posiciones* posicion_tripu2 = malloc(sizeof(posiciones));
+	posicion_tripu2 = obtener_posiciones(tripulante2->id_tripulante, tripulante2->numero_patota);
 
 	int32_t distancia1 = obtener_distancia(posicion_tripu1, posicion_sabotaje);
 	int32_t distancia2 = obtener_distancia(posicion_tripu2, posicion_sabotaje);
@@ -160,7 +228,7 @@ tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* t
 		return tripulante2;
 	}
 
-	obtener_distancia(posicion_tripu1, posicion_tripu2);
+	//obtener_distancia(posicion_tripu1, posicion_tripu2);
 
 	//aca esTA MAL
 
@@ -293,10 +361,10 @@ void obtener_orden_input(){
 			break;
 
 		case INICIAR_PATOTA:
-			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4 1|1 2|0
+			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
@@ -394,6 +462,8 @@ void obtener_orden_input(){
 						tripulante->numero_patota = respuesta_iniciar_patota->numero_de_patota; //esto lo devuelve mi ram
 						tripulante->estado = 'N';
 						tripulante->expulsado=0;
+						tripulante->elegido_sabotaje=0;
+
 
 						sem_t* sem_plani=malloc(sizeof(sem_t));
 						sem_init(sem_plani,0,0);
@@ -409,6 +479,14 @@ void obtener_orden_input(){
 						sem_init(mutex_estado_tripu, 0, 1);
 
 						tripulante->mutex_estado=mutex_estado_tripu;
+
+
+						sem_t* mutex_elegido_sabo=malloc(sizeof(sem_t));
+						sem_init(mutex_elegido_sabo, 0, 1);
+
+						tripulante->mutex_elegido=mutex_elegido_sabo;
+
+
 
 						pthread_create(&hilo_tripulante,NULL,(void*)tripulante_hilo,tripulante);
 						pthread_detach(hilo_tripulante);
@@ -469,6 +547,8 @@ void obtener_orden_input(){
 
 		case OBTENER_BITACORA:
 
+			iniciar_escucha_sabotaje();
+			/*
 			if(parser_consola[1] == NULL) {
 				log_error(logger, "Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.");
 				break;
@@ -486,7 +566,7 @@ void obtener_orden_input(){
 			}
 
 			enviar_mensaje(id_tripulante_x_bitacora, OBTENER_BITACORA, conexion_mongo_store);
-
+			*/
 			 /*
 			 * ACA TIENE QUE RECIBIR UN MENSAJE DE MONGO STORE PARA MOSTRAR LA BITACORA
 			 * 					O
@@ -495,8 +575,8 @@ void obtener_orden_input(){
 
 
 
-			free(id_tripulante_x_bitacora);
-			cerrar_conexion(logger,conexion_mongo_store);
+			//free(id_tripulante_x_bitacora);
+			//cerrar_conexion(logger,conexion_mongo_store);
 			break;
 
 		case EXPULSAR_TRIPULANTE:

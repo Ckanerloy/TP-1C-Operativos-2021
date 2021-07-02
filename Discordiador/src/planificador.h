@@ -102,7 +102,7 @@ bool esta_exec_o_block(void* tripulante);
 void poner_en_uno_semaforo(tripulante_plani* tripulante);
 
 
-//void hilo_tripulante_sabotaje(tripulante_plani* tripu);
+
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota);
 posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota);
 uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
