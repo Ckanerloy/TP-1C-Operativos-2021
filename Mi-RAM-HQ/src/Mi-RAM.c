@@ -8,15 +8,15 @@ int main(void) {
 
 	iniciar_variables_y_semaforos();
 
+	signal(SIGUSR1, iniciar_dump_memoria);
+
 	inicializar_memoria();
 	elegir_esquema_de_memoria(ESQUEMA_MEMORIA);
 	criterio_elegido = elegir_criterio_seleccion(CRITERIO_SELECCION);
 	algoritmo_elegido = elegir_algoritmo_reemplazo(ALGORITMO_REEMPLAZO);
 
 	iniciar_mapa();
-
-	iniciar_dump_memoria();
-
+	iniciar_archivo_dump();
 	iniciar_comunicacion();
 
 	return EXIT_SUCCESS;
@@ -71,9 +71,6 @@ void iniciar_mapa(void) {
 	//amongOs = nivel_crear("A-MongOs");
 }
 
-void iniciar_dump_memoria(void) {
-
-}
 
 void obtener_datos_de_config(t_config* config) {
 
@@ -569,4 +566,7 @@ uint32_t cantidad_tareas(char** parser_tarea) {
 	}
 	return cantidad;
 }
+
+
+
 
