@@ -481,13 +481,13 @@ uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_t
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
 	desplazamiento += sizeof(mensaje->id_tripulante);
 
-	// Cantidad de la tarea
-	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tarea->cantidad), sizeof(mensaje->tarea->cantidad));
-	desplazamiento += sizeof(mensaje->tarea->cantidad);
-
 	// Operacion de la tarea
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tarea->operacion), sizeof(mensaje->tarea->operacion));
 	desplazamiento += sizeof(mensaje->tarea->operacion);
+
+	// Cantidad de la tarea
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tarea->cantidad), sizeof(mensaje->tarea->cantidad));
+	desplazamiento += sizeof(mensaje->tarea->cantidad);
 
 	// Posicion X de la tarea
 	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tarea->posicion_x), sizeof(mensaje->tarea->posicion_x));
