@@ -409,6 +409,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				log_trace(logger, "SE RETORNARÁ LA PRÓXIMA TAREA A REALIZAR DE UN TRIPULANTE.");
 				tripulante_para_tarea = malloc(sizeof(t_tripulante));
 				respuesta_con_tarea_tripulante = malloc(sizeof(t_respuesta_tarea_tripulante));
+				respuesta_con_tarea_tripulante->tarea = malloc(sizeof(t_tarea));
 
 				recibir_mensaje(tripulante_para_tarea, operacion, conexion);
 
@@ -427,8 +428,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante(patota_buscada->segmentos, TAREAS, id_tarea_a_buscar_del_tripu);
 
-					respuesta_con_tarea_tripulante->tarea->cantidad = tarea_buscada->cantidad;
+					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
+					respuesta_con_tarea_tripulante->respuesta = 1;
 					respuesta_con_tarea_tripulante->tarea->operacion = tarea_buscada->operacion;
+					respuesta_con_tarea_tripulante->tarea->cantidad = tarea_buscada->cantidad;
 					respuesta_con_tarea_tripulante->tarea->posicion_x = tarea_buscada->posicion_x;
 					respuesta_con_tarea_tripulante->tarea->posicion_y = tarea_buscada->posicion_y;
 					respuesta_con_tarea_tripulante->tarea->tiempo = tarea_buscada->tiempo;
@@ -448,7 +451,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					log_error(logger, "No se puede guardar la estructura en Memoria");
 				}
 
-				log_info(logger, "Se enviará la tarea: %s que tendrá que ejecutar el Tripulante %u de la Patota %u.\n", respuesta_con_tarea_tripulante->tarea->operacion, respuesta_con_tarea_tripulante->id_tripulante, tripulante_para_tarea->id_patota);
+				log_info(logger, "Se envió la próxima tarea que tendrá que ejecutar el Tripulante %u de la Patota %u.\n", respuesta_con_tarea_tripulante->id_tripulante, tripulante_para_tarea->id_patota);
 
 				enviar_mensaje(respuesta_con_tarea_tripulante, RESPUESTA_NUEVA_TAREA, conexion);
 

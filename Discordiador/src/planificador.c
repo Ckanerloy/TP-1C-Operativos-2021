@@ -184,21 +184,11 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota){
 
-
-	t_tarea* tarea = malloc(sizeof(t_tarea));
-
-	tarea->operacion = GENERAR_OXIGENO;
-	tarea->cantidad = 5;
-	tarea->posicion_x = 4;
-	tarea->posicion_y = 4;
-	tarea->tiempo = 5;
-	return tarea;
-
-/*
 	uint32_t conexion_mi_ram;
 
 	t_tripulante* tripulante_consulta = malloc(sizeof(t_tripulante));
 	t_respuesta_tarea_tripulante* respuesta_tarea = malloc(sizeof(t_respuesta_tarea_tripulante));
+	respuesta_tarea->tarea = malloc(sizeof(t_tarea));
 
 	tripulante_consulta->id_patota = numero_patota;
 	tripulante_consulta->id_tripulante = id_tripulante;
@@ -233,15 +223,17 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 		abort();
 	}
 
+	t_tarea* tarea_buscada = respuesta_tarea->tarea;
+
 	close(conexion_mi_ram);
 
 	free(tripulante_consulta);
 	free(respuesta_tarea);
 
-	return respuesta_tarea->tarea;
-*/
-}
 
+	return tarea_buscada;
+
+}
 
 posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
 
@@ -629,7 +621,6 @@ void poner_en_uno_semaforo(tripulante_plani* tripulante){
 	sem_post(tripulante->sem_tripu);
 }
 
-// TODO segun esto, tripulante va a avanzar hasta que llegue a la tarea, esta bien esto?
 posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu){
 
 	while(posicion_tripu->posicion_x != posicion_tarea->posicion_x){
@@ -807,9 +798,10 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 
 	//preguntar si esta encargado, si esta la proximas seria tripu->tarea_a_realizar=tripu->tareasabotaje
 	//sino cargo la siguiente. En caso de haber arreglado un sabo, no tenes q pedir otra sino hacer la q tenes en tarea a realizar
-	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
-	tripu->tarea_a_realizar= NULL;
+	// Por esto capaz se ponia en NULL
+	//tripu->tarea_a_realizar = NULL;
 
 	if(tripu->tarea_a_realizar!=NULL){
 		block_ready(tripu);
@@ -859,7 +851,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 		}
 	}
 
-	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
 	tripu->tarea_a_realizar= NULL;
 
@@ -908,7 +900,7 @@ void descartar_basura(tripulante_plani* tripu) {
 		}
 	}
 
-	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
 	tripu->tarea_a_realizar= NULL;
 
@@ -950,7 +942,7 @@ void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado){
 			sem_post(mutex_expulsado);
 		}
 	}
-	//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->numero_patota);
+	tripu->tarea_a_realizar = obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
 	tripu->tarea_a_realizar= NULL;
 

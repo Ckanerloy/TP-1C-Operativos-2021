@@ -335,13 +335,22 @@ void guardar_tareas(t_list* tareas_de_la_patota) {
 	uint32_t cantidad_tareas = list_size(tareas_de_la_patota);
 
 	for(int i=0; i<cantidad_tareas; i++){
-		t_tarea* tarea_a_guardar = malloc(sizeof(t_tarea));
-		tarea_a_guardar = list_get(tareas_de_la_patota, i);
+		t_tarea* tarea_a_guardar = list_get(tareas_de_la_patota, i);
 
-		memcpy(memoria_principal + base_segmento, &(tarea_a_guardar), sizeof(t_tarea));
-		base_segmento += sizeof(t_tarea);
+		memcpy(memoria_principal + base_segmento, &(tarea_a_guardar->operacion), sizeof(tarea_a_guardar->operacion));
+		base_segmento += sizeof(tarea_a_guardar->operacion);
 
-		free(tarea_a_guardar);
+		memcpy(memoria_principal + base_segmento, &(tarea_a_guardar->cantidad), sizeof(tarea_a_guardar->cantidad));
+		base_segmento += sizeof(tarea_a_guardar->cantidad);
+
+		memcpy(memoria_principal + base_segmento, &(tarea_a_guardar->posicion_x), sizeof(tarea_a_guardar->posicion_x));
+		base_segmento += sizeof(tarea_a_guardar->posicion_x);
+
+		memcpy(memoria_principal + base_segmento, &(tarea_a_guardar->posicion_y), sizeof(tarea_a_guardar->posicion_y));
+		base_segmento += sizeof(tarea_a_guardar->posicion_y);
+
+		memcpy(memoria_principal + base_segmento, &(tarea_a_guardar->tiempo), sizeof(tarea_a_guardar->tiempo));
+		base_segmento += sizeof(tarea_a_guardar->tiempo);
 	}
 }
 
@@ -506,6 +515,8 @@ t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento ti
 }
 
 
+
+
 void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir)
 {
 	void* contenido;
@@ -553,31 +564,37 @@ t_pcb* encontrar_patota(t_segmento* segmento) {
 // TODO problemas al deserializar las tareas
 t_list* encontrar_tarea(t_segmento* segmento) {
 
+	t_list* tareas_totales = list_create();
 
-	// NO SIRVE DE ESTA MANERA
-
-	t_list* tareas_de_la_patota = list_create();
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
 
 	uint32_t cantidad_tareas = segmento->id_segmento;
 
 	for(int i=0; i<cantidad_tareas; i++){
+
 		t_tarea* tarea_a_sacar = malloc(sizeof(t_tarea));
-		memcpy(&(tarea_a_sacar), inicio + desplazamiento, sizeof(t_tarea));
-		desplazamiento += sizeof(t_tarea);
 
+		memcpy(&(tarea_a_sacar->operacion), inicio + desplazamiento, sizeof(tarea_a_sacar->operacion));
+		desplazamiento += sizeof(tarea_a_sacar->operacion);
 
+		memcpy(&(tarea_a_sacar->cantidad), inicio + desplazamiento, sizeof(tarea_a_sacar->cantidad));
+		desplazamiento += sizeof(tarea_a_sacar->cantidad);
 
-		list_add(tareas_de_la_patota, tarea_a_sacar);
-		free(tarea_a_sacar);
+		memcpy(&(tarea_a_sacar->posicion_x), inicio + desplazamiento, sizeof(tarea_a_sacar->posicion_x));
+		desplazamiento += sizeof(tarea_a_sacar->posicion_x);
+
+		memcpy(&(tarea_a_sacar->posicion_y), inicio + desplazamiento, sizeof(tarea_a_sacar->posicion_y));
+		desplazamiento += sizeof(tarea_a_sacar->posicion_y);
+
+		memcpy(&(tarea_a_sacar->tiempo), inicio + desplazamiento, sizeof(tarea_a_sacar->tiempo));
+		desplazamiento += sizeof(tarea_a_sacar->tiempo);
+
+		list_add_in_index(tareas_totales, i, tarea_a_sacar);
 	}
 
-	printf("Tamanio segmento = %u\n", sizeof(t_tarea) * segmento->id_segmento);
-	printf("desplazamiento = %u\n", desplazamiento);
-
 	if(segmento->tamanio_segmento == desplazamiento) {
-			return tareas_de_la_patota;
+			return tareas_totales;
 	}
 	else {
 		return NULL;
