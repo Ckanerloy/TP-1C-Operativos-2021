@@ -16,6 +16,7 @@ codigo_memoria mapeo_esquema_memoria(char* ESQUEMA)
 	return esquema_memoria;
 }
 
+
 // Elige el esquema de memoria a utilizar e inicializa la misma
 void elegir_esquema_de_memoria(char* ESQUEMA)
 {
@@ -28,10 +29,11 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 		case PAGINACION:
 
 			esquema_elegido = 'P';
-			tablas_paginas = list_create();
-			// Poner la cantidad de paginas, los frames, etc.
 			log_info(logger, "Las páginas tendran un tamaño de %u bytes cada una.\n", TAMANIO_PAGINA);
 			log_info(logger, "Se utilizará el algoritmo de %s para reemplazar las páginas.\n", ALGORITMO_REEMPLAZO);
+			tablas_paginas = list_create();
+			// Poner la cantidad de paginas, los frames, etc.
+
 			break;
 
 		case SEGMENTACION:
@@ -46,9 +48,12 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			break;
 
 		default:
+			log_error(logger, "No se eligió ningún esquema de memoria, por lo que no se puede seguir con el programa.");
+			abort();
 			break;
 	}
 }
+
 
 algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo){
 	algoritmo_reemplazo algoritmo_reemplazo;
@@ -76,6 +81,7 @@ criterio_seleccion elegir_criterio_seleccion(char* criterio){
 
 	return criterio_seleccionado;
 }
+
 
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 
@@ -159,7 +165,6 @@ t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_segmento) {
 	sem_post(crear_segmento_sem);
 
 	return segmento;
-
 }
 
 
@@ -196,6 +201,7 @@ void verificar_compactacion(void) {
 	}
 }
 
+
 void compactar(void) {
 
 	if(esquema_elegido == 'S') {
@@ -223,9 +229,6 @@ void compactar(void) {
 	}
 	else if(esquema_elegido == 'P') {
 		log_warning(logger, "Se ha elegido el esquema de Paginación. ¡Para Compactar hacelo en Segmentación!\n");
-	}
-	else {
-		log_error(logger, "No se eligió ningún esquema de memoria.\n");
 	}
 }
 
@@ -317,6 +320,7 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado)
 
 	return NULL;
 }
+
 
 bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado) {
 
@@ -477,7 +481,6 @@ void actualizar_segmento(void* estructura_actualizar, tipo_segmento tipo_segment
 		default:
 			break;
 	}
-
 	sem_post(crear_segmento_sem);
 }
 

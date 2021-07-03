@@ -431,6 +431,7 @@ void obtener_orden_input(){
 				}
 			}
 
+			cerrar_conexion(logger, conexion_mi_ram);
 
 			// Libero la memoria usada
 			fclose(archivo_tareas);
@@ -443,7 +444,6 @@ void obtener_orden_input(){
 			free(mensaje_patota->tareas_de_patota);
 			free(mensaje_patota->posiciones);
 			free(mensaje_patota);
-			cerrar_conexion(logger, conexion_mi_ram);
 			break;
 
 
@@ -493,10 +493,9 @@ void obtener_orden_input(){
 			 * MONGO STORE IMPRIME LA BITACORA
 			 */
 
-
+			cerrar_conexion(logger,conexion_mongo_store);
 
 			free(id_tripulante_x_bitacora);
-			cerrar_conexion(logger,conexion_mongo_store);
 			break;
 
 		case EXPULSAR_TRIPULANTE:
@@ -523,6 +522,8 @@ void obtener_orden_input(){
 			tripulante_a_expulsar = malloc(sizeof(tripulante_plani));
 
 			tripulante_a_expulsar = list_find(lista_tripulantes, (void*)mismo_id);
+
+			// TODO: verificar que el Tripulante no este en la cola de Terminated
 
 			if(tripulante_a_expulsar != NULL){
 
@@ -561,7 +562,7 @@ void obtener_orden_input(){
 						recibir_mensaje(respuesta_al_expulsar_tripulante, RESPUESTA_TRIPULANTE_ELIMINADO, conexion_mi_ram);
 
 						if(respuesta_al_expulsar_tripulante->respuesta != 1) {
-							log_error(logger, "No se pudo eliminar al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
+							log_error(logger, "No se pudo expulsar al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
 							abort();
 						}
 					log_info(logger, "Se expulsó al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
@@ -571,10 +572,11 @@ void obtener_orden_input(){
 						abort();
 					}
 
-				cerrar_conexion(logger,conexion_mi_ram);
 			}else {
 				log_error(logger, "No existe el tripulante que se desea eliminar");
 			}
+
+			cerrar_conexion(logger,conexion_mi_ram);
 
 			free(id_tripulante_a_expulsar);
 			free(respuesta_al_expulsar_tripulante);

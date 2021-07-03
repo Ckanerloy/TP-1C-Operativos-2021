@@ -72,6 +72,7 @@ void verificar_compactacion(void);
 void compactar(void);
 
 // Guardar en Memoria
+t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio);
 void guardar_patota(t_pcb* nueva_patota);
 void guardar_tareas(t_list* tareas_de_la_patota);
 void guardar_tripulante(t_tcb* nuevo_tripulante);
