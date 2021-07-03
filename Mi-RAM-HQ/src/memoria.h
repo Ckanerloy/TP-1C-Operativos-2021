@@ -31,19 +31,18 @@ typedef struct	tabla_segmentos_patota
 } t_tabla_segmentos_patota;
 
 
-
-
 // PAGINACION
 typedef struct pagina
 {
-	int32_t numero_de_marco;
+	int32_t numero_de_frame;
 	uint32_t numero_de_pagina;
-	int32_t ocupado;
+	estado estado_pagina;
 
 } t_pagina;
 
 typedef struct tabla_paginas_patota{
 	t_list* paginas;
+	//id patota
 
 }t_tabla_paginas_patota;
 

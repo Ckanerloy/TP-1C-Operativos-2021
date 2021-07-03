@@ -239,6 +239,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 
 					log_info(logger, "El tamaño de la memoria restante es de %i.\n", memoria_restante);
+					log_info(logger, "El tamaño de la memoria restante es de %i.\n", memoria_libre_por_segmento);
+					log_info(logger, "El tamaño de la memoria restante es de %i.\n", memoria_libre_total);
 
 					printf("Inicio de proximo segmento: %d \n", base_segmento);
 					printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
