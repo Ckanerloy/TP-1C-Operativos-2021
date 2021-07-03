@@ -12,7 +12,7 @@ int main(void) {
 	signal(SIGUSR1, iniciar_dump_memoria);
 
 	// Recibe la señal para compactar la memoria
-	signal(SIGUSR2, compactar);
+	signal(SIGUSR2, verificar_compactacion);
 
 	inicializar_memoria();
 	elegir_esquema_de_memoria(ESQUEMA_MEMORIA);

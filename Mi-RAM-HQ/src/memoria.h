@@ -68,6 +68,7 @@ t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
 t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_estructura);
 t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libre_segmento);
 void liberar_segmento(t_segmento* segmento_a_liberar) ;
+void verificar_compactacion(void);
 void compactar(void);
 
 // Guardar en Memoria
@@ -94,7 +95,10 @@ t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento ti
 int obtener_indice(t_list* lista, void* valor);
 t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado);
 t_list* segmentos_libres(void);
+t_list* segmentos_ocupados(void);
 bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado);
+bool menor_a_mayor_segun_inicio(void* segmento, void* segmento_siguiente);
+bool menor_a_mayor_segun_tamanio(void* segmento, void* segmento_siguiente);
 bool menor_a_mayor_por_segmento(void* segmento, void* segmento_siguiente);
 bool menor_a_mayor_por_pid(void* segmento, void* segmento_siguiente);
 

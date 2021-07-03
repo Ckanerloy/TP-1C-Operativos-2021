@@ -112,7 +112,7 @@ t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_se
 			return segmento_libre;
 		}
 	else {
-		//compactar();
+		verificar_compactacion();
 		return crear_segmento(estructura, tipo_segmento);
 	}
 }
@@ -186,15 +186,40 @@ t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libr
 }
 
 
+void verificar_compactacion(void) {
+
+	if(list_size(segmentos_libres()) > 0) {
+		compactar();
+	}
+	else {
+		log_error(logger, "No hay segmentos libres para poder compactar.\n");
+	}
+}
+
 void compactar(void) {
 
 	if(esquema_elegido == 'S') {
 		log_info(logger, "Inicio de rutina de compactación de memoria...\n");
-		// Puedo hacerlo
 
+		t_segmento* segmento;
+		uint32_t inicio = 0;
+		t_list* ocupados_ordenados = list_sorted(segmentos_ocupados(), menor_a_mayor_segun_inicio);
 
+		for(int i=0; i<list_size(ocupados_ordenados); i++){
+			segmento = (t_segmento*) list_get(ocupados_ordenados, i);
 
+			void* aux = malloc(segmento->tamanio_segmento);
+			memcpy(aux, memoria_principal + segmento->inicio, segmento->tamanio_segmento);
 
+			memcpy(memoria_principal + inicio, aux, segmento->tamanio_segmento);
+
+			//segmento->mensaje->stream = memoria_principal + inicio;//IMPORTANTISIMO
+			free(aux);
+
+			segmento->inicio = inicio;
+			inicio += segmento->tamanio_segmento;
+		}
+		log_info(logger, "Se compacta la memoria - particiones dinámicas.");
 	}
 	else if(esquema_elegido == 'P') {
 		log_warning(logger, "Se ha elegido el esquema de Paginación. ¡Para Compactar hacelo en Segmentación!\n");
@@ -233,8 +258,13 @@ bool menor_a_mayor_por_pid(void* segmento, void* segmento_siguiente) {
 }
 
 
-bool menor_a_mayor(t_segmento* segmento, t_segmento* segmento_siguiente) {
-	return (segmento->tamanio_segmento < segmento_siguiente->tamanio_segmento);
+bool menor_a_mayor_segun_inicio(void* segmento, void* segmento_siguiente) {
+	return ((t_segmento*)segmento)->inicio < ((t_segmento*)segmento_siguiente)->inicio;
+}
+
+
+bool menor_a_mayor_segun_tamanio(void* segmento, void* segmento_siguiente) {
+	return ((t_segmento*)segmento)->tamanio_segmento < ((t_segmento*)segmento_siguiente)->tamanio_segmento;
 }
 
 
@@ -243,9 +273,19 @@ bool esta_libre(void* segmento) {
 }
 
 
+bool esta_ocupado(void* segmento) {
+	return ((t_segmento*)segmento)->estado_segmento == OCUPADO;
+}
+
+
 t_list* segmentos_libres(void) {
 
 	return list_filter(segmentos, (void*) esta_libre);
+}
+
+
+t_list* segmentos_ocupados(void) {
+	return list_filter(segmentos, (void*) esta_ocupado);
 }
 
 
@@ -259,7 +299,7 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado)
 		if(list_size(segmentos_vacios) > 1){
 
 			t_list* segmentos_con_espacio = list_filter(segmentos_vacios, (void*)memoria_igual_o_mas_grande);
-			t_list* segmentos_con_espacio_ordenados = list_sorted(segmentos_con_espacio, (void*)menor_a_mayor);
+			t_list* segmentos_con_espacio_ordenados = list_sorted(segmentos_con_espacio, (void*)menor_a_mayor_segun_tamanio);
 
 			t_segmento* mejor_segmento = (t_segmento*) list_get(segmentos_con_espacio_ordenados, 0);
 
