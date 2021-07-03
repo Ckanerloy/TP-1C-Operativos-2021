@@ -29,7 +29,6 @@ void iniciar_dump_memoria(void);
 void registrar_dump_segmentacion(void);
 void registrar_dump_paginacion(void);
 
-
 void escribir_en_archivo(char* buffer);
 
 #endif /* DUMP_MEMORIA_H_ */

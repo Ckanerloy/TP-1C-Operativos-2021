@@ -275,13 +275,13 @@ void deserializar_respuesta_nueva_tarea(t_respuesta_tarea_tripulante* mensaje, i
 	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
 	desplazamiento += sizeof(mensaje->id_tripulante);
 
-	// Cantidad de la tarea
-	memcpy(&(mensaje->tarea->cantidad), buffer_deserializar + desplazamiento, sizeof(mensaje->tarea->cantidad));
-	desplazamiento += sizeof(mensaje->tarea->cantidad);
-
 	// Operacion de la tarea
 	memcpy(&(mensaje->tarea->operacion), buffer_deserializar + desplazamiento, sizeof(mensaje->tarea->operacion));
 	desplazamiento += sizeof(mensaje->tarea->operacion);
+
+	// Cantidad de la tarea
+	memcpy(&(mensaje->tarea->cantidad), buffer_deserializar + desplazamiento, sizeof(mensaje->tarea->cantidad));
+	desplazamiento += sizeof(mensaje->tarea->cantidad);
 
 	// Posicion X de la tarea
 	memcpy(&(mensaje->tarea->posicion_x), buffer_deserializar + desplazamiento, sizeof(mensaje->tarea->posicion_x));

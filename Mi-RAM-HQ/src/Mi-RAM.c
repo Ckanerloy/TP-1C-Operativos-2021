@@ -427,13 +427,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
-					respuesta_con_tarea_tripulante->tarea->operacion = tarea_buscada->operacion;
-					respuesta_con_tarea_tripulante->tarea->cantidad = tarea_buscada->cantidad;
-					respuesta_con_tarea_tripulante->tarea->posicion_x = tarea_buscada->posicion_x;
-					respuesta_con_tarea_tripulante->tarea->posicion_y = tarea_buscada->posicion_y;
-					respuesta_con_tarea_tripulante->tarea->tiempo = tarea_buscada->tiempo;
-
-					tripulante_con_tarea->id_tarea_a_realizar++;
+					if(tarea_buscada != NULL) {
+						respuesta_con_tarea_tripulante->tarea->operacion = tarea_buscada->operacion;
+						respuesta_con_tarea_tripulante->tarea->cantidad = tarea_buscada->cantidad;
+						respuesta_con_tarea_tripulante->tarea->posicion_x = tarea_buscada->posicion_x;
+						respuesta_con_tarea_tripulante->tarea->posicion_y = tarea_buscada->posicion_y;
+						respuesta_con_tarea_tripulante->tarea->tiempo = tarea_buscada->tiempo;
+						tripulante_con_tarea->id_tarea_a_realizar++;
+					}
+					else {
+						// TAREA_VACIA = 6
+						respuesta_con_tarea_tripulante->tarea->operacion = 6;
+						respuesta_con_tarea_tripulante->tarea->cantidad = 0;
+						respuesta_con_tarea_tripulante->tarea->posicion_x = 0;
+						respuesta_con_tarea_tripulante->tarea->posicion_y = 0;
+						respuesta_con_tarea_tripulante->tarea->tiempo = 0;
+					}
 
 					actualizar_segmento(tripulante_con_tarea, TRIPULANTE, segmento_buscado);
 

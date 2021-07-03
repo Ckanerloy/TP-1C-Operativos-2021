@@ -183,7 +183,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota){
-
+/*
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 
 	tarea->operacion = GENERAR_OXIGENO;
@@ -192,7 +192,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 	tarea->posicion_y = 4;
 	tarea->tiempo = 5;
 	return tarea;
-	/*
+	*/
 	uint32_t conexion_mi_ram;
 
 	t_tripulante* tripulante_consulta = malloc(sizeof(t_tripulante));
@@ -239,9 +239,13 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 	free(tripulante_consulta);
 	free(respuesta_tarea);
 
-
-	return tarea_buscada;
-*/
+	if(tarea_buscada->operacion == 6) {
+		free(tarea_buscada);
+		return NULL;
+	}
+	else {
+		return tarea_buscada;
+	}
 }
 
 posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
@@ -862,7 +866,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 
 	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
-	tripu->tarea_a_realizar= NULL;
+	//tripu->tarea_a_realizar= NULL;
 
 	if(tripu->tarea_a_realizar!=NULL){
 		block_ready(tripu);
@@ -911,7 +915,7 @@ void descartar_basura(tripulante_plani* tripu) {
 
 	tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
-	tripu->tarea_a_realizar= NULL;
+	//tripu->tarea_a_realizar= NULL;
 
 	if(tripu->tarea_a_realizar!=NULL){
 		block_ready(tripu);
@@ -953,7 +957,7 @@ void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado){
 	}
 	tripu->tarea_a_realizar = obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 
-	tripu->tarea_a_realizar= NULL;
+	//tripu->tarea_a_realizar= NULL;
 
 	if(tripu->tarea_a_realizar!=NULL){
 		running_ready(tripu);

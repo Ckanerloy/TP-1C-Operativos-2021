@@ -485,7 +485,7 @@ t_segmento* buscar_por_id(t_list* segmentos, tipo_segmento tipo_de_segmento, uin
 	return segmento_buscado;
 }
 
-
+// TODO cuando termina de dar todas las tareas, retornar NULL
 t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t id_proxima_tarea_del_tripu) {
 
 	bool misma_tarea(void* segmento) {
@@ -496,9 +496,13 @@ t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento ti
 
 	t_list* tareas_de_la_patota = obtener_contenido_de_segmento(segmento_tareas);
 
-	t_tarea* tarea_buscada = list_get(tareas_de_la_patota, id_proxima_tarea_del_tripu);
-
-	return tarea_buscada;
+	if(list_size(tareas_de_la_patota)-1 < id_proxima_tarea_del_tripu) {
+		return NULL;
+	}
+	else{
+		t_tarea* tarea_buscada = list_get(tareas_de_la_patota, id_proxima_tarea_del_tripu);
+		return tarea_buscada;
+	}
 }
 
 

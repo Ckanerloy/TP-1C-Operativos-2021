@@ -19,7 +19,7 @@ typedef enum
 	CONSUMIR_COMIDA,
 	GENERAR_BASURA,
 	DESCARTAR_BASURA,
-	MOVERSE
+	TAREA_VACIA
 } codigo_tarea;
 
 

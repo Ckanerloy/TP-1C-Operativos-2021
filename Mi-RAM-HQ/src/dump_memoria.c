@@ -19,8 +19,6 @@ void iniciar_archivo_dump(void) {
 
 void iniciar_dump_memoria(void) {
 
-	//iniciar_archivo_dump();
-
 	log_info(logger, "Se solicitó dump de memoria.");
 
 	FILE* archivo = fopen(dump_memoria->path_dump, "w");
@@ -67,7 +65,6 @@ void registrar_dump_segmentacion(void) {
 
 			char* buffer = string_new();
 			string_append_with_format(&buffer, "Proceso: %u     ", patota_a_mostrar->patota->pid);
-			//string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);
 			string_append_with_format(&buffer, "Segmento: %u     ", j+1);
 			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio + segmento_a_mostrar->tamanio_segmento);
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
@@ -83,10 +80,30 @@ void registrar_dump_segmentacion(void) {
 
 void registrar_dump_paginacion(void) {
 
+	/*
+	 * Estructuras donde guardo la lista de paginas
+	 */
+	/*
+	for(int i=0; i<list_size(LISTA DE PAGINAS); i++) {
+
+		char* buffer = string_new();
+		string_append_with_format(&buffer, "Marco: %u     ", pagina_a_mostrar->frame);
+
+		if(pagina_a_mostrar->estado == OCUPADO) {
+			string_append_with_format(&buffer, "Estado: Ocupado     ");
+			string_append_with_format(&buffer, "Proceso: %u     ", patota_a_mostrar->patota->pid);
+			string_append_with_format(&buffer, "Pagina: %u\n", pagina_a_mostrar->numero_pagina);
+		}
+		else if (pagina_a_mostrar->estado == LIBRE){
+			string_append_with_format(&buffer, "Estado: Libre     ");
+			string_append_with_format(&buffer, "Proceso: -     ");
+			string_append_with_format(&buffer, "Pagina: -\n");
+		}
+		else {
+		}
+		escribir_en_archivo(buffer);
+	}*/
 }
-
-
-
 
 
 void escribir_en_archivo(char* buffer){
