@@ -8,7 +8,11 @@ int main(void) {
 
 	iniciar_variables_y_semaforos();
 
+	// Recibe la señal para hacer el Dump de Memoria
 	signal(SIGUSR1, iniciar_dump_memoria);
+
+	// Recibe la señal para compactar la memoria
+	signal(SIGUSR2, compactar);
 
 	inicializar_memoria();
 	elegir_esquema_de_memoria(ESQUEMA_MEMORIA);
@@ -436,8 +440,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						tripulante_con_tarea->id_tarea_a_realizar++;
 					}
 					else {
-						// TAREA_VACIA = 6
-						respuesta_con_tarea_tripulante->tarea->operacion = 6;
+						respuesta_con_tarea_tripulante->tarea->operacion = TAREA_VACIA;
 						respuesta_con_tarea_tripulante->tarea->cantidad = 0;
 						respuesta_con_tarea_tripulante->tarea->posicion_x = 0;
 						respuesta_con_tarea_tripulante->tarea->posicion_y = 0;

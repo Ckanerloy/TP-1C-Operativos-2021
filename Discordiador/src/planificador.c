@@ -239,7 +239,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 	free(tripulante_consulta);
 	free(respuesta_tarea);
 
-	if(tarea_buscada->operacion == 6) {
+	if(tarea_buscada->operacion == TAREA_VACIA) {
 		free(tarea_buscada);
 		return NULL;
 	}
