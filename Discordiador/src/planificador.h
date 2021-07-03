@@ -47,7 +47,7 @@ t_list* tripulantes_exec_block;
 sem_t* mutex_ready;
 sem_t* mutex_exit;
 sem_t* mutex_new;
-sem_t* mutex_expulsado;
+//sem_t* mutex_expulsado;
 sem_t* mutex_ready_running;
 sem_t* mutex_new_ready;
 sem_t* mutex_rafaga;

@@ -99,7 +99,7 @@ void iniciar_escucha_sabotaje(void){
 
 		tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 
-
+		//Para parar los hilos de planificacion
 		sem_wait(mutex_new_ready);
 		new_ready_off = 1;
 		sem_post(mutex_new_ready);
@@ -118,21 +118,18 @@ void iniciar_escucha_sabotaje(void){
 		for(int i=0;i<largo;i++){
 			tripulante = list_get(lista_tripulantes,i);
 			if(tripulante->estado == 'E'){
-				//sem_wait(tripulante->sem_tripu);
+				tripulante->estado_anterior = 'E';
 				list_add_sorted(bloqueado_suspendido, (void*) tripulante,(void*)menorId);
-				//actualizar_estado(tripulante, 'B');
+				actualizar_estado(tripulante, 'S');
 			}
-
-
 		}
-
-
 
 		for(int i=0;i<largo;i++){
 			tripulante = list_get(lista_tripulantes,i);
 			if(tripulante->estado == 'R'){
+				tripulante->estado_anterior = 'R';
 				list_add_sorted(bloqueado_suspendido_ready, (void*) tripulante,(void*)menorId);
-				//actualizar_estado(tripulante, 'B');
+				actualizar_estado(tripulante, 'S');
 			}
 		}
 
@@ -144,12 +141,12 @@ void iniciar_escucha_sabotaje(void){
 		posicion_sabotaje->posicion_x=10;
 		posicion_sabotaje->posicion_y=10;
 
-		int largoa = list_size(bloqueado_suspendido);
-		printf("larrrgo %u",largoa);
+		int largo_block_suspend = list_size(bloqueado_suspendido);
+		printf("larrrgo %u",largo_block_suspend);
 		fflush(stdout);
 
 
-		if(largoa){
+		if(largo_block_suspend){
 			tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 			printf("el id mas cercano al sabotaje es %u",tripu_mas_cercano->id_tripulante );
 			fflush(stdout);
@@ -161,16 +158,10 @@ void iniciar_escucha_sabotaje(void){
 
 		list_clean(bloqueado_suspendido);
 
-		//tripu_mas_cercano->tarea_sabotaje=
-
-
-
-
-
+		//Vuelve a activar los hilos de planificacion
 		sem_wait(mutex_new_ready);
 		new_ready_off = 0;
 		sem_post(mutex_new_ready);
-
 
 		sem_wait(mutex_ready_running);
 		ready_running_off = 0;
@@ -184,13 +175,6 @@ void iniciar_escucha_sabotaje(void){
 		sem_post(planificacion_on_ready_running);
 		sem_post(planificion_rafaga);
 
-
-
-
-	//	tripu_sabotaje->id_tripulante=tripu_mas_cercano->id_tripulante;
-	//	tripu_sabotaje->id_patota=tripu_mas_cercano->numero_patota;
-		//tripu_sabotaje->posicion_sabotaje=respuesta->posicion_sabotaje;
-	//	tripu_sabotaje->posicion_inicial=
 
 	//	tripu_mas_cercano->estado='E';
 
@@ -279,7 +263,7 @@ void obtener_orden_input(){
 
 	 printf("Inserte orden:\n");
 
-	 getline(&cadena_ingresada, &longitud, stdin);
+	 getline(&cadena_ingresada, &longitud, stdin);  //Bloqueante por eso no consume el 100%
 
 	 string_trim(&cadena_ingresada);
 
@@ -486,7 +470,10 @@ void obtener_orden_input(){
 
 						tripulante->mutex_elegido=mutex_elegido_sabo;
 
+						sem_t* mutex_tripu_expulsado=malloc(sizeof(sem_t));
+						sem_init(mutex_tripu_expulsado, 0, 1);
 
+						tripulante->mutex_expulsado=mutex_tripu_expulsado;
 
 						pthread_create(&hilo_tripulante,NULL,(void*)tripulante_hilo,tripulante);
 						pthread_detach(hilo_tripulante);

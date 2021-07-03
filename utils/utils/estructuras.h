@@ -106,6 +106,7 @@ typedef struct {
 	uint32_t id_tripulante;
 	uint32_t numero_patota;
 	char estado;
+	char estado_anterior;
 
 	t_tarea* tarea_a_realizar;
 
@@ -119,6 +120,8 @@ typedef struct {
 	sem_t* sem_planificacion;
 
 	sem_t* mutex_estado;
+
+	sem_t* mutex_expulsado;
 } tripulante_plani;
 
 
