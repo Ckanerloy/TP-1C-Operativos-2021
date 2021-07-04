@@ -42,6 +42,7 @@ void iniciar_variables_y_semaforos(void) {
 	sem_init(crear_segmento_sem, 0, 0);
 }
 
+
 void inicializar_memoria(void) {
 	log_info(logger, "Se utilizará %s como esquema de memoria.\n", ESQUEMA_MEMORIA);
 
@@ -56,17 +57,8 @@ void inicializar_memoria(void) {
 		sleep(1);
 		abort();
 	}
-
-	area_swap = malloc(TAMANIO_SWAP);
-	if(area_swap != NULL){
-		log_info(logger, "Se inició el Área de Swap con un tamaño de %u bytes.\n", TAMANIO_SWAP);
-	}
-	else{
-		log_error(logger, "Error al iniciar el Area de Swap.\n");
-		sleep(1);
-		abort();
-	}
 }
+
 
 void iniciar_mapa(void) {
 
@@ -518,8 +510,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				free(crear_segmento_sem);
 				free(memoria_principal);
 				printf("Memoria Principal liberada...\n");
-				free(area_swap);
-				printf("Area de Swap liberada...\n\n");
+
+				if(esquema_elegido == 'P') {
+					free(area_swap);
+					printf("Area de Swap liberada...\n\n");
+				}
+
 				log_info(logger, "Se ha cerrado el programa de forma exitosa.\n");
 				terminar_programa(config, logger);
 				exit(0);
@@ -528,12 +524,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				log_warning(logger, "Operacion desconocida. No quieras meter la pata");
 				break;
 			}
-}
-
-
-bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
-	int32_t restante = memoria_libre_total - tamanio;
-	return (restante >= 0);
 }
 
 
@@ -573,4 +563,95 @@ void chequear_memoria(void) {
 	log_info(logger, "La memoria restante es de %i.", memoria_restante);
 	log_info(logger, "La memoria libre por segmento es de %i.", memoria_libre_por_segmento);
 	log_info(logger, "La memoria libre total es de %i.\n", memoria_libre_total);
+}
+
+
+codigo_memoria mapeo_esquema_memoria(char* ESQUEMA)
+{
+	codigo_memoria esquema_memoria;
+
+	if(strcmp(ESQUEMA, "PAGINACION") == 0) {
+		esquema_memoria = PAGINACION;
+	}
+
+	if(strcmp(ESQUEMA, "SEGMENTACION") == 0) {
+		esquema_memoria = SEGMENTACION;
+	}
+
+	return esquema_memoria;
+}
+
+
+// Elige el esquema de memoria a utilizar e inicializa la misma
+void elegir_esquema_de_memoria(char* ESQUEMA)
+{
+	codigo_memoria cod_mem;
+
+	cod_mem = mapeo_esquema_memoria(ESQUEMA);
+
+	switch(cod_mem) {
+
+		case PAGINACION:
+
+			esquema_elegido = 'P';
+			tablas_paginas = list_create();
+
+			log_info(logger, "Las páginas tendran un tamaño de %u bytes cada una.\n", TAMANIO_PAGINA);
+			log_info(logger, "Se utilizará el algoritmo de %s para reemplazar las páginas.\n", ALGORITMO_REEMPLAZO);
+			tablas_paginas = list_create();
+			inicializar_swap();
+			// Poner la cantidad de paginas, los frames, etc.
+
+			break;
+
+		case SEGMENTACION:
+
+			esquema_elegido = 'S';
+			log_info(logger, "Se utilizará el criterio de %s para colocar el segmento en memoria.\n", CRITERIO_SELECCION);
+			tablas_segmentos = list_create();
+			segmentos = list_create();
+			memoria_libre_por_segmento = 0;
+			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
+
+			break;
+
+		default:
+			log_error(logger, "No se eligió ningún esquema de memoria, por lo que no se puede seguir con el programa.");
+			abort();
+			break;
+	}
+}
+
+
+bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
+	int32_t restante = memoria_libre_total - tamanio;
+	return (restante >= 0);
+}
+
+
+algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo){
+	algoritmo_reemplazo algoritmo_reemplazo;
+
+	if(strcmp(algoritmo, "LRU") == 0) {
+		algoritmo_reemplazo = LRU;
+	}
+	if(strcmp(algoritmo, "CLOCK") == 0) {
+		algoritmo_reemplazo = CLOCK;
+	}
+
+	return algoritmo_reemplazo;
+}
+
+
+criterio_seleccion elegir_criterio_seleccion(char* criterio){
+	criterio_seleccion criterio_seleccionado;
+
+	if(strcmp(criterio, "BEST_FIT") == 0 || strcmp(criterio, "BF") == 0) {
+		criterio_seleccionado = BEST_FIT;
+	}
+	if(strcmp(criterio, "FIRST_FIT") == 0 || strcmp(criterio, "FF") == 0) {
+		criterio_seleccionado = FIRST_FIT;
+	}
+
+	return criterio_seleccionado;
 }

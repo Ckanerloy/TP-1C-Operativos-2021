@@ -10,7 +10,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <commons/collections/queue.h>
-#include "memoria.h"
+
+#include "segmentacion.h"
 
 
 // Dump

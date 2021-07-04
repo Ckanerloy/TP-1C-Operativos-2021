@@ -14,8 +14,9 @@
 #include "utils/loader.h"
 #include "utils/estructuras.h"
 #include "utils/tareas.h"
-#include "memoria.h"
 #include "dump_memoria.h"
+#include "segmentacion.h"
+#include "paginacion.h"
 
 #define IP "127.0.0.1"
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mi-RAM-HQ/Mi-RAM.config"
@@ -35,7 +36,6 @@ char* ALGORITMO_REEMPLAZO;
 char* CRITERIO_SELECCION;
 
 void* memoria_principal;
-void* area_swap;
 
 // Elección de algoritmos
 char esquema_elegido;
@@ -74,6 +74,11 @@ pthread_t hilo_actualizar_estado;
 t_list* ids;
 char** parser_posiciones;
 
+
+// Eleccion de algoritmos para la memoria
+void elegir_esquema_de_memoria(char* ESQUEMA);
+criterio_seleccion elegir_criterio_seleccion(char* criterio);
+algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo);
 
 // Inicio de Mi-RAM HQ
 void obtener_datos_de_config(t_config* config);

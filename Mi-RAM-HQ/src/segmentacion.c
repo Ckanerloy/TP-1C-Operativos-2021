@@ -1,88 +1,6 @@
-#include "memoria.h"
+#include "segmentacion.h"
 
 
-codigo_memoria mapeo_esquema_memoria(char* ESQUEMA)
-{
-	codigo_memoria esquema_memoria;
-
-	if(strcmp(ESQUEMA, "PAGINACION") == 0) {
-		esquema_memoria = PAGINACION;
-	}
-
-	if(strcmp(ESQUEMA, "SEGMENTACION") == 0) {
-		esquema_memoria = SEGMENTACION;
-	}
-
-	return esquema_memoria;
-}
-
-
-// Elige el esquema de memoria a utilizar e inicializa la misma
-void elegir_esquema_de_memoria(char* ESQUEMA)
-{
-	codigo_memoria cod_mem;
-
-	cod_mem = mapeo_esquema_memoria(ESQUEMA);
-
-	switch(cod_mem) {
-
-		case PAGINACION:
-
-			esquema_elegido = 'P';
-			tablas_paginas = list_create();
-
-			log_info(logger, "Las páginas tendran un tamaño de %u bytes cada una.\n", TAMANIO_PAGINA);
-			log_info(logger, "Se utilizará el algoritmo de %s para reemplazar las páginas.\n", ALGORITMO_REEMPLAZO);
-			tablas_paginas = list_create();
-			// Poner la cantidad de paginas, los frames, etc.
-
-			break;
-
-		case SEGMENTACION:
-
-			esquema_elegido = 'S';
-			log_info(logger, "Se utilizará el criterio de %s para colocar el segmento en memoria.\n", CRITERIO_SELECCION);
-			tablas_segmentos = list_create();
-			segmentos = list_create();
-			memoria_libre_por_segmento = 0;
-			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
-
-			break;
-
-		default:
-			log_error(logger, "No se eligió ningún esquema de memoria, por lo que no se puede seguir con el programa.");
-			abort();
-			break;
-	}
-}
-
-
-algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo){
-	algoritmo_reemplazo algoritmo_reemplazo;
-
-	if(strcmp(algoritmo, "LRU") == 0) {
-		algoritmo_reemplazo = LRU;
-	}
-	if(strcmp(algoritmo, "CLOCK") == 0) {
-		algoritmo_reemplazo = CLOCK;
-	}
-
-	return algoritmo_reemplazo;
-}
-
-
-criterio_seleccion elegir_criterio_seleccion(char* criterio){
-	criterio_seleccion criterio_seleccionado;
-
-	if(strcmp(criterio, "BEST_FIT") == 0) {
-		criterio_seleccionado = BEST_FIT;
-	}
-	if(strcmp(criterio, "FIRST_FIT") == 0) {
-		criterio_seleccionado = FIRST_FIT;
-	}
-
-	return criterio_seleccionado;
-}
 
 
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
@@ -211,9 +129,30 @@ t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libr
 	return segmento;
 }
 
+
+void generar_segmento_libre(uint32_t inicio, uint32_t tamanio) {
+
+	t_segmento* nuevo_segmento = malloc(sizeof(t_segmento));
+
+	nuevo_segmento->inicio = inicio;
+	nuevo_segmento->tamanio_segmento = tamanio;
+	nuevo_segmento->estado_segmento = LIBRE;
+	nuevo_segmento->id_segmento = 0;
+	nuevo_segmento->numero_de_segmento = contador_segmento;
+	nuevo_segmento->tipo_segmento = VACIO;
+
+
+	for(int i=0; i<list_size(segmentos_libres()); i++) {
+		list_remove_and_destroy_element(segmentos_libres(), i, free);
+	}
+	list_add(segmentos, nuevo_segmento);
+}
+
+
 void verificar_compactacion(void) {
 
-	if(memoria_libre_total > 0) {
+	//if(memoria_libre_total > 0) {
+	if(segmentos_libres() > 0) {
 		compactar();
 	}
 	else {
@@ -221,20 +160,73 @@ void verificar_compactacion(void) {
 	}
 }
 
+
+/*
+void compactar(void) {
+	*
+	 *  ORDENO LOS SEGMENTOS DE MENOR A MAYOR SEGUN EL INICIO (OFFSET)
+	 *  OBTENGO UN SEGMENTO SEGUN EL INDICE
+	 *  VERIFICO: SI ESTA LIBRE -> LO GUARDO EN UNA AUXILIAR Y GUARDO EL INICIO DE ESE SEGMENTO EN UNA VARIABLE
+	 *  		  SI ESTA OCUPADO -> CAMBIO EL INICIO DE ESTE SEGMENTO AL INICIO GUARDADO EN LA VARIABLE AUXILIAR
+	 *  		  					- TAMBIEN SE CAMBIA TODO EL CONTENIDO DEL SEGMENTO (ACTUALIZAR SEGMENTO)
+	 * 	UNA VEZ QUE TERMINA DE LEER LA LISTA (POR LA CANTIDAD DE ELEMENTOS), CREA UN SEGMENTO LIBRE
+	 * 				- QUE ES LA SUMA DE TODOS LOS SEGMENTOS LIBRES QUE SE FUERON ARCHIVANDO EN AUX
+	 * 	Y SE AGREGA A LA LISTA DE SEGMENTOS
+	 *
+
+
+	if(esquema_elegido == 'S') {
+		printf("VAMO A COMPACTAR\n");
+		log_info(logger, "Inicio de rutina de compactación de memoria...\n");
+		uint32_t inicio = 0;
+		t_list* segmentos_libres = list_create();
+
+		list_sort(segmentos, menor_a_mayor_segun_inicio);
+
+		for(int i=0; i<list_size(segmentos); i++) {
+
+			t_segmento* segmento_obtenido = list_get(segmentos, i);
+
+			if(esta_libre(segmento_obtenido)) {
+
+				inicio = segmento_obtenido->inicio;
+
+			}
+
+
+
+
+
+		}
+
+
+
+	}
+	else if(esquema_elegido == 'P') {
+		log_warning(logger, "Se ha elegido el esquema de Paginación. ¡Para Compactar hacelo en Segmentación!\n");
+	}
+}*/
+
+
+
 void compactar(void) {
 
 	if(esquema_elegido == 'S') {
-		printf("VAMO A COMPACTAR");
+		printf("VAMO A COMPACTAR\n");
 		log_info(logger, "Inicio de rutina de compactación de memoria...\n");
 
 		t_segmento* segmento;
 		uint32_t inicio = 0;
+		//t_list* ocupados_ordenados = list_sorted(segmentos_ocupados(), menor_a_mayor_segun_inicio);
 		t_list* ocupados_ordenados = list_sorted(segmentos_ocupados(), menor_a_mayor_segun_inicio);
 
+
 		for(int i=0; i<list_size(ocupados_ordenados); i++){
+
 			segmento = (t_segmento*) list_get(ocupados_ordenados, i);
 
 			void* aux = malloc(segmento->tamanio_segmento);
+
 			memcpy(aux, memoria_principal + segmento->inicio, segmento->tamanio_segmento);
 
 			memcpy(memoria_principal + inicio, aux, segmento->tamanio_segmento);
@@ -249,12 +241,13 @@ void compactar(void) {
 
 		list_clean_and_destroy_elements(segmentos_libres(), free);
 
-		t_segmento* segmento_compactado = crear_segmento_libre(inicio, memoria_libre_total);
+		//t_segmento* segmento_compactado = crear_segmento_libre(inicio, memoria_libre_total);
+		generar_segmento_libre(inicio, memoria_libre_total);
 		memoria_libre_por_segmento = memoria_libre_total; //toda la memoria libre esta dentro de un segmento gigante
 		memoria_restante = 0; // la memoria suelta queda en cero por que esta toda en la memoria libre por segmento
 
-		log_info(logger, "Se compacta la memoria - particiones dinámicas.");
-		list_add(segmentos, segmento_compactado);
+		log_info(logger, "Se compactó la memoria.\n");
+		//list_add(segmentos, segmento_compactado);
 	}
 	else if(esquema_elegido == 'P') {
 		log_warning(logger, "Se ha elegido el esquema de Paginación. ¡Para Compactar hacelo en Segmentación!\n");

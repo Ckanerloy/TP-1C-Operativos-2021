@@ -1,13 +1,12 @@
-#ifndef MEMORIA_H_
-#define MEMORIA_H_
+#ifndef SEGMENTACION_H_
+#define SEGMENTACION_H_
 
 #include "Mi-RAM.h"
 #include "utils/estructuras.h"
 
 
 
-// Estructuras para Mi RAM HQ
-// SEGMENTACION
+
 typedef struct segmento {
 	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento
 	uint32_t inicio;					// Direccion fisica de donde empieza el segmento
@@ -31,36 +30,13 @@ typedef struct	tabla_segmentos_patota
 } t_tabla_segmentos_patota;
 
 
-// PAGINACION
-typedef struct pagina
-{
-	int32_t numero_de_frame;
-	uint32_t numero_de_pagina;
-	estado estado_pagina;
-
-} t_pagina;
-
-typedef struct tabla_paginas_patota{
-	t_list* paginas;
-	//id patota
-
-}t_tabla_paginas_patota;
-
-
-// Segmentacion
 t_list* tablas_segmentos;
 t_list* segmentos;
 
-// Paginacion
-t_list* tablas_paginas;
 
 
+void generar_segmento_libre(uint32_t inicio, uint32_t tamanio);
 
-
-// Eleccion de algoritmos para la memoria
-void elegir_esquema_de_memoria(char* ESQUEMA);
-criterio_seleccion elegir_criterio_seleccion(char* criterio);
-algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo);
 
 // Inicio en Segmentación
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
@@ -103,4 +79,4 @@ bool menor_a_mayor_por_segmento(void* segmento, void* segmento_siguiente);
 bool menor_a_mayor_por_pid(void* segmento, void* segmento_siguiente);
 
 
-#endif /* MEMORIA_H_ */
+#endif /* SEGMENTACION_H_ */
