@@ -254,7 +254,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}*/
 				}
 
-				cerrar_conexion(logger, conexion);
+				//cerrar_conexion(logger, conexion);
 
 				free(ids_enviar);
 				free(parser_tarea);
@@ -309,7 +309,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_ok_ubicacion, RESPUESTA_OK_UBICACION, conexion);
 
-				cerrar_conexion(logger, conexion);
+				//cerrar_conexion(logger, conexion);
 
 				free(tripulante_por_ubicacion);
 				free(respuesta_ok_ubicacion);
@@ -346,7 +346,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_con_ubicacion, RESPUESTA_NUEVA_UBICACION, conexion);
 
-				cerrar_conexion(logger, conexion);
+				//cerrar_conexion(logger, conexion);
 
 				free(tripulante_para_ubicacion);
 				free(respuesta_con_ubicacion);
@@ -395,7 +395,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_por_estado, RESPUESTA_OK_ESTADO, conexion);
 
-				cerrar_conexion(logger, conexion);
+				//cerrar_conexion(logger, conexion);
 
 				free(respuesta_por_estado);
 				break;
@@ -424,6 +424,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
+
 					if(tarea_buscada != NULL) {
 						respuesta_con_tarea_tripulante->tarea->operacion = tarea_buscada->operacion;
 						respuesta_con_tarea_tripulante->tarea->cantidad = tarea_buscada->cantidad;
@@ -455,7 +456,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_con_tarea_tripulante, RESPUESTA_NUEVA_TAREA, conexion);
 
-				cerrar_conexion(logger, conexion);
+				//cerrar_conexion(logger, conexion);
 
 				free(tripulante_para_tarea);
 				free(respuesta_con_tarea_tripulante);
@@ -495,7 +496,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_tripulante_eliminado, RESPUESTA_TRIPULANTE_ELIMINADO, conexion);
 
-				cerrar_conexion(logger, conexion);
+				//cerrar_conexion(logger, conexion);
 
 				free(tripulante_a_eliminar);
 				free(respuesta_tripulante_eliminado);

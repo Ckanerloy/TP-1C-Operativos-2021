@@ -28,6 +28,10 @@ codigo_tarea mapeo_tareas_tripulantes(char* tarea) {
 		tarea_a_realizar = DESCARTAR_BASURA;
 	}
 
+	else {
+		tarea_a_realizar = CUALQUIER_TAREA;				// Aca entraria cualquier tarea que no este arriba
+	}
+
 	return tarea_a_realizar;
 }
 
