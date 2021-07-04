@@ -112,7 +112,7 @@ typedef struct {
 
 	bool elegido_sabotaje;
 	sem_t* mutex_elegido;
-	t_sabotaje* tarea_sabotaje;
+	t_sabotaje* tarea_auxiliar;
 
 	bool expulsado;
 

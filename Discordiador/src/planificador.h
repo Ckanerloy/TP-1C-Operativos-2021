@@ -102,7 +102,7 @@ bool esta_exec_o_block(void* tripulante);
 void poner_en_uno_semaforo(tripulante_plani* tripulante);
 
 
-
+void actualizar_estado(tripulante_plani* tripu, char estado);
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota);
 posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota);
 uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
@@ -113,6 +113,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu);
 void descartar_basura(tripulante_plani* tripu);
 void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado);
+void realizar_tarea_sabotaje(tripulante_plani* tripu);
 
 posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu);
 

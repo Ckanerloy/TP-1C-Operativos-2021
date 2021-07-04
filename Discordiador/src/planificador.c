@@ -84,6 +84,7 @@ void obtener_planificacion_de_config(t_config* config){
 	ALGORITMO = config_get_string_value(config, "ALGORITMO");
 	QUANTUM = config_get_int_value(config, "QUANTUM");
 	RETARDO_CICLO_CPU = config_get_int_value(config, "RETARDO_CICLO_CPU");
+	DURACION_SABOTAJE = config_get_int_value(config, "DURACION_SABOTAJE");
 }
 
 
@@ -117,7 +118,11 @@ void iniciar_planificacion() {
 
 	cola_auxiliar_sabotaje = queue_create();
 
-	tripulantes_exec_block=list_create();
+	tripulantes_exec_block = list_create();
+
+	bloqueado_suspendido=list_create();
+
+	bloqueado_suspendido_ready=list_create();
 
 	inicializar_semaforos_plani();
 
@@ -533,7 +538,7 @@ void tripulante_hilo(void* tripulante){
 		uint32_t distancia = obtener_distancia(posicion_tripu,posicion_tarea);
 		uint32_t cantidadRealizado = 0;
 
-		while(distancia > 0){
+		while(distancia > 0){ //Cambiar condicion con variable goblal hay_sabotaje
 
 			sem_wait(tripu->mutex_expulsado);
 			if(tripu->expulsado){
@@ -557,14 +562,14 @@ void tripulante_hilo(void* tripulante){
 					if(cantidadRealizado == QUANTUM){
 						running_ready(tripu);
 						cantidadRealizado = 0;
-						sem_wait(tripu->sem_planificacion); //Paso a ready
+						sem_wait(tripu->sem_planificacion); //Trabado en ready hasta que exec te de el pulso
 					}
 				}
 			}
 			//printf("antes del wait/n");
 			//fflush(stdout);
 
-			sem_wait(tripu->sem_tripu);
+			sem_wait(tripu->sem_tripu);         //Trabado por el pulso (rafaga), te lo dan siempre que estes en Exec
 			posicion_tripu = obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
 			cantidadRealizado ++;
 			distancia--;
@@ -723,6 +728,9 @@ void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
 			descartar_basura(tripu);
 			break;
 
+		case REALIZAR_TAREA_SABOTAJE:
+			realizar_tarea_sabotaje(tripu);
+			break;
 		default:
 			otras_tareas(tripu,cantidadRealizado);
 			break;
@@ -742,7 +750,7 @@ void realizar_tarea(tripulante_plani* tripu, uint32_t* cantidadRealizado){
 
 void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu) {
 
-	//Aca iria un if preguntando si esta expulsado
+	//Aca iria un if preguntando si elegido
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 
@@ -793,8 +801,8 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 		}
 	}
 
-	//preguntar si esta encargado, si esta la proximas seria tripu->tarea_a_realizar=tripu->tareasabotaje
-	//sino cargo la siguiente. En caso de haber arreglado un sabo, no tenes q pedir otra sino hacer la q tenes en tarea a realizar
+	//preguntar si esta encargado, si esta la proximas seria tripu->tarea_a_realizar=tripu->tareas_auxiliar
+	//sino cargo la siguiente. En caso de haber arreglado un sabo, no tenes q pedir otra sino hacer la q tenes en tarea auxiliar
 
 	//esto adentro de un if para ver si tiene q pedir otra o cargar en tripu->tarea del sabotaje en la tarea normal y al revez
 
@@ -980,5 +988,18 @@ void otras_tareas(tripulante_plani* tripu,uint32_t* cantidadRealizado){
 	}else{
 		running_exit(tripu);
 	}
+}
+
+void realizar_tarea_sabotaje(tripulante_plani* tripu){
+	//Avisar a Mi-Ram que estoy en la posicion de la tarea sabotaje
+	//Lo pasamos a la lista de bloqueados suspendidos
+	list_add(bloqueado_suspendido,tripu);
+	actualizar_estado(tripu, 'S');
+
+	sleep(DURACION_SABOTAJE);
+
+	//Intercambiar tareas que tiene el tripu y poner en cero la variable elegido
+	tripu->tarea_a_realizar = tripu->tarea_auxiliar;
+
 }
 

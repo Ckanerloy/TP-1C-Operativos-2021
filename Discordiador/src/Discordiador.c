@@ -15,7 +15,7 @@ int main(void) {
 	crear_hilos();
 
 	//while(1){
-	sem_wait(prueba);
+	sem_wait(finalizar_programa);
 	//DISCORDIADOR COMO SERVIDOR DE MONGO-STORE
 	// Conexion de escucha con MongoStore?  POR SABOTAJE
 	//sem_wait(sabotaje);
@@ -30,10 +30,6 @@ void inicializar_listas(){
 	lista_semaforos_tripulantes = list_create();
 
 	lista_tripulantes = list_create();
-
-	bloqueado_suspendido=list_create(); //faltaba crear
-
-	bloqueado_suspendido_ready=list_create();
 }
 
 void inicializar_semaforos() {
@@ -46,8 +42,11 @@ void inicializar_semaforos() {
 	termino_operacion = malloc(sizeof(sem_t));
 	sem_init(termino_operacion, 0, 1);
 
-	prueba=malloc(sizeof(sem_t));
-	sem_init(prueba, 0, 0);
+	finalizar_programa=malloc(sizeof(sem_t));
+	sem_init(finalizar_programa, 0, 0);
+
+	termine_sabotaje = malloc(sizeof(sem_t));
+	sem_init(termine_sabotaje, 0, 0);
 }
 
 
@@ -155,6 +154,18 @@ void iniciar_escucha_sabotaje(void){
 			fflush(stdout);
 		}
 
+
+		sem_wait(termine_sabotaje);
+
+		largo = list_size(bloqueado_suspendido);
+
+		for(int i=0;i<largo;i++){
+			tripulante = list_get(bloqueado_suspendido,i);
+			if(tripulante->estado_anterior == 'R'){
+				sem_post(tripulante->sem_planificacion);
+				actualizar_estado(tripulante, 'R');
+			}
+		}
 
 		list_clean(bloqueado_suspendido);
 
@@ -670,7 +681,7 @@ void obtener_orden_input(){
 			finalizar_semaforos();
 			finalizar_semaforos_plani();
 			terminar_programa(config, logger);
-			sem_post(prueba);
+			sem_post(finalizar_programa);
 
 			break;
 

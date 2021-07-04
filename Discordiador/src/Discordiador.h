@@ -44,7 +44,8 @@ int RETARDO_CICLO_CPU;
 sem_t* comando_para_ejecutar;
 sem_t* mutex_sabotaje;
 sem_t* termino_operacion;
-sem_t* prueba;
+sem_t* finalizar_programa;
+sem_t* termine_sabotaje;
 
 // Hilos
 pthread_t hilo_consola;
