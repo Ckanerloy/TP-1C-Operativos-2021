@@ -12,6 +12,9 @@ int main(void) {
 	// Recibe la señal para compactar la memoria
 	signal(SIGUSR2, verificar_compactacion);
 
+	// Muestra en pantalla la cantidad de Memoria Libre
+	signal(SIGALRM, chequear_memoria);
+
 	iniciar_variables_y_semaforos();
 	inicializar_memoria();
 	elegir_esquema_de_memoria(ESQUEMA_MEMORIA);
@@ -237,10 +240,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						log_info(logger, "La patota iniciada tiene un peso de %d bytes.\n", tamanio_total);
 						log_info(logger, "Se ha guardado en memoria la Patota %u y su/s %u Tripulante/s.\n", nueva_patota->pid, patota_recibida->cantidad_tripulantes);
 					}
-
-					log_info(logger, "El tamaño de la memoria restante es de %i.\n", memoria_restante);
-					log_info(logger, "El tamaño de la memoria restante es de %i.\n", memoria_libre_por_segmento);
-					log_info(logger, "El tamaño de la memoria restante es de %i.\n", memoria_libre_total);
 
 					printf("Inicio de proximo segmento: %d \n", base_segmento);
 					printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
@@ -567,4 +566,11 @@ uint32_t cantidad_tareas(char** parser_tarea) {
 		cantidad++;
 	}
 	return cantidad;
+}
+
+
+void chequear_memoria(void) {
+	log_info(logger, "La memoria restante es de %i.", memoria_restante);
+	log_info(logger, "La memoria libre por segmento es de %i.", memoria_libre_por_segmento);
+	log_info(logger, "La memoria libre total es de %i.\n", memoria_libre_total);
 }

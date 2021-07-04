@@ -85,7 +85,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
 // Validación de espacio por esquema de memoria
 bool validar_espacio_por_patota_segmentacion(uint32_t tamanio);
-
+void chequear_memoria(void);
 
 uint32_t cantidad_tareas(char** parser_tarea);
 t_pcb* crear_pcb(void);

@@ -108,10 +108,12 @@ t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_se
 		t_segmento* segmento_libre_a_ser_ocupado = obtener_segmento_libre(tamanio);
 		int32_t diferencia = segmento_libre_a_ser_ocupado->tamanio_segmento - tamanio;
 
-		if(diferencia > 0){
+		if(diferencia >= 0){
 			t_segmento* segmento_libre = crear_segmento_libre(tamanio, diferencia);
 			list_add(segmentos, segmento_libre);
-			memoria_libre_por_segmento-= tamanio;
+			printf("Memoria libre antes: %u\n", memoria_libre_por_segmento);
+			memoria_libre_por_segmento -= tamanio;
+			printf("Memoria libre despues: %u\n", memoria_libre_por_segmento);
 			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
 			segmento_libre_a_ser_ocupado->tamanio_segmento = tamanio;
 		}
@@ -139,6 +141,7 @@ t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_se
 	else {
 		log_error(logger, "No hay segmentos libres para poder guardar en memoria.\n");
 	}
+	return NULL;
 }
 
 
@@ -265,18 +268,11 @@ void liberar_segmento(t_segmento* segmento_a_liberar) {
 	segmento_a_liberar->id_segmento = 0;
 	memoria_libre_por_segmento += segmento_a_liberar->tamanio_segmento;
 	memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
-
-	printf("Memoria a liberar: %u\n", memoria_libre_por_segmento);
 }
 
 
 // FUNCIONES PARA ORDENAR O USAR EN LISTAS
 // Implementacion para obtener un segmento libre (segun BEST FIT o FIRST FIT)
-bool memoria_igual_o_mas_grande(t_segmento* segmento, uint32_t tamanio_buscado) {
-	return tamanio_buscado >= segmento->tamanio_segmento;
-}
-
-
 bool menor_a_mayor_por_segmento(void* segmento, void* segmento_siguiente) {
 	return ((t_segmento*)segmento)->numero_de_segmento < ((t_segmento*)segmento_siguiente)->numero_de_segmento;
 }
@@ -318,26 +314,40 @@ t_list* segmentos_ocupados(void) {
 }
 
 
-t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado)
-{
+t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
 
 	t_list* segmentos_vacios = list_create();
 	segmentos_vacios = segmentos_libres();
 
 	if(criterio_elegido == BEST_FIT){
-		if(list_size(segmentos_vacios) > 1){
+		printf("Se eligio BEST FIT.\n");
+		if(list_size(segmentos_vacios) > 0){
+
+			bool memoria_igual_o_mas_grande(void* segmento, uint32_t tamanio_buscado) {
+				return tamanio_buscado >= ((t_segmento*)segmento)->tamanio_segmento;
+			}
 
 			t_list* segmentos_con_espacio = list_filter(segmentos_vacios, (void*)memoria_igual_o_mas_grande);
-			t_list* segmentos_con_espacio_ordenados = list_sorted(segmentos_con_espacio, (void*)menor_a_mayor_segun_tamanio);
+			t_list* segmentos_con_espacio_ordenados = list_sorted(segmentos_con_espacio, menor_a_mayor_segun_tamanio);
 
 			t_segmento* mejor_segmento = (t_segmento*) list_get(segmentos_con_espacio_ordenados, 0);
+
+			printf("Numero de Segmento: %u\n", mejor_segmento->numero_de_segmento);
+			printf("Inicio de Segmento: %u\n", mejor_segmento->inicio);
+			printf("Tamaño de Segmento: %u\n", mejor_segmento->tamanio_segmento);
+
 
 			return mejor_segmento;
 		}
 
 	}
 	else if(criterio_elegido == FIRST_FIT){
-		if(list_size(segmentos_vacios) >1) {
+		printf("Se eligio FIRST_FIT.\n");
+		if(list_size(segmentos_vacios) > 0) {
+
+			bool memoria_igual_o_mas_grande(void* segmento, uint32_t tamanio_buscado) {
+				return tamanio_buscado >= ((t_segmento*)segmento)->tamanio_segmento;
+			}
 			t_segmento* primer_segmento = (t_segmento*) list_find(segmentos_vacios, (void*)memoria_igual_o_mas_grande);
 
 			return primer_segmento;
@@ -496,10 +506,10 @@ void actualizar_segmento(void* estructura_actualizar, tipo_segmento tipo_segment
 
 	switch(tipo_segmento_a_guardar){
 		case PATOTA:
-			guardar_patota(estructura_actualizar);
+			actualizar_patota(estructura_actualizar, segmento_libre->inicio);
 			break;
 		case TAREAS:
-			guardar_tareas(estructura_actualizar);
+			actualizar_tareas(estructura_actualizar, segmento_libre->inicio);
 			break;
 		case TRIPULANTE:
 			actualizar_tripulante(estructura_actualizar, segmento_libre->inicio);
