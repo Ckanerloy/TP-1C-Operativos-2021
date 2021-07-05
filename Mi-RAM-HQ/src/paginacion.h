@@ -16,7 +16,6 @@ typedef struct pagina {
 } t_pagina;
 
 
-
 typedef struct tabla_paginas_patota {
 	t_pcb* patota;
 	t_list* paginas;

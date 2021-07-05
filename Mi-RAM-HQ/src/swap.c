@@ -15,7 +15,6 @@ void inicializar_swap(void) {
 	}
 
 	area_swap = iniciar_area_swap();
-
 }
 
 
