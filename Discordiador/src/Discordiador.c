@@ -78,9 +78,19 @@ void crear_hilos(){
 void iniciar_escucha_sabotaje(void){
 
 	//conexion_sabotaje = iniciar_servidor(IP_MONGO_STORE, PUERTO_MONGO_STORE);
-	//if(resultado_conexion(conexion_sabotaje, logger, "i-mongo") == -1){
-	//	exit(-1);
-	//}
+
+
+
+	//int32_t* conexion_cliente = esperar_conexion(conexion_sabotaje);
+
+	//codigo_operacion operacion;
+
+	//recv(*conexion_cliente, &operacion, sizeof(operacion), MSG_WAITALL);
+
+	//switch(operacion){
+	//	case posiciones:
+
+    //}
 
 
 	//
@@ -101,14 +111,22 @@ void iniciar_escucha_sabotaje(void){
 		tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 
 		//Para parar los hilos de planificacion
+		int valor_previo_new_ready_off=new_ready_off;
 
 		sem_wait(mutex_new_ready);
 		new_ready_off = 1;
 		sem_post(mutex_new_ready);
 
+
+		int valor_previo_ready_running_off=ready_running_off;
+
 		sem_wait(mutex_ready_running);
 		ready_running_off = 1;
 		sem_post(mutex_ready_running);
+
+
+
+		int valor_previo_dar_pulsos_off=dar_pulsos_off;
 
 		sem_wait(mutex_rafaga);
 		dar_pulsos_off = 1;
@@ -122,6 +140,7 @@ void iniciar_escucha_sabotaje(void){
 			if(tripulante->estado == 'E'){
 				tripulante->estado_anterior = 'E';
 				list_add_sorted(bloqueado_suspendido, (void*) tripulante,(void*)menorId);
+				running_suspendido(tripulante);
 				actualizar_estado(tripulante, 'S');
 			}
 		}
@@ -131,7 +150,8 @@ void iniciar_escucha_sabotaje(void){
 			if(tripulante->estado == 'R'){
 				tripulante->estado_anterior = 'R';
 				list_add_sorted(bloqueado_suspendido_ready, (void*) tripulante,(void*)menorId);
-				actualizar_estado(tripulante, 'S');
+
+				ready_suspendido(tripulante);
 			}
 		}
 
@@ -149,9 +169,7 @@ void iniciar_escucha_sabotaje(void){
 		posicion_sabotaje->posicion_y=respuesta->tarea_sabotaje->posicion_y;
 
 		*/
-		posicion_sabotaje=malloc(sizeof(posiciones));
-		posicion_sabotaje->posicion_x=10;
-		posicion_sabotaje->posicion_y=10;
+
 
 
 
@@ -172,14 +190,21 @@ void iniciar_escucha_sabotaje(void){
 		posicion_sabotaje->posicion_y=10;
 
 
-
+		//HAY Q SACARLO DE LA LISTA AL MAS CERCANO
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
+
+		printf("id asignado: %u",tripu_mas_cercano->id_tripulante);
+		fflush(stdout);
+
+		int indice=obtener_indice(bloqueado_suspendido, tripu_mas_cercano);
+		list_remove(bloqueado_suspendido, indice);
+
 
 		for(int i=0;i<largo;i++){
 			tripulante = list_get(lista_tripulantes,i);
 			if(tripulante->estado == 'B'){
 				tripulante->estado_anterior = 'B';
-				list_add_sorted(bloqueado_suspendido, (void*) tripulante,(void*)menorId);
+				list_add(bloqueado_suspendido,tripulante);
 				actualizar_estado(tripulante, 'S');
 			}
 		}
@@ -196,97 +221,68 @@ void iniciar_escucha_sabotaje(void){
 		tripu_mas_cercano->tarea_auxiliar=ayuda;
 
 		actualizar_estado(tripu_mas_cercano, 'E');
+		sem_post(mutex_rafaga);
+		tripu_mas_cercano->elegido_sabotaje=1;
 
-		//tripu_mas_cercano->estado_anterior='R';
+
 
 		sem_wait(mutex_rafaga);
 		dar_pulsos_off=0;
 		sem_post(mutex_rafaga);
-
 		sem_post(planificion_rafaga);
-
-		tripu_mas_cercano->elegido_sabotaje=1;
-		tripu_mas_cercano->estado='E';
-
 
 		if(tripu_mas_cercano->estado_anterior=='R'){
 			sem_post(tripu_mas_cercano->sem_planificacion);
-		}
-
-		if(tripu_mas_cercano->estado_anterior=='E'){
-			sem_post(tripu_mas_cercano->sem_tripu);
-
-		}
-		sem_wait(mutex_rafaga);
-		dar_pulsos_off=0;
-		sem_post(mutex_rafaga);
-
-		sem_post(planificion_rafaga);
-
-
-
-
-
-/*		int largo_block_suspend = list_size(bloqueado_suspendido);
-
-		sem_wait(mutex_rafaga);
-		dar_pulsos_off=0;
-		sem_post(mutex_rafaga);
-
-		sem_post(planificion_rafaga);
-*/
-		//prendo hilo q da pulsos a los q estan en x
-
-
-
-		/*
-		if(largo_block_suspend){
-			tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
-			printf("el id mas cercano al sabotaje es %u",tripu_mas_cercano->id_tripulante );
-			fflush(stdout);
 		}else{
-			printf("no hay nadie en ready o exe");
-			fflush(stdout);
+			sem_post(tripu_mas_cercano->sem_tripu);
 		}
-		*/
-
-
-
 
 
 		sem_wait(termine_sabotaje);
-	/*
+
 		largo = list_size(bloqueado_suspendido);
 
 		for(int i=0;i<largo;i++){
 			tripulante = list_get(bloqueado_suspendido,i);
-			suspendido_readdy(tripulante);
-
+			tripulante->cantidad_realizada = 0;
+			suspendido_ready(tripulante);
 		}
 
 
 		list_clean(bloqueado_suspendido);
 
 
-
-	*/
-
 		//Vuelve a activar los hilos de planificacion
+
 		sem_wait(mutex_new_ready);
-		new_ready_off = 0;
+		new_ready_off = valor_previo_new_ready_off;
 		sem_post(mutex_new_ready);
 
+		if(new_ready_off==0){
+			sem_post(planificacion_on);
+		}
+
+
 		sem_wait(mutex_ready_running);
-		ready_running_off = 0;
+		ready_running_off = valor_previo_ready_running_off;
 		sem_post(mutex_ready_running);
 
+		if(ready_running_off==0){
+			sem_post(planificacion_on_ready_running);
+		}
+
 		sem_wait(mutex_rafaga);
-		dar_pulsos_off = 0;
+		dar_pulsos_off=valor_previo_dar_pulsos_off;
 		sem_post(mutex_rafaga);
 
-		sem_post(planificacion_on);
-		sem_post(planificacion_on_ready_running);
-		sem_post(planificion_rafaga);
+		if(dar_pulsos_off==0){
+			sem_post(planificion_rafaga);
+		}
+
+
+
+
+
 
 
 	//	tripu_mas_cercano->estado='E';
@@ -467,7 +463,7 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 7|1
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 7|1 2|0
 			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
@@ -564,6 +560,7 @@ void obtener_orden_input(){
 						tripulante->id_tripulante = atoi(parser_ids[i]);
 						tripulante->numero_patota = respuesta_iniciar_patota->numero_de_patota; //esto lo devuelve mi ram
 						tripulante->estado = 'N';
+						tripulante->estado_anterior = 'N';
 						tripulante->expulsado=0;
 						tripulante->elegido_sabotaje=0;
 						tripulante->fui_elegido_antes=0;
@@ -729,34 +726,44 @@ void obtener_orden_input(){
 						tripulante_a_expulsar->expulsado = 1;
 						block_exit(tripulante_a_expulsar);
 						break;
+
+					case 'N':
+						tripulante_a_expulsar->expulsado = 1;
+						sem_post(tripulante_a_expulsar->sem_planificacion);
+						new_exit(tripulante_a_expulsar);
+						break;
 				}
+				if(tripulante_a_expulsar->estado!='T'){
+					conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
-				conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+					if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+						break;
+					}
 
-				if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
-					break;
-				}
+					enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
 
-				enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
-
-				if(validacion_envio(conexion_mi_ram) == 1) {
+					if(validacion_envio(conexion_mi_ram) == 1){
 						recibir_mensaje(respuesta_al_expulsar_tripulante, RESPUESTA_TRIPULANTE_ELIMINADO, conexion_mi_ram);
-
 						if(respuesta_al_expulsar_tripulante->respuesta != 1) {
 							log_error(logger, "No se pudo eliminar al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
 							abort();
 						}
-					log_info(logger, "Se expulsó al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
+						log_info(logger, "Se expulsó al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
 					}
 					else {
 						log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
 						abort();
 					}
 
-				cerrar_conexion(logger,conexion_mi_ram);
+					cerrar_conexion(logger,conexion_mi_ram);
+
+				}else{
+					log_error(logger, "Se quiso eliminar un tripulante que ya termino");
+				}
 			}else {
 				log_error(logger, "No existe el tripulante que se desea eliminar");
 			}
+
 
 			free(id_tripulante_a_expulsar);
 			free(respuesta_al_expulsar_tripulante);
@@ -802,12 +809,19 @@ void obtener_orden_input(){
 
 }
 
-void arreglar_sabotaje(){
-	// MANDA TRIPULANTE MAS CERCANO A LA UBICACION DEL SABOTAJE PARA QUE LO SOLUCIONE
+
+
+
+int obtener_indice(t_list* lista, void* valor) {
+
+	int indice;
+	for(int i = 0; i<list_size(lista); i++) {
+		if(list_get(lista, i) == valor) {
+			indice = i;
+		}
+	}
+	return indice;
 }
-
-
-
 
 
 

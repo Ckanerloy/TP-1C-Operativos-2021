@@ -87,6 +87,8 @@ void new_ready();
 void ready_running();
 void iniciar_planificacion();
 void ready_exit(tripulante_plani* tripu);
+void ready_suspendido(tripulante_plani* tripu);
+void running_suspendido(tripulante_plani* tripu);
 
 void inicializar_semaforos_plani();
 void finalizar_semaforos_plani();
@@ -95,13 +97,14 @@ void inicializar_listas();
 void pulso_rafaga();
 void running_ready(tripulante_plani* tripulante);
 void block_exit(tripulante_plani* tripu);
+void new_exit(tripulante_plani* tripu);
 void running_exit(tripulante_plani* tripu);
 void tripulante_hilo(void* tripulante);
 void rafaga_cpu(t_list* lista_todos_tripulantes);
 bool esta_exec_o_block(void* tripulante);
 void poner_en_uno_semaforo(tripulante_plani* tripulante);
 
-void suspendido_readdy(tripulante_plani* tripu);
+void suspendido_ready(tripulante_plani* tripu);
 void actualizar_estado(tripulante_plani* tripu, char estado);
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota);
 posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota);

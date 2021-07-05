@@ -78,7 +78,8 @@ tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* t
 bool menorId(tripulante_plani* tripulante1, tripulante_plani* tripulante2);
 // POR AHORA SON UNA IDEA
 
-void arreglar_sabotaje(void);
+
+int obtener_indice(t_list* lista, void* valor);
 
 t_pcb* crear_pcb(void);
 
