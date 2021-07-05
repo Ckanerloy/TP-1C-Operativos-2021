@@ -5,8 +5,6 @@
 #include "utils/estructuras.h"
 
 
-
-
 typedef struct segmento {
 	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento
 	uint32_t inicio;					// Direccion fisica de donde empieza el segmento
@@ -32,10 +30,6 @@ typedef struct	tabla_segmentos_patota
 
 t_list* tablas_segmentos;
 t_list* segmentos;
-
-
-
-void generar_segmento_libre(uint32_t inicio, uint32_t tamanio);
 
 
 // Inicio en Segmentación
@@ -64,10 +58,12 @@ t_pcb* encontrar_patota(t_segmento* segmento);
 t_list* encontrar_tarea(t_segmento* segmento);
 t_tcb* encontrar_tripulante(t_segmento* segmento);
 
+// Búsqueda de Segmento
 t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota_buscada);
 t_segmento* buscar_por_id(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t valor);
 t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t id_proxima_tarea_del_tripu);
 
+// Otras funciones
 int obtener_indice(t_list* lista, void* valor);
 t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado);
 t_list* segmentos_libres(void);

@@ -1,8 +1,6 @@
 #include "segmentacion.h"
 
 
-
-
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 
 	t_tabla_segmentos_patota* tabla = malloc(sizeof(t_tabla_segmentos_patota));
@@ -14,9 +12,6 @@ t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 }
 
 
-
-
-// TODO no le estamos pasando el segmento para modificar, sino que nos basamos en el segmento libre que encuentre, pero no si le estoy pasando uno para modificarlo
 t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio) {
 
 	if (memoria_restante >= tamanio) {
@@ -30,14 +25,15 @@ t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_se
 
 		if(diferencia > 0){
 			crear_segmento_libre(nuevo_inicio, diferencia);
-			printf("Memoria libre antes: %u\n", memoria_libre_por_segmento);
 			memoria_libre_por_segmento -= tamanio;
-			printf("Memoria libre despues: %u\n", memoria_libre_por_segmento);
 			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
 			segmento_libre_a_ser_ocupado->tamanio_segmento = tamanio;
 		}
+		if(diferencia == 0) {
+			memoria_libre_por_segmento -= tamanio;
+			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
+		}
 		actualizar_segmento(estructura, tipo_segmento, segmento_libre_a_ser_ocupado);
-
 		return segmento_libre_a_ser_ocupado;
 	}
 	else if(memoria_libre_total > 0) {
@@ -51,13 +47,15 @@ t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_se
 			int32_t nuevo_inicio = segmento_compactado->inicio + tamanio;
 
 			if(diferencia > 0){
-				crear_segmento_libre(nuevo_inicio, tamanio);
-				memoria_libre_por_segmento-= tamanio;
+				crear_segmento_libre(nuevo_inicio, diferencia);
+				memoria_libre_por_segmento -= tamanio;
 				memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
-				segmento_compactado->tamanio_segmento = diferencia;
-				segmento_compactado->inicio += tamanio;
+				segmento_compactado->tamanio_segmento = tamanio;
 			}
-
+			if(diferencia == 0) {
+				memoria_libre_por_segmento -= tamanio;
+				memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
+			}
 			actualizar_segmento(estructura, tipo_segmento, segmento_compactado);
 			return segmento_compactado;
 		}
@@ -147,48 +145,9 @@ void verificar_compactacion(void) {
 }
 
 
-/*
-void compactar(void) {
-	*
-	 *  ORDENO LOS SEGMENTOS DE MENOR A MAYOR SEGUN EL INICIO (OFFSET)
-	 *  OBTENGO UN SEGMENTO SEGUN EL INDICE
-	 *  VERIFICO: SI ESTA LIBRE -> LO GUARDO EN UNA AUXILIAR Y GUARDO EL INICIO DE ESE SEGMENTO EN UNA VARIABLE
-	 *  		  SI ESTA OCUPADO -> CAMBIO EL INICIO DE ESTE SEGMENTO AL INICIO GUARDADO EN LA VARIABLE AUXILIAR
-	 *  		  					- TAMBIEN SE CAMBIA TODO EL CONTENIDO DEL SEGMENTO (ACTUALIZAR SEGMENTO)
-	 * 	UNA VEZ QUE TERMINA DE LEER LA LISTA (POR LA CANTIDAD DE ELEMENTOS), CREA UN SEGMENTO LIBRE
-	 * 				- QUE ES LA SUMA DE TODOS LOS SEGMENTOS LIBRES QUE SE FUERON ARCHIVANDO EN AUX
-	 * 	Y SE AGREGA A LA LISTA DE SEGMENTOS
-	 *
-	if(esquema_elegido == 'S') {
-		printf("VAMO A COMPACTAR\n");
-		log_info(logger, "Inicio de rutina de compactación de memoria...\n");
-		uint32_t inicio = 0;
-		t_list* segmentos_libres = list_create();
-
-		list_sort(segmentos, menor_a_mayor_segun_inicio);
-
-		for(int i=0; i<list_size(segmentos); i++) {
-
-			t_segmento* segmento_obtenido = list_get(segmentos, i);
-
-			if(esta_libre(segmento_obtenido)) {
-
-				inicio = segmento_obtenido->inicio;
-
-			}
-		}
-	}
-	else if(esquema_elegido == 'P') {
-		log_warning(logger, "Se ha elegido el esquema de Paginación. ¡Para Compactar hacelo en Segmentación!\n");
-	}
-}*/
-
-
-
 void compactar(void) {
 
 	if(esquema_elegido == 'S') {
-		printf("VAMO A COMPACTAR\n");
 		log_info(logger, "Inicio de rutina de compactación de memoria...\n");
 
 		t_segmento* segmento;
@@ -205,12 +164,11 @@ void compactar(void) {
 
 			memcpy(memoria_principal + inicio, aux, segmento->tamanio_segmento);
 
-			segmento->inicio = inicio; //o memoria_principal + inicio?
+			segmento->inicio = inicio;
 
 			free(aux);
 
 			inicio += segmento->tamanio_segmento;
-
 		}
 
 		list_destroy_and_destroy_elements(segmentos_libres(), free);
@@ -220,8 +178,8 @@ void compactar(void) {
 		printf("Incio de segmento libre compactado: %u\n", inicio);
 		printf("Tamaño de segmento libre compactado: %u\n", memoria_libre_total);
 
-		memoria_libre_por_segmento = memoria_libre_total; 										//toda la memoria libre esta dentro de un segmento gigante
-		memoria_restante = 0; 																	// la memoria suelta queda en cero por que esta toda en la memoria libre por segmento
+		memoria_libre_por_segmento = memoria_libre_total; 						//toda la memoria libre esta dentro de un segmento gigante
+		memoria_restante = 0; 													// la memoria suelta queda en cero por que esta toda en la memoria libre por segmento
 
 		log_info(logger, "Se compactó la memoria.\n");
 	}
@@ -291,10 +249,7 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
 	}
 
 	if(criterio_elegido == BEST_FIT){
-		printf("Se eligio BEST FIT.\n");
 		if(list_size(segmentos_vacios) >= 1){
-
-			printf("Cantidad segmentos libres: %u\n", list_size(segmentos_vacios));
 
 			t_list* segmentos_con_espacio =	list_filter(segmentos_vacios, memoria_igual_o_mas_grande);
 
@@ -302,19 +257,14 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
 
 			t_segmento* mejor_segmento = list_get(segmentos_con_espacio_ordenados, 0);
 
-			printf("Numero de Segmento: %u\n", mejor_segmento->numero_de_segmento);
-			printf("Inicio de Segmento: %u\n", mejor_segmento->inicio);
-			printf("Tamaño de Segmento: %u\n", mejor_segmento->tamanio_segmento);
-
 			return mejor_segmento;
 		}
 
 	}
 	else if(criterio_elegido == FIRST_FIT){
-		printf("Se eligio FIRST_FIT.\n");
 		if(list_size(segmentos_vacios) >= 1) {
 
-			t_segmento* primer_segmento = (t_segmento*) list_find(segmentos_vacios, (void*)memoria_igual_o_mas_grande);
+			t_segmento* primer_segmento = list_find(segmentos_vacios, memoria_igual_o_mas_grande);
 
 			return primer_segmento;
 		}

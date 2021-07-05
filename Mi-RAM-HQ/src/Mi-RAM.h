@@ -57,7 +57,6 @@ int32_t memoria_libre_total;				// memoria_compactada = memoria_restante + memor
 //NIVEL* amongOs;
 int columnas, filas;
 
-
 // Tamanio de estructuras utilizadas
 uint32_t tamanio_tripulante;
 uint32_t tamanio_tripulantes;
@@ -73,7 +72,6 @@ pthread_t hilo_actualizar_estado;
 // Datos de tripulantes
 t_list* ids;
 char** parser_posiciones;
-
 
 // Eleccion de algoritmos para la memoria
 void elegir_esquema_de_memoria(char* ESQUEMA);
@@ -92,6 +90,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 bool validar_espacio_por_patota_segmentacion(uint32_t tamanio);
 void chequear_memoria(void);
 
+// Otras funciones
 uint32_t cantidad_tareas(char** parser_tarea);
 t_pcb* crear_pcb(void);
 t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion_y);
