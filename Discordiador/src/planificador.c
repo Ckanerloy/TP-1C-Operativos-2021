@@ -567,7 +567,7 @@ void tripulante_hilo(void* tripulante){
 		sem_post(tripu->mutex_expulsado);
 	}
 
-	tripu->tarea_a_realizar = obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
+	tripu->tarea_a_realizar = cambios_de_tarea(tripu);
 
 	posiciones* posicion_tripu = malloc(sizeof(posiciones));
 
@@ -579,6 +579,7 @@ void tripulante_hilo(void* tripulante){
 
 		//Entra a exec
 		sem_wait(tripu->mutex_expulsado);
+
 		if(tripu->expulsado){
 			sem_post(tripu->mutex_expulsado);
 			return;
@@ -650,6 +651,7 @@ void tripulante_hilo(void* tripulante){
 
 void rafaga_cpu(t_list* lista_todos_tripulantes){
 	while(1){
+
 	sem_wait(planificion_rafaga);
 
 	bool esta_exec_o_block(void* tripulante){
@@ -662,11 +664,14 @@ void rafaga_cpu(t_list* lista_todos_tripulantes){
 
 	tripulantes_exec_block = list_filter(lista_todos_tripulantes,(void*) esta_exec_o_block);
 
-	//int largo=list_size(tripulantes_exec_block);
+	int largo=list_size(tripulantes_exec_block);
 
+	printf("cantidad den exe %u",largo);
+	fflush(stdout);
 	list_iterate(tripulantes_exec_block, (void*) poner_en_uno_semaforo);
 
 	sleep(RETARDO_CICLO_CPU);
+
 
 	sem_wait(mutex_rafaga);
 
@@ -1016,6 +1021,7 @@ void realizar_tarea_sabotaje(tripulante_plani* tripu){
 
 }
 
+
 void cambios_de_tarea(tripulante_plani* tripu){
 
 	if(tripu->fui_elegido_antes){ //para hacer el intercambio en la vuelta q esta arreglando el sabotaje
@@ -1061,7 +1067,7 @@ void cambios_de_tarea(tripulante_plani* tripu){
 
 		}else{
 			tripu->tarea_a_realizar= NULL;
-			//tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
+			tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 		}
 	}
 }
