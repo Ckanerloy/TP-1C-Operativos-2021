@@ -186,7 +186,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota){
-
+/*
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 
 	tarea->operacion = GENERAR_OXIGENO;
@@ -195,8 +195,8 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 	tarea->posicion_y = 4;
 	tarea->tiempo = 5;
 	return tarea;
+	*/
 
-	/*
 	uint32_t conexion_mi_ram;
 
 	t_tripulante* tripulante_consulta = malloc(sizeof(t_tripulante));
@@ -243,9 +243,13 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 	free(tripulante_consulta);
 	free(respuesta_tarea);
 
-
-	return tarea_buscada;
-	*/
+	if(tarea_buscada->operacion == TAREA_VACIA) {
+		free(tarea_buscada);
+		return NULL;
+	}
+	else {
+		return tarea_buscada;
+	}
 }
 
 posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
@@ -567,7 +571,7 @@ void tripulante_hilo(void* tripulante){
 		sem_post(tripu->mutex_expulsado);
 	}
 
-	tripu->tarea_a_realizar = cambios_de_tarea(tripu);
+	cambios_de_tarea(tripu);
 
 	posiciones* posicion_tripu = malloc(sizeof(posiciones));
 
@@ -888,11 +892,11 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 			sem_post(tripu->mutex_expulsado);
 		}
 
-
 	}
 
 	//cambios_de_tarea(tripu);
 	tripu->tarea_a_realizar= NULL;
+
 
 
 
@@ -947,7 +951,6 @@ void descartar_basura(tripulante_plani* tripu) {
 	}
 
 	//cambios_de_tarea(tripu);
-
 	tripu->tarea_a_realizar= NULL;
 	if(!(tripu->elegido_sabotaje)){
 		if(tripu->tarea_a_realizar!=NULL){
@@ -993,7 +996,7 @@ void otras_tareas(tripulante_plani* tripu){
 	}
 	//cambios_de_tarea(tripu);
 
-	tripu->tarea_a_realizar= NULL;
+	//tripu->tarea_a_realizar= NULL;
 
 	if(!(tripu->elegido_sabotaje)){
 			if(tripu->tarea_a_realizar!=NULL){
@@ -1022,7 +1025,7 @@ void realizar_tarea_sabotaje(tripulante_plani* tripu){
 }
 
 
-void cambios_de_tarea(tripulante_plani* tripu){
+void cambios_de_tarea(tripulante_plani* tripu) {
 
 	if(tripu->fui_elegido_antes){ //para hacer el intercambio en la vuelta q esta arreglando el sabotaje
 		tripu->fui_elegido_antes=0;

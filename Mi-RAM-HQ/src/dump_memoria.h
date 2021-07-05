@@ -10,7 +10,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <commons/collections/queue.h>
-#include "memoria.h"
+
+#include "segmentacion.h"
 
 
 // Dump
@@ -28,7 +29,6 @@ void iniciar_archivo_dump(void);
 void iniciar_dump_memoria(void);
 void registrar_dump_segmentacion(void);
 void registrar_dump_paginacion(void);
-
 
 void escribir_en_archivo(char* buffer);
 

@@ -110,7 +110,7 @@ int32_t* esperar_conexion(int32_t socket_servidor)
 	// Espero que se conecte alguien ...
 	*socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
-	log_info(logger, "¡Se creó una conexión!");
+	//log_info(logger, "¡Se creó una conexión!");
 
 	return socket_cliente;
 }

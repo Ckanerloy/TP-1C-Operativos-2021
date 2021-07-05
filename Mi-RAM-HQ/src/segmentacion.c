@@ -1,81 +1,5 @@
-#include "memoria.h"
+#include "segmentacion.h"
 
-
-codigo_memoria mapeo_esquema_memoria(char* ESQUEMA)
-{
-	codigo_memoria esquema_memoria;
-
-	if(strcmp(ESQUEMA, "PAGINACION") == 0) {
-		esquema_memoria = PAGINACION;
-	}
-
-	if(strcmp(ESQUEMA, "SEGMENTACION") == 0) {
-		esquema_memoria = SEGMENTACION;
-	}
-
-	return esquema_memoria;
-}
-
-// Elige el esquema de memoria a utilizar e inicializa la misma
-void elegir_esquema_de_memoria(char* ESQUEMA)
-{
-	codigo_memoria cod_mem;
-
-	cod_mem = mapeo_esquema_memoria(ESQUEMA);
-
-	switch(cod_mem) {
-
-		case PAGINACION:
-
-			esquema_elegido = 'P';
-			tablas_paginas = list_create();
-			// Poner la cantidad de paginas, los frames, etc.
-			log_info(logger, "Las páginas tendran un tamaño de %u bytes cada una.\n", TAMANIO_PAGINA);
-			log_info(logger, "Se utilizará el algoritmo de %s para reemplazar las páginas.\n", ALGORITMO_REEMPLAZO);
-			break;
-
-		case SEGMENTACION:
-
-			esquema_elegido = 'S';
-			log_info(logger, "Se utilizará el criterio de %s para colocar el segmento en memoria.\n", CRITERIO_SELECCION);
-			tablas_segmentos = list_create();
-			segmentos = list_create();
-			memoria_libre_por_segmento = 0;
-			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
-
-			break;
-
-		default:
-			break;
-	}
-}
-
-algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo){
-	algoritmo_reemplazo algoritmo_reemplazo;
-
-	if(strcmp(algoritmo, "LRU") == 0) {
-		algoritmo_reemplazo = LRU;
-	}
-	if(strcmp(algoritmo, "CLOCK") == 0) {
-		algoritmo_reemplazo = CLOCK;
-	}
-
-	return algoritmo_reemplazo;
-}
-
-
-criterio_seleccion elegir_criterio_seleccion(char* criterio){
-	criterio_seleccion criterio_seleccionado;
-
-	if(strcmp(criterio, "BEST_FIT") == 0) {
-		criterio_seleccionado = BEST_FIT;
-	}
-	if(strcmp(criterio, "FIRST_FIT") == 0) {
-		criterio_seleccionado = FIRST_FIT;
-	}
-
-	return criterio_seleccionado;
-}
 
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 
@@ -88,87 +12,62 @@ t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 }
 
 
-/*
-t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
-
-	if(!segmento_libre_suficientemente_grande(tamanio_buscado)) {
-		return NULL;
-	}
-
-	bool _es_suficientemente_grande(void* valor){
-		t_segmento* segmento = (t_segmento*) valor;
-		return segmento->tamanio_segmento >= tamanio_buscado;
-	}
-
-	t_list* segmentos_lib = segmentos_libres();
-
-	if(criterio_elegido == BEST_FIT){
-
-		if(list_size(segmentos_libres()) > 1) {
-
-			t_list* segmentos_con_espacio_ordenados;
-			bool _menor_a_mayor_segun_tamanio(void* primero, void* segundo) {
-				return ((t_segmento*)primero)->tamanio_segmento < ((t_segmento*)segundo)->tamanio_segmento;
-			}
-			segmentos_con_espacio_ordenados = list_sorted(segmentos_lib, (void*)_menor_a_mayor_segun_tamanio);
-
-
-			t_segmento* mejor_segmento = (t_segmento*) list_remove_by_condition(segmentos_con_espacio_ordenados, _es_suficientemente_grande);
-			return mejor_segmento;
-		}
-	}
-
-	else if(criterio_elegido == FIRST_FIT){
-
-		if(list_size(segmentos_libres()) > 1) {
-
-			t_list* segmentos_ordenados_por_inicio;
-			bool _menor_a_mayor_segun_inicio(void* primero, void* segundo) {
-				return ((t_segmento*)primero)->inicio < ((t_segmento*)segundo)->inicio;
-			}
-			segmentos_ordenados_por_inicio = list_sorted(segmentos_lib, (void*) _menor_a_mayor_segun_inicio);
-
-			t_segmento* primer_segmento = (t_segmento*) list_remove_by_condition(segmentos_ordenados_por_inicio, _es_suficientemente_grande);
-			return primer_segmento;
-		}
-	}
-	return NULL;
-}
-
-
-*/
-
-
-
-// TODO no le estamos pasando el segmento para modificar, sino que nos basamos en el segmento libre que encuentre, pero no si le estoy pasando uno para modificarlo
-t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio) {
+t_segmento* administrar_guardar_segmento(void* estructura, tipo_estructura tipo_segmento, uint32_t tamanio) {
 
 	if (memoria_restante >= tamanio) {
 		return crear_segmento(estructura, tipo_segmento);
 	}
 	else if(validar_existencia_segmento_libre_suficiente(tamanio)) {
-			t_segmento* segmento_libre = obtener_segmento_libre(tamanio);
-			int32_t diferencia = segmento_libre->tamanio_segmento - tamanio;
+		t_segmento* segmento_libre_a_ser_ocupado = obtener_segmento_libre(tamanio);
+		int32_t diferencia = segmento_libre_a_ser_ocupado->tamanio_segmento - tamanio;
+
+		int32_t nuevo_inicio = segmento_libre_a_ser_ocupado->inicio + tamanio;
+
+		if(diferencia > 0){
+			crear_segmento_libre(nuevo_inicio, diferencia);
+			memoria_libre_por_segmento -= tamanio;
+			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
+			segmento_libre_a_ser_ocupado->tamanio_segmento = tamanio;
+		}
+		if(diferencia == 0) {
+			memoria_libre_por_segmento -= tamanio;
+			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
+		}
+		actualizar_segmento(estructura, tipo_segmento, segmento_libre_a_ser_ocupado);
+		return segmento_libre_a_ser_ocupado;
+	}
+	else if(memoria_libre_total > 0) {
+
+		compactar();
+
+		if(validar_existencia_segmento_libre_suficiente(tamanio)) {
+			t_segmento* segmento_compactado = list_get(segmentos_libres(),0); //deberia ser el unico segmento libre despues de haber compactado
+			int32_t diferencia = segmento_compactado->tamanio_segmento - tamanio;
+
+			int32_t nuevo_inicio = segmento_compactado->inicio + tamanio;
 
 			if(diferencia > 0){
-				crear_segmento_libre(tamanio, diferencia);
-				memoria_libre_por_segmento+= diferencia;
+				crear_segmento_libre(nuevo_inicio, diferencia);
+				memoria_libre_por_segmento -= tamanio;
 				memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
-				segmento_libre->tamanio_segmento = tamanio;
+				segmento_compactado->tamanio_segmento = tamanio;
 			}
-			actualizar_segmento(estructura, tipo_segmento, segmento_libre);
-
-
-			return segmento_libre;
+			if(diferencia == 0) {
+				memoria_libre_por_segmento -= tamanio;
+				memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
+			}
+			actualizar_segmento(estructura, tipo_segmento, segmento_compactado);
+			return segmento_compactado;
 		}
-	else {
-		//compactar();
-		return crear_segmento(estructura, tipo_segmento);
 	}
+	else {
+		log_error(logger, "No hay segmentos libres para poder guardar en memoria.\n");
+	}
+	return NULL;
 }
 
 
-t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_segmento) {
+t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_segmento) {
 
 	t_segmento* segmento = malloc(sizeof(t_segmento));
 
@@ -209,7 +108,6 @@ t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_segmento) {
 	sem_post(crear_segmento_sem);
 
 	return segmento;
-
 }
 
 
@@ -236,65 +134,137 @@ t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libr
 }
 
 
+void verificar_compactacion(void) {
+
+	if(segmentos_libres() > 0) {
+		compactar();
+	}
+	else {
+		log_error(logger, "No hay segmentos libres para poder compactar.\n");
+	}
+}
+
+
+void compactar(void) {
+
+	if(esquema_elegido == 'S') {
+		log_info(logger, "Inicio de rutina de compactación de memoria...\n");
+
+		t_segmento* segmento;
+		uint32_t inicio = 0;
+		t_list* ocupados_ordenados = list_sorted(segmentos_ocupados(), menor_a_mayor_segun_inicio);
+
+		for(int i=0; i<list_size(ocupados_ordenados); i++){
+
+			segmento = (t_segmento*) list_get(ocupados_ordenados, i);
+
+			void* aux = malloc(segmento->tamanio_segmento);
+
+			memcpy(aux, memoria_principal + segmento->inicio, segmento->tamanio_segmento);
+
+			memcpy(memoria_principal + inicio, aux, segmento->tamanio_segmento);
+
+			segmento->inicio = inicio;
+
+			free(aux);
+
+			inicio += segmento->tamanio_segmento;
+		}
+
+		list_destroy_and_destroy_elements(segmentos_libres(), free);
+
+		crear_segmento_libre(inicio, memoria_libre_total);
+
+		printf("Incio de segmento libre compactado: %u\n", inicio);
+		printf("Tamaño de segmento libre compactado: %u\n", memoria_libre_total);
+
+		memoria_libre_por_segmento = memoria_libre_total; 						//toda la memoria libre esta dentro de un segmento gigante
+		memoria_restante = 0; 													// la memoria suelta queda en cero por que esta toda en la memoria libre por segmento
+
+		log_info(logger, "Se compactó la memoria.\n");
+	}
+	else if(esquema_elegido == 'P') {
+		log_warning(logger, "Se ha elegido el esquema de Paginación. ¡Para Compactar hacelo en Segmentación!\n");
+	}
+}
+
+
 void liberar_segmento(t_segmento* segmento_a_liberar) {
 	segmento_a_liberar->tipo_segmento = VACIO;
 	segmento_a_liberar->estado_segmento = LIBRE;
 	segmento_a_liberar->id_segmento = 0;
 	memoria_libre_por_segmento += segmento_a_liberar->tamanio_segmento;
 	memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
-
-	printf("Memoria a liberar: %u\n", memoria_libre_por_segmento);
 }
 
+
+// FUNCIONES PARA ORDENAR O USAR EN LISTAS
 // Implementacion para obtener un segmento libre (segun BEST FIT o FIRST FIT)
-bool memoria_igual_o_mas_grande(t_segmento* segmento, uint32_t tamanio_buscado)
-{
-	return tamanio_buscado >= segmento->tamanio_segmento;
-}
-
 bool menor_a_mayor_por_segmento(void* segmento, void* segmento_siguiente) {
 	return ((t_segmento*)segmento)->numero_de_segmento < ((t_segmento*)segmento_siguiente)->numero_de_segmento;
 }
+
 
 bool menor_a_mayor_por_pid(void* segmento, void* segmento_siguiente) {
 	return ((t_tabla_segmentos_patota*)segmento)->patota->pid < ((t_tabla_segmentos_patota*)segmento_siguiente)->patota->pid;
 }
 
-bool menor_a_mayor(t_segmento* segmento, t_segmento* segmento_siguiente)
-{
-	return (segmento->tamanio_segmento < segmento_siguiente->tamanio_segmento);
+
+bool menor_a_mayor_segun_inicio(void* segmento, void* segmento_siguiente) {
+	return ((t_segmento*)segmento)->inicio < ((t_segmento*)segmento_siguiente)->inicio;
 }
+
+
+bool menor_a_mayor_segun_tamanio(void* segmento, void* segmento_siguiente) {
+	return ((t_segmento*)segmento)->tamanio_segmento < ((t_segmento*)segmento_siguiente)->tamanio_segmento;
+}
+
 
 bool esta_libre(void* segmento) {
 	return ((t_segmento*)segmento)->estado_segmento == LIBRE;
 }
 
-t_list* segmentos_libres(void) {
 
+bool esta_ocupado(void* segmento) {
+	return ((t_segmento*)segmento)->estado_segmento == OCUPADO;
+}
+
+
+t_list* segmentos_libres(void) {
 	return list_filter(segmentos, (void*) esta_libre);
 }
 
-t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado)
-{
 
-	t_list* segmentos_vacios = list_create();
-	segmentos_vacios = segmentos_libres();
+t_list* segmentos_ocupados(void) {
+	return list_filter(segmentos, (void*) esta_ocupado);
+}
+
+
+t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
+
+	t_list* segmentos_vacios = segmentos_libres();
+
+	bool memoria_igual_o_mas_grande(void* segmento) {
+		return tamanio_buscado <= ((t_segmento*)segmento)->tamanio_segmento;
+	}
 
 	if(criterio_elegido == BEST_FIT){
-		if(list_size(segmentos_vacios) > 1){
+		if(list_size(segmentos_vacios) >= 1){
 
-			t_list* segmentos_con_espacio = list_filter(segmentos_vacios, (void*)memoria_igual_o_mas_grande);
-			t_list* segmentos_con_espacio_ordenados = list_sorted(segmentos_con_espacio, (void*)menor_a_mayor);
+			t_list* segmentos_con_espacio =	list_filter(segmentos_vacios, memoria_igual_o_mas_grande);
 
-			t_segmento* mejor_segmento = (t_segmento*) list_get(segmentos_con_espacio_ordenados, 0);
+			t_list* segmentos_con_espacio_ordenados = list_sorted(segmentos_con_espacio, menor_a_mayor_segun_tamanio);
+
+			t_segmento* mejor_segmento = list_get(segmentos_con_espacio_ordenados, 0);
 
 			return mejor_segmento;
 		}
 
 	}
 	else if(criterio_elegido == FIRST_FIT){
-		if(list_size(segmentos_vacios) >1) {
-			t_segmento* primer_segmento = (t_segmento*) list_find(segmentos_vacios, (void*)memoria_igual_o_mas_grande);
+		if(list_size(segmentos_vacios) >= 1) {
+
+			t_segmento* primer_segmento = list_find(segmentos_vacios, memoria_igual_o_mas_grande);
 
 			return primer_segmento;
 		}
@@ -302,6 +272,7 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado)
 
 	return NULL;
 }
+
 
 bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado) {
 
@@ -315,7 +286,7 @@ bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado) {
 
 
 
-// Funciones para guardar la Patota
+// FUNCIONES PARA GUARDAR EN MEMORIA (SEGMENTACION)
 void guardar_patota(t_pcb* nueva_patota) {
 
 	memcpy(memoria_principal + base_segmento, &(nueva_patota->pid), sizeof(nueva_patota->pid));
@@ -323,12 +294,8 @@ void guardar_patota(t_pcb* nueva_patota) {
 
 	memcpy(memoria_principal + base_segmento, &(nueva_patota->tareas), sizeof(nueva_patota->tareas));
 	base_segmento += sizeof(nueva_patota->tareas);
-
 }
 
-
-
-// Funciones para guardar las Tareas
 
 void guardar_tareas(t_list* tareas_de_la_patota) {
 
@@ -355,7 +322,6 @@ void guardar_tareas(t_list* tareas_de_la_patota) {
 }
 
 
-// Funciones para guardar la Tripulante
 void guardar_tripulante(t_tcb* nuevo_tripulante) {
 
 	memcpy(memoria_principal + base_segmento, &(nuevo_tripulante->id_tripulante), sizeof(nuevo_tripulante->id_tripulante));
@@ -377,28 +343,51 @@ void guardar_tripulante(t_tcb* nuevo_tripulante) {
 	base_segmento += sizeof(nuevo_tripulante->puntero_PCB);
 
 }
-/*
-void recuperar_tripulante(t_tcb* nuevo_tripulante) {
 
-	memcpy(&(nuevo_tripulante->id_tripulante), memoria_principal + base_segmento, sizeof(nuevo_tripulante->id_tripulante));
-	base_segmento += sizeof(nuevo_tripulante->id_tripulante);
 
-	memcpy(&(nuevo_tripulante->estado_tripulante), memoria_principal + base_segmento, sizeof(nuevo_tripulante->estado_tripulante));
-	base_segmento += sizeof(nuevo_tripulante->estado_tripulante);
 
-	memcpy(&(nuevo_tripulante->posicion_x), memoria_principal + base_segmento, sizeof(nuevo_tripulante->posicion_x));
-	base_segmento += sizeof(nuevo_tripulante->posicion_x);
 
-	memcpy(&(nuevo_tripulante->posicion_y), memoria_principal + base_segmento, sizeof(nuevo_tripulante->posicion_y));
-	base_segmento += sizeof(nuevo_tripulante->posicion_y);
+// ACTUALIZACIONES EN MEMORIA (SEGMENTACION)
+void actualizar_patota(t_pcb* patota, uint32_t inicio_segmento) {
 
-	memcpy(&(nuevo_tripulante->id_tarea_a_realizar), memoria_principal + base_segmento, sizeof(nuevo_tripulante->id_tarea_a_realizar));
-	base_segmento += sizeof(nuevo_tripulante->id_tarea_a_realizar);
+	void* inicio = (void*) memoria_principal + inicio_segmento;
+	uint32_t desplazamiento = 0;
 
-	memcpy(&(nuevo_tripulante->puntero_PCB), memoria_principal + base_segmento, sizeof(nuevo_tripulante->puntero_PCB));
-	base_segmento += sizeof(nuevo_tripulante->puntero_PCB);
+	memcpy(inicio + desplazamiento, &(patota->pid), sizeof(patota->pid));
+	desplazamiento += sizeof(patota->pid);
+
+	memcpy(inicio + desplazamiento, &(patota->tareas), sizeof(patota->tareas));
+	desplazamiento += sizeof(patota->tareas);
 }
-*/
+
+
+void actualizar_tareas(t_list* tareas_patota, uint32_t inicio_segmento) {
+
+	void* inicio = (void*) memoria_principal + inicio_segmento;
+	uint32_t desplazamiento = 0;
+
+	uint32_t cantidad_tareas = list_size(tareas_patota);
+
+	for(int i=0; i<cantidad_tareas; i++){
+		t_tarea* tarea_a_guardar = list_get(tareas_patota, i);
+
+		memcpy(inicio + desplazamiento, &(tarea_a_guardar->operacion), sizeof(tarea_a_guardar->operacion));
+		desplazamiento += sizeof(tarea_a_guardar->operacion);
+
+		memcpy(inicio + desplazamiento, &(tarea_a_guardar->cantidad), sizeof(tarea_a_guardar->cantidad));
+		desplazamiento += sizeof(tarea_a_guardar->cantidad);
+
+		memcpy(inicio + desplazamiento, &(tarea_a_guardar->posicion_x), sizeof(tarea_a_guardar->posicion_x));
+		desplazamiento += sizeof(tarea_a_guardar->posicion_x);
+
+		memcpy(inicio + desplazamiento, &(tarea_a_guardar->posicion_y), sizeof(tarea_a_guardar->posicion_y));
+		base_segmento += sizeof(tarea_a_guardar->posicion_y);
+
+		memcpy(inicio + desplazamiento, &(tarea_a_guardar->tiempo), sizeof(tarea_a_guardar->tiempo));
+		desplazamiento += sizeof(tarea_a_guardar->tiempo);
+	}
+}
+
 
 void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento) {
 
@@ -422,11 +411,10 @@ void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento) {
 
 	memcpy(inicio + desplazamiento, &(tripulante->puntero_PCB), sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);
-
 }
 
 
-void actualizar_segmento(void* estructura_actualizar, tipo_segmento tipo_segmento_a_guardar, t_segmento* segmento_libre) {
+void actualizar_segmento(void* estructura_actualizar, tipo_estructura tipo_segmento_a_guardar, t_segmento* segmento_libre) {
 
 	segmento_libre->tipo_segmento = tipo_segmento_a_guardar;
 
@@ -434,76 +422,27 @@ void actualizar_segmento(void* estructura_actualizar, tipo_segmento tipo_segment
 
 	switch(tipo_segmento_a_guardar){
 		case PATOTA:
-			guardar_patota(estructura_actualizar);
+			segmento_libre->id_segmento = ((t_pcb*)estructura_actualizar)->pid;
+			actualizar_patota(estructura_actualizar, segmento_libre->inicio);
 			break;
 		case TAREAS:
-			guardar_tareas(estructura_actualizar);
+			segmento_libre->id_segmento = list_size((t_list*)estructura_actualizar);
+			actualizar_tareas(estructura_actualizar, segmento_libre->inicio);
 			break;
 		case TRIPULANTE:
+			segmento_libre->id_segmento = ((t_tcb*)estructura_actualizar)->id_tripulante;
 			actualizar_tripulante(estructura_actualizar, segmento_libre->inicio);
 			break;
 		default:
 			break;
 	}
-
 	sem_post(crear_segmento_sem);
 }
 
 
-t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota) {
-
-	bool se_encuentra_patota(void* tabla){
-		return ((t_tabla_segmentos_patota*)tabla)->patota->pid == id_patota;
-	}
-
-	 t_tabla_segmentos_patota* tabla_buscada = list_find(tablas_segmentos, se_encuentra_patota);
-
-	return tabla_buscada;
-}
 
 
-int obtener_indice(t_list* lista, void* valor) {
-
-	int indice;
-	for(int i = 0; i<list_size(lista); i++) {
-		if(list_get(lista, i) == valor) {
-			indice = i;
-		}
-	}
-	return indice;
-}
-
-
-t_segmento* buscar_por_id(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t valor) {
-
-	bool mismo_segmento(void* segmento) {
-		return (((t_segmento*)segmento)->tipo_segmento == tipo_de_segmento) && (((t_segmento*)segmento)->id_segmento == valor);
-	}
-
-	t_segmento* segmento_buscado = list_find(segmentos, mismo_segmento);
-
-	return segmento_buscado;
-}
-
-
-t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t id_proxima_tarea_del_tripu) {
-
-	bool misma_tarea(void* segmento) {
-		return ((t_segmento*)segmento)->tipo_segmento == tipo_de_segmento;
-	}
-
-	t_segmento* segmento_tareas = list_find(segmentos, misma_tarea);
-
-	t_list* tareas_de_la_patota = obtener_contenido_de_segmento(segmento_tareas);
-
-	t_tarea* tarea_buscada = list_get(tareas_de_la_patota, id_proxima_tarea_del_tripu);
-
-	return tarea_buscada;
-}
-
-
-
-
+// FUNCIONES PARA OBTENER DE MEMORIA
 void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir)
 {
 	void* contenido;
@@ -521,7 +460,6 @@ void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir)
 		default:
 			break;
 	}
-
 	return contenido;
 }
 
@@ -548,7 +486,6 @@ t_pcb* encontrar_patota(t_segmento* segmento) {
 }
 
 
-// TODO problemas al deserializar las tareas
 t_list* encontrar_tarea(t_segmento* segmento) {
 
 	t_list* tareas_totales = list_create();
@@ -586,25 +523,8 @@ t_list* encontrar_tarea(t_segmento* segmento) {
 	else {
 		return NULL;
 	}
-
-	/*t_list* tareas_de_la_patota = list_create();
-	//malloc(sizeof(t_tarea) * segmento->id_segmento)
-	void* inicio = (void*) memoria_principal + segmento->inicio;
-	uint32_t desplazamiento = 0;
-
-	memcpy(&(tareas_de_la_patota), inicio + desplazamiento, (sizeof(t_tarea) * segmento->id_segmento));
-	desplazamiento += (sizeof(t_tarea) * segmento->id_segmento);
-
-	printf("Tamanio segmento = %u\n", sizeof(t_tarea) * segmento->id_segmento);
-	printf("desplazamiento = %u\n", desplazamiento);
-
-	if(segmento->tamanio_segmento == desplazamiento) {
-			return tareas_de_la_patota;
-	}
-	else {
-		return NULL;
-	}*/
 }
+
 
 t_tcb* encontrar_tripulante(t_segmento* segmento) {
 
@@ -638,3 +558,63 @@ t_tcb* encontrar_tripulante(t_segmento* segmento) {
 		return NULL;
 	}
 }
+
+
+
+
+// FUNCIONES DE BÚSQUEDA
+t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota) {
+
+	bool se_encuentra_patota(void* tabla){
+		return ((t_tabla_segmentos_patota*)tabla)->patota->pid == id_patota;
+	}
+
+	 t_tabla_segmentos_patota* tabla_buscada = list_find(tablas_segmentos, se_encuentra_patota);
+
+	return tabla_buscada;
+}
+
+
+int obtener_indice(t_list* lista, void* valor) {
+
+	int indice;
+	for(int i = 0; i<list_size(lista); i++) {
+		if(list_get(lista, i) == valor) {
+			indice = i;
+		}
+	}
+	return indice;
+}
+
+
+t_segmento* buscar_por_id(t_list* segmentos, tipo_estructura tipo_de_segmento, uint32_t valor) {
+
+	bool mismo_segmento(void* segmento) {
+		return (((t_segmento*)segmento)->tipo_segmento == tipo_de_segmento) && (((t_segmento*)segmento)->id_segmento == valor);
+	}
+
+	t_segmento* segmento_buscado = list_find(segmentos, mismo_segmento);
+
+	return segmento_buscado;
+}
+
+
+t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_estructura tipo_de_segmento, uint32_t id_proxima_tarea_del_tripu) {
+
+	bool misma_tarea(void* segmento) {
+		return ((t_segmento*)segmento)->tipo_segmento == tipo_de_segmento;
+	}
+
+	t_segmento* segmento_tareas = list_find(segmentos, misma_tarea);
+
+	t_list* tareas_de_la_patota = obtener_contenido_de_segmento(segmento_tareas);
+
+	if(list_size(tareas_de_la_patota)-1 < id_proxima_tarea_del_tripu) {
+		return NULL;
+	}
+	else{
+		t_tarea* tarea_buscada = list_get(tareas_de_la_patota, id_proxima_tarea_del_tripu);
+		return tarea_buscada;
+	}
+}
+

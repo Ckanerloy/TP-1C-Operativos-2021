@@ -6,10 +6,16 @@ int main(void) {
 	obtener_datos_de_config(config);
 	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
 
-	iniciar_variables_y_semaforos();
-
+	// Recibe la señal para hacer el Dump de Memoria
 	signal(SIGUSR1, iniciar_dump_memoria);
 
+	// Recibe la señal para compactar la memoria
+	signal(SIGUSR2, verificar_compactacion);
+
+	// Muestra en pantalla la cantidad de Memoria Libre
+	signal(SIGALRM, chequear_memoria);
+
+	iniciar_variables_y_semaforos();
 	inicializar_memoria();
 	elegir_esquema_de_memoria(ESQUEMA_MEMORIA);
 	criterio_elegido = elegir_criterio_seleccion(CRITERIO_SELECCION);
@@ -36,6 +42,7 @@ void iniciar_variables_y_semaforos(void) {
 	sem_init(crear_segmento_sem, 0, 0);
 }
 
+
 void inicializar_memoria(void) {
 	log_info(logger, "Se utilizará %s como esquema de memoria.\n", ESQUEMA_MEMORIA);
 
@@ -50,17 +57,8 @@ void inicializar_memoria(void) {
 		sleep(1);
 		abort();
 	}
-
-	area_swap = malloc(TAMANIO_SWAP);
-	if(area_swap != NULL){
-		log_info(logger, "Se inició el Área de Swap con un tamaño de %u bytes.\n", TAMANIO_SWAP);
-	}
-	else{
-		log_error(logger, "Error al iniciar el Area de Swap.\n");
-		sleep(1);
-		abort();
-	}
 }
+
 
 void iniciar_mapa(void) {
 
@@ -134,17 +132,15 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 	switch(operacion)
 {
 			case INICIAR_PATOTA:
-				log_trace(logger, "SE INICIARÁ UNA PATOTA CON SUS TRIPULANTES.");
 				patota_recibida = malloc(sizeof(t_iniciar_patota));
 				respuesta_iniciar_patota = malloc(sizeof(t_respuesta_iniciar_patota));
 				t_tabla_segmentos_patota* tabla_patota;
+
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
-				//printf("Cantidad de tripulantes: %d \n" , patota_recibida->cantidad_tripulantes);
-				//printf("Contenido de tareas: %s \n", patota_recibida->tareas_de_patota);
-				//printf("Posiciones de los tripulantes: %s \n", patota_recibida->posiciones);
 				parser_posiciones = string_split(patota_recibida->posiciones, "|");
 
+				// Junta los IDs de los tripulantes de la Patota
 				char* ids_enviar = string_new();
 
 				// Tareas de UNA Patota
@@ -237,8 +233,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						log_info(logger, "Se ha guardado en memoria la Patota %u y su/s %u Tripulante/s.\n", nueva_patota->pid, patota_recibida->cantidad_tripulantes);
 					}
 
-					log_info(logger, "El tamaño de la memoria restante es de %i.\n", memoria_restante);
-
 					printf("Inicio de proximo segmento: %d \n", base_segmento);
 					printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
 
@@ -246,14 +240,21 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				}
 
 				else if(esquema_elegido  == 'P') {
-					//crear_pagina(estructura, tipo_estructura);
+					//TODO por paginacion
 
+					// Verifica si hay espacio para guardar en memoria
+					if(validar_espacio_por_patota_paginacion(tamanio_total) == 0) {
+						respuesta_iniciar_patota->numero_de_patota = 0;
+						respuesta_iniciar_patota->respuesta = 0;
+						respuesta_iniciar_patota->tamanio_ids = 0;
+						respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
+						strcpy(respuesta_iniciar_patota->ids_tripu, "");
 
+						log_error(logger, "No hay espacio suficiente para guardar la patota y su/s tripulante/s. \n");
+					}
 				}
 
-				else {
-					log_error(logger, "No se puede guardar la estructura en Memoria");
-				}
+				//cerrar_conexion(logger, conexion);
 
 				free(ids_enviar);
 				free(parser_tarea);
@@ -266,7 +267,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				break;
 
 			case ACTUALIZAR_UBICACION_TRIPULANTE:
-				log_trace(logger, "SE ACTUALIZARÁ LA POSICIÓN DE UN TRIPULANTE.");
 				tripulante_por_ubicacion = malloc(sizeof(t_tripulante_ubicacion));
 				respuesta_ok_ubicacion = malloc(sizeof(t_respuesta_tripulante));
 
@@ -289,7 +289,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					tripulante_buscado_por_ubicacion->posicion_x = tripulante_por_ubicacion->posicion_x;
 					tripulante_buscado_por_ubicacion->posicion_y = tripulante_por_ubicacion->posicion_y;
 
-					//falta actualizar la posicion del tripulante en el MAPA
+					//TODO: actualizar la posicion del tripulante en el MAPA
 
 					actualizar_segmento(tripulante_buscado_por_ubicacion, TRIPULANTE, segmento_buscado);
 
@@ -297,11 +297,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				}
 				else if(esquema_elegido  == 'P') {
+					//TODO por paginacion
 					//crear_pagina(estructura, tipo_estructura);
 
-				}
-				else {
-					log_error(logger, "No se puede guardar la estructura en Memoria");
 				}
 
 				respuesta_ok_ubicacion->id_tripulante = tripulante_por_ubicacion->id_tripulante;
@@ -311,12 +309,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_ok_ubicacion, RESPUESTA_OK_UBICACION, conexion);
 
+				//cerrar_conexion(logger, conexion);
+
 				free(tripulante_por_ubicacion);
 				free(respuesta_ok_ubicacion);
 				break;
 
 			case PEDIR_UBICACION_TRIPULANTE:
-				log_trace(logger, "SE RETORNARÁ LA UBICACIÓN DE UN TRIPULANTE.");
 				tripulante_para_ubicacion = malloc(sizeof(t_tripulante));
 				respuesta_con_ubicacion = malloc(sizeof(t_respuesta_tripulante_ubicacion));
 
@@ -335,11 +334,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				}
 				else if(esquema_elegido  == 'P') {
+					//TODO por paginacion
 					//crear_pagina(estructura, tipo_estructura);
 
-				}
-				else {
-					log_error(logger, "No se puede guardar la estructura en Memoria");
 				}
 
 				respuesta_con_ubicacion->id_tripulante = tripulante_para_ubicacion->id_tripulante;
@@ -349,12 +346,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_con_ubicacion, RESPUESTA_NUEVA_UBICACION, conexion);
 
+				//cerrar_conexion(logger, conexion);
+
 				free(tripulante_para_ubicacion);
 				free(respuesta_con_ubicacion);
 				break;
 
 			case ACTUALIZAR_ESTADO_TRIPULANTE:
-				log_trace(logger, "SE ACTUALIZARÁ EL ESTADO DE UN TRIPULANTE.");
 				tripulante_por_estado = malloc(sizeof(t_tripulante_estado));
 				respuesta_por_estado = malloc(sizeof(t_respuesta_tripulante));
 
@@ -385,11 +383,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				}
 				else if(esquema_elegido  == 'P') {
+					//TODO por paginacion
 					//crear_pagina(estructura, tipo_estructura);
 
-				}
-				else {
-					log_error(logger, "No se puede guardar la estructura en Memoria");
 				}
 
 				respuesta_por_estado->id_tripulante = tripulante_por_estado->id_tripulante;
@@ -399,11 +395,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_por_estado, RESPUESTA_OK_ESTADO, conexion);
 
+				//cerrar_conexion(logger, conexion);
+
 				free(respuesta_por_estado);
 				break;
 
 			case PEDIDO_TAREA:
-				log_trace(logger, "SE RETORNARÁ LA PRÓXIMA TAREA A REALIZAR DE UN TRIPULANTE.");
 				tripulante_para_tarea = malloc(sizeof(t_tripulante));
 				respuesta_con_tarea_tripulante = malloc(sizeof(t_respuesta_tarea_tripulante));
 				respuesta_con_tarea_tripulante->tarea = malloc(sizeof(t_tarea));
@@ -427,13 +424,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
-					respuesta_con_tarea_tripulante->tarea->operacion = tarea_buscada->operacion;
-					respuesta_con_tarea_tripulante->tarea->cantidad = tarea_buscada->cantidad;
-					respuesta_con_tarea_tripulante->tarea->posicion_x = tarea_buscada->posicion_x;
-					respuesta_con_tarea_tripulante->tarea->posicion_y = tarea_buscada->posicion_y;
-					respuesta_con_tarea_tripulante->tarea->tiempo = tarea_buscada->tiempo;
 
-					tripulante_con_tarea->id_tarea_a_realizar++;
+					if(tarea_buscada != NULL) {
+						respuesta_con_tarea_tripulante->tarea->operacion = tarea_buscada->operacion;
+						respuesta_con_tarea_tripulante->tarea->cantidad = tarea_buscada->cantidad;
+						respuesta_con_tarea_tripulante->tarea->posicion_x = tarea_buscada->posicion_x;
+						respuesta_con_tarea_tripulante->tarea->posicion_y = tarea_buscada->posicion_y;
+						respuesta_con_tarea_tripulante->tarea->tiempo = tarea_buscada->tiempo;
+						tripulante_con_tarea->id_tarea_a_realizar++;
+					}
+					else {
+						respuesta_con_tarea_tripulante->tarea->operacion = TAREA_VACIA;
+						respuesta_con_tarea_tripulante->tarea->cantidad = 0;
+						respuesta_con_tarea_tripulante->tarea->posicion_x = 0;
+						respuesta_con_tarea_tripulante->tarea->posicion_y = 0;
+						respuesta_con_tarea_tripulante->tarea->tiempo = 0;
+					}
 
 					actualizar_segmento(tripulante_con_tarea, TRIPULANTE, segmento_buscado);
 
@@ -441,61 +447,46 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				}
 				else if(esquema_elegido  == 'P') {
+					//TODO por paginacion
 					//crear_pagina(estructura, tipo_estructura);
 
-				}
-				else {
-					log_error(logger, "No se puede guardar la estructura en Memoria");
 				}
 
 				log_info(logger, "Se envió la próxima tarea que tendrá que ejecutar el Tripulante %u de la Patota %u.\n", respuesta_con_tarea_tripulante->id_tripulante, tripulante_para_tarea->id_patota);
 
 				enviar_mensaje(respuesta_con_tarea_tripulante, RESPUESTA_NUEVA_TAREA, conexion);
 
+				//cerrar_conexion(logger, conexion);
+
 				free(tripulante_para_tarea);
 				free(respuesta_con_tarea_tripulante);
 				break;
 
 			case EXPULSAR_TRIPULANTE:
-				log_trace(logger, "SE EXPULSARÁ UN TRIPULANTE.");
 				tripulante_a_eliminar = malloc(sizeof(t_tripulante));
 				respuesta_tripulante_eliminado = malloc(sizeof(t_respuesta_tripulante));
 
 				recibir_mensaje(tripulante_a_eliminar, operacion, conexion);
-
-				printf("Tripulante a Expulsar: %u \n", tripulante_a_eliminar->id_tripulante);
-				printf("Patota del tripulante: %u \n", tripulante_a_eliminar->id_patota);
-
 
 				if(esquema_elegido == 'S') {
 
 					int indice = 0;
 
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_a_eliminar->id_patota);
-
 					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_a_eliminar->id_tripulante);
-
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
-					log_info(logger, "Memoria Total antes de expulsar tripulante: %u.\n\n\n", memoria_libre_total);
+					log_info(logger, "Memoria Total antes de expulsar tripulante: %u.\n", memoria_libre_total);
 
 					list_remove(patota_buscada->segmentos, indice);
-
 					liberar_segmento(segmento_buscado);
 
-					log_info(logger, "Memoria Total despues de expulsar tripulante: %u.\n\n\n", memoria_libre_total);
-
-// Verificar si es correcto eliminar el segmento dentro de los segmentos de patota
-//	y dejarlo dentro de los segmentos generales del sistema marcado como LIBRE
-
+					log_info(logger, "Memoria Total despues de expulsar tripulante: %u.\n", memoria_libre_total);
 
 				}
 				else if(esquema_elegido  == 'P') {
 					//crear_pagina(estructura, tipo_estructura);
 
-				}
-				else {
-					log_error(logger, "No se puede guardar la estructura en Memoria");
 				}
 
 				respuesta_tripulante_eliminado->respuesta = 1;
@@ -504,6 +495,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				log_info(logger, "Se ha expulsado al Tripulante %u de la Patota %u de la nave.\n", tripulante_a_eliminar->id_tripulante, tripulante_a_eliminar->id_patota);
 
 				enviar_mensaje(respuesta_tripulante_eliminado, RESPUESTA_TRIPULANTE_ELIMINADO, conexion);
+
+				//cerrar_conexion(logger, conexion);
 
 				free(tripulante_a_eliminar);
 				free(respuesta_tripulante_eliminado);
@@ -518,8 +511,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				free(crear_segmento_sem);
 				free(memoria_principal);
 				printf("Memoria Principal liberada...\n");
-				free(area_swap);
-				printf("Area de Swap liberada...\n\n");
+
+				if(esquema_elegido == 'P') {
+					free(area_swap);
+					printf("Area de Swap liberada...\n\n");
+				}
+
 				log_info(logger, "Se ha cerrado el programa de forma exitosa.\n");
 				terminar_programa(config, logger);
 				exit(0);
@@ -531,19 +528,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 }
 
 
-bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
-	int32_t restante = memoria_libre_total - tamanio;
-	return (restante >= 0);
-}
-
-
-
 t_pcb* crear_pcb() {
 	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));
 	proceso_patota->pid = contador_id_patota;
 	proceso_patota->tareas = 0; //Direccion de memoria de las tareas
 	return proceso_patota;
 }
+
 
 t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion_y) {
 
@@ -558,6 +549,7 @@ t_tcb* crear_tcb(uint32_t dir_logica_pcb, uint32_t posicion_x, uint32_t posicion
 	return tripulante;
 }
 
+
 uint32_t cantidad_tareas(char** parser_tarea) {
 
 	int cantidad = 0;
@@ -568,5 +560,105 @@ uint32_t cantidad_tareas(char** parser_tarea) {
 }
 
 
+void chequear_memoria(void) {
+	log_info(logger, "La memoria restante es de %i.", memoria_restante);
+	log_info(logger, "La memoria libre por segmento es de %i.", memoria_libre_por_segmento);
+	log_info(logger, "La memoria libre total es de %i.\n", memoria_libre_total);
+}
 
 
+codigo_memoria mapeo_esquema_memoria(char* ESQUEMA)
+{
+	codigo_memoria esquema_memoria;
+
+	if(strcmp(ESQUEMA, "PAGINACION") == 0) {
+		esquema_memoria = PAGINACION;
+	}
+
+	if(strcmp(ESQUEMA, "SEGMENTACION") == 0) {
+		esquema_memoria = SEGMENTACION;
+	}
+
+	return esquema_memoria;
+}
+
+
+// Elige el esquema de memoria a utilizar e inicializa la misma
+void elegir_esquema_de_memoria(char* ESQUEMA)
+{
+	codigo_memoria cod_mem;
+
+	cod_mem = mapeo_esquema_memoria(ESQUEMA);
+
+	switch(cod_mem) {
+
+		case PAGINACION:
+
+			esquema_elegido = 'P';
+			tablas_paginas = list_create();
+
+			log_info(logger, "Las páginas tendran un tamaño de %u bytes cada una.\n", TAMANIO_PAGINA);
+			log_info(logger, "Se utilizará el algoritmo de %s para reemplazar las páginas.\n", ALGORITMO_REEMPLAZO);
+			tablas_paginas = list_create();
+			cantidad_paginas = TAMANIO_MEMORIA / TAMANIO_PAGINA;
+			cantidad_frames = TAMANIO_MEMORIA / TAMANIO_PAGINA;
+			inicializar_swap();
+			// Poner la cantidad de paginas, los frames, etc.
+
+			break;
+
+		case SEGMENTACION:
+
+			esquema_elegido = 'S';
+			log_info(logger, "Se utilizará el criterio de %s para colocar el segmento en memoria.\n", CRITERIO_SELECCION);
+			tablas_segmentos = list_create();
+			segmentos = list_create();
+			memoria_libre_por_segmento = 0;
+			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
+
+			break;
+
+		default:
+			log_error(logger, "No se eligió ningún esquema de memoria, por lo que no se puede seguir con el programa.");
+			abort();
+			break;
+	}
+}
+
+
+bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
+	int32_t restante = memoria_libre_total - tamanio;
+	return (restante >= 0);
+}
+
+bool validar_espacio_por_patota_paginacion(uint32_t tamanio) {
+
+	return 1;
+}
+
+algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo){
+	algoritmo_reemplazo algoritmo_reemplazo;
+
+	if(strcmp(algoritmo, "LRU") == 0) {
+		algoritmo_reemplazo = LRU;
+	}
+	if(strcmp(algoritmo, "CLOCK") == 0) {
+		algoritmo_reemplazo = CLOCK;
+	}
+
+	return algoritmo_reemplazo;
+}
+
+
+criterio_seleccion elegir_criterio_seleccion(char* criterio){
+	criterio_seleccion criterio_seleccionado;
+
+	if(strcmp(criterio, "BEST_FIT") == 0 || strcmp(criterio, "BF") == 0) {
+		criterio_seleccionado = BEST_FIT;
+	}
+	if(strcmp(criterio, "FIRST_FIT") == 0 || strcmp(criterio, "FF") == 0) {
+		criterio_seleccionado = FIRST_FIT;
+	}
+
+	return criterio_seleccionado;
+}

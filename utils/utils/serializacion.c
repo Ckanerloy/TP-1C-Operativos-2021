@@ -469,7 +469,7 @@ uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_t
 	uint32_t tamanio_a_enviar = 0;
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(mensaje->respuesta) + sizeof(mensaje->id_tripulante) + sizeof(mensaje->tarea->cantidad) + sizeof(mensaje->tarea->operacion) + sizeof(mensaje->tarea->posicion_x) + sizeof(mensaje->tarea->posicion_y) + sizeof(mensaje->tarea->tiempo);
+	buffer->size = sizeof(mensaje->respuesta) + sizeof(mensaje->id_tripulante) + sizeof(mensaje->tarea->operacion) + sizeof(mensaje->tarea->cantidad) + sizeof(mensaje->tarea->posicion_x) + sizeof(mensaje->tarea->posicion_y) + sizeof(mensaje->tarea->tiempo);
 
 	void* stream_auxiliar = malloc(buffer->size);
 
@@ -502,7 +502,7 @@ uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_t
 	desplazamiento += sizeof(mensaje->tarea->tiempo);
 
 
-	tamanio_a_enviar = sizeof(mensaje->respuesta) + sizeof(mensaje->id_tripulante) + sizeof(mensaje->tarea->cantidad) + sizeof(mensaje->tarea->operacion) + sizeof(mensaje->tarea->posicion_x) + sizeof(mensaje->tarea->posicion_y) + sizeof(mensaje->tarea->tiempo);
+	tamanio_a_enviar = sizeof(mensaje->respuesta) + sizeof(mensaje->id_tripulante) + sizeof(mensaje->tarea->operacion) + sizeof(mensaje->tarea->cantidad) + sizeof(mensaje->tarea->posicion_x) + sizeof(mensaje->tarea->posicion_y) + sizeof(mensaje->tarea->tiempo);
 
 	if(desplazamiento != tamanio_a_enviar)
 	{
