@@ -405,7 +405,7 @@ void obtener_orden_input(){
 
 	// sem_t* saca = malloc(sizeof(sem_t));
 
-
+	 int valorPulsos;
 	 switch(operacion){
 
 
@@ -418,9 +418,7 @@ void obtener_orden_input(){
 			log_info(logger, "Iniciando Planificacion....... \n");
 			//}
 
-			sem_post(planificacion_on);
-			sem_post(planificacion_on_ready_running);
-			sem_post(planificion_rafaga);
+
 
 			sem_wait(mutex_new_ready);
 			new_ready_off = 0;
@@ -434,6 +432,9 @@ void obtener_orden_input(){
 			dar_pulsos_off = 0;
 			sem_post(mutex_rafaga);
 
+			sem_post(planificacion_on);
+			sem_post(planificacion_on_ready_running);
+			sem_post(planificion_rafaga);
 			break;
 
 		case PAUSAR_PLANIFICACION:
@@ -462,8 +463,8 @@ void obtener_orden_input(){
 		case INICIAR_PATOTA:
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 7|1 2|0
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 1|1
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// PRUEBAS PARA DISCORDIADOR
@@ -703,6 +704,9 @@ void obtener_orden_input(){
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
 			respuesta_al_expulsar_tripulante = malloc(sizeof(t_respuesta_tripulante));
 
+
+
+
 			bool mismo_id(tripulante_plani* tripu)
 			{
 				return tripu->id_tripulante == id_tripulante_a_expulsar->id_tripulante;
@@ -712,6 +716,12 @@ void obtener_orden_input(){
 
 			tripulante_a_expulsar = list_find(lista_tripulantes, (void*)mismo_id);
 
+
+			sem_getvalue(tripulante_a_expulsar->sem_tripu,&valorPulsos);
+			printf("valor sem pulsos %u",valorPulsos);
+
+			sem_post(tripulante_a_expulsar->sem_planificacion);
+			/*
 			// TODO: verificar que el Tripulante no este en la cola de Terminated
 
 			if(tripulante_a_expulsar != NULL){
@@ -781,6 +791,7 @@ void obtener_orden_input(){
 			free(id_tripulante_a_expulsar);
 			free(respuesta_al_expulsar_tripulante);
 			//free(tripulante_a_expulsar);
+			*/
 			break;
 
 		case TERMINAR_PROGRAMA:
