@@ -40,13 +40,7 @@ typedef enum
 } codigo_sabotaje;
 
 
-typedef struct {
-	codigo_sabotaje operacion;
-	int32_t tiempo;
-	uint32_t posicion_x;
-	uint32_t posicion_y;
 
-} t_sabotaje;
 
 
 

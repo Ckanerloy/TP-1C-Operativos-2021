@@ -111,8 +111,10 @@ typedef struct {
 	t_tarea* tarea_a_realizar;
 
 	bool elegido_sabotaje;
-	sem_t* mutex_elegido;
-	t_sabotaje* tarea_auxiliar;
+	bool fui_elegido_antes;
+
+
+	t_tarea* tarea_auxiliar;
 
 	bool expulsado;
 
@@ -122,13 +124,15 @@ typedef struct {
 	sem_t* mutex_estado;
 
 	sem_t* mutex_expulsado;
+
+	uint cantidad_realizada;
 } tripulante_plani;
 
 
 typedef struct {
 	uint32_t sabotaje_on;
-	t_sabotaje* tarea_sabotaje;             //    ---------------
-	posiciones* posicion_sabotaje;
+	t_tarea* tarea_sabotaje;             //    ---------------
+
 } t_respuesta_mongo;
 
 
