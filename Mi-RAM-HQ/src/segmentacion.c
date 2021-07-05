@@ -12,7 +12,7 @@ t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
 }
 
 
-t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_segmento, uint32_t tamanio) {
+t_segmento* administrar_guardar_segmento(void* estructura, tipo_estructura tipo_segmento, uint32_t tamanio) {
 
 	if (memoria_restante >= tamanio) {
 		return crear_segmento(estructura, tipo_segmento);
@@ -67,7 +67,7 @@ t_segmento* administrar_guardar_segmento(void* estructura, tipo_segmento tipo_se
 }
 
 
-t_segmento* crear_segmento(void* estructura, tipo_segmento tipo_segmento) {
+t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_segmento) {
 
 	t_segmento* segmento = malloc(sizeof(t_segmento));
 
@@ -414,7 +414,7 @@ void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento) {
 }
 
 
-void actualizar_segmento(void* estructura_actualizar, tipo_segmento tipo_segmento_a_guardar, t_segmento* segmento_libre) {
+void actualizar_segmento(void* estructura_actualizar, tipo_estructura tipo_segmento_a_guardar, t_segmento* segmento_libre) {
 
 	segmento_libre->tipo_segmento = tipo_segmento_a_guardar;
 
@@ -587,7 +587,7 @@ int obtener_indice(t_list* lista, void* valor) {
 }
 
 
-t_segmento* buscar_por_id(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t valor) {
+t_segmento* buscar_por_id(t_list* segmentos, tipo_estructura tipo_de_segmento, uint32_t valor) {
 
 	bool mismo_segmento(void* segmento) {
 		return (((t_segmento*)segmento)->tipo_segmento == tipo_de_segmento) && (((t_segmento*)segmento)->id_segmento == valor);
@@ -599,7 +599,7 @@ t_segmento* buscar_por_id(t_list* segmentos, tipo_segmento tipo_de_segmento, uin
 }
 
 
-t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_segmento tipo_de_segmento, uint32_t id_proxima_tarea_del_tripu) {
+t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_estructura tipo_de_segmento, uint32_t id_proxima_tarea_del_tripu) {
 
 	bool misma_tarea(void* segmento) {
 		return ((t_segmento*)segmento)->tipo_segmento == tipo_de_segmento;

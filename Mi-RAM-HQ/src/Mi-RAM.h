@@ -88,6 +88,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
 // Validación de espacio por esquema de memoria
 bool validar_espacio_por_patota_segmentacion(uint32_t tamanio);
+bool validar_espacio_por_patota_paginacion(uint32_t tamanio);
 void chequear_memoria(void);
 
 // Otras funciones

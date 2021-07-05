@@ -243,7 +243,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					//TODO por paginacion
 
 					// Verifica si hay espacio para guardar en memoria
-					/*if(validar_espacio_por_patota_paginacion(tamanio_total) == 0) {
+					if(validar_espacio_por_patota_paginacion(tamanio_total) == 0) {
 						respuesta_iniciar_patota->numero_de_patota = 0;
 						respuesta_iniciar_patota->respuesta = 0;
 						respuesta_iniciar_patota->tamanio_ids = 0;
@@ -251,7 +251,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						strcpy(respuesta_iniciar_patota->ids_tripu, "");
 
 						log_error(logger, "No hay espacio suficiente para guardar la patota y su/s tripulante/s. \n");
-					}*/
+					}
 				}
 
 				//cerrar_conexion(logger, conexion);
@@ -600,6 +600,8 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			log_info(logger, "Las páginas tendran un tamaño de %u bytes cada una.\n", TAMANIO_PAGINA);
 			log_info(logger, "Se utilizará el algoritmo de %s para reemplazar las páginas.\n", ALGORITMO_REEMPLAZO);
 			tablas_paginas = list_create();
+			cantidad_paginas = TAMANIO_MEMORIA / TAMANIO_PAGINA;
+			cantidad_frames = TAMANIO_MEMORIA / TAMANIO_PAGINA;
 			inicializar_swap();
 			// Poner la cantidad de paginas, los frames, etc.
 
@@ -629,6 +631,10 @@ bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
 	return (restante >= 0);
 }
 
+bool validar_espacio_por_patota_paginacion(uint32_t tamanio) {
+
+	return 1;
+}
 
 algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo){
 	algoritmo_reemplazo algoritmo_reemplazo;

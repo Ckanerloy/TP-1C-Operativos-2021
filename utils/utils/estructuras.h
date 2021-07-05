@@ -57,7 +57,7 @@ typedef enum
 	TAREAS,
 	TRIPULANTE,
 	VACIO
-} tipo_segmento;
+} tipo_estructura;
 
 
 typedef enum
