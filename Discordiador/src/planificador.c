@@ -322,7 +322,7 @@ void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_p
 	}
 
 	enviar_mensaje(ubicaciones_a_enviar, ACTUALIZAR_UBICACION_TRIPULANTE, conexion_mi_ram);
-
+	/*
 	if(validacion_envio(conexion_mi_ram) == 1) {
 		recibir_mensaje(respuesta_ok_ubicacion, RESPUESTA_OK_UBICACION, conexion_mi_ram);
 
@@ -339,6 +339,7 @@ void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_p
 		log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
 		abort();
 	}
+	*/
 
 }
 
@@ -369,6 +370,8 @@ void new_ready() {
 
 		actualizar_estado(tripulante_a_ready, 'R');
 
+		sem_post(contador_tripulantes_en_ready);
+
 		sem_wait(mutex_new_ready);
 
 		if(new_ready_off){
@@ -381,7 +384,7 @@ void new_ready() {
 
 		sem_post(planificacion_on);
 
-		sem_post(contador_tripulantes_en_ready);
+
 
 	}
 }
@@ -412,7 +415,7 @@ void ready_running() {
             sem_post(tripulante_a_running->sem_planificacion);
         //}
 
-
+        sem_post(planificacion_on_ready_running);
 
 		sem_wait(mutex_ready_running);
 
@@ -424,7 +427,7 @@ void ready_running() {
 			sem_post(mutex_ready_running);
 		}
 
-        sem_post(planificacion_on_ready_running);
+
 
         tripulante_a_running=NULL;
         free(tripulante_a_running);
@@ -558,6 +561,10 @@ void running_suspendido(tripulante_plani* tripu){
 void ready_suspendido(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'S');
+	int a;
+	sem_getvalue(contador_tripulantes_en_ready,&a);
+	printf("valor semaforo %u",a);
+	fflush(stdout);
 	sem_wait(contador_tripulantes_en_ready);
 }
 
@@ -587,7 +594,6 @@ void tripulante_hilo(void* tripulante){
 
 		sem_wait(tripu->sem_planificacion); //Queda trabado hasta que el hilo de ready_running le hace el post (TRABADO EN READY)
 
-
 		//Entra a exec
 		sem_wait(tripu->mutex_expulsado);
 
@@ -609,14 +615,10 @@ void tripulante_hilo(void* tripulante){
 
 		//printf("SOY EL tripu a %u",tripu->id_tripulante);
 		//fflush(stdout);
+		bool comparador=1;
+		while(distancia > 0 && comparador){ //Cambiar condicion con variable goblal hay_sabotaje
 
-		while(distancia > 0 && !(tripu->elegido_sabotaje)){ //Cambiar condicion con variable goblal hay_sabotaje
-
-
-			printf("SOY EL tripu a %u \n",tripu->id_tripulante);
-			fflush(stdout);
-
-			//posicion_tripu = obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
+			posicion_tripu = obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
 			tripu->cantidad_realizada= tripu->cantidad_realizada+1;
 			distancia--;
 
@@ -627,9 +629,6 @@ void tripulante_hilo(void* tripulante){
 			//}else{
 				//sem_post(tripu->mutex_expulsado);
 			//}
-
-			printf("SOY EL tripu b %u \n",tripu->id_tripulante);
-			fflush(stdout);
 
 			if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 				if(algoritmo_elegido == RR){
@@ -644,6 +643,9 @@ void tripulante_hilo(void* tripulante){
 			//fflush(stdout);
 
 			sem_wait(tripu->sem_tripu);         //Trabado por el pulso (rafaga), te lo dan siempre que estes en Exec
+
+
+			comparador=!tripu->elegido_sabotaje;
 
 
 		}
@@ -686,7 +688,7 @@ void rafaga_cpu(t_list* lista_todos_tripulantes){
 
 	tripulantes_exec_block = list_filter(lista_todos_tripulantes,(void*) esta_exec_o_block);
 
-	int largo=list_size(tripulantes_exec_block);
+//int largo=list_size(tripulantes_exec_block);
 
 	//printf("cantidad den exe %u",largo);
 	//fflush(stdout);
@@ -853,8 +855,8 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 
 
 	}
-	//cambios_de_tarea(tripu);
-	tripu->tarea_a_realizar=NULL;
+	cambios_de_tarea(tripu);
+	//tripu->tarea_a_realizar=NULL;
 
 
 
@@ -913,8 +915,8 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 
 	}
 
-	//cambios_de_tarea(tripu);
-	tripu->tarea_a_realizar= NULL;
+	cambios_de_tarea(tripu);
+	//tripu->tarea_a_realizar= NULL;
 
 
 
@@ -969,8 +971,8 @@ void descartar_basura(tripulante_plani* tripu) {
 
 	}
 
-	//cambios_de_tarea(tripu);
-	tripu->tarea_a_realizar= NULL;
+	cambios_de_tarea(tripu);
+	//tripu->tarea_a_realizar= NULL;
 
 	if(!(tripu->elegido_sabotaje)){
 		if(tripu->tarea_a_realizar!=NULL){
@@ -1015,9 +1017,9 @@ void otras_tareas(tripulante_plani* tripu){
 		}
 
 	}
-	//cambios_de_tarea(tripu);
+	cambios_de_tarea(tripu);
 
-	tripu->tarea_a_realizar= NULL;
+	//tripu->tarea_a_realizar= NULL;
 
 	if(!(tripu->elegido_sabotaje)){
 			if(tripu->tarea_a_realizar!=NULL){

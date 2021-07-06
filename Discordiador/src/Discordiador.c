@@ -191,6 +191,10 @@ void iniciar_escucha_sabotaje(void){
 
 
 		//HAY Q SACARLO DE LA LISTA AL MAS CERCANO
+		int largoaa=list_size(bloqueado_suspendido);
+		printf("largo lista %u",largoaa);
+		fflush(stdout);
+
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
 		printf("id asignado: %u",tripu_mas_cercano->id_tripulante);
@@ -689,72 +693,53 @@ void obtener_orden_input(){
 			break;
 
 		case EXPULSAR_TRIPULANTE:
-			// ELIMINA EL TRIPULANTE DEL HILO DEL DISCORDIADOR
-
-			// CONECTA CON MI RAM HQ Y LO ELIMINA DE MEMORIA
-			// 		- TAMBIEN LO ELIMINA DEL MAPA
-
 			if(parser_consola[1] == NULL) {
-			   	log_error(logger, "Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.");
-			  	break;
+				log_error(logger, "Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.");
+				break;
 			}
 			strcat(parser_consola[1], "\0");
 
 			id_tripulante_a_expulsar = malloc(sizeof(t_tripulante));
 			id_tripulante_a_expulsar->id_tripulante = atoi(parser_consola[1]);
 			respuesta_al_expulsar_tripulante = malloc(sizeof(t_respuesta_tripulante));
+			char estado_anterior;
 
-
-
-
-			bool mismo_id(tripulante_plani* tripu)
-			{
+			bool mismo_id(tripulante_plani* tripu) {
 				return tripu->id_tripulante == id_tripulante_a_expulsar->id_tripulante;
 			}
 
 			tripulante_a_expulsar = malloc(sizeof(tripulante_plani));
-
 			tripulante_a_expulsar = list_find(lista_tripulantes, (void*)mismo_id);
 
-
-			sem_getvalue(tripulante_a_expulsar->sem_tripu,&valorPulsos);
-			printf("valor sem pulsos %u",valorPulsos);
-
-			sem_post(tripulante_a_expulsar->sem_planificacion);
-			/*
-			// TODO: verificar que el Tripulante no este en la cola de Terminated
-
-			if(tripulante_a_expulsar != NULL){
+			if(tripulante_a_expulsar != NULL) {
 
 				id_tripulante_a_expulsar->id_patota = tripulante_a_expulsar->numero_patota;
-				printf("id del tripu a eliminar: %u \n",id_tripulante_a_expulsar->id_tripulante);
-				printf("id del patota a eliminar: %u \n",id_tripulante_a_expulsar->id_patota);
 
+				printf("ID del Tripulante a eliminar: %u \n",id_tripulante_a_expulsar->id_tripulante);
+				printf("ID de la Patota del Tripulante a eliminar: %u \n",id_tripulante_a_expulsar->id_patota);
+
+				estado_anterior = tripulante_a_expulsar->estado;
 
 				switch(tripulante_a_expulsar->estado){
-					case 'R':
+						case 'R':
 							tripulante_a_expulsar->expulsado = 1;
 							sem_post(tripulante_a_expulsar->sem_planificacion);
 							ready_exit(tripulante_a_expulsar);
 							break;
 
-					case 'E':
+						case 'E':
 							tripulante_a_expulsar->expulsado = 1;
 							running_exit(tripulante_a_expulsar);
 							break;
 
-					case 'B':
-						tripulante_a_expulsar->expulsado = 1;
-						block_exit(tripulante_a_expulsar);
-						break;
+						case 'B':
+							tripulante_a_expulsar->expulsado = 1;
+							block_exit(tripulante_a_expulsar);
+							break;
 
-					case 'N':
-						tripulante_a_expulsar->expulsado = 1;
-						sem_post(tripulante_a_expulsar->sem_planificacion);
-						new_exit(tripulante_a_expulsar);
-						break;
 				}
-				if(tripulante_a_expulsar->estado!='T'){
+					// No se puede expulsar un tripulante si este está Terminado o como Nuevo (antes de haber iniciado Planificacion)
+				if(estado_anterior != 'T' && estado_anterior != 'N'){
 					conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
 					if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
@@ -763,36 +748,39 @@ void obtener_orden_input(){
 
 					enviar_mensaje(id_tripulante_a_expulsar, EXPULSAR_TRIPULANTE, conexion_mi_ram);
 
-					if(validacion_envio(conexion_mi_ram) == 1){
+					if(validacion_envio(conexion_mi_ram) == 1) {
 						recibir_mensaje(respuesta_al_expulsar_tripulante, RESPUESTA_TRIPULANTE_ELIMINADO, conexion_mi_ram);
+
 						if(respuesta_al_expulsar_tripulante->respuesta != 1) {
 							log_error(logger, "No se pudo expulsar al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
 							abort();
 						}
+
 						log_info(logger, "Se expulsó al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
-					}
-					else {
-						log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
+
+					}else{
+						log_error(logger, "No se pudo enviar el mensaje a Mi-RAM.\n");
 						abort();
 					}
-
 					cerrar_conexion(logger,conexion_mi_ram);
-
-				}else{
-					log_error(logger, "Se quiso eliminar un tripulante que ya termino");
+				}
+					// En el caso que se quiera expulsar un Tripulante estando en Terminated
+				else if(estado_anterior == 'T'){
+					log_error(logger, "Se quiso eliminar un tripulante que ya estaba terminado.\n");
+					}
+					// En el caso que se quiera expulsar un Tripulante estando en Terminated
+				else {
+					log_warning(logger, "No se puede eliminar un Tripulante cuando no se ha iniciado la Planificación.\n");
 				}
 
-			}else {
-				log_error(logger, "No existe el tripulante que se desea eliminar");
-			}
+				}else {
+					log_error(logger, "No existe el tripulante que se desea eliminar.\n");
+				}
 
-			cerrar_conexion(logger,conexion_mi_ram);
-
-			free(id_tripulante_a_expulsar);
-			free(respuesta_al_expulsar_tripulante);
-			//free(tripulante_a_expulsar);
-			*/
-			break;
+			   free(id_tripulante_a_expulsar);
+			   free(respuesta_al_expulsar_tripulante);
+						//free(tripulante_a_expulsar);
+			   break;
 
 		case TERMINAR_PROGRAMA:
 
