@@ -3,6 +3,7 @@
 int main(void) {
 
 	logger = crear_log("discordiador.log", "DISCORDIADOR");
+	logger_sin_pantalla=  log_create("discordiador.log", "logger_sin_pantalla" , 0, LOG_LEVEL_INFO);;
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
 	obtener_planificacion_de_config(config);
