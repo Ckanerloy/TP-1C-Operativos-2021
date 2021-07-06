@@ -646,8 +646,6 @@ void tripulante_hilo(void* tripulante){
 
 
 			comparador=!tripu->elegido_sabotaje;
-
-
 		}
 
 		sem_wait(tripu->mutex_expulsado);
@@ -760,7 +758,6 @@ void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion){
 	//esta incompleta hay q hacer estructura para pasar datos pero lo encro asi noms
 	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
-
 	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
 		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
 		abort();
@@ -770,7 +767,6 @@ void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion){
 
 
 void realizar_tarea(tripulante_plani* tripu){
-
 
 	switch(tripu->tarea_a_realizar->operacion) {
 
@@ -815,7 +811,6 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 
-
 	sem_wait(tripu->mutex_expulsado);
 	if(tripu->expulsado){
 		sem_post(tripu->mutex_expulsado);
@@ -837,7 +832,6 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
-
 	while(tiempo_restante != 0 && !(tripu->elegido_sabotaje)){
 		sem_wait(tripu->sem_tripu);
 
@@ -853,15 +847,9 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 			sem_post(tripu->mutex_expulsado);
 		}
 
-
 	}
 	cambios_de_tarea(tripu);
 	//tripu->tarea_a_realizar=NULL;
-
-
-
-
-
 
 	if(!(tripu->fui_elegido_antes)){
 		if(tripu->tarea_a_realizar!=NULL){
@@ -869,7 +857,6 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 		}else{
 			block_exit(tripu);
 		}
-
 	}
 
 		//Es importante que sem_tripu quede en cero sino se autoejecuta.
@@ -912,14 +899,10 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 		}else{
 			sem_post(tripu->mutex_expulsado);
 		}
-
 	}
 
 	cambios_de_tarea(tripu);
 	//tripu->tarea_a_realizar= NULL;
-
-
-
 
 	if(!(tripu->elegido_sabotaje)){
 		if(tripu->tarea_a_realizar!=NULL){
@@ -928,8 +911,6 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 			block_exit(tripu);
 		}
 	}
-
-
 }
 
 void descartar_basura(tripulante_plani* tripu) {
@@ -968,7 +949,6 @@ void descartar_basura(tripulante_plani* tripu) {
 		}else{
 			sem_post(tripu->mutex_expulsado);
 		}
-
 	}
 
 	cambios_de_tarea(tripu);
@@ -981,7 +961,6 @@ void descartar_basura(tripulante_plani* tripu) {
 			block_exit(tripu);
 		}
 	}
-
 }
 
 void otras_tareas(tripulante_plani* tripu){
@@ -991,7 +970,6 @@ void otras_tareas(tripulante_plani* tripu){
 	while(tiempo_restante > 0 && !(tripu->elegido_sabotaje)){
 		if(tripu->cantidad_realizada==QUANTUM){
 			running_ready(tripu);
-
 
 			sem_wait(tripu->sem_planificacion);
 
@@ -1028,8 +1006,6 @@ void otras_tareas(tripulante_plani* tripu){
 				running_exit(tripu);
 			}
 	}
-
-
 }
 
 
@@ -1044,7 +1020,6 @@ void realizar_tarea_sabotaje(tripulante_plani* tripu){
 	actualizar_estado(tripu, 'S');
 
 	cambios_de_tarea(tripu);
-
 }
 
 
@@ -1064,23 +1039,17 @@ void cambios_de_tarea(tripulante_plani* tripu) {
 			tripu->fui_elegido_antes=1;
 			tripu->elegido_sabotaje=0;
 
-
-
 			t_tarea* aux_intercambio=malloc(sizeof(t_tarea));
-
-
 
 			aux_intercambio->operacion=tripu->tarea_a_realizar->operacion;
 			aux_intercambio->cantidad=tripu->tarea_a_realizar->cantidad;
 			aux_intercambio->posicion_x=tripu->tarea_a_realizar->posicion_x;
 			aux_intercambio->posicion_y=tripu->tarea_a_realizar->posicion_y;
 
-
 			tripu->tarea_a_realizar->operacion=tripu->tarea_auxiliar->operacion;
 			tripu->tarea_a_realizar->cantidad=tripu->tarea_auxiliar->cantidad;
 			tripu->tarea_a_realizar->posicion_x=tripu->tarea_auxiliar->posicion_x;
 			tripu->tarea_a_realizar->posicion_y=tripu->tarea_auxiliar->posicion_y;
-
 
 			tripu->tarea_auxiliar->operacion=aux_intercambio->operacion;
 			tripu->tarea_auxiliar->cantidad=aux_intercambio->cantidad;

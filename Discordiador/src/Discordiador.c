@@ -111,27 +111,18 @@ void iniciar_escucha_sabotaje(void){
 		tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 
 		//Para parar los hilos de planificacion
-		int valor_previo_new_ready_off=new_ready_off;
 
 		sem_wait(mutex_new_ready);
 		new_ready_off = 1;
 		sem_post(mutex_new_ready);
 
-
-		int valor_previo_ready_running_off=ready_running_off;
-
 		sem_wait(mutex_ready_running);
 		ready_running_off = 1;
 		sem_post(mutex_ready_running);
 
-
-
-		int valor_previo_dar_pulsos_off=dar_pulsos_off;
-
 		sem_wait(mutex_rafaga);
 		dar_pulsos_off = 1;
 		sem_post(mutex_rafaga);
-
 
 
 		largo = list_size(lista_tripulantes);
@@ -141,7 +132,6 @@ void iniciar_escucha_sabotaje(void){
 				tripulante->estado_anterior = 'E';
 				list_add_sorted(bloqueado_suspendido, (void*) tripulante,(void*)menorId);
 				running_suspendido(tripulante);
-				actualizar_estado(tripulante, 'S');
 			}
 		}
 
@@ -150,7 +140,6 @@ void iniciar_escucha_sabotaje(void){
 			if(tripulante->estado == 'R'){
 				tripulante->estado_anterior = 'R';
 				list_add_sorted(bloqueado_suspendido_ready, (void*) tripulante,(void*)menorId);
-
 				ready_suspendido(tripulante);
 			}
 		}
@@ -257,9 +246,9 @@ void iniciar_escucha_sabotaje(void){
 
 
 		//Vuelve a activar los hilos de planificacion
-
+/*
 		sem_wait(mutex_new_ready);
-		new_ready_off = valor_previo_new_ready_off;
+		new_ready_off = 0;
 		sem_post(mutex_new_ready);
 
 		if(new_ready_off==0){
@@ -268,30 +257,22 @@ void iniciar_escucha_sabotaje(void){
 
 
 		sem_wait(mutex_ready_running);
-		ready_running_off = valor_previo_ready_running_off;
+		ready_running_off = 0;
 		sem_post(mutex_ready_running);
 
 		if(ready_running_off==0){
 			sem_post(planificacion_on_ready_running);
 		}
-
+*/
 		sem_wait(mutex_rafaga);
-		dar_pulsos_off=valor_previo_dar_pulsos_off;
+		dar_pulsos_off = 1;
 		sem_post(mutex_rafaga);
 
-		if(dar_pulsos_off==0){
-			sem_post(planificion_rafaga);
-		}
-
-
-
-
-
-
+//		if(dar_pulsos_off==0){
+//			sem_post(planificion_rafaga);
+//		}
 
 	//	tripu_mas_cercano->estado='E';
-
-
 
 		posicion_sabotaje=NULL;
 		tripu_mas_cercano=NULL;
@@ -412,7 +393,6 @@ void obtener_orden_input(){
 	 int valorPulsos;
 	 switch(operacion){
 
-
 		case INICIAR_PLANIFICACION:
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
@@ -431,8 +411,6 @@ void obtener_orden_input(){
 			//if(valor_semaforo == 0){
 			log_info(logger, "Iniciando Planificacion....... \n");
 			//}
-
-
 
 			sem_wait(mutex_new_ready);
 			new_ready_off = 0;
@@ -504,7 +482,6 @@ void obtener_orden_input(){
 				log_error(logger, "Se ingresaron posiciones demás. Solo puede como máximo haber tantas posiciones como cantidad de tripulantes.\n");
 				break;
 			}
-
 
 			strcat(parser_consola[1],"\0");
 			strcat(parser_consola[2],"\0");
