@@ -414,7 +414,17 @@ void obtener_orden_input(){
 
 
 		case INICIAR_PLANIFICACION:
-
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 7|1 2|0
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
+			// PRUEBAS PARA DISCORDIADOR
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/plantas.txt 1|1 3|4
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/oxigeno.txt 5|5
+			// PRUEBAS PARA MI RAM
+			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
+			// Ej: INICIAR_PATOTA 6 /home/utnso/tareas/persa.txt
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
 			//sem_getvalue(planificacion_on,&valor_semaforo);
 
