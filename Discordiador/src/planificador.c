@@ -195,7 +195,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 	tarea->posicion_y = 4;
 	tarea->tiempo = 5;
 	return tarea;
-	*/
+*/
 
 	uint32_t conexion_mi_ram;
 
@@ -250,6 +250,8 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 	else {
 		return tarea_buscada;
 	}
+
+
 }
 
 posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
@@ -305,7 +307,7 @@ posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
 void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_plani* tripu) {
 
 	t_tripulante_ubicacion* ubicaciones_a_enviar = malloc(sizeof(t_tripulante_ubicacion));
-	t_respuesta_tripulante* respuesta_ok_ubicacion = malloc(sizeof(t_respuesta_tripulante));
+	//t_respuesta_tripulante* respuesta_ok_ubicacion = malloc(sizeof(t_respuesta_tripulante));
 
 	ubicaciones_a_enviar->id_patota = tripu->numero_patota;
 	ubicaciones_a_enviar->id_tripulante = tripu->id_tripulante;
@@ -320,7 +322,7 @@ void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_p
 	}
 
 	enviar_mensaje(ubicaciones_a_enviar, ACTUALIZAR_UBICACION_TRIPULANTE, conexion_mi_ram);
-
+	/*
 	if(validacion_envio(conexion_mi_ram) == 1) {
 		recibir_mensaje(respuesta_ok_ubicacion, RESPUESTA_OK_UBICACION, conexion_mi_ram);
 
@@ -337,6 +339,7 @@ void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_p
 		log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
 		abort();
 	}
+	*/
 
 }
 
@@ -367,6 +370,8 @@ void new_ready() {
 
 		actualizar_estado(tripulante_a_ready, 'R');
 
+		sem_post(contador_tripulantes_en_ready);
+
 		sem_wait(mutex_new_ready);
 
 		if(new_ready_off){
@@ -379,7 +384,7 @@ void new_ready() {
 
 		sem_post(planificacion_on);
 
-		sem_post(contador_tripulantes_en_ready);
+
 
 	}
 }
@@ -403,14 +408,14 @@ void ready_running() {
 
         actualizar_estado(tripulante_a_running, 'E');
 
-        if(tripulante_a_running->estado_anterior=='E'){
-        	sem_post(tripulante_a_running->sem_tripu);
+        //if(tripulante_a_running->estado_anterior=='E'){
+        //	sem_post(tripulante_a_running->sem_tripu);
 
-        }else{
+        //}else{
             sem_post(tripulante_a_running->sem_planificacion);
-        }
+        //}
 
-
+        sem_post(planificacion_on_ready_running);
 
 		sem_wait(mutex_ready_running);
 
@@ -422,8 +427,12 @@ void ready_running() {
 			sem_post(mutex_ready_running);
 		}
 
-        sem_post(planificacion_on_ready_running);
+
+
+        tripulante_a_running=NULL;
+        free(tripulante_a_running);
     }
+
 }
 
 
@@ -559,6 +568,10 @@ void running_suspendido(tripulante_plani* tripu){
 void ready_suspendido(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'S');
+	int a;
+	sem_getvalue(contador_tripulantes_en_ready,&a);
+	printf("valor semaforo %u",a);
+	fflush(stdout);
 	sem_wait(contador_tripulantes_en_ready);
 }
 
@@ -592,6 +605,7 @@ void tripulante_hilo(void* tripulante){
 		sem_wait(tripu->mutex_expulsado);
 
 		if(tripu->expulsado){
+
 			sem_post(tripu->mutex_expulsado);
 			return;
 		}else{
@@ -606,25 +620,27 @@ void tripulante_hilo(void* tripulante){
 		uint32_t distancia = obtener_distancia(posicion_tripu,posicion_tarea);
 		tripu->cantidad_realizada = 0;
 
-		while(distancia > 0 && !(tripu->elegido_sabotaje)){ //Cambiar condicion con variable goblal hay_sabotaje
+		//printf("SOY EL tripu a %u",tripu->id_tripulante);
+		//fflush(stdout);
+		bool comparador=1;
+		while(distancia > 0 && comparador){ //Cambiar condicion con variable goblal hay_sabotaje
 
 			posicion_tripu = obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
 			tripu->cantidad_realizada= tripu->cantidad_realizada+1;
 			distancia--;
 
-			sem_wait(tripu->mutex_expulsado);
-			if(tripu->expulsado){
-				sem_post(tripu->mutex_expulsado);
-				return;
-			}else{
-				sem_post(tripu->mutex_expulsado);
-			}
+			//sem_wait(tripu->mutex_expulsado);
+			//if(tripu->expulsado){
+			//	//sem_post(tripu->mutex_expulsado);
+			//	return;
+			//}else{
+				//sem_post(tripu->mutex_expulsado);
+			//}
 
 			if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 				if(algoritmo_elegido == RR){
 					if(tripu->cantidad_realizada == QUANTUM){
 						running_ready(tripu);
-						tripu->cantidad_realizada = 0;
 						sem_wait(tripu->sem_planificacion);
 					}
 				}
@@ -632,6 +648,8 @@ void tripulante_hilo(void* tripulante){
 
 			sem_wait(tripu->sem_tripu);         //Trabado por el pulso (rafaga), te lo dan siempre que estes en Exec
 
+
+			comparador=!tripu->elegido_sabotaje;
 		}
 
 		sem_wait(tripu->mutex_expulsado);
@@ -672,7 +690,7 @@ void rafaga_cpu(t_list* lista_todos_tripulantes){
 
 	tripulantes_exec_block = list_filter(lista_todos_tripulantes,(void*) esta_exec_o_block);
 
-	int largo=list_size(tripulantes_exec_block);
+//int largo=list_size(tripulantes_exec_block);
 
 	list_iterate(tripulantes_exec_block, (void*) poner_en_uno_semaforo);
 
@@ -742,7 +760,6 @@ void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion){
 	//esta incompleta hay q hacer estructura para pasar datos pero lo encro asi noms
 	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
-
 	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
 		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
 		abort();
@@ -796,7 +813,6 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
 
-
 	sem_wait(tripu->mutex_expulsado);
 	if(tripu->expulsado){
 		sem_post(tripu->mutex_expulsado);
@@ -818,7 +834,6 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
-
 	while(tiempo_restante != 0 && !(tripu->elegido_sabotaje)){
 		sem_wait(tripu->sem_tripu);
 
@@ -834,15 +849,9 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 			sem_post(tripu->mutex_expulsado);
 		}
 
-
 	}
 	cambios_de_tarea(tripu);
-
-
-
-
-
-
+	//tripu->tarea_a_realizar=NULL;
 
 	if(!(tripu->fui_elegido_antes)){
 		if(tripu->tarea_a_realizar!=NULL){
@@ -850,7 +859,6 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 		}else{
 			block_exit(tripu);
 		}
-
 	}
 
 		//Es importante que sem_tripu quede en cero sino se autoejecuta.
@@ -893,14 +901,10 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 		}else{
 			sem_post(tripu->mutex_expulsado);
 		}
-
 	}
 
-	//cambios_de_tarea(tripu);
-	tripu->tarea_a_realizar= NULL;
-
-
-
+	cambios_de_tarea(tripu);
+	//tripu->tarea_a_realizar= NULL;
 
 	if(!(tripu->elegido_sabotaje)){
 		if(tripu->tarea_a_realizar!=NULL){
@@ -909,8 +913,6 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 			block_exit(tripu);
 		}
 	}
-
-
 }
 
 void descartar_basura(tripulante_plani* tripu) {
@@ -949,11 +951,11 @@ void descartar_basura(tripulante_plani* tripu) {
 		}else{
 			sem_post(tripu->mutex_expulsado);
 		}
-
 	}
 
-	//cambios_de_tarea(tripu);
-	tripu->tarea_a_realizar= NULL;
+	cambios_de_tarea(tripu);
+	//tripu->tarea_a_realizar= NULL;
+
 	if(!(tripu->elegido_sabotaje)){
 		if(tripu->tarea_a_realizar!=NULL){
 			block_ready(tripu);
@@ -961,7 +963,6 @@ void descartar_basura(tripulante_plani* tripu) {
 			block_exit(tripu);
 		}
 	}
-
 }
 
 void otras_tareas(tripulante_plani* tripu){
@@ -972,7 +973,6 @@ void otras_tareas(tripulante_plani* tripu){
 		if(tripu->cantidad_realizada==QUANTUM){
 			running_ready(tripu);
 
-			tripu->cantidad_realizada=0;
 			sem_wait(tripu->sem_planificacion);
 
 			sem_wait(tripu->mutex_expulsado);
@@ -983,6 +983,7 @@ void otras_tareas(tripulante_plani* tripu){
 				sem_post(tripu->mutex_expulsado);
 			}
 		}
+
 		sem_wait(tripu->sem_tripu);
 
 		tiempo_restante--;
@@ -996,7 +997,7 @@ void otras_tareas(tripulante_plani* tripu){
 		}
 
 	}
-	//cambios_de_tarea(tripu);
+	cambios_de_tarea(tripu);
 
 	//tripu->tarea_a_realizar= NULL;
 
@@ -1007,8 +1008,6 @@ void otras_tareas(tripulante_plani* tripu){
 				running_exit(tripu);
 			}
 	}
-
-
 }
 
 
@@ -1023,7 +1022,6 @@ void realizar_tarea_sabotaje(tripulante_plani* tripu){
 	actualizar_estado(tripu, 'S');
 
 	cambios_de_tarea(tripu);
-
 }
 
 
@@ -1043,23 +1041,17 @@ void cambios_de_tarea(tripulante_plani* tripu) {
 			tripu->fui_elegido_antes=1;
 			tripu->elegido_sabotaje=0;
 
-
-
 			t_tarea* aux_intercambio=malloc(sizeof(t_tarea));
-
-
 
 			aux_intercambio->operacion=tripu->tarea_a_realizar->operacion;
 			aux_intercambio->cantidad=tripu->tarea_a_realizar->cantidad;
 			aux_intercambio->posicion_x=tripu->tarea_a_realizar->posicion_x;
 			aux_intercambio->posicion_y=tripu->tarea_a_realizar->posicion_y;
 
-
 			tripu->tarea_a_realizar->operacion=tripu->tarea_auxiliar->operacion;
 			tripu->tarea_a_realizar->cantidad=tripu->tarea_auxiliar->cantidad;
 			tripu->tarea_a_realizar->posicion_x=tripu->tarea_auxiliar->posicion_x;
 			tripu->tarea_a_realizar->posicion_y=tripu->tarea_auxiliar->posicion_y;
-
 
 			tripu->tarea_auxiliar->operacion=aux_intercambio->operacion;
 			tripu->tarea_auxiliar->cantidad=aux_intercambio->cantidad;
@@ -1071,7 +1063,8 @@ void cambios_de_tarea(tripulante_plani* tripu) {
 			free(aux_intercambio);
 
 		}else{
-			tripu->tarea_a_realizar= NULL;
+
+			//tripu->tarea_a_realizar= NULL;
 			tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
 		}
 	}

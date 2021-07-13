@@ -2,7 +2,10 @@
 
 int main(void) {
 
+
 	logger = crear_log("discordiador.log", "Discordiador");
+	logger_sin_pantalla =  log_create("discordiador.log", "logger_sin_pantalla" , 0, LOG_LEVEL_INFO);;
+
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
 	obtener_planificacion_de_config(config);
@@ -111,27 +114,18 @@ void iniciar_escucha_sabotaje(void){
 		tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
 
 		//Para parar los hilos de planificacion
-		int valor_previo_new_ready_off=new_ready_off;
 
 		sem_wait(mutex_new_ready);
 		new_ready_off = 1;
 		sem_post(mutex_new_ready);
 
-
-		int valor_previo_ready_running_off=ready_running_off;
-
 		sem_wait(mutex_ready_running);
 		ready_running_off = 1;
 		sem_post(mutex_ready_running);
 
-
-
-		int valor_previo_dar_pulsos_off=dar_pulsos_off;
-
 		sem_wait(mutex_rafaga);
 		dar_pulsos_off = 1;
 		sem_post(mutex_rafaga);
-
 
 
 		largo = list_size(lista_tripulantes);
@@ -141,7 +135,6 @@ void iniciar_escucha_sabotaje(void){
 				tripulante->estado_anterior = 'E';
 				list_add_sorted(bloqueado_suspendido, (void*) tripulante,(void*)menorId);
 				running_suspendido(tripulante);
-				actualizar_estado(tripulante, 'S');
 			}
 		}
 
@@ -150,7 +143,6 @@ void iniciar_escucha_sabotaje(void){
 			if(tripulante->estado == 'R'){
 				tripulante->estado_anterior = 'R';
 				list_add_sorted(bloqueado_suspendido_ready, (void*) tripulante,(void*)menorId);
-
 				ready_suspendido(tripulante);
 			}
 		}
@@ -191,6 +183,10 @@ void iniciar_escucha_sabotaje(void){
 
 
 		//HAY Q SACARLO DE LA LISTA AL MAS CERCANO
+		int largoaa=list_size(bloqueado_suspendido);
+		printf("largo lista %u",largoaa);
+		fflush(stdout);
+
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
 		printf("id asignado: %u",tripu_mas_cercano->id_tripulante);
@@ -253,9 +249,9 @@ void iniciar_escucha_sabotaje(void){
 
 
 		//Vuelve a activar los hilos de planificacion
-
+/*
 		sem_wait(mutex_new_ready);
-		new_ready_off = valor_previo_new_ready_off;
+		new_ready_off = 0;
 		sem_post(mutex_new_ready);
 
 		if(new_ready_off==0){
@@ -264,30 +260,22 @@ void iniciar_escucha_sabotaje(void){
 
 
 		sem_wait(mutex_ready_running);
-		ready_running_off = valor_previo_ready_running_off;
+		ready_running_off = 0;
 		sem_post(mutex_ready_running);
 
 		if(ready_running_off==0){
 			sem_post(planificacion_on_ready_running);
 		}
-
+*/
 		sem_wait(mutex_rafaga);
-		dar_pulsos_off=valor_previo_dar_pulsos_off;
+		dar_pulsos_off = 1;
 		sem_post(mutex_rafaga);
 
-		if(dar_pulsos_off==0){
-			sem_post(planificion_rafaga);
-		}
-
-
-
-
-
-
+//		if(dar_pulsos_off==0){
+//			sem_post(planificion_rafaga);
+//		}
 
 	//	tripu_mas_cercano->estado='E';
-
-
 
 		posicion_sabotaje=NULL;
 		tripu_mas_cercano=NULL;
@@ -405,22 +393,27 @@ void obtener_orden_input(){
 
 	// sem_t* saca = malloc(sizeof(sem_t));
 
-
+	 int valorPulsos;
 	 switch(operacion){
 
-
 		case INICIAR_PLANIFICACION:
-
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 7|1 2|0
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
+			// PRUEBAS PARA DISCORDIADOR
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/plantas.txt 1|1 3|4
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/oxigeno.txt 5|5
+			// PRUEBAS PARA MI RAM
+			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
+			// Ej: INICIAR_PATOTA 6 /home/utnso/tareas/persa.txt
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
 			//sem_getvalue(planificacion_on,&valor_semaforo);
 
 			//if(valor_semaforo == 0){
 			log_info(logger, "Iniciando Planificacion....... \n");
 			//}
-
-			sem_post(planificacion_on);
-			sem_post(planificacion_on_ready_running);
-			sem_post(planificion_rafaga);
 
 			sem_wait(mutex_new_ready);
 			new_ready_off = 0;
@@ -434,6 +427,9 @@ void obtener_orden_input(){
 			dar_pulsos_off = 0;
 			sem_post(mutex_rafaga);
 
+			sem_post(planificacion_on);
+			sem_post(planificacion_on_ready_running);
+			sem_post(planificion_rafaga);
 			break;
 
 		case PAUSAR_PLANIFICACION:
@@ -462,8 +458,8 @@ void obtener_orden_input(){
 		case INICIAR_PATOTA:
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 7|1 2|0
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 1|1
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// PRUEBAS PARA DISCORDIADOR
@@ -489,7 +485,6 @@ void obtener_orden_input(){
 				log_error(logger, "Se ingresaron posiciones demás. Solo puede como máximo haber tantas posiciones como cantidad de tripulantes.\n");
 				break;
 			}
-
 
 			strcat(parser_consola[1],"\0");
 			strcat(parser_consola[2],"\0");
@@ -690,8 +685,8 @@ void obtener_orden_input(){
 		case EXPULSAR_TRIPULANTE:
 
 			if(parser_consola[1] == NULL) {
-			   	log_error(logger, "Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.");
-			  	break;
+				log_error(logger, "Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.");
+				break;
 			}
 			strcat(parser_consola[1], "\0");
 
@@ -717,24 +712,27 @@ void obtener_orden_input(){
 				estado_anterior = tripulante_a_expulsar->estado;
 
 				switch(tripulante_a_expulsar->estado){
-					case 'R':
-						tripulante_a_expulsar->expulsado = 1;
-						sem_post(tripulante_a_expulsar->sem_planificacion);
-						ready_exit(tripulante_a_expulsar);
-						break;
 
-					case 'E':
-						tripulante_a_expulsar->expulsado = 1;
-						running_exit(tripulante_a_expulsar);
-						break;
+						case 'R':
+							tripulante_a_expulsar->expulsado = 1;
+							sem_post(tripulante_a_expulsar->sem_planificacion);
+							ready_exit(tripulante_a_expulsar);
+							break;
 
-					case 'B':
-						tripulante_a_expulsar->expulsado = 1;
-						block_exit(tripulante_a_expulsar);
-						break;
+						case 'E':
+							tripulante_a_expulsar->expulsado = 1;
+							running_exit(tripulante_a_expulsar);
+							break;
+
+						case 'B':
+							tripulante_a_expulsar->expulsado = 1;
+							block_exit(tripulante_a_expulsar);
+							break;
 
 				}
-				// No se puede expulsar un tripulante si este está Terminado o como Nuevo (antes de haber iniciado Planificacion)
+
+					// No se puede expulsar un tripulante si este está Terminado o como Nuevo (antes de haber iniciado Planificacion)
+
 				if(estado_anterior != 'T' && estado_anterior != 'N'){
 					conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
@@ -753,30 +751,33 @@ void obtener_orden_input(){
 						}
 
 						log_info(logger, "Se expulsó al Tripulante %u.\n", respuesta_al_expulsar_tripulante->id_tripulante);
-					}
-					else {
+
+
+					}else{
 						log_error(logger, "No se pudo enviar el mensaje a Mi-RAM.\n");
 						abort();
 					}
-						cerrar_conexion(logger,conexion_mi_ram);
+					cerrar_conexion(logger,conexion_mi_ram);
 				}
-				// En el caso que se quiera expulsar un Tripulante estando en Terminated
+					// En el caso que se quiera expulsar un Tripulante estando en Terminated
 				else if(estado_anterior == 'T'){
 					log_error(logger, "Se quiso eliminar un tripulante que ya estaba terminado.\n");
-				}
-				// En el caso que se quiera expulsar un Tripulante estando en Terminated
+					}
+					// En el caso que se quiera expulsar un Tripulante estando en Terminated
+
 				else {
 					log_warning(logger, "No se puede eliminar un Tripulante cuando no se ha iniciado la Planificación.\n");
 				}
 
-			}else {
-				log_error(logger, "No existe el tripulante que se desea eliminar.\n");
-			}
+				}else {
+					log_error(logger, "No existe el tripulante que se desea eliminar.\n");
+				}
 
-			free(id_tripulante_a_expulsar);
-			free(respuesta_al_expulsar_tripulante);
-			//free(tripulante_a_expulsar);
-			break;
+			   free(id_tripulante_a_expulsar);
+			   free(respuesta_al_expulsar_tripulante);
+						//free(tripulante_a_expulsar);
+			   break;
+
 
 		case TERMINAR_PROGRAMA:
 

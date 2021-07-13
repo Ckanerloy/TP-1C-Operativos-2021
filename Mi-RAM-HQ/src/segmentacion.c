@@ -296,15 +296,11 @@ void guardar_patota(t_pcb* nueva_patota) {
 	base_segmento += sizeof(nueva_patota->tareas);
 }
 
+// TODO
+void guardar_tareas(tareas_patota* tareas_de_la_patota) {
 
-void guardar_tareas(t_iniciar_patota* tareas_de_la_patota) {
-
-	char* tareas_guardar = malloc(tareas_de_la_patota->tamanio_tareas+1);
-	strcpy(tareas_guardar, tareas_de_la_patota->tareas_de_patota);
-	string_trim(&tareas_guardar);
-
-	memcpy(memoria_principal + base_segmento, tareas_guardar, tareas_de_la_patota->tamanio_tareas);
-	base_segmento += tareas_de_la_patota->tamanio_tareas;
+	memcpy(memoria_principal + base_segmento, tareas_de_la_patota->tareas, tareas_de_la_patota->tamanio_tareas);
+	base_segmento += tareas_de_la_patota->tamanio_tareas+1;
 
 }
 
@@ -472,22 +468,22 @@ t_pcb* encontrar_patota(t_segmento* segmento) {
 	}
 }
 
-
+// TODO
 void* encontrar_tarea(t_segmento* segmento) {
 
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
 
-	void* stream = malloc(segmento->tamanio_segmento);
+	char* tareas = malloc(segmento->tamanio_segmento);
 
 	printf("Tamanio del segmento: %u\n", segmento->tamanio_segmento);
 
-	memcpy(stream, inicio + desplazamiento, segmento->tamanio_segmento);
+	memcpy(tareas, inicio + desplazamiento, segmento->tamanio_segmento);
 	desplazamiento += segmento->tamanio_segmento;
 
 	if(segmento->tamanio_segmento == desplazamiento) {
 		printf("DESPLAZAMIENTO: %u\n", desplazamiento);
-			return stream;
+			return tareas;
 	}
 	else {
 		return NULL;
@@ -576,9 +572,9 @@ t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_estructura 
 
 	t_segmento* segmento_tareas = list_find(segmentos, misma_tarea);
 
-	void* stream = obtener_contenido_de_segmento(segmento_tareas);
+	char* tareas = obtener_contenido_de_segmento(segmento_tareas);
 
-	t_list* tareas_de_la_patota = obtener_las_tareas(stream, tamanio_tareas);
+	t_list* tareas_de_la_patota = obtener_las_tareas(tareas, tamanio_tareas);
 
 	if(list_size(tareas_de_la_patota)-1 < id_proxima_tarea_del_tripu) {
 		return NULL;
@@ -590,37 +586,37 @@ t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_estructura 
 }
 
 
-t_list* obtener_las_tareas(void* stream, uint32_t tamanio_tareas) {
+t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas) {
 
 	t_list* tareas_totales = list_create();
 
-	printf("Tamaño tareas: %u\n", tamanio_tareas);
+	//printf("Tamaño tareas: %u\n", tamanio_tareas);
 
-	char* tareas = malloc(tamanio_tareas+1); //malloc(tamanio_tareas+1);
+	//printf("TAREAS: \n%s\n", tareas);
 
-	memcpy(tareas, stream, tamanio_tareas+1);
+//	char* tareas = malloc(tamanio_tareas+1); //malloc(tamanio_tareas+1);
+
+	//memcpy(tareas, stream, tamanio_tareas+1);
 
 
 	//string_trim(&tareas);
 	//uint32_t tamanio_final = strlen(tareas);
 	//printf("TAMANIO FINAL: %u\n", tamanio_final);
 	//printf("%s\n",tareas);
-	//strcat(tareas, "\n");
 
-	//strcat(tareas, "\n");
 	//char** parser_tarea = obtener_tareas(tareas);
 	char** parser_tarea = string_split(tareas, "\n");
 
-	printf("%s\n",tareas);
+
 
 	int posicion = 0;
 	while(parser_tarea[posicion] != NULL) {
 
-		//t_tarea* tarea_a_guardar = obtener_la_tarea(parser_tarea[posicion]);
+		t_tarea* tarea_a_guardar = obtener_la_tarea(parser_tarea[posicion]);
 
 		printf("TAREA %d: %s\n\n", posicion, parser_tarea[posicion]);
 
-		//list_add_in_index(tareas_totales, posicion, tarea_a_guardar);
+		list_add_in_index(tareas_totales, posicion, tarea_a_guardar);
 		posicion++;
 	}
 

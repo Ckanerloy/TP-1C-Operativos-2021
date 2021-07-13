@@ -67,7 +67,7 @@ void registrar_dump_segmentacion(void) {
 			string_append_with_format(&buffer, "Proceso: %u     ", patota_a_mostrar->patota->pid);
 			string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);	// Muesta el numero de segmento
 			//string_append_with_format(&buffer, "Segmento: %u     ", j+1);	// Arranca desde 1
-			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio + segmento_a_mostrar->tamanio_segmento);
+			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio);
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
 
 			escribir_en_archivo(buffer);

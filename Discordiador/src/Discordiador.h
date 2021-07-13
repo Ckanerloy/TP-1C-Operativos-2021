@@ -59,6 +59,7 @@ pthread_t hilo_creador_rafagas;
 pthread_t hilo_tripulante_sabo;
 
 t_log* logger;
+t_log* logger_sin_pantalla;
 t_config* config;
 
 posiciones* posicion_sabotaje;

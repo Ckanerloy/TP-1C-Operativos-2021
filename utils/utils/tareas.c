@@ -37,11 +37,10 @@ codigo_tarea mapeo_tareas_tripulantes(char* tarea) {
 
 
 char** obtener_tareas(char* tareas_patota) {
-//	string_trim(&tareas_patota);
 	return string_split(tareas_patota, "\n");
 }
 
-
+// Para tareas de I/O
 t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 	char** parser_tarea = string_split(tarea_tripulante, " ");
 
@@ -58,8 +57,8 @@ t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 	tarea_nueva->posicion_y = atoi(parser_parametros[2]);
 	tarea_nueva->tiempo = atoi(parser_parametros[3]);
 
-	free(parser_tarea);
-	free(parser_parametros);
+	//free(parser_tarea);
+	//free(parser_parametros);
 	return tarea_nueva;
 }
 

@@ -109,7 +109,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 	t_iniciar_patota* patota_recibida;
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 	int32_t tamanio_total;
-	t_list* tareas_de_la_patota;
+	//t_list* tareas_de_la_patota;
+	tareas_patota* tareas_de_la_patota;
 
 	// ACTUALIZAR_UBICACION_TRIPULANTE
 	t_tripulante_ubicacion* tripulante_por_ubicacion;
@@ -139,14 +140,25 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				respuesta_iniciar_patota = malloc(sizeof(t_respuesta_iniciar_patota));
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
+				tareas_de_la_patota = malloc(sizeof(tareas_patota));
+
 				parser_posiciones = string_split(patota_recibida->posiciones, "|");
 
 				// Junta los IDs de los tripulantes de la Patota
 				char* ids_enviar = string_new();
 
+				string_trim(&patota_recibida->tareas_de_patota);
+
 				// Tareas de UNA Patota
 				printf("Tamaño de las tareas de la patota: %u\n", patota_recibida->tamanio_tareas);
 				printf("Tareas de la patota: %s\n", patota_recibida->tareas_de_patota);
+
+				strcat(patota_recibida->tareas_de_patota, "\0");
+
+				tareas_de_la_patota->tamanio_tareas = patota_recibida->tamanio_tareas+1;
+				tareas_de_la_patota->tareas = malloc(tareas_de_la_patota->tamanio_tareas);
+				strcpy(tareas_de_la_patota->tareas, patota_recibida->tareas_de_patota);
+
 
 			//	char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
 
@@ -171,7 +183,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					list_add(tareas_de_la_patota, tareas_patota);
 				}*/
 
-				printf("Tamaño de todas las tareas: %d\n", patota_recibida->tamanio_tareas);
+				printf("Tamaño de todas las tareas: %d\n", tareas_de_la_patota->tamanio_tareas);
 
 				/*datos_tarea* datos_tarea_patota = malloc(sizeof(datos_tarea));
 				datos_tarea_patota->tamanio_tarea = patota_recibida->tamanio_tareas+1;
@@ -186,7 +198,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				tamanio_tripulante = sizeof(uint32_t) + sizeof(char) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t);
 				tamanio_tripulantes = tamanio_tripulante * patota_recibida->cantidad_tripulantes;
 				tamanio_patota = sizeof(t_pcb);
-				tamanio_tareas = patota_recibida->tamanio_tareas;
+				tamanio_tareas = tareas_de_la_patota->tamanio_tareas;
 				tamanio_total = tamanio_patota + tamanio_tareas + tamanio_tripulantes;
 
 													// SEGMENTACION
@@ -218,7 +230,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						sem_wait(crear_segmento_sem);
 
-						t_segmento* segmento_tareas = administrar_guardar_segmento(patota_recibida, TAREAS, tamanio_tareas);
+						t_segmento* segmento_tareas = administrar_guardar_segmento(tareas_de_la_patota, TAREAS, tamanio_tareas);
 						list_add(tabla_patota->segmentos, segmento_tareas);
 						tabla_patota->patota->tareas = segmento_tareas->inicio;
 						tabla_patota->tamanio_tareas = tamanio_tareas;
@@ -525,6 +537,21 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					log_info(logger, "Memoria Total despues de expulsar tripulante: %u.\n", memoria_libre_total);
 
+					if(list_size(patota_buscada->segmentos) == 2) {
+						for(int i=0; i<list_size(patota_buscada->segmentos); i++) {
+							list_remove(patota_buscada->segmentos, i);
+							liberar_segmento(list_get(patota_buscada->segmentos, i));
+						}
+						int indice_patota = obtener_indice(tablas_segmentos, patota_buscada);
+						list_remove(tablas_segmentos, indice_patota);
+						list_destroy(patota_buscada->segmentos);
+						free(patota_buscada->patota);
+						free(patota_buscada);
+					}
+
+
+
+
 				}
 				else if(esquema_elegido  == 'P') {
 					//crear_pagina(estructura, tipo_estructura);
@@ -656,7 +683,7 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			segmentos = list_create();
 			memoria_libre_por_segmento = 0;
 			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
-
+			base_segmento = 0;
 			break;
 
 		default:
