@@ -22,10 +22,6 @@ int existe_file_system(){
 
 	int existeArchivo;
 	char *nombreArchivoValidacion = concatenar_path("/Blocks.ims");
-	/*char* nombreArchivoValidacion= malloc(strlen(PUNTO_MONTAJE) + strlen("/Blocks.ims") + 1);
-
-	strcpy(nombreArchivoValidacion, PUNTO_MONTAJE);
-	strcat(nombreArchivoValidacion, "/Blocks.ims");*/
 
 	//Intento abrir el archivo Blocks.ims
 	//Si retorna -1 quiere decir que no lo pudo abrir
@@ -94,7 +90,7 @@ void iniciar_superbloque(){
 
 	if( -1 == archivo)
 	  {
-	    perror("Error al abrir el archivo SuperBloque.ims \n");
+	    perror("Error al abrir el archivo SuperBloque.ims \n");//Revisar print del error
 	    exit(1);
 	  }
 
@@ -104,7 +100,7 @@ void iniciar_superbloque(){
 
 
 	//Mediante PROT_READ Y PROT_WRITE permitimos leer y escribir. MAP_SHARED permite uqe las operaciones realizadas en el área de mapeo se reflejen en el disco
-	super_bloque = mmap(NULL, statbuf.st_size /*+ sizeof(uint32_t)+superBloqueFile->cantidadBloques/8*/, PROT_WRITE | PROT_READ, MAP_SHARED,archivo,0);
+	super_bloque = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
 
 
 	if(super_bloque == MAP_FAILED){
