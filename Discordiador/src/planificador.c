@@ -426,6 +426,7 @@ void ready_running() {
     }
 }
 
+
 void running_ready(tripulante_plani* tripu){
 
 	sem_wait(mutex_ready);
@@ -439,12 +440,14 @@ void running_ready(tripulante_plani* tripu){
 
 }
 
+
 void running_block(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'B');
 
 	sem_post(multitarea_disponible);
 }
+
 
 void block_ready(tripulante_plani* tripu){
 	sem_wait(mutex_ready);
@@ -456,6 +459,7 @@ void block_ready(tripulante_plani* tripu){
 	sem_post(contador_tripulantes_en_ready);
 }
 
+
 void block_exit(tripulante_plani* tripu){
 
 	sem_wait(mutex_exit);
@@ -465,14 +469,15 @@ void block_exit(tripulante_plani* tripu){
 	actualizar_estado(tripu, 'T');
 }
 
+
 void new_exit(tripulante_plani* tripu){
 	sem_wait(mutex_exit);
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
 	sem_wait(contador_tripulantes_en_new);
+
 	actualizar_estado(tripu, 'T');
 }
-
 
 
 void running_exit(tripulante_plani* tripu){
@@ -486,6 +491,7 @@ void running_exit(tripulante_plani* tripu){
 	sem_post(multitarea_disponible);
 }
 
+
 void suspendido_ready(tripulante_plani* tripu){
 
 	sem_wait(mutex_ready);
@@ -496,6 +502,7 @@ void suspendido_ready(tripulante_plani* tripu){
 
 	sem_post(contador_tripulantes_en_ready);
 }
+
 
 void ready_exit(tripulante_plani* tripu){
 	int largo;
@@ -623,9 +630,6 @@ void tripulante_hilo(void* tripulante){
 				}
 			}
 
-			//printf("antes del wait/n");
-			//fflush(stdout);
-
 			sem_wait(tripu->sem_tripu);         //Trabado por el pulso (rafaga), te lo dan siempre que estes en Exec
 
 		}
@@ -670,8 +674,6 @@ void rafaga_cpu(t_list* lista_todos_tripulantes){
 
 	int largo=list_size(tripulantes_exec_block);
 
-	printf("cantidad den exe %u",largo);
-	fflush(stdout);
 	list_iterate(tripulantes_exec_block, (void*) poner_en_uno_semaforo);
 
 	sleep(RETARDO_CICLO_CPU);

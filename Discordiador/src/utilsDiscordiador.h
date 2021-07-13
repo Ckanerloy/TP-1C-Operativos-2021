@@ -11,7 +11,7 @@
 #include "commons/log.h"
 #include "commons/string.h"
 #include "commons/config.h"
-
+#include "Discordiador.h"
 #include"utils/estructuras.h"
 
 codigo_operacion mapeo_valor_consola(char* comando_ingresado);

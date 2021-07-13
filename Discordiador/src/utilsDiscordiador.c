@@ -73,6 +73,7 @@ uint32_t cantidad_argumentos_ingresados(char** parser_consola){  // la vamos a u
 	return cantidad;
 }
 
+
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 }

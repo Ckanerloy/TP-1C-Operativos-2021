@@ -25,6 +25,15 @@ typedef enum
 } codigo_tarea;
 
 
+typedef enum
+{
+	SABOTAJE_SUPERBLOQUE,
+	SABOTAJE_FILES
+} codigo_sabotaje;
+
+
+
+// cambiar a char*
 typedef struct {
 	codigo_tarea operacion;
 	uint32_t cantidad;
@@ -33,12 +42,6 @@ typedef struct {
 	int32_t tiempo;
 } t_tarea;
 
-
-typedef enum
-{
-	SABOTAJE_SUPERBLOQUE,
-	SABOTAJE_FILES
-} codigo_sabotaje;
 
 
 

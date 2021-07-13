@@ -64,6 +64,7 @@ uint32_t tamanio_patota;
 uint32_t tamanio_tareas;
 
 sem_t* crear_segmento_sem;
+sem_t* crear_pagina_sem;
 sem_t* espera;
 
 pthread_t hilo_recibir_mensajes;

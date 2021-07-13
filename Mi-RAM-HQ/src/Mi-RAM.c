@@ -40,6 +40,9 @@ void iniciar_variables_y_semaforos(void) {
 
 	crear_segmento_sem = malloc(sizeof(sem_t));
 	sem_init(crear_segmento_sem, 0, 0);
+
+	crear_pagina_sem = malloc(sizeof(sem_t));
+	sem_init(crear_pagina_sem, 0, 0);
 }
 
 
@@ -134,8 +137,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			case INICIAR_PATOTA:
 				patota_recibida = malloc(sizeof(t_iniciar_patota));
 				respuesta_iniciar_patota = malloc(sizeof(t_respuesta_iniciar_patota));
-				t_tabla_segmentos_patota* tabla_patota;
-
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
 				parser_posiciones = string_split(patota_recibida->posiciones, "|");
@@ -144,25 +145,53 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				char* ids_enviar = string_new();
 
 				// Tareas de UNA Patota
-				string_trim(&patota_recibida->tareas_de_patota);
-				char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
+				printf("Tamaño de las tareas de la patota: %u\n", patota_recibida->tamanio_tareas);
+				printf("Tareas de la patota: %s\n", patota_recibida->tareas_de_patota);
 
-				uint32_t cant_tareas = cantidad_tareas(parser_tarea);
+			//	char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
 
-				tareas_de_la_patota = list_create();
+				//uint32_t cant_tareas = cantidad_tareas(parser_tarea);
+				//tamanio_tareas = 0;
 
-				for(uint32_t i=0; i<cant_tareas; i++){
+				/*for(uint32_t i=0; i<cant_tareas; i++){
+
+					datos_tarea* tareas_patota = malloc(sizeof(datos_tarea));
+
+					printf("%s\n", parser_tarea[i]);
+					strcat(parser_tarea[i], "\0");
+
+					tareas_patota->id_tarea = i;
+					tareas_patota->tamanio_tarea = strlen(parser_tarea[i])+1;
+					printf("Peso tarea: %d\n", tareas_patota->tamanio_tarea);
+					tareas_patota->tarea = malloc(tareas_patota->tamanio_tarea);
+					strcpy(tareas_patota->tarea, parser_tarea[i]);
+
+					tamanio_tareas += tareas_patota->tamanio_tarea;
+
+					list_add(tareas_de_la_patota, tareas_patota);
+				}*/
+
+				printf("Tamaño de todas las tareas: %d\n", patota_recibida->tamanio_tareas);
+
+				/*datos_tarea* datos_tarea_patota = malloc(sizeof(datos_tarea));
+				datos_tarea_patota->tamanio_tarea = patota_recibida->tamanio_tareas+1;
+				strcat(patota_recibida->tareas_de_patota, "\0");
+				datos_tarea_patota->tarea = malloc(datos_tarea_patota->tamanio_tarea);
+				strcpy(datos_tarea_patota->tarea, patota_recibida->tareas_de_patota);*/
+
+				/*for(uint32_t i=0; i<cant_tareas; i++){
 					list_add_in_index(tareas_de_la_patota, i, obtener_la_tarea(parser_tarea[i]));
-				}
+				}*/
 
 				tamanio_tripulante = sizeof(uint32_t) + sizeof(char) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t);
 				tamanio_tripulantes = tamanio_tripulante * patota_recibida->cantidad_tripulantes;
 				tamanio_patota = sizeof(t_pcb);
-				tamanio_tareas = sizeof(t_tarea) * list_size(tareas_de_la_patota);
-
+				tamanio_tareas = patota_recibida->tamanio_tareas;
 				tamanio_total = tamanio_patota + tamanio_tareas + tamanio_tripulantes;
 
+													// SEGMENTACION
 				if(esquema_elegido == 'S') {
+					t_tabla_segmentos_patota* tabla_patota;
 					t_pcb* nueva_patota;
 
 					// Verifica si hay espacio para guardar en memoria
@@ -189,11 +218,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						sem_wait(crear_segmento_sem);
 
-						t_segmento* segmento_tareas = administrar_guardar_segmento(tareas_de_la_patota, TAREAS, tamanio_tareas);
+						t_segmento* segmento_tareas = administrar_guardar_segmento(patota_recibida, TAREAS, tamanio_tareas);
 						list_add(tabla_patota->segmentos, segmento_tareas);
 						tabla_patota->patota->tareas = segmento_tareas->inicio;
+						tabla_patota->tamanio_tareas = tamanio_tareas;
 
-						log_info(logger, "Se guardaron las tareas de la Patota %u, las cuales son: %s\n",nueva_patota->pid, patota_recibida->tareas_de_patota);
+						log_info(logger, "Se guardaron las tareas de la Patota %u, las cuales son: %s\n", nueva_patota->pid, patota_recibida->tareas_de_patota);
 
 						sem_wait(crear_segmento_sem);
 
@@ -239,8 +269,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
 				}
 
+													// PAGINACION
 				else if(esquema_elegido  == 'P') {
-					//TODO por paginacion
+					t_pcb* nueva_patota;
+					t_tabla_paginas_patota* tabla_patota;
 
 					// Verifica si hay espacio para guardar en memoria
 					if(validar_espacio_por_patota_paginacion(tamanio_total) == 0) {
@@ -252,13 +284,23 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						log_error(logger, "No hay espacio suficiente para guardar la patota y su/s tripulante/s. \n");
 					}
+					else {
+
+						nueva_patota = crear_pcb();
+
+						tabla_patota = crear_tabla_paginas(nueva_patota);
+
+						t_pagina* pagina_patota = administrar_guardar_pagina(nueva_patota, PATOTA, tamanio_patota);
+						list_add(tabla_patota->paginas, pagina_patota);
+						uint32_t direccion_pcb = pagina_patota->numero_de_pagina;
+
+
+					}
 				}
 
-				//cerrar_conexion(logger, conexion);
-
 				free(ids_enviar);
-				free(parser_tarea);
-				free(tareas_de_la_patota);
+				//free(parser_tarea);
+				//free(tareas_de_la_patota);
 				free(respuesta_iniciar_patota->ids_tripu);
 				free(respuesta_iniciar_patota);
 				free(patota_recibida->tareas_de_patota);
@@ -418,9 +460,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
 					t_tcb* tripulante_con_tarea = obtener_contenido_de_segmento(segmento_buscado);
-					int id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
+					int32_t id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
 
-					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante(patota_buscada->segmentos, TAREAS, id_tarea_a_buscar_del_tripu);
+					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante(patota_buscada->segmentos, TAREAS, id_tarea_a_buscar_del_tripu, patota_buscada->tamanio_tareas);
 
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
@@ -603,7 +645,6 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			cantidad_paginas = TAMANIO_MEMORIA / TAMANIO_PAGINA;
 			cantidad_frames = TAMANIO_MEMORIA / TAMANIO_PAGINA;
 			inicializar_swap();
-			// Poner la cantidad de paginas, los frames, etc.
 
 			break;
 
@@ -632,6 +673,9 @@ bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
 }
 
 bool validar_espacio_por_patota_paginacion(uint32_t tamanio) {
+
+	int32_t cantidad_paginas_usar = tamanio / TAMANIO_PAGINA;
+	printf("Se utilizarán %d páginas para guardar esta estructura.\n", cantidad_paginas_usar);
 
 	return 1;
 }

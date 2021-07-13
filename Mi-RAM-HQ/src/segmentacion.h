@@ -15,15 +15,9 @@ typedef struct segmento {
 } t_segmento;
 
 
-typedef struct {
-	uint32_t numero_de_segmento;
-	void* estructura;
-} id_segmento;
-
-
-typedef struct	tabla_segmentos_patota
-{
+typedef struct	tabla_segmentos_patota {
 	t_pcb* patota;
+	uint32_t tamanio_tareas;
 	t_list* segmentos;
 } t_tabla_segmentos_patota;
 
@@ -34,7 +28,7 @@ t_list* segmentos;
 
 // Inicio en Segmentación
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
-t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_segmento);
+t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_segmento, uint32_t tamanio);
 t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libre_segmento);
 void liberar_segmento(t_segmento* segmento_a_liberar) ;
 void verificar_compactacion(void);
@@ -43,7 +37,7 @@ void compactar(void);
 // Guardar en Memoria
 t_segmento* administrar_guardar_segmento(void* estructura, tipo_estructura tipo_segmento, uint32_t tamanio);
 void guardar_patota(t_pcb* nueva_patota);
-void guardar_tareas(t_list* tareas_de_la_patota);
+void guardar_tareas(t_iniciar_patota* tareas_de_patota);
 void guardar_tripulante(t_tcb* nuevo_tripulante);
 
 // Actualizar Segmento en Memoria
@@ -55,13 +49,15 @@ void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento);
 // Obtener en Memoria
 void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir);
 t_pcb* encontrar_patota(t_segmento* segmento);
-t_list* encontrar_tarea(t_segmento* segmento);
+void* encontrar_tarea(t_segmento* segmento);
 t_tcb* encontrar_tripulante(t_segmento* segmento);
 
 // Búsqueda de Segmento
 t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota_buscada);
 t_segmento* buscar_por_id(t_list* segmentos, tipo_estructura tipo_de_segmento, uint32_t valor);
-t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_estructura tipo_de_segmento, uint32_t id_proxima_tarea_del_tripu);
+t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_estructura tipo_de_segmento, int32_t id_proxima_tarea_del_tripu, uint32_t tamanio_tareas);
+t_list* obtener_las_tareas(void* stream, uint32_t tamanio_tareas);
+
 
 // Otras funciones
 int obtener_indice(t_list* lista, void* valor);
