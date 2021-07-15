@@ -466,8 +466,9 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/plantas.txt 1|1 3|4
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/oxigeno.txt 5|5
 			// PRUEBAS PARA MI RAM
-			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
-			// Ej: INICIAR_PATOTA 6 /home/utnso/tareas/persa.txt
+			// Ej: INICIAR_PATOTA 4 /home/utnso/tareas/SEG_PatotaA.txt
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/SEG_PatotaB.txt
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/SEG_PatotaC.txt
 
 			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){

@@ -74,6 +74,25 @@ uint32_t cantidad_argumentos_ingresados(char** parser_consola){  // la vamos a u
 }
 
 
+void terminar_tripulante(tripulante_plani* tripu) {
+
+	t_tripulante* tripulante_terminado = malloc(sizeof(t_tripulante));
+
+	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
+	tripulante_terminado->id_patota = tripu->numero_patota;
+	tripulante_terminado->id_tripulante = tripu->id_tripulante;
+
+	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
+		abort();
+	}
+
+	enviar_mensaje(tripulante_terminado, EXPULSAR_TRIPULANTE, conexion_mi_ram);
+
+	close(conexion_mi_ram);
+}
+
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 }

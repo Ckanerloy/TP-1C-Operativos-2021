@@ -47,7 +47,7 @@ void guardar_tripulante(t_tcb* nuevo_tripulante);
 // Actualizar Segmento en Memoria
 void actualizar_segmento(void* estructura, tipo_estructura tipo_segmento, t_segmento* segmento);
 void actualizar_patota(t_pcb* patota, uint32_t inicio_segmento);
-void actualizar_tareas(t_list* tareas_patota, uint32_t inicio_segmento);
+void actualizar_tareas(tareas_patota* tareas_de_la_patota, uint32_t inicio_segmento);
 void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento);
 
 // Obtener en Memoria

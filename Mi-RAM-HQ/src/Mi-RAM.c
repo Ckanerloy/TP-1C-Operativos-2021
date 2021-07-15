@@ -150,8 +150,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				string_trim(&patota_recibida->tareas_de_patota);
 
 				// Tareas de UNA Patota
-				printf("Tamaño de las tareas de la patota: %u\n", patota_recibida->tamanio_tareas);
-				printf("Tareas de la patota: %s\n", patota_recibida->tareas_de_patota);
+				//printf("Tamaño de las tareas de la patota: %u\n", patota_recibida->tamanio_tareas);
+				//printf("Tareas de la patota: %s\n", patota_recibida->tareas_de_patota);
 
 				strcat(patota_recibida->tareas_de_patota, "\0");
 
@@ -183,7 +183,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					list_add(tareas_de_la_patota, tareas_patota);
 				}*/
 
-				printf("Tamaño de todas las tareas: %d\n", tareas_de_la_patota->tamanio_tareas);
+				//printf("Tamaño de todas las tareas: %d\n", tareas_de_la_patota->tamanio_tareas);
 
 				/*datos_tarea* datos_tarea_patota = malloc(sizeof(datos_tarea));
 				datos_tarea_patota->tamanio_tarea = patota_recibida->tamanio_tareas+1;
@@ -235,7 +235,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						tabla_patota->patota->tareas = segmento_tareas->inicio;
 						tabla_patota->tamanio_tareas = tamanio_tareas;
 
-						log_info(logger, "Se guardaron las tareas de la Patota %u, las cuales son: %s\n", nueva_patota->pid, patota_recibida->tareas_de_patota);
+						log_info(logger, "Se guardaron las tareas de la Patota %u, las cuales son: \n%s\n", nueva_patota->pid, patota_recibida->tareas_de_patota);
 
 						sem_wait(crear_segmento_sem);
 
@@ -275,8 +275,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						log_info(logger, "Se ha guardado en memoria la Patota %u y su/s %u Tripulante/s.\n", nueva_patota->pid, patota_recibida->cantidad_tripulantes);
 					}
 
-					printf("Inicio de proximo segmento: %d \n", base_segmento);
-					printf("Numero de proximo segmento: %d \n\n\n", contador_segmento);
 
 					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
 				}
@@ -305,7 +303,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						t_pagina* pagina_patota = administrar_guardar_pagina(nueva_patota, PATOTA, tamanio_patota);
 						list_add(tabla_patota->paginas, pagina_patota);
 						uint32_t direccion_pcb = pagina_patota->numero_de_pagina;
-
 
 					}
 				}
@@ -537,14 +534,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					log_info(logger, "Memoria Total despues de expulsar tripulante: %u.\n", memoria_libre_total);
 
+					// Tienen que haber 2 segmentos en una patota, los cuales son el PCB y las TAREAS
 					if(list_size(patota_buscada->segmentos) == 2) {
-						for(int i=0; i<list_size(patota_buscada->segmentos); i++) {
+
+						list_clean_and_destroy_elements(patota_buscada->segmentos, liberar_segmento);
+
+						/*for(int i=0; i<list_size(patota_buscada->segmentos); i++) {
+
 							list_remove(patota_buscada->segmentos, i);
 							liberar_segmento(list_get(patota_buscada->segmentos, i));
-						}
+
+						}*/
+
+
 						int indice_patota = obtener_indice(tablas_segmentos, patota_buscada);
 						list_remove(tablas_segmentos, indice_patota);
-						list_destroy(patota_buscada->segmentos);
+						//list_destroy(patota_buscada->segmentos);
 						free(patota_buscada->patota);
 						free(patota_buscada);
 					}
@@ -684,6 +689,7 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			memoria_libre_por_segmento = 0;
 			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
 			base_segmento = 0;
+			crear_segmento_libre(0, TAMANIO_MEMORIA);
 			break;
 
 		default:

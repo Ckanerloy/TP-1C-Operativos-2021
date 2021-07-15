@@ -427,9 +427,7 @@ void ready_running() {
 			sem_post(mutex_ready_running);
 		}
 
-
-
-        tripulante_a_running=NULL;
+        tripulante_a_running = NULL;
         free(tripulante_a_running);
     }
 
@@ -478,7 +476,7 @@ void block_exit(tripulante_plani* tripu){
 	actualizar_estado(tripu, 'T');
 }
 
-
+// Creo que este ya no va
 void new_exit(tripulante_plani* tripu){
 	sem_wait(mutex_exit);
 	queue_push(cola_exit, tripu);
@@ -858,6 +856,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 			block_ready(tripu);
 		}else{
 			block_exit(tripu);
+			terminar_tripulante(tripu);
 		}
 	}
 
@@ -911,6 +910,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 			block_ready(tripu);
 		}else{
 			block_exit(tripu);
+			terminar_tripulante(tripu);
 		}
 	}
 }
@@ -961,6 +961,7 @@ void descartar_basura(tripulante_plani* tripu) {
 			block_ready(tripu);
 		}else{
 			block_exit(tripu);
+			terminar_tripulante(tripu);
 		}
 	}
 }
@@ -1006,6 +1007,7 @@ void otras_tareas(tripulante_plani* tripu){
 				running_ready(tripu);
 			}else{
 				running_exit(tripu);
+				terminar_tripulante(tripu);
 			}
 	}
 }
