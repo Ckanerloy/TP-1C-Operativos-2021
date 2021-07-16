@@ -30,8 +30,11 @@ typedef enum
 	RESPUESTA_NUEVA_UBICACION,
 	RESPUESTA_OK_ESTADO,
 	RESPUESTA_NUEVA_TAREA,
-	RESPUESTA_TRIPULANTE_ELIMINADO
+	RESPUESTA_TRIPULANTE_ELIMINADO,
 
+	GENERAR_INSUMO,
+	CONSUMIR_INSUMO,
+	TIRAR_BASURA
 } codigo_operacion;
 
 
@@ -76,15 +79,13 @@ typedef enum
 
 
 // Estructuras de Sockets
-typedef struct
-{
+typedef struct {
 	uint32_t size;
 	void* stream;
 } t_buffer;
 
 
-typedef struct
-{
+typedef struct {
 	codigo_operacion op_code;
 	t_buffer* buffer;
 } t_paquete;
@@ -97,9 +98,6 @@ typedef struct {
 	uint32_t posicion_x;
 	uint32_t posicion_y;
 } posiciones;
-
-
-
 
 
 typedef struct {
@@ -134,6 +132,14 @@ typedef struct {
 	t_tarea* tarea_sabotaje;             //    ---------------
 
 } t_respuesta_mongo;
+
+
+typedef struct {
+	int32_t cantidad;
+ 	uint32_t tamanio_nombre;
+ 	char* nombre_archivo;
+	char caracter_llenado;
+} archivo_tarea;
 
 
 

@@ -462,9 +462,14 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
+
 			// PRUEBAS PARA DISCORDIADOR
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/plantas.txt 1|1 3|4
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/oxigeno.txt 5|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota1.txt 9|9 0|0 5|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota2.txt 4|0 2|6 8|2
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota3.txt 2|3 5|8 5|3
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota4.txt 0|9 4|4 9|0
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota5.txt 0|2 9|6 3|5
+
 			// PRUEBAS PARA MI RAM
 			// Ej: INICIAR_PATOTA 4 /home/utnso/tareas/SEG_PatotaA.txt
 			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/SEG_PatotaB.txt
@@ -787,11 +792,11 @@ void obtener_orden_input(){
 				enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
 				cerrar_conexion(logger, conexion_mi_ram);
 			}
-			/*conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 	  		if(resultado_conexion(conexion_mongo_store, logger, "Mongo Store") != -1) {
 	  			enviar_mensaje("", CERRAR_MODULO, conexion_mongo_store);
 	 			cerrar_conexion(logger, conexion_mongo_store);
-	 			}*/
+	 			}
 
 			printf("Terminando programa... \n");
 			sleep(1);

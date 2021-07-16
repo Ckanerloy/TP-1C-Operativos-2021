@@ -37,7 +37,11 @@ void obtener_datos_de_config(t_config* config) {
 
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
+	// OBTENER_BITACORA
 	t_tripulante* tripulante_por_bitacora;
+
+	// Tareas I/O
+	archivo_tarea* tarea_io;
 
 	switch(operacion)
 {
@@ -45,9 +49,60 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				tripulante_por_bitacora = malloc(sizeof(t_tripulante));
 				recibir_mensaje(tripulante_por_bitacora, operacion, conexion);
 
-				// Recibe un id tripulante, y le envia la BITACORA del tripulante buscado
+				// Recibe un id tripulante
+				// Busca la bitacora (archivo) del tripulante
+				// Envia la bitacora
+				// Cuando envia, es un CHAR* enorme para que Discordiador y asi lo guarda en el logger
+
+				// char* bitacora_tripulante;
+				// uint32_t tamanio_bitacora_tripu;
+
 				free(tripulante_por_bitacora);
 				break;
+
+			case GENERAR_INSUMO:
+				tarea_io = malloc(sizeof(archivo_tarea));
+				recibir_mensaje(tarea_io, operacion, conexion);
+
+				printf("Llego la tarea de GENERAR_INSUMO\n");
+
+				cerrar_conexion(logger, conexion);
+				break;
+
+			case CONSUMIR_INSUMO:
+				tarea_io = malloc(sizeof(archivo_tarea));
+				recibir_mensaje(tarea_io, operacion, conexion);
+
+				printf("Llego la tarea de CONSUMIR_INSUMO\n");
+
+				cerrar_conexion(logger, conexion);
+				break;
+
+			case TIRAR_BASURA:
+				cerrar_conexion(logger, conexion);
+
+				printf("Llego la tarea de DESCARTAR_BASURA\n");
+
+				break;
+
+			/*case ACTUALIZACION_TRIPULANTE:
+
+				// Crea el archivo para el tripulante o le agrega los datos actualizados del tripulante al final
+
+				break;*/
+
+			case CERRAR_MODULO:
+				cerrar_conexion(logger, conexion);
+
+				printf("Terminando programa... \n");
+				sleep(1);
+				printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
+
+				// SE LIBERA TODO LO QUE SE TENGA QUE LIBERAR DE MEMORIA
+
+				log_info(logger, "Se ha cerrado el programa de forma exitosa.\n");
+				terminar_programa(config, logger);
+				exit(0);
 
 			default:
 				log_warning(logger, "Operacion desconocida. No quieras meter la pata");

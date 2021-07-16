@@ -805,7 +805,7 @@ void realizar_tarea(tripulante_plani* tripu){
 
 }
 
-void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu) {
+void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plani* tripu) {
 
 	//Aca iria un if preguntando si elegido
 	sem_wait(tripu->sem_tripu);
@@ -823,12 +823,8 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 		running_block(tripu);
 	}
 
-	//if(SI ESTA EL ARCHIVO) {
-	//	modificar_archivo(nombre_archivo, parametros->cantidad);
-	//}
-	//else {
-	//	crear_archivo(nombre_archivo, caracter_llenado);
-	//}
+	enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
+	// TODO: Se envia a Mongo Store el NOMBRE DE ARCHIVO, CARACTER DE LLENADO, CANTIDAD
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
@@ -863,7 +859,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 		//Es importante que sem_tripu quede en cero sino se autoejecuta.
 }
 
-void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu) {
+void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_plani* tripu) {
 
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
@@ -878,12 +874,8 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 
 	running_block(tripu);
 
-	//if(SI ESTA EL ARCHIVO) {
-		//modificar_archivo(nombre_archivo, parametros->cantidad);
-	//}
-	//else {
-	//	crear_archivo(nombre_archivo, caracter_a_consumir);
-	//}
+	enviar_tarea_io(tripu, CONSUMIR_INSUMO, nombre_archivo, caracter_a_consumir);
+	// TODO: Se envia a Mongo Store el NOMBRE DE ARCHIVO, CARACTER DE LLENADO, CANTIDAD
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
@@ -930,12 +922,8 @@ void descartar_basura(tripulante_plani* tripu) {
 
 	running_block(tripu);
 
-	//if(SI ESTA EL ARCHIVO) {
-	//	eliminar_archivo("Basura.ims");
-	//}
-	//else {
-	//	log_info(logger, "El archivo 'Basura.ims' no existe. \n");
-	//}
+	enviar_tarea_io(tripu, TIRAR_BASURA, "", ' ');
+	// TODO: Se envia a Mongo Store el NOMBRE DE ARCHIVO, CARACTER DE LLENADO, CANTIDAD
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
@@ -957,7 +945,7 @@ void descartar_basura(tripulante_plani* tripu) {
 	//tripu->tarea_a_realizar= NULL;
 
 	if(!(tripu->elegido_sabotaje)){
-		if(tripu->tarea_a_realizar!=NULL){
+		if(tripu->tarea_a_realizar != NULL){
 			block_ready(tripu);
 		}else{
 			block_exit(tripu);
@@ -971,7 +959,7 @@ void otras_tareas(tripulante_plani* tripu){
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
 	while(tiempo_restante > 0 && !(tripu->elegido_sabotaje)){
-		if(tripu->cantidad_realizada==QUANTUM){
+		if(tripu->cantidad_realizada == QUANTUM){
 			running_ready(tripu);
 
 			sem_wait(tripu->sem_planificacion);
@@ -1071,8 +1059,4 @@ void cambios_de_tarea(tripulante_plani* tripu) {
 		}
 	}
 }
-
-
-
-
 

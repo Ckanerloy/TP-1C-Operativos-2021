@@ -50,7 +50,8 @@ void inicializar_memoria(void) {
 	log_info(logger, "Se utilizará %s como esquema de memoria.\n", ESQUEMA_MEMORIA);
 
 	memoria_principal = malloc(TAMANIO_MEMORIA);
-	memoria_restante = TAMANIO_MEMORIA;
+	//memoria_restante = TAMANIO_MEMORIA;
+	memoria_libre_total = TAMANIO_MEMORIA;
 
 	if(memoria_principal != NULL){
 		log_info(logger, "Se inició la Memoria Principal con un tamaño de %u bytes.\n", TAMANIO_MEMORIA);
@@ -109,7 +110,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 	t_iniciar_patota* patota_recibida;
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 	int32_t tamanio_total;
-	//t_list* tareas_de_la_patota;
 	tareas_patota* tareas_de_la_patota;
 
 	// ACTUALIZAR_UBICACION_TRIPULANTE
@@ -635,8 +635,8 @@ uint32_t cantidad_tareas(char** parser_tarea) {
 
 
 void chequear_memoria(void) {
-	log_info(logger, "La memoria restante es de %i.", memoria_restante);
-	log_info(logger, "La memoria libre por segmento es de %i.", memoria_libre_por_segmento);
+	//log_info(logger, "La memoria restante es de %i.", memoria_restante);
+	//log_info(logger, "La memoria libre por segmento es de %i.", memoria_libre_por_segmento);
 	log_info(logger, "La memoria libre total es de %i.\n", memoria_libre_total);
 }
 
@@ -686,8 +686,8 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			log_info(logger, "Se utilizará el criterio de %s para colocar el segmento en memoria.\n", CRITERIO_SELECCION);
 			tablas_segmentos = list_create();
 			segmentos = list_create();
-			memoria_libre_por_segmento = 0;
-			memoria_libre_total = memoria_restante + memoria_libre_por_segmento;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
+			//memoria_libre_por_segmento = 0;
+			//memoria_libre_total = memoria_restante;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
 			base_segmento = 0;
 			crear_segmento_libre(0, TAMANIO_MEMORIA);
 			break;
