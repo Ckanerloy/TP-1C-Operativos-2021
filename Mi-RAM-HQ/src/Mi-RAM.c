@@ -307,6 +307,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 				}
 
+				close(conexion);
+
 				free(ids_enviar);
 				//free(parser_tarea);
 				//free(tareas_de_la_patota);
@@ -362,6 +364,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				//cerrar_conexion(logger, conexion);
 
+				close(conexion);
+
 				free(tripulante_por_ubicacion);
 				free(respuesta_ok_ubicacion);
 				break;
@@ -398,6 +402,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				enviar_mensaje(respuesta_con_ubicacion, RESPUESTA_NUEVA_UBICACION, conexion);
 
 				//cerrar_conexion(logger, conexion);
+				close(conexion);
 
 				free(tripulante_para_ubicacion);
 				free(respuesta_con_ubicacion);
@@ -447,6 +452,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				enviar_mensaje(respuesta_por_estado, RESPUESTA_OK_ESTADO, conexion);
 
 				//cerrar_conexion(logger, conexion);
+				close(conexion);
 
 				free(respuesta_por_estado);
 				break;
@@ -508,6 +514,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				enviar_mensaje(respuesta_con_tarea_tripulante, RESPUESTA_NUEVA_TAREA, conexion);
 
 				//cerrar_conexion(logger, conexion);
+				close(conexion);
 
 				free(tripulante_para_tarea);
 				free(respuesta_con_tarea_tripulante);
@@ -527,17 +534,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_a_eliminar->id_tripulante);
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
-					log_info(logger, "Memoria Total antes de expulsar tripulante: %u.\n", memoria_libre_total);
-
 					list_remove(patota_buscada->segmentos, indice);
 					liberar_segmento(segmento_buscado);
-
-					log_info(logger, "Memoria Total despues de expulsar tripulante: %u.\n", memoria_libre_total);
 
 					// Tienen que haber 2 segmentos en una patota, los cuales son el PCB y las TAREAS
 					if(list_size(patota_buscada->segmentos) == 2) {
 
-						list_clean_and_destroy_elements(patota_buscada->segmentos, liberar_segmento);
+						list_clean_and_destroy_elements(patota_buscada->segmentos, (void*)liberar_segmento);
 
 						/*for(int i=0; i<list_size(patota_buscada->segmentos); i++) {
 
@@ -571,13 +574,15 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				enviar_mensaje(respuesta_tripulante_eliminado, RESPUESTA_TRIPULANTE_ELIMINADO, conexion);
 
 				//cerrar_conexion(logger, conexion);
+				close(conexion);
 
 				free(tripulante_a_eliminar);
 				free(respuesta_tripulante_eliminado);
 				break;
 
 			case CERRAR_MODULO:
-				cerrar_conexion(logger, conexion);
+				//cerrar_conexion(logger, conexion);
+				close(conexion);
 
 				printf("Terminando programa... \n");
 				sleep(1);
