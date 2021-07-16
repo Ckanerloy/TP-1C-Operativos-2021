@@ -65,6 +65,19 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 		case CERRAR_MODULO:
 			break;
 
+
+		// Tareas I/O
+		case GENERAR_INSUMO:
+			deserializar_tarea_io(mensaje, conexion);
+			break;
+
+		case CONSUMIR_INSUMO:
+			deserializar_tarea_io(mensaje, conexion);
+			break;
+
+		case TIRAR_BASURA:
+			break;
+
 		default:
 			printf("404 operacion NOT FOUND.\n");
 			break;
@@ -294,6 +307,35 @@ void deserializar_respuesta_nueva_tarea(t_respuesta_tarea_tripulante* mensaje, i
 	// Tiempo de la tarea
 	memcpy(&(mensaje->tarea->tiempo), buffer_deserializar + desplazamiento, sizeof(mensaje->tarea->tiempo));
 	desplazamiento += sizeof(mensaje->tarea->tiempo);
+
+	free(buffer_deserializar);
+}
+
+
+// Tareas I/O
+void deserializar_tarea_io(archivo_tarea* mensaje, int32_t conexion) {
+	uint32_t tamanio;
+	uint32_t desplazamiento = 0;
+	void* buffer_deserializar;
+	buffer_deserializar = recibir_buffer(&tamanio, conexion);
+
+	// Valor de Cantidad
+	memcpy(&(mensaje->cantidad), buffer_deserializar + desplazamiento, sizeof(mensaje->cantidad));
+	desplazamiento += sizeof(mensaje->cantidad);
+
+	// Tamaño Nombre de Archivo
+	memcpy(&(mensaje->tamanio_nombre), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_nombre));
+	desplazamiento += sizeof(mensaje->tamanio_nombre);
+
+	mensaje->nombre_archivo = malloc(mensaje->tamanio_nombre+1);
+
+	// Nombre de Archivo
+	memcpy(mensaje->nombre_archivo, buffer_deserializar + desplazamiento, mensaje->tamanio_nombre +1);
+	desplazamiento += mensaje->tamanio_nombre+1;
+
+	// Caracter de Tarea
+	memcpy(&(mensaje->caracter_llenado), buffer_deserializar + desplazamiento, sizeof(mensaje->caracter_llenado));
+	desplazamiento += sizeof(mensaje->caracter_llenado);
 
 	free(buffer_deserializar);
 }

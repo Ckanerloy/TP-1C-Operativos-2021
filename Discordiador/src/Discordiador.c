@@ -2,8 +2,9 @@
 
 int main(void) {
 
-	logger = crear_log("discordiador.log", "DISCORDIADOR");
-	logger_sin_pantalla=  log_create("discordiador.log", "logger_sin_pantalla" , 0, LOG_LEVEL_INFO);;
+	logger = crear_log("discordiador.log", "Discordiador");
+	logger_sin_pantalla =  log_create("discordiador.log", "logger_sin_pantalla" , 0, LOG_LEVEL_INFO);;
+
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
 	obtener_planificacion_de_config(config);
@@ -460,12 +461,18 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
+
 			// PRUEBAS PARA DISCORDIADOR
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/plantas.txt 1|1 3|4
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/oxigeno.txt 5|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota1.txt 9|9 0|0 5|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota2.txt 4|0 2|6 8|2
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota3.txt 2|3 5|8 5|3
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota4.txt 0|9 4|4 9|0
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota5.txt 0|2 9|6 3|5
+
 			// PRUEBAS PARA MI RAM
-			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
-			// Ej: INICIAR_PATOTA 6 /home/utnso/tareas/persa.txt
+			// Ej: INICIAR_PATOTA 4 /home/utnso/tareas/SEG_PatotaA.txt
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/SEG_PatotaB.txt
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/SEG_PatotaC.txt
 
 			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
@@ -681,6 +688,7 @@ void obtener_orden_input(){
 			break;
 
 		case EXPULSAR_TRIPULANTE:
+
 			if(parser_consola[1] == NULL) {
 				log_error(logger, "Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.");
 				break;
@@ -709,6 +717,7 @@ void obtener_orden_input(){
 				estado_anterior = tripulante_a_expulsar->estado;
 
 				switch(tripulante_a_expulsar->estado){
+
 						case 'R':
 							tripulante_a_expulsar->expulsado = 1;
 							sem_post(tripulante_a_expulsar->sem_planificacion);
@@ -757,6 +766,7 @@ void obtener_orden_input(){
 					log_error(logger, "Se quiso eliminar un tripulante que ya estaba terminado.\n");
 					}
 					// En el caso que se quiera expulsar un Tripulante estando en Terminated
+
 				else {
 					log_warning(logger, "No se puede eliminar un Tripulante cuando no se ha iniciado la Planificación.\n");
 				}
@@ -767,8 +777,9 @@ void obtener_orden_input(){
 
 			   free(id_tripulante_a_expulsar);
 			   free(respuesta_al_expulsar_tripulante);
-						//free(tripulante_a_expulsar);
+					//free(tripulante_a_expulsar);
 			   break;
+
 
 		case TERMINAR_PROGRAMA:
 
@@ -777,11 +788,11 @@ void obtener_orden_input(){
 				enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
 				cerrar_conexion(logger, conexion_mi_ram);
 			}
-			/*conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 	  		if(resultado_conexion(conexion_mongo_store, logger, "Mongo Store") != -1) {
 	  			enviar_mensaje("", CERRAR_MODULO, conexion_mongo_store);
 	 			cerrar_conexion(logger, conexion_mongo_store);
-	 			}*/
+	 			}
 
 			printf("Terminando programa... \n");
 			sleep(1);

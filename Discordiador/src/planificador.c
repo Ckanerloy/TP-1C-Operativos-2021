@@ -307,7 +307,7 @@ posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
 void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_plani* tripu) {
 
 	t_tripulante_ubicacion* ubicaciones_a_enviar = malloc(sizeof(t_tripulante_ubicacion));
-	t_respuesta_tripulante* respuesta_ok_ubicacion = malloc(sizeof(t_respuesta_tripulante));
+	//t_respuesta_tripulante* respuesta_ok_ubicacion = malloc(sizeof(t_respuesta_tripulante));
 
 	ubicaciones_a_enviar->id_patota = tripu->numero_patota;
 	ubicaciones_a_enviar->id_tripulante = tripu->id_tripulante;
@@ -427,13 +427,13 @@ void ready_running() {
 			sem_post(mutex_ready_running);
 		}
 
+        tripulante_a_running = NULL;
 
-
-        tripulante_a_running=NULL;
         free(tripulante_a_running);
     }
 
 }
+
 
 void running_ready(tripulante_plani* tripu){
 
@@ -448,12 +448,14 @@ void running_ready(tripulante_plani* tripu){
 
 }
 
+
 void running_block(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'B');
 
 	sem_post(multitarea_disponible);
 }
+
 
 void block_ready(tripulante_plani* tripu){
 	sem_wait(mutex_ready);
@@ -465,6 +467,7 @@ void block_ready(tripulante_plani* tripu){
 	sem_post(contador_tripulantes_en_ready);
 }
 
+
 void block_exit(tripulante_plani* tripu){
 
 	sem_wait(mutex_exit);
@@ -474,14 +477,15 @@ void block_exit(tripulante_plani* tripu){
 	actualizar_estado(tripu, 'T');
 }
 
+// Creo que este ya no va
 void new_exit(tripulante_plani* tripu){
 	sem_wait(mutex_exit);
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
 	sem_wait(contador_tripulantes_en_new);
+
 	actualizar_estado(tripu, 'T');
 }
-
 
 
 void running_exit(tripulante_plani* tripu){
@@ -495,6 +499,7 @@ void running_exit(tripulante_plani* tripu){
 	sem_post(multitarea_disponible);
 }
 
+
 void suspendido_ready(tripulante_plani* tripu){
 
 	sem_wait(mutex_ready);
@@ -505,6 +510,7 @@ void suspendido_ready(tripulante_plani* tripu){
 
 	sem_post(contador_tripulantes_en_ready);
 }
+
 
 void ready_exit(tripulante_plani* tripu){
 	int largo;
@@ -639,9 +645,6 @@ void tripulante_hilo(void* tripulante){
 				}
 			}
 
-			//printf("antes del wait/n");
-			//fflush(stdout);
-
 			sem_wait(tripu->sem_tripu);         //Trabado por el pulso (rafaga), te lo dan siempre que estes en Exec
 
 
@@ -686,10 +689,8 @@ void rafaga_cpu(t_list* lista_todos_tripulantes){
 
 	tripulantes_exec_block = list_filter(lista_todos_tripulantes,(void*) esta_exec_o_block);
 
-//int largo=list_size(tripulantes_exec_block);
+	//int largo=list_size(tripulantes_exec_block);
 
-	//printf("cantidad den exe %u",largo);
-	//fflush(stdout);
 	list_iterate(tripulantes_exec_block, (void*) poner_en_uno_semaforo);
 
 	sleep(RETARDO_CICLO_CPU);
@@ -805,7 +806,7 @@ void realizar_tarea(tripulante_plani* tripu){
 
 }
 
-void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani* tripu) {
+void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plani* tripu) {
 
 	//Aca iria un if preguntando si elegido
 	sem_wait(tripu->sem_tripu);
@@ -823,12 +824,8 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 		running_block(tripu);
 	}
 
-	//if(SI ESTA EL ARCHIVO) {
-	//	modificar_archivo(nombre_archivo, parametros->cantidad);
-	//}
-	//else {
-	//	crear_archivo(nombre_archivo, caracter_llenado);
-	//}
+	enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
+	// TODO: Se envia a Mongo Store el NOMBRE DE ARCHIVO, CARACTER DE LLENADO, CANTIDAD
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
@@ -856,13 +853,14 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado,tripulante_plani
 			block_ready(tripu);
 		}else{
 			block_exit(tripu);
+			terminar_tripulante(tripu);
 		}
 	}
 
 		//Es importante que sem_tripu quede en cero sino se autoejecuta.
 }
 
-void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_plani* tripu) {
+void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_plani* tripu) {
 
 	sem_wait(tripu->sem_tripu);
 	//llamar al i-mongo y gastar 1 ciclo de cpu
@@ -877,12 +875,8 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 
 	running_block(tripu);
 
-	//if(SI ESTA EL ARCHIVO) {
-		//modificar_archivo(nombre_archivo, parametros->cantidad);
-	//}
-	//else {
-	//	crear_archivo(nombre_archivo, caracter_a_consumir);
-	//}
+	enviar_tarea_io(tripu, CONSUMIR_INSUMO, nombre_archivo, caracter_a_consumir);
+	// TODO: Se envia a Mongo Store el NOMBRE DE ARCHIVO, CARACTER DE LLENADO, CANTIDAD
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
@@ -909,6 +903,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir,tripulante_p
 			block_ready(tripu);
 		}else{
 			block_exit(tripu);
+			terminar_tripulante(tripu);
 		}
 	}
 }
@@ -928,12 +923,8 @@ void descartar_basura(tripulante_plani* tripu) {
 
 	running_block(tripu);
 
-	//if(SI ESTA EL ARCHIVO) {
-	//	eliminar_archivo("Basura.ims");
-	//}
-	//else {
-	//	log_info(logger, "El archivo 'Basura.ims' no existe. \n");
-	//}
+	enviar_tarea_io(tripu, TIRAR_BASURA, "", ' ');
+	// TODO: Se envia a Mongo Store el NOMBRE DE ARCHIVO, CARACTER DE LLENADO, CANTIDAD
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
@@ -955,10 +946,11 @@ void descartar_basura(tripulante_plani* tripu) {
 	//tripu->tarea_a_realizar= NULL;
 
 	if(!(tripu->elegido_sabotaje)){
-		if(tripu->tarea_a_realizar!=NULL){
+		if(tripu->tarea_a_realizar != NULL){
 			block_ready(tripu);
 		}else{
 			block_exit(tripu);
+			terminar_tripulante(tripu);
 		}
 	}
 }
@@ -968,7 +960,7 @@ void otras_tareas(tripulante_plani* tripu){
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
 
 	while(tiempo_restante > 0 && !(tripu->elegido_sabotaje)){
-		if(tripu->cantidad_realizada==QUANTUM){
+		if(tripu->cantidad_realizada == QUANTUM){
 			running_ready(tripu);
 
 			sem_wait(tripu->sem_planificacion);
@@ -1004,6 +996,7 @@ void otras_tareas(tripulante_plani* tripu){
 				running_ready(tripu);
 			}else{
 				running_exit(tripu);
+				terminar_tripulante(tripu);
 			}
 	}
 }
@@ -1067,8 +1060,4 @@ void cambios_de_tarea(tripulante_plani* tripu) {
 		}
 	}
 }
-
-
-
-
 

@@ -46,7 +46,8 @@ void iniciar_dump_memoria(void) {
 	}
 }
 
-
+// TODO: en vez de hacerlo por los segmentos de la patota, hacerlo con la lista de los segmentos totales
+/*
 void registrar_dump_segmentacion(void) {
 
 	t_list* patotas_dump = list_create();
@@ -67,12 +68,59 @@ void registrar_dump_segmentacion(void) {
 			string_append_with_format(&buffer, "Proceso: %u     ", patota_a_mostrar->patota->pid);
 			string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);	// Muesta el numero de segmento
 			//string_append_with_format(&buffer, "Segmento: %u     ", j+1);	// Arranca desde 1
-			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio + segmento_a_mostrar->tamanio_segmento);
+			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio);
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
 
 			escribir_en_archivo(buffer);
 		}
 		list_clean(segmentos_dump);
+	}
+}*/
+
+void registrar_dump_segmentacion(void) {
+
+	t_list* patotas_dump = list_create();
+	t_list* segmentos_dump = list_create();
+	patotas_dump = list_duplicate(tablas_segmentos);
+	list_sort(patotas_dump, menor_a_mayor_por_pid);
+
+
+	t_list* segmentos_totales = list_duplicate(segmentos);
+	list_sort(segmentos_totales, menor_a_mayor_por_segmento);
+
+	for(int j=0; j<list_size(segmentos_totales); j++) {
+
+		t_segmento* segmento_a_mostrar = (t_segmento*) list_get(segmentos_totales, j);
+
+		bool esta_en_patota(void* segmento) {
+			return ((t_segmento*)segmento)->numero_de_segmento == segmento_a_mostrar->numero_de_segmento;
+		}
+
+		bool buscando_en_patota(void* patota) {
+			t_list* segmentos_patota = ((t_tabla_segmentos_patota*)patota)->segmentos;
+			return list_any_satisfy(segmentos_patota, esta_en_patota);
+		}
+
+		t_tabla_segmentos_patota* patota_encontrada = list_find(patotas_dump, buscando_en_patota);
+
+		if(patota_encontrada != NULL) {
+			char* buffer = string_new();
+			string_append_with_format(&buffer, "Proceso: %u     ", patota_encontrada->patota->pid);
+			string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);
+			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio);
+			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
+
+			escribir_en_archivo(buffer);
+		}
+		else {
+			char* buffer = string_new();
+			string_append_with_format(&buffer, "Proceso: -     ");
+			string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);
+			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio);
+			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
+
+			escribir_en_archivo(buffer);
+		}
 	}
 }
 

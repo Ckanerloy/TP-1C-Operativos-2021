@@ -31,4 +31,7 @@ uint32_t serializar_respuesta_tripulante(t_paquete* paquete, t_respuesta_tripula
 uint32_t serializar_respuesta_nueva_ubicacion(t_paquete* paquete, t_respuesta_tripulante_ubicacion* mensaje);
 uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_tarea_tripulante* mensaje);
 
+//Tareas I/O
+uint32_t serializar_paquete_tarea_io(t_paquete* paquete, archivo_tarea* mensaje);
+
 #endif /* UTILS_SERIALIZACION_H_ */

@@ -49,8 +49,8 @@ uint32_t contador_id_patota;
 
 // Indicadores de Memoria
 uint32_t base_segmento;
-int32_t memoria_restante;
-int32_t memoria_libre_por_segmento;
+//int32_t memoria_restante;
+//int32_t memoria_libre_por_segmento;
 int32_t memoria_libre_total;				// memoria_compactada = memoria_restante + memoria_libre_por_segmento;
 
 // Mapa
@@ -64,6 +64,7 @@ uint32_t tamanio_patota;
 uint32_t tamanio_tareas;
 
 sem_t* crear_segmento_sem;
+sem_t* crear_pagina_sem;
 sem_t* espera;
 
 pthread_t hilo_recibir_mensajes;

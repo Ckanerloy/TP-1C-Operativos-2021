@@ -90,6 +90,21 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			tamanio_preparado = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
 			break;
 
+		// Tareas I/O
+		case GENERAR_INSUMO:
+			tamanio_preparado = serializar_paquete_tarea_io(paquete, mensaje);
+			break;
+
+		case CONSUMIR_INSUMO:
+			tamanio_preparado = serializar_paquete_tarea_io(paquete, mensaje);
+			break;
+
+		case TIRAR_BASURA:
+			paquete->buffer->size = 0;
+			paquete->buffer->stream = NULL;
+			tamanio_preparado = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+			break;
+
 		default:
 			printf("404 operacion NOT FOUND.\n");
 			break;
@@ -503,6 +518,61 @@ uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_t
 
 
 	tamanio_a_enviar = sizeof(mensaje->respuesta) + sizeof(mensaje->id_tripulante) + sizeof(mensaje->tarea->operacion) + sizeof(mensaje->tarea->cantidad) + sizeof(mensaje->tarea->posicion_x) + sizeof(mensaje->tarea->posicion_y) + sizeof(mensaje->tarea->tiempo);
+
+	if(desplazamiento != tamanio_a_enviar)
+	{
+		puts("ERROR. Tamanio diferentes.\n");
+		//log_error(logger);
+		abort();
+	}
+
+	else
+	{
+
+		paquete->buffer = buffer;
+		paquete->buffer->size = desplazamiento;
+		paquete->buffer->stream = stream_auxiliar;
+
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+
+		return tamanio;
+	}
+}
+
+
+
+
+// Tareas I/O
+uint32_t serializar_paquete_tarea_io(t_paquete* paquete, archivo_tarea* mensaje)
+{
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
+
+	uint32_t tamanio_a_enviar = 0;
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->size = sizeof(mensaje->cantidad) + sizeof(mensaje->tamanio_nombre) + strlen(mensaje->nombre_archivo)+1 + sizeof(mensaje->caracter_llenado);
+
+	void* stream_auxiliar = malloc(buffer->size);
+
+	// Valor de Cantidad
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->cantidad), sizeof(mensaje->cantidad));
+	desplazamiento += sizeof(mensaje->cantidad);
+
+	// Tamanio Nombre Archivo
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tamanio_nombre), sizeof(mensaje->tamanio_nombre));
+	desplazamiento += sizeof(mensaje->tamanio_nombre);
+
+	// Nombre Archivo
+	memcpy(stream_auxiliar + desplazamiento, mensaje->nombre_archivo, mensaje->tamanio_nombre+1);
+	desplazamiento += mensaje->tamanio_nombre+1;
+
+	// Caracter de Tarea
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->caracter_llenado), sizeof(mensaje->caracter_llenado));
+	desplazamiento += sizeof(mensaje->caracter_llenado);
+
+	tamanio_a_enviar = sizeof(mensaje->cantidad) + sizeof(mensaje->tamanio_nombre) + mensaje->tamanio_nombre+1 + sizeof(mensaje->caracter_llenado);
+
 
 	if(desplazamiento != tamanio_a_enviar)
 	{
