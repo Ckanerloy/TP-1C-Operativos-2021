@@ -2,7 +2,7 @@
 
 void iniciar_archivo_dump(void) {
 
-	char* path_dump = temporal_get_string_time("Dump_%y%m%d%H%M%S.dmp");
+	char* path_dump = (char*)temporal_get_string_time("Dump_%y%m%d%H%M%S.dmp");
 	strcat(path_dump, "\0");
 
 	dump_memoria = malloc(sizeof(archivo_dump));
@@ -11,8 +11,9 @@ void iniciar_archivo_dump(void) {
 	dump_memoria->path_dump = malloc(dump_memoria->tamanio_path+1);
 	strcpy(dump_memoria->path_dump, path_dump);
 
-	dump_memoria->sem_dump = malloc(sizeof(sem_t));
-	sem_init(dump_memoria->sem_dump, 0, 1);
+	free(path_dump);
+	//dump_memoria->sem_dump = malloc(sizeof(sem_t));
+	//sem_init(dump_memoria->sem_dump, 0, 1);
 }
 
 
@@ -24,7 +25,7 @@ void iniciar_dump_memoria(void) {
 	FILE* archivo = fopen(dump_memoria->path_dump, "w");
 
 	fwrite("Dump: ", strlen("Dump: "), 1, archivo);
-	char* tiempo = temporal_get_string_time("%d/%m/%y %H:%M:%S");
+	char* tiempo = (char*)temporal_get_string_time("%d/%m/%y %H:%M:%S");
 	char* tiempo_escrito = string_new();
 	string_append_with_format(&tiempo_escrito, "%s\n", tiempo);
 
@@ -46,41 +47,10 @@ void iniciar_dump_memoria(void) {
 	}
 }
 
-// TODO: en vez de hacerlo por los segmentos de la patota, hacerlo con la lista de los segmentos totales
-/*
-void registrar_dump_segmentacion(void) {
-
-	t_list* patotas_dump = list_create();
-	t_list* segmentos_dump = list_create();
-	patotas_dump = list_duplicate(tablas_segmentos);
-	list_sort(patotas_dump, menor_a_mayor_por_pid);
-
-	for(int i=0; i<list_size(patotas_dump); i++){
-
-		t_tabla_segmentos_patota* patota_a_mostrar = (t_tabla_segmentos_patota*) list_get(patotas_dump, i);
-		segmentos_dump = list_duplicate(patota_a_mostrar->segmentos);
-		list_sort(segmentos_dump, menor_a_mayor_por_segmento);
-
-		for(int j=0; j<list_size(segmentos_dump); j++) {
-			t_segmento* segmento_a_mostrar = (t_segmento*) list_get(segmentos_dump, j);
-
-			char* buffer = string_new();
-			string_append_with_format(&buffer, "Proceso: %u     ", patota_a_mostrar->patota->pid);
-			string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);	// Muesta el numero de segmento
-			//string_append_with_format(&buffer, "Segmento: %u     ", j+1);	// Arranca desde 1
-			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio);
-			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
-
-			escribir_en_archivo(buffer);
-		}
-		list_clean(segmentos_dump);
-	}
-}*/
 
 void registrar_dump_segmentacion(void) {
 
 	t_list* patotas_dump = list_create();
-	t_list* segmentos_dump = list_create();
 	patotas_dump = list_duplicate(tablas_segmentos);
 	list_sort(patotas_dump, menor_a_mayor_por_pid);
 
@@ -111,6 +81,7 @@ void registrar_dump_segmentacion(void) {
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
 
 			escribir_en_archivo(buffer);
+			free(buffer);
 		}
 		else {
 			char* buffer = string_new();
@@ -120,6 +91,7 @@ void registrar_dump_segmentacion(void) {
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
 
 			escribir_en_archivo(buffer);
+			free(buffer);
 		}
 	}
 }

@@ -7,13 +7,13 @@ int main(void) {
 	logger = crear_log("mi-ram-hq.log", "Mi-RAM HQ");
 
 	// Recibe la señal para hacer el Dump de Memoria
-	signal(SIGUSR1, iniciar_dump_memoria);
+	signal(SIGUSR1, (void*)iniciar_dump_memoria);
 
 	// Recibe la señal para compactar la memoria
-	signal(SIGUSR2, verificar_compactacion);
+	signal(SIGUSR2, (void*)verificar_compactacion);
 
 	// Muestra en pantalla la cantidad de Memoria Libre
-	signal(SIGALRM, chequear_memoria);
+	signal(SIGALRM, (void*)chequear_memoria);
 
 	iniciar_variables_y_semaforos();
 	inicializar_memoria();
@@ -93,9 +93,9 @@ void iniciar_comunicacion() {
 
 	while(1) {
 
-		int32_t* conexion_cliente = esperar_conexion(conexion_servidor);
+		int32_t conexion_cliente = esperar_conexion(conexion_servidor);
 
-		pthread_create(&hilo_recibir_mensajes, NULL,(void*)escuchar_conexion, conexion_cliente);
+		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
 
 		pthread_detach(hilo_recibir_mensajes);
 
@@ -277,9 +277,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 
 					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
+					free(nueva_patota);
 				}
-
-													// PAGINACION
+//													   PAGINACION
 				else if(esquema_elegido  == 'P') {
 					t_pcb* nueva_patota;
 					t_tabla_paginas_patota* tabla_patota;
@@ -307,11 +307,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 				}
 
-				close(conexion);
+				cerrar_conexion(logger, conexion);
 
 				free(ids_enviar);
-				//free(parser_tarea);
-				//free(tareas_de_la_patota);
+
 				free(respuesta_iniciar_patota->ids_tripu);
 				free(respuesta_iniciar_patota);
 				free(patota_recibida->tareas_de_patota);
@@ -362,9 +361,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_ok_ubicacion, RESPUESTA_OK_UBICACION, conexion);
 
-				//cerrar_conexion(logger, conexion);
-
-				close(conexion);
+				cerrar_conexion(logger, conexion);
 
 				free(tripulante_por_ubicacion);
 				free(respuesta_ok_ubicacion);
@@ -401,8 +398,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_con_ubicacion, RESPUESTA_NUEVA_UBICACION, conexion);
 
-				//cerrar_conexion(logger, conexion);
-				close(conexion);
+				cerrar_conexion(logger, conexion);
 
 				free(tripulante_para_ubicacion);
 				free(respuesta_con_ubicacion);
@@ -451,8 +447,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_por_estado, RESPUESTA_OK_ESTADO, conexion);
 
-				//cerrar_conexion(logger, conexion);
-				close(conexion);
+				cerrar_conexion(logger, conexion);
 
 				free(respuesta_por_estado);
 				break;
@@ -513,10 +508,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_con_tarea_tripulante, RESPUESTA_NUEVA_TAREA, conexion);
 
-				//cerrar_conexion(logger, conexion);
-				close(conexion);
+				cerrar_conexion(logger, conexion);
 
 				free(tripulante_para_tarea);
+				free(respuesta_con_tarea_tripulante->tarea);
 				free(respuesta_con_tarea_tripulante);
 				break;
 
@@ -573,16 +568,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				enviar_mensaje(respuesta_tripulante_eliminado, RESPUESTA_TRIPULANTE_ELIMINADO, conexion);
 
-				//cerrar_conexion(logger, conexion);
-				close(conexion);
+				cerrar_conexion(logger, conexion);
 
 				free(tripulante_a_eliminar);
 				free(respuesta_tripulante_eliminado);
 				break;
 
 			case CERRAR_MODULO:
-				//cerrar_conexion(logger, conexion);
-				close(conexion);
+				cerrar_conexion(logger, conexion);
 
 				printf("Terminando programa... \n");
 				sleep(1);
