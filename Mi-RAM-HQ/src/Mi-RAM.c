@@ -149,52 +149,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				char* ids_enviar = string_new();
 
 				string_trim(&patota_recibida->tareas_de_patota);
-
-				// Tareas de UNA Patota
-				//printf("Tamaño de las tareas de la patota: %u\n", patota_recibida->tamanio_tareas);
-				//printf("Tareas de la patota: %s\n", patota_recibida->tareas_de_patota);
-
 				strcat(patota_recibida->tareas_de_patota, "\0");
 
 				tareas_de_la_patota->tamanio_tareas = patota_recibida->tamanio_tareas+1;
 				tareas_de_la_patota->tareas = malloc(tareas_de_la_patota->tamanio_tareas);
 				strcpy(tareas_de_la_patota->tareas, patota_recibida->tareas_de_patota);
-
-
-			//	char** parser_tarea = obtener_tareas(patota_recibida->tareas_de_patota);
-
-				//uint32_t cant_tareas = cantidad_tareas(parser_tarea);
-				//tamanio_tareas = 0;
-
-				/*for(uint32_t i=0; i<cant_tareas; i++){
-
-					datos_tarea* tareas_patota = malloc(sizeof(datos_tarea));
-
-					printf("%s\n", parser_tarea[i]);
-					strcat(parser_tarea[i], "\0");
-
-					tareas_patota->id_tarea = i;
-					tareas_patota->tamanio_tarea = strlen(parser_tarea[i])+1;
-					printf("Peso tarea: %d\n", tareas_patota->tamanio_tarea);
-					tareas_patota->tarea = malloc(tareas_patota->tamanio_tarea);
-					strcpy(tareas_patota->tarea, parser_tarea[i]);
-
-					tamanio_tareas += tareas_patota->tamanio_tarea;
-
-					list_add(tareas_de_la_patota, tareas_patota);
-				}*/
-
-				//printf("Tamaño de todas las tareas: %d\n", tareas_de_la_patota->tamanio_tareas);
-
-				/*datos_tarea* datos_tarea_patota = malloc(sizeof(datos_tarea));
-				datos_tarea_patota->tamanio_tarea = patota_recibida->tamanio_tareas+1;
-				strcat(patota_recibida->tareas_de_patota, "\0");
-				datos_tarea_patota->tarea = malloc(datos_tarea_patota->tamanio_tarea);
-				strcpy(datos_tarea_patota->tarea, patota_recibida->tareas_de_patota);*/
-
-				/*for(uint32_t i=0; i<cant_tareas; i++){
-					list_add_in_index(tareas_de_la_patota, i, obtener_la_tarea(parser_tarea[i]));
-				}*/
 
 				tamanio_tripulante = sizeof(uint32_t) + sizeof(char) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t);
 				tamanio_tripulantes = tamanio_tripulante * patota_recibida->cantidad_tripulantes;
@@ -202,7 +161,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				tamanio_tareas = tareas_de_la_patota->tamanio_tareas;
 				tamanio_total = tamanio_patota + tamanio_tareas + tamanio_tripulantes;
 
-													// SEGMENTACION
+//													   SEGMENTACION
 				if(esquema_elegido == 'S') {
 					t_tabla_segmentos_patota* tabla_patota;
 					t_pcb* nueva_patota;
@@ -278,8 +237,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 
 					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
-					free(nueva_patota);
+					//free(nueva_patota);
 				}
+
 //													   PAGINACION
 				else if(esquema_elegido  == 'P') {
 					t_pcb* nueva_patota;
@@ -303,9 +263,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						t_pagina* pagina_patota = administrar_guardar_pagina(nueva_patota, PATOTA, tamanio_patota);
 						list_add(tabla_patota->paginas, pagina_patota);
-						uint32_t direccion_pcb = pagina_patota->numero_de_pagina;
+
+						uint32_t direccion_pcb = tabla_patota->direccion_patota;
 
 					}
+
+					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
+					//free(nueva_patota);
 				}
 
 				cerrar_conexion(logger, conexion);
@@ -673,8 +637,7 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			log_info(logger, "Las páginas tendran un tamaño de %u bytes cada una.\n", TAMANIO_PAGINA);
 			log_info(logger, "Se utilizará el algoritmo de %s para reemplazar las páginas.\n", ALGORITMO_REEMPLAZO);
 			tablas_paginas = list_create();
-			cantidad_paginas = TAMANIO_MEMORIA / TAMANIO_PAGINA;
-			cantidad_frames = TAMANIO_MEMORIA / TAMANIO_PAGINA;
+			inicializar_frames();
 			inicializar_swap();
 
 			break;
@@ -706,8 +669,11 @@ bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
 
 bool validar_espacio_por_patota_paginacion(uint32_t tamanio) {
 	int32_t restante = memoria_libre_total - tamanio;
-	int32_t restante_memoria_virtual = memoria_virtual_total - tamanio;
-	return (restante >= 0) && (restante_memoria_virtual >= 0);
+	if(restante < 0) {
+		int32_t restante_memoria_virtual = memoria_virtual_total - tamanio;
+		return restante_memoria_virtual >= 0;
+	}
+	return (restante >= 0);
 }
 
 algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo){

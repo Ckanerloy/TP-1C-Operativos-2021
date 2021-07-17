@@ -17,8 +17,6 @@ int main(void)
 
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, conexion_cliente);
 		pthread_detach(hilo_recibir_mensajes);
-
-
 	}
 
 	terminar_programa(config, logger);
@@ -104,7 +102,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
 
 				// SE LIBERA TODO LO QUE SE TENGA QUE LIBERAR DE MEMORIA
-
+				//free(hilo_recibir_mensajes);
 				log_info(logger, "Se ha cerrado el programa de forma exitosa.\n");
 				terminar_programa(config, logger);
 				exit(0);

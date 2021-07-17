@@ -1,12 +1,21 @@
 #include "paginacion.h"
 
 
+void inicializar_frames(void) {
+	cantidad_frames = TAMANIO_MEMORIA / TAMANIO_PAGINA;
+	log_info(logger, "Se inician %u frames en Memoria Principal.", cantidad_frames);
+	frames = malloc(sizeof(frame) * cantidad_frames);
+	for(int i=0; i<cantidad_frames; i++) {
+		frames[i]->estado = LIBRE;
+	}
+
+}
+
 t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* nueva_patota) {
 
 	t_tabla_paginas_patota* tabla = malloc(sizeof(t_tabla_paginas_patota));
-	tabla->patota = malloc(sizeof(t_pcb));
-	tabla->patota = nueva_patota;
 	tabla->paginas = list_create();
+	tabla->direccion_tripulantes = list_create();
 	return tabla;
 }
 
