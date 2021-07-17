@@ -52,6 +52,7 @@ void inicializar_memoria(void) {
 	memoria_principal = malloc(TAMANIO_MEMORIA);
 	//memoria_restante = TAMANIO_MEMORIA;
 	memoria_libre_total = TAMANIO_MEMORIA;
+	memoria_virtual_total = TAMANIO_SWAP;
 
 	if(memoria_principal != NULL){
 		log_info(logger, "Se inició la Memoria Principal con un tamaño de %u bytes.\n", TAMANIO_MEMORIA);
@@ -704,11 +705,9 @@ bool validar_espacio_por_patota_segmentacion(uint32_t tamanio) {
 }
 
 bool validar_espacio_por_patota_paginacion(uint32_t tamanio) {
-
-	int32_t cantidad_paginas_usar = tamanio / TAMANIO_PAGINA;
-	printf("Se utilizarán %d páginas para guardar esta estructura.\n", cantidad_paginas_usar);
-
-	return 1;
+	int32_t restante = memoria_libre_total - tamanio;
+	int32_t restante_memoria_virtual = memoria_virtual_total - tamanio;
+	return (restante >= 0) && (restante_memoria_virtual >= 0);
 }
 
 algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo){
