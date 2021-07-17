@@ -77,6 +77,11 @@ typedef enum
 } criterio_seleccion;
 
 
+typedef struct {
+	char* tareas;
+	uint32_t tamanio_tareas;
+} tareas_patota;
+
 
 // Estructuras de Sockets
 typedef struct {

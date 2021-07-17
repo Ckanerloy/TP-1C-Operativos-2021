@@ -4,10 +4,6 @@
 #include "Mi-RAM.h"
 #include "utils/estructuras.h"
 
-typedef struct {
-	char* tareas;
-	uint32_t tamanio_tareas;
-} tareas_patota;
 
 typedef struct segmento {
 	uint32_t numero_de_segmento;		// Esta tabla va a tener el numero de segmento

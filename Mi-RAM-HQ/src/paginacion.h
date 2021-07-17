@@ -32,6 +32,8 @@ typedef struct {
 } frame;
 
 
+int32_t contador_pagina;
+
 t_list* tablas_paginas;
 
 uint32_t base_pagina;
@@ -40,10 +42,16 @@ uint32_t cantidad_frames;
 frame** frames;
 
 
+int32_t cantidad_paginas_usadas(int32_t tamanio);
 
 void inicializar_frames(void);
+
+int32_t obtener_frame_disponible(void);
+
 t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* nueva_patota);
 
+
+void administrar_guardar_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total, tareas_patota* tareas_de_la_patota, int32_t cantidad_tripulantes);
 
 
 bool menor_a_mayor_por_frame(void* pagina, void* pagina_siguiente);

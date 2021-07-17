@@ -1,6 +1,18 @@
 #include "paginacion.h"
 
 
+int32_t cantidad_paginas_usadas(int32_t tamanio) {
+
+    int32_t cantidad_paginas = 0;
+
+    while((cantidad_paginas * TAMANIO_PAGINA) < tamanio){
+    	cantidad_paginas++;
+    }
+
+    return cantidad_paginas;
+}
+
+
 void inicializar_frames(void) {
 	cantidad_frames = TAMANIO_MEMORIA / TAMANIO_PAGINA;
 	log_info(logger, "Se inician %u frames en Memoria Principal.", cantidad_frames);
@@ -8,7 +20,6 @@ void inicializar_frames(void) {
 	for(int i=0; i<cantidad_frames; i++) {
 		frames[i]->estado = LIBRE;
 	}
-
 }
 
 t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* nueva_patota) {
@@ -19,15 +30,82 @@ t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* nueva_patota) {
 	return tabla;
 }
 
+/*
+void administrar_guardar_pagina(void* estructura, uint32_t tamanio, t_tabla_paginas_patota* tabla_patota) {
 
-t_pagina* administrar_guardar_pagina(void* estructura, tipo_estructura tipo_pagina, uint32_t tamanio) {
+
+}*/
+
+void administrar_guardar_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total, tareas_patota* tareas_de_la_patota, int32_t cantidad_tripulantes) {
+
+	int32_t cantidad_paginas = cantidad_paginas_usadas(tamanio_total);
+
+	for(int i=0; i<cantidad_paginas; i++) {
+		t_pagina* pagina = malloc(sizeof(t_pagina));
+		pagina->numero_de_pagina = contador_pagina;
+		pagina->P = 0;
+		pagina->numero_de_frame = obtener_frame_disponible();
+		pagina->U = 0;
+
+		list_add_in_index(tabla_patota->paginas, i, pagina);
+
+		contador_pagina++;
+	}
 
 	/*
-	 * 1) Obtener la primer pagina que tenga algo de memoria libre
-	 *
+	 * Cuando se asigna un Frame => se guarda en memoria
 	 *
 	 */
+
+	// Creo PCB
+	t_pcb* nueva_patota = crear_pcb();
+
+	uint32_t desplazamiento = 0;
+	int32_t pagina_actual = 0; 		// if(desplazamiento == TAMANIO_PAGINA) -> pagina_actual++;
+/*
+	tabla_patota->direccion_patota = pagina_actual * TAMANIO_PAGINA + desplazamiento;
+
+	memcpy(memoria_principal + desplazamiento, &(nueva_patota->pid), sizeof(nueva_patota->pid));
+	desplazamiento += sizeof(nueva_patota->pid);
+
+	memcpy(memoria_principal + desplazamiento, &(nueva_patota->tareas), sizeof(nueva_patota->tareas));
+	desplazamiento += sizeof(nueva_patota->tareas);
+
+
+	tabla_patota->direccion_tareas = pagina_actual * TAMANIO_PAGINA + desplazamiento;
+
+	memcpy(memoria_principal + desplazamiento, tareas_de_la_patota->tareas, tareas_de_la_patota->tamanio_tareas);
+	desplazamiento += tareas_de_la_patota->tamanio_tareas;
+*/
+
+
+
+
+
 }
+
+
+int32_t obtener_frame_disponible(void) {
+
+	frame* frame_buscado;
+	int32_t num_frame;
+
+	bool _frame_libre(void* frame_buscado) {
+		return ((frame*)frame_buscado)->estado == LIBRE;
+	}
+
+	if(list_any_satisfy(frames, _frame_libre)) {
+		frame_buscado = list_find(frames, _frame_libre);
+		num_frame = obtener_indice(frames, frame_buscado);
+		return num_frame;
+	}
+	else {
+		//APLICAR ALGORITMOS DE REEMPLAZO (LRU o CLOCK)
+		//PARA OBTENER UN FRAME PARA GUARDAR (LO DEMAS SE GUARDA EN SWAP)
+		return NULL;
+	}
+}
+
 
 
 /*

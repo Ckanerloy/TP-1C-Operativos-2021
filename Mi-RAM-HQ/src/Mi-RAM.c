@@ -36,6 +36,8 @@ void iniciar_variables_y_semaforos(void) {
 	contador_id_tripu = 1;
 	contador_id_patota = 1;
 	contador_segmento = 0;
+	contador_pagina = 0;
+
 	ids = list_create();
 
 	crear_segmento_sem = malloc(sizeof(sem_t));
@@ -50,7 +52,6 @@ void inicializar_memoria(void) {
 	log_info(logger, "Se utilizará %s como esquema de memoria.\n", ESQUEMA_MEMORIA);
 
 	memoria_principal = malloc(TAMANIO_MEMORIA);
-	//memoria_restante = TAMANIO_MEMORIA;
 	memoria_libre_total = TAMANIO_MEMORIA;
 	memoria_virtual_total = TAMANIO_SWAP;
 
@@ -257,14 +258,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 					else {
 
-						nueva_patota = crear_pcb();
-
 						tabla_patota = crear_tabla_paginas(nueva_patota);
 
-						t_pagina* pagina_patota = administrar_guardar_pagina(nueva_patota, PATOTA, tamanio_patota);
-						list_add(tabla_patota->paginas, pagina_patota);
-
-						uint32_t direccion_pcb = tabla_patota->direccion_patota;
+						administrar_guardar_patota(tabla_patota, tamanio_total, tareas_de_la_patota, patota_recibida->cantidad_tripulantes);
 
 					}
 
