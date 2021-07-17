@@ -13,10 +13,11 @@ int main(void)
 
 	while(1)
 	{
-		int32_t* conexion_cliente = esperar_conexion(conexion_servidor);
+		int32_t conexion_cliente = esperar_conexion(conexion_servidor);
 
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, conexion_cliente);
 		pthread_detach(hilo_recibir_mensajes);
+
 
 	}
 
@@ -57,6 +58,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				// char* bitacora_tripulante;
 				// uint32_t tamanio_bitacora_tripu;
 
+				cerrar_conexion(logger, conexion);
 				free(tripulante_por_bitacora);
 				break;
 
@@ -67,6 +69,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				printf("Llego la tarea de GENERAR_INSUMO\n");
 
 				cerrar_conexion(logger, conexion);
+
+				free(tarea_io->nombre_archivo);
+				free(tarea_io);
 				break;
 
 			case CONSUMIR_INSUMO:
@@ -76,11 +81,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				printf("Llego la tarea de CONSUMIR_INSUMO\n");
 
 				cerrar_conexion(logger, conexion);
+				free(tarea_io->nombre_archivo);
+				free(tarea_io);
 				break;
 
 			case TIRAR_BASURA:
 				cerrar_conexion(logger, conexion);
-
 				printf("Llego la tarea de DESCARTAR_BASURA\n");
 
 				break;
@@ -93,7 +99,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 			case CERRAR_MODULO:
 				cerrar_conexion(logger, conexion);
-
 				printf("Terminando programa... \n");
 				sleep(1);
 				printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");

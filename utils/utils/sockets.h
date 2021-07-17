@@ -22,8 +22,8 @@ t_config* config;
 int32_t crear_conexion(char* ip, char* puerto);
 void cerrar_conexion(t_log* logger, int32_t socket);
 int32_t iniciar_servidor(char* IP, char* PUERTO);
-void escuchar_conexion(int32_t* conexion_cliente);
-int32_t* esperar_conexion(int32_t conexion_servidor);
+void escuchar_conexion(int32_t conexion_cliente);
+int32_t esperar_conexion(int32_t conexion_servidor);
 void eliminar_paquete(t_paquete* paquete);
 
 // Validaciones

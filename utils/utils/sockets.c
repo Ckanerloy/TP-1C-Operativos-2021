@@ -101,14 +101,14 @@ int32_t iniciar_servidor(char* IP, char* PUERTO)
 
 
 // Crearia el hilo en esta parte??
-int32_t* esperar_conexion(int32_t socket_servidor)
+int32_t esperar_conexion(int32_t socket_servidor)
 {
-	int32_t* socket_cliente = malloc(sizeof(int32_t));
+	//int32_t* socket_cliente = malloc(sizeof(int32_t));
 	struct sockaddr_in dir_cliente;
 	socklen_t tam_direccion = sizeof(struct sockaddr_in);
 
 	// Espero que se conecte alguien ...
-	*socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
+	int32_t socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
 	//log_info(logger, "¡Se creó una conexión!");
 
@@ -117,13 +117,13 @@ int32_t* esperar_conexion(int32_t socket_servidor)
 
 
 
-void escuchar_conexion(int32_t* conexion_cliente)
+void escuchar_conexion(int32_t conexion_cliente)
 {
 	codigo_operacion operacion;
 
-	recv(*conexion_cliente, &operacion, sizeof(operacion), MSG_WAITALL);
+	recv(conexion_cliente, &operacion, sizeof(operacion), MSG_WAITALL);
 
-	procesar_mensajes(operacion, *conexion_cliente);
+	procesar_mensajes(operacion, conexion_cliente);
 }
 
 void obtener_operando(int32_t* conexion_cliente, t_paquete* paquete) {
