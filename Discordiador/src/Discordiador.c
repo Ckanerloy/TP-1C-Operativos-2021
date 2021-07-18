@@ -396,17 +396,6 @@ void obtener_orden_input(){
 	 switch(operacion){
 
 		case INICIAR_PLANIFICACION:
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 5|5
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 7|1 2|0
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
-			// PRUEBAS PARA DISCORDIADOR
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/plantas.txt 1|1 3|4
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/oxigeno.txt 5|5
-			// PRUEBAS PARA MI RAM
-			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
-			// Ej: INICIAR_PATOTA 6 /home/utnso/tareas/persa.txt
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
 			//sem_getvalue(planificacion_on,&valor_semaforo);
 
@@ -469,10 +458,15 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota4.txt 0|9 4|4 9|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota5.txt 0|2 9|6 3|5
 
-			// PRUEBAS PARA MI RAM
+			// PRUEBAS PARA SEGMENTACION
 			// Ej: INICIAR_PATOTA 4 /home/utnso/tareas/SEG_PatotaA.txt
 			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/SEG_PatotaB.txt
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/SEG_PatotaC.txt
+
+			// PRUEBAS PARA PAGINACIÓN
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaA.txt 1|1
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaB.txt 3|3
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaC.txt 5|5
 
 			// LISTAR_TRIPULANTES
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){

@@ -258,9 +258,37 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 					else {
 
-						tabla_patota = crear_tabla_paginas(nueva_patota);
+						nueva_patota = crear_pcb();
 
-						administrar_guardar_patota(tabla_patota, tamanio_total, tareas_de_la_patota, patota_recibida->cantidad_tripulantes);
+						tabla_patota = crear_tabla_paginas();
+
+						administrar_paginas_patota(tabla_patota, tamanio_total, tareas_de_la_patota, patota_recibida->cantidad_tripulantes);
+
+						printf("Dirección lógica del PCB: %u\n", tabla_patota->direccion_patota);
+						printf("Dirección lógica de las Tareas: %u\n", tabla_patota->direccion_tareas);
+						for(int c=0; c<patota_recibida->cantidad_tripulantes; c++) {
+							printf("Dirección lógica del Tripulante %d: %u\n", c+1, (uint32_t)list_get(tabla_patota->direccion_tripulantes, c));
+
+							string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
+							contador_id_tripu++;
+						}
+
+						printf("Cantidad de páginas usadas: %u\n", list_size(tabla_patota->paginas));
+
+						list_add(tablas_paginas, tabla_patota);
+
+						strcat(ids_enviar,"\0");
+
+						respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
+						respuesta_iniciar_patota->respuesta = 1;
+						respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
+						respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
+						strcpy(respuesta_iniciar_patota->ids_tripu,ids_enviar);
+
+						contador_id_patota++;
+
+						log_info(logger, "La patota iniciada tiene un peso de %d bytes.\n", tamanio_total);
+						log_info(logger, "Se ha guardado en memoria la Patota %u y su/s %u Tripulante/s.\n", nueva_patota->pid, patota_recibida->cantidad_tripulantes);
 
 					}
 
@@ -545,10 +573,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				free(memoria_principal);
 				printf("Memoria Principal liberada...\n");
 
-				if(esquema_elegido == 'P') {
+				/*if(esquema_elegido == 'P') {
 					free(area_swap);
 					printf("Area de Swap liberada...\n\n");
-				}
+				}*/
 
 				log_info(logger, "Se ha cerrado el programa de forma exitosa.\n");
 				terminar_programa(config, logger);
@@ -629,7 +657,7 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 
 			esquema_elegido = 'P';
 			tablas_paginas = list_create();
-
+			puntero_inicio = 0;
 			log_info(logger, "Las páginas tendran un tamaño de %u bytes cada una.\n", TAMANIO_PAGINA);
 			log_info(logger, "Se utilizará el algoritmo de %s para reemplazar las páginas.\n", ALGORITMO_REEMPLAZO);
 			tablas_paginas = list_create();
