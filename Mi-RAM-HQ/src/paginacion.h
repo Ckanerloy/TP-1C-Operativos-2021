@@ -66,6 +66,7 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 int32_t buscar_frame(int32_t nro_pagina, t_list* paginas);
 
 t_tcb* encontrar_tripulante_memoria(int32_t direccion_fisica);
+void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica);
 
 // Otras funciones
 int32_t cantidad_paginas_usadas(int32_t tamanio);

@@ -252,6 +252,29 @@ t_tcb* encontrar_tripulante_memoria(int32_t direccion_fisica) {
 
 	return tripulante;
 }
+void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica) {
+
+	void* inicio = (void*) direccion_fisica;
+	uint32_t desplazamiento = 0;
+
+	memcpy(inicio + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
+	desplazamiento += sizeof(tripulante->id_tripulante);
+
+	memcpy(inicio + desplazamiento, &(tripulante->estado_tripulante), sizeof(tripulante->estado_tripulante));
+	desplazamiento += sizeof(tripulante->estado_tripulante);
+
+	memcpy(inicio + desplazamiento, &(tripulante->posicion_x), sizeof(tripulante->posicion_x));
+	desplazamiento += sizeof(tripulante->posicion_x);
+
+	memcpy(inicio + desplazamiento, &(tripulante->posicion_y), sizeof(tripulante->posicion_y));
+	desplazamiento += sizeof(tripulante->posicion_y);
+
+	memcpy(inicio + desplazamiento, &(tripulante->id_tarea_a_realizar), sizeof(tripulante->id_tarea_a_realizar));
+	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+
+	memcpy(inicio + desplazamiento, &(tripulante->puntero_PCB), sizeof(tripulante->puntero_PCB));
+	desplazamiento += sizeof(tripulante->puntero_PCB);
+}
 
 /*
 void administrar_guardar_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total, tareas_patota* tareas_de_la_patota, int32_t cantidad_tripulantes) {

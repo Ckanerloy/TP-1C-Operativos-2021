@@ -350,8 +350,24 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				}
 				else if(esquema_elegido  == 'P') {
-					//TODO por paginacion
-					//crear_pagina(estructura, tipo_estructura);
+					//int indice = 0;
+
+					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_para_ubicacion->id_patota);
+
+					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_para_ubicacion->id_tripulante);
+
+					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					t_tcb* tripulante_buscado_por_ubicacion = encontrar_tripulante_memoria(direccion_fisica);
+
+					tripulante_buscado_por_ubicacion->posicion_x = tripulante_por_ubicacion->posicion_x;
+					tripulante_buscado_por_ubicacion->posicion_y = tripulante_por_ubicacion->posicion_y;
+
+					//TODO: actualizar la posicion del tripulante en el MAPA
+
+					actualizar_tripulante_memoria(tripulante_buscado_por_ubicacion, direccion_fisica);
+
+					//list_replace(patota_buscada->segmentos, indice, segmento_buscado);
 
 				}
 
@@ -445,8 +461,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				}
 				else if(esquema_elegido  == 'P') {
-					//TODO por paginacion
-					//crear_pagina(estructura, tipo_estructura);
+
+					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_para_ubicacion->id_patota);
+
+					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_para_ubicacion->id_tripulante);
+
+					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					t_tcb* tripulante_buscado_por_estado = encontrar_tripulante_memoria(direccion_fisica);
+
+					estado_anterior = tripulante_buscado_por_estado->estado_tripulante;
+
+					tripulante_buscado_por_estado->estado_tripulante = tripulante_por_estado->estado;
+
+					//TODO: actualizar la posicion del tripulante en el MAPA
+
+					actualizar_tripulante_memoria(tripulante_buscado_por_ubicacion, direccion_fisica);
 
 				}
 
