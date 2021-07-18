@@ -269,7 +269,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 
 						printf("Dirección lógica del PCB: %u\n", tabla_patota->direccion_patota);
-						printf("Dirección lógica de las Tareas: %u\n", tabla_patota->direccion_tareas);
 						for(int c=0; c<patota_recibida->cantidad_tripulantes; c++) {
 							printf("Dirección lógica del Tripulante %d: %u\n", c+1, (uint32_t)list_get(tabla_patota->direccion_tripulantes, c));
 
@@ -388,8 +387,17 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				}
 				else if(esquema_elegido  == 'P') {
-					//TODO por paginacion
-					//crear_pagina(estructura, tipo_estructura);
+
+					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_para_ubicacion->id_patota);
+
+					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_para_ubicacion->id_tripulante);
+
+					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					t_tcb* tripulante_con_ubicacion = encontrar_tripulante_memoria(direccion_fisica);
+
+					respuesta_con_ubicacion->posicion_x = tripulante_con_ubicacion->posicion_x;
+					respuesta_con_ubicacion->posicion_y = tripulante_con_ubicacion->posicion_y;
 
 				}
 
