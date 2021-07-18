@@ -593,6 +593,7 @@ void obtener_orden_input(){
 						tripulante->elegido_sabotaje=0;
 						tripulante->fui_elegido_antes=0;
 						tripulante->cantidad_realizada=0;
+						tripulante->puedo_ejecutar_io=0;
 
 
 						sem_t* sem_plani=malloc(sizeof(sem_t));
