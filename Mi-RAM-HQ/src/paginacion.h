@@ -19,9 +19,9 @@ typedef struct {
 // DIRECCION_FISICA = NUMERO_FRAME * TAMANIO_FRAME + DESPLAZAMIENTO;
 
 typedef struct {
+	t_pcb* patota;
 	t_list* paginas;					// Páginas que componen a la Patota (incluyendo el PCB, Tareas y TCBs)
 	int32_t direccion_patota;			// Dirección lógica del PCB
-	int32_t direccion_tareas;			// Dirección lógica de las Tareas de la Patota
 	t_list* direccion_tripulantes;		// Direcciones lógicas de los tripulantes que componen a la patota
 } t_tabla_paginas_patota;
 
@@ -35,9 +35,9 @@ typedef struct {
 
 
 typedef struct {
-	int32_t numero_pagina;
-	int32_t numero_frame;
-} tlb;							// Capaz es al pedo
+	int32_t id_tripulante;
+	int32_t direccion_logica;
+} dl_tripulante;
 
 
 t_list* tablas_paginas;
@@ -50,7 +50,7 @@ frame** frames;
 
 // Inicio de Paginación
 t_tabla_paginas_patota* crear_tabla_paginas(void);
-void administrar_paginas_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total, tareas_patota* tareas_de_la_patota, int32_t cantidad_tripulantes);
+void iniciar_tabla_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total, tareas_patota* tareas_de_la_patota, int32_t cantidad_tripulantes);
 
 
 // Uso de Frames

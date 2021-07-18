@@ -26,6 +26,7 @@ void inicializar_frames(void) {
 	}
 }
 
+
 int32_t obtener_siguiente_frame(t_list* paginas, int32_t contador) {
 	t_pagina* pagina_buscada = list_get(paginas, contador);
 	return pagina_buscada->numero_de_frame;
@@ -75,7 +76,7 @@ t_tabla_paginas_patota* crear_tabla_paginas(void) {
 
 
 
-void administrar_paginas_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total, tareas_patota* tareas_de_la_patota, int32_t cantidad_tripulantes) {
+void iniciar_tabla_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total, tareas_patota* tareas_de_la_patota, int32_t cantidad_tripulantes) {
 
 	int32_t cantidad_paginas = cantidad_paginas_usadas(tamanio_total);
 
@@ -97,13 +98,78 @@ void administrar_paginas_patota(t_tabla_paginas_patota* tabla_patota, int32_t ta
 	tabla_patota->direccion_tareas = puntero_inicio;
 	puntero_inicio += tareas_de_la_patota->tamanio_tareas;
 
+
+	int32_t tamanio_tripulantes = 0;
+
 	for(int c=0; c<cantidad_tripulantes; c++) {
 
 		uint32_t direccion_tripulante = puntero_inicio;
 		puntero_inicio += tamanio_tripulante;
 
+		tamanio_tripulantes += tamanio_tripulante;
 		list_add_in_index(tabla_patota->direccion_tripulantes, c, direccion_tripulante);
 	}
+
+	if(tamanio_total == (tamanio_patota + tareas_de_la_patota->tamanio_tareas + tamanio_tripulantes)) {
+		printf("La patota entera pesa %u bytes.\n", tamanio_total);
+	}
+}
+
+
+void guardar_patota_en_memoria(void* estructura, tipo_estructura tipo, t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total) {
+
+
+	int32_t pid;
+	int32_t desplazamiento = 0;
+	int32_t paginas_necesarias = list_size(tabla_patota->paginas);
+
+	void* buffer = malloc(tamanio_total);
+
+	switch(tipo) {
+
+		case PATOTA:
+			break;
+		case TAREAS:
+			break;
+		case TRIPULANTE:
+			break;
+	}
+
+
+	int offset = 0;
+
+	int32_t sobrante = tamanio_total - (paginas_necesarias-1) * TAMANIO_PAGINA;
+
+	for(int c=0; c<paginas_necesarias; c++) {
+
+		//int32_t num_frame = obtener_siguiente_frame(tabla_patota->paginas, contador);
+		t_pagina* pagina_buscada = list_get(tabla_patota->paginas, c);
+		asignar_frame_disponible(pagina_buscada, pid);
+
+		int32_t num_frame = pagina_buscada->numero_de_frame;
+
+		int32_t inicio = num_frame * TAMANIO_PAGINA;
+
+		if(paginas_necesarias == 1) {
+			memcpy(memoria_principal + inicio, buffer + offset, sobrante);
+			offset += sobrante;
+		}
+		else {
+			memcpy(memoria_principal + inicio, buffer + offset, TAMANIO_PAGINA);
+			offset += TAMANIO_PAGINA;
+		}
+	}
+
+}
+
+
+void asignar_frame_disponible(t_pagina* pagina, uint32_t pid) {
+
+	pagina->numero_de_frame = obtener_frame_disponible();
+	pagina->tiempo_referencia = temporal_get_string_time("%H:%M:%S:%MS");
+	frame* frame_ocupado = frames[pagina->numero_de_frame];
+	frame_ocupado->pagina = pagina->numero_de_pagina;
+	frame_ocupado->proceso = pid;
 }
 
 /*

@@ -22,14 +22,10 @@ t_segmento* administrar_guardar_segmento(void* estructura, tipo_estructura tipo_
 
 		if(diferencia > 0){
 			crear_segmento_libre(nuevo_inicio, diferencia);
-			//memoria_libre_por_segmento -= tamanio;
-			//memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
 			memoria_libre_total -= tamanio;
 			segmento_libre_a_ser_ocupado->tamanio_segmento = tamanio;
 		}
 		if(diferencia == 0) {
-			//memoria_libre_por_segmento -= tamanio;
-			//memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
 			memoria_libre_total -= tamanio;
 		}
 		actualizar_segmento(estructura, tipo_segmento, segmento_libre_a_ser_ocupado);

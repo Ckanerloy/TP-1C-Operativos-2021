@@ -262,7 +262,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						tabla_patota = crear_tabla_paginas();
 
-						administrar_paginas_patota(tabla_patota, tamanio_total, tareas_de_la_patota, patota_recibida->cantidad_tripulantes);
+						iniciar_tabla_patota(tabla_patota, tamanio_total, tareas_de_la_patota, patota_recibida->cantidad_tripulantes);
+
+						// Pcb
+						guardar_patota_en_memoria(nueva_patota, PATOTA, tabla_patota, tamanio_total);
+
 
 						printf("Dirección lógica del PCB: %u\n", tabla_patota->direccion_patota);
 						printf("Dirección lógica de las Tareas: %u\n", tabla_patota->direccion_tareas);
@@ -272,6 +276,15 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 							string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
 							contador_id_tripu++;
 						}
+
+
+
+
+						// Tareas
+
+
+						// Tripulantes
+
 
 						printf("Cantidad de páginas usadas: %u\n", list_size(tabla_patota->paginas));
 
