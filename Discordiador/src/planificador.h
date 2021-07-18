@@ -107,7 +107,7 @@ void poner_en_uno_semaforo(tripulante_plani* tripulante);
 void suspendido_ready(tripulante_plani* tripu);
 void actualizar_estado(tripulante_plani* tripu, char estado);
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota);
-posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota);
+void obtener_posiciones(posiciones* posiciones_buscadas,uint32_t id_tripulante,uint32_t id_patota);
 uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
 
 
@@ -120,7 +120,7 @@ void realizar_tarea_sabotaje(tripulante_plani* tripu);
 void cambios_de_tarea(tripulante_plani* tripu);
 
 
-posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu);
+void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu);
 
 void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion);
 

@@ -236,11 +236,14 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 		abort();
 	}
 
-	t_tarea* tarea_buscada = respuesta_tarea->tarea;
+	t_tarea* tarea_buscada =malloc(sizeof(t_tarea));
+	tarea_buscada = respuesta_tarea->tarea;
 
 	close(conexion_mi_ram);
 
 	free(tripulante_consulta);
+	respuesta_tarea->tarea=NULL;
+	free(respuesta_tarea->tarea);
 	free(respuesta_tarea);
 
 	if(tarea_buscada->operacion == TAREA_VACIA) {
@@ -254,7 +257,7 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 
 }
 
-posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
+void obtener_posiciones(posiciones* posiciones_buscadas,uint32_t id_tripulante, uint32_t numero_patota){
 
 	uint32_t conexion_mi_ram;
 
@@ -264,7 +267,7 @@ posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
 	posiciones_tripulante->id_patota = numero_patota;
 	posiciones_tripulante->id_tripulante = id_tripulante;
 
-	posiciones* posiciones_buscadas = malloc(sizeof(posiciones));
+	//posiciones* posiciones_buscadas = malloc(sizeof(posiciones));
 
 	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
@@ -300,7 +303,7 @@ posiciones* obtener_posiciones(uint32_t id_tripulante, uint32_t numero_patota){
 	free(posiciones_tripulante);
 	free(respuesta_posiciones_tripu);
 
-	return posiciones_buscadas;
+	//return posiciones_buscadas;
 }
 
 
@@ -340,6 +343,7 @@ void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_p
 		abort();
 	}
 	*/
+	free(ubicaciones_a_enviar);
 
 }
 
@@ -384,6 +388,9 @@ void new_ready() {
 
 		sem_post(planificacion_on);
 
+
+		tripulante_a_ready=NULL;
+		free(tripulante_a_ready);
 
 
 	}
@@ -594,7 +601,10 @@ void tripulante_hilo(void* tripulante){
 
 	posiciones* posicion_tripu = malloc(sizeof(posiciones));
 
-	posicion_tripu = obtener_posiciones(tripu->id_tripulante, tripu->numero_patota);
+	obtener_posiciones(posicion_tripu,tripu->id_tripulante, tripu->numero_patota);
+
+	posiciones* posicion_tarea;
+	posicion_tarea = malloc(sizeof(posiciones));
 
 	while(tripu->tarea_a_realizar != NULL){
 
@@ -611,8 +621,7 @@ void tripulante_hilo(void* tripulante){
 			sem_post(tripu->mutex_expulsado);
 		}
 
-		posiciones* posicion_tarea;
-		posicion_tarea = malloc(sizeof(posiciones));
+
 		posicion_tarea->posicion_x = tripu->tarea_a_realizar->posicion_x;
 		posicion_tarea->posicion_y = tripu->tarea_a_realizar->posicion_y;
 
@@ -621,10 +630,10 @@ void tripulante_hilo(void* tripulante){
 
 		//printf("SOY EL tripu a %u",tripu->id_tripulante);
 		//fflush(stdout);
-		bool comparador=1;
-		while(distancia > 0 && comparador){ //Cambiar condicion con variable goblal hay_sabotaje
 
-			posicion_tripu = obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
+		while(distancia > 0 && !tripu->elegido_sabotaje){ //Cambiar condicion con variable goblal hay_sabotaje
+
+			obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
 			tripu->cantidad_realizada= tripu->cantidad_realizada+1;
 			distancia--;
 
@@ -648,7 +657,7 @@ void tripulante_hilo(void* tripulante){
 			sem_wait(tripu->sem_tripu);         //Trabado por el pulso (rafaga), te lo dan siempre que estes en Exec
 
 
-			comparador=!tripu->elegido_sabotaje;
+
 		}
 
 		sem_wait(tripu->mutex_expulsado);
@@ -714,14 +723,14 @@ void poner_en_uno_semaforo(tripulante_plani* tripulante){
 	sem_post(tripulante->sem_tripu);
 }
 
-posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu){
+void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu){
 
 	while(posicion_tripu->posicion_x != posicion_tarea->posicion_x){
 		if(posicion_tripu->posicion_x > posicion_tarea->posicion_x){
 			//posicion_tripu->posicion_x = posicion_tripu->posicion_x - 1 ;
 			posicion_tripu->posicion_x--;
 			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
-			return posicion_tripu;
+			//return posicion_tripu;
 		}
 
 		if(posicion_tripu->posicion_x < posicion_tarea->posicion_x){
@@ -729,7 +738,7 @@ posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posic
 			posicion_tripu->posicion_x++;
 			// actualizar en mi ram
 			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
-			return posicion_tripu;
+			//return posicion_tripu;
 		}
 	}
 
@@ -739,7 +748,7 @@ posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posic
 				posicion_tripu->posicion_y--;
 				// actualizar en mi ram
 				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
-				return posicion_tripu;
+			//	return posicion_tripu;
 			}
 
 			if(posicion_tripu->posicion_y < posicion_tarea->posicion_y){
@@ -747,13 +756,13 @@ posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posic
 				posicion_tripu->posicion_y++;
 				// actualizar en mi ram
 				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
-				return posicion_tripu;
+				//return posicion_tripu;
 			}
 	}
-	return posicion_tripu;
+	//return posicion_tripu;
 }
-
-
+/*
+// TODO que onda con esta funcion
 void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion){
 	uint32_t conexion_mi_ram;
 	//esta incompleta hay q hacer estructura para pasar datos pero lo encro asi noms
@@ -765,7 +774,7 @@ void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion){
 	}
 }
 
-
+*/
 
 void realizar_tarea(tripulante_plani* tripu){
 
@@ -820,14 +829,23 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 		sem_post(tripu->mutex_expulsado);
 	}
 
+
 	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){ //NI Q SEA CUANDO LO ESTAS HACIENDO
+
+		enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
+
+		//esperando_blocl(tripu)
 		running_block(tripu);
+
+
 	}
 
-	enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
+	//ACA TENDRIAS Q
+	//enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
 	// TODO: Se envia a Mongo Store el NOMBRE DE ARCHIVO, CARACTER DE LLENADO, CANTIDAD
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
+
 
 	while(tiempo_restante != 0 && !(tripu->elegido_sabotaje)){
 		sem_wait(tripu->sem_tripu);
@@ -845,6 +863,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 		}
 
 	}
+	//incrementas lugar libre de bloqueo
 	cambios_de_tarea(tripu);
 	//tripu->tarea_a_realizar=NULL;
 

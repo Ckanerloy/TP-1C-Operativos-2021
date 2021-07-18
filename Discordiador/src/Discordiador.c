@@ -299,14 +299,19 @@ tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* t
 	//tenemos variable global q dice la posicion del sabotaje
 
 	posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
-	posicion_tripu1 = obtener_posiciones(tripulante1->id_tripulante, tripulante1->numero_patota);
+	obtener_posiciones(posicion_tripu1,tripulante1->id_tripulante, tripulante1->numero_patota);
 
 	posiciones* posicion_tripu2 = malloc(sizeof(posiciones));
-	posicion_tripu2 = obtener_posiciones(tripulante2->id_tripulante, tripulante2->numero_patota);
+	obtener_posiciones(posicion_tripu2,tripulante2->id_tripulante, tripulante2->numero_patota);
 
 	int32_t distancia1 = obtener_distancia(posicion_tripu1, posicion_sabotaje);
 	int32_t distancia2 = obtener_distancia(posicion_tripu2, posicion_sabotaje);
 
+	posicion_tripu1=NULL;
+	posicion_tripu2=NULL;
+
+	free(posicion_tripu1);
+	free(posicion_tripu2);
 	if(distancia1 <= distancia2) {
 		return tripulante1;
 	}
@@ -392,7 +397,7 @@ void obtener_orden_input(){
 
 	// sem_t* saca = malloc(sizeof(sem_t));
 
-	 int valorPulsos;
+
 	 switch(operacion){
 
 		case INICIAR_PLANIFICACION:
