@@ -78,35 +78,90 @@ void administrar_guardar_patota(t_tabla_paginas_patota* tabla_patota, int32_t ta
 	desplazamiento += tareas_de_la_patota->tamanio_tareas;
 */
 
+	void* buffer = malloc(tamanio_total);
+
+	memcpy(buffer + desplazamiento, &(nueva_patota->pid), sizeof(nueva_patota->pid));
+	desplazamiento += sizeof(nueva_patota->pid);
+
+	memcpy(buffer + desplazamiento, &(nueva_patota->tareas), sizeof(nueva_patota->tareas));
+	desplazamiento += sizeof(nueva_patota->tareas);
+
+	memcpy(buffer + desplazamiento, tareas_de_la_patota->tareas, tareas_de_la_patota->tamanio_tareas);
+	desplazamiento += tareas_de_la_patota->tamanio_tareas;
 
 
+	desplazamiento = 0;
+	int32_t paginas_necesarias = cantidad_paginas;
 
 
+	int offset = 0;
+
+	int32_t sobrante = tamanio_total - (paginas_necesarias-1) * TAMANIO_PAGINA;
+	// CON 3 PAGINAS
+
+	int contador = 0;
+	while(paginas_necesarias > 0) {
+
+		int32_t num_frame = obtener_siguiente_frame(tabla_patota->paginas, contador);
+
+		int32_t inicio = num_frame * TAMANIO_PAGINA;
+
+		if(paginas_necesarias == 1) {
+			memcpy(memoria_principal + inicio, buffer + offset, sobrante);
+			offset += sobrante;
+		}
+		else {
+			memcpy(memoria_principal + inicio, buffer + offset, TAMANIO_PAGINA);
+			offset += TAMANIO_PAGINA;
+		}
+
+		contador++;
+		paginas_necesarias--;
+	}
+}
+
+
+int32_t obtener_siguiente_frame(t_list* paginas, int32_t contador) {
+	t_pagina* pagina_buscada = list_get(paginas, contador);
+	return pagina_buscada->numero_de_frame;
 }
 
 
 int32_t obtener_frame_disponible(void) {
 
-	frame* frame_buscado;
 	int32_t num_frame;
 
-	bool _frame_libre(void* frame_buscado) {
-		return ((frame*)frame_buscado)->estado == LIBRE;
-	}
-
-	if(list_any_satisfy(frames, _frame_libre)) {
-		frame_buscado = list_find(frames, _frame_libre);
-		num_frame = obtener_indice(frames, frame_buscado);
+	if(hay_frame_libre() == 1) {
+		num_frame = obtener_frame_libre();
 		return num_frame;
 	}
 	else {
 		//APLICAR ALGORITMOS DE REEMPLAZO (LRU o CLOCK)
 		//PARA OBTENER UN FRAME PARA GUARDAR (LO DEMAS SE GUARDA EN SWAP)
-		return NULL;
+		return -1;
 	}
 }
 
 
+int hay_frame_libre(void) {
+
+	for(int i=0; i<cantidad_frames; i++) {
+		if(frames[i] == LIBRE) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int32_t obtener_frame_libre(void) {
+
+	for(int i=0; i<cantidad_frames; i++) {
+		if(frames[i] == LIBRE) {
+			return i;
+		}
+	}
+	return -1;
+}
 
 /*
  * 1) Hay alguna forma de validar si se puede guardar una patota con sus tripulantes?

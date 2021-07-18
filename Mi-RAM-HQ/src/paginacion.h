@@ -32,6 +32,11 @@ typedef struct {
 } frame;
 
 
+typedef struct {
+	int32_t numero_pagina;
+	int32_t numero_frame;
+};
+
 int32_t contador_pagina;
 
 t_list* tablas_paginas;
@@ -47,7 +52,8 @@ int32_t cantidad_paginas_usadas(int32_t tamanio);
 void inicializar_frames(void);
 
 int32_t obtener_frame_disponible(void);
-
+int hay_frame_libre(void);
+int32_t obtener_frame_libre(void);
 t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* nueva_patota);
 
 
