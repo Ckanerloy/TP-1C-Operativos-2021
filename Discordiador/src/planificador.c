@@ -23,6 +23,12 @@ algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo) {
 void inicializar_semaforos_plani(){
 	contador_tripulantes_en_new = malloc(sizeof(sem_t));
 	sem_init(contador_tripulantes_en_new,0, 0);
+	//io
+	contador_tripulantes_espera_io = malloc(sizeof(sem_t));
+	sem_init(contador_tripulantes_espera_io,0, 0);
+
+	planificacion_on_io= malloc(sizeof(sem_t));
+	sem_init(planificacion_on_io, 0, 0);
 
 	mutex_new = malloc(sizeof(sem_t));
 	sem_init(mutex_new, 0 , 1);
@@ -32,6 +38,7 @@ void inicializar_semaforos_plani(){
 
 	planificacion_on = malloc(sizeof(sem_t));
 	sem_init(planificacion_on, 0, 0);
+
 
 	planificacion_on_ready_running = malloc(sizeof(sem_t));
 	sem_init(planificacion_on_ready_running, 0, 0);
@@ -45,6 +52,9 @@ void inicializar_semaforos_plani(){
 	multitarea_disponible = malloc(sizeof(sem_t));
 	sem_init(multitarea_disponible, 0, GRADO_MULTITAREA);
 
+	bloqueado_disponible=malloc(sizeof(sem_t));
+	sem_init(bloqueado_disponible, 0, 1); //UNO SOLO A LA VEZ
+
 	planificion_rafaga = malloc(sizeof(sem_t));
 	sem_init(planificion_rafaga, 0, 0);
 
@@ -54,8 +64,14 @@ void inicializar_semaforos_plani(){
 	mutex_new_ready = malloc(sizeof(sem_t));
 	sem_init(mutex_new_ready, 0, 1);
 
+	mutex_io= malloc(sizeof(sem_t));
+	sem_init(mutex_io, 0, 1);
+
 	mutex_rafaga = malloc(sizeof(sem_t));
 	sem_init(mutex_rafaga, 0, 1);
+	//TODO mutex lista io
+	mutex_cola_io=malloc(sizeof(sem_t));
+	sem_init(mutex_cola_io, 0, 1);
 }
 
 
@@ -69,7 +85,7 @@ void finalizar_semaforos_plani() {
 	free(mutex_ready_running);
 	free(mutex_new_ready);
 	free(mutex_rafaga);
-
+	free(mutex_cola_io);
 	free(planificacion_on);
 	free(planificacion_on_ready_running);
 	free(planificion_rafaga);
@@ -112,6 +128,10 @@ void iniciar_planificacion() {
 
 	cola_new = queue_create();
 
+	//TODO aca lista para ioesperando
+
+	cola_io = queue_create();
+
 	cola_ready = queue_create();
 
 	cola_exit = queue_create();
@@ -127,6 +147,7 @@ void iniciar_planificacion() {
 	inicializar_semaforos_plani();
 
 	new_ready_off = 0;
+	esperando_bloqueado = 0;
 
 	ready_running_off = 0;
 
@@ -353,6 +374,37 @@ uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tare
 }
 
 
+void esperandoIo_bloqueado(){
+	while(1){
+		sem_wait(contador_tripulantes_espera_io);
+		sem_wait(planificacion_on_io);
+		sem_wait(bloqueado_disponible);
+		tripulante_plani* tripulante_a_block = malloc(sizeof(tripulante_plani));
+
+		sem_wait(mutex_cola_io);
+		tripulante_a_block= queue_pop(cola_io);
+		sem_post(mutex_cola_io);
+
+		actualizar_estado(tripulante_a_block, 'B');
+		sem_post(tripulante_a_block->sem_planificacion);
+
+
+
+		sem_wait(mutex_io);
+		if(new_ready_off){
+			sem_post(mutex_io);
+			sem_wait(planificacion_on_io);
+
+		}else{
+			sem_post(mutex_io);
+		}
+
+		sem_post(planificacion_on_io);
+		tripulante_a_block=NULL;
+		free(tripulante_a_block);
+	}
+}
+
 void new_ready() {
 
 	while(1){
@@ -377,7 +429,6 @@ void new_ready() {
 		sem_post(contador_tripulantes_en_ready);
 
 		sem_wait(mutex_new_ready);
-
 		if(new_ready_off){
 			sem_post(mutex_new_ready);
 			sem_wait(planificacion_on);
@@ -454,6 +505,17 @@ void running_ready(tripulante_plani* tripu){
 	sem_post(multitarea_disponible);
 
 }
+
+void running_espera_io(tripulante_plani* tripu){
+
+	actualizar_estado(tripu,'S');
+	sem_wait(mutex_cola_io);
+	queue_push(cola_io,tripu);
+	sem_post(mutex_cola_io);
+	sem_post(contador_tripulantes_espera_io);
+	sem_post(multitarea_disponible);
+}
+
 
 
 void running_block(tripulante_plani* tripu){
@@ -568,16 +630,17 @@ void running_suspendido(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'S');
 	sem_post(multitarea_disponible);
+
 }
 
 
 void ready_suspendido(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'S');
-	int a;
-	sem_getvalue(contador_tripulantes_en_ready,&a);
-	printf("valor semaforo %u",a);
-	fflush(stdout);
+	//int a;
+	//sem_getvalue(contador_tripulantes_en_ready,&a);
+	//printf("valor semaforo %u",a);
+	//fflush(stdout);
 	sem_wait(contador_tripulantes_en_ready);
 }
 
@@ -815,6 +878,7 @@ void realizar_tarea(tripulante_plani* tripu){
 
 }
 
+
 void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plani* tripu) {
 
 	//Aca iria un if preguntando si elegido
@@ -832,15 +896,26 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 
 	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){ //NI Q SEA CUANDO LO ESTAS HACIENDO
 
+		//cambio de estado
+		//running_esperaIo
+		running_espera_io(tripu);
+		sem_wait(tripu->sem_planificacion);
+		//agregarse en la lista de espera de bloq
+		//incrementar valor contador para destrabar hilo q da el pulso
+		//QUE SE TRABE CON SEMAFORO sem_wait(entrada salida)
+
+		//CAMBIAR ESTADO A UNO NUEVO
+		//AGREGARTE A LA COLA IO
+		//TRABARTE CON SEM PLANI ??
+
 		enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
 
-		//esperando_blocl(tripu)
-		running_block(tripu);
+		//running_block(tripu);
 
 
 	}
 
-	//ACA TENDRIAS Q
+
 	//enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
 	// TODO: Se envia a Mongo Store el NOMBRE DE ARCHIVO, CARACTER DE LLENADO, CANTIDAD
 
@@ -863,6 +938,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 		}
 
 	}
+	sem_post(bloqueado_disponible); //termino de hacer su io
 	//incrementas lugar libre de bloqueo
 	cambios_de_tarea(tripu);
 	//tripu->tarea_a_realizar=NULL;
@@ -891,10 +967,15 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 	}else{
 		sem_post(tripu->mutex_expulsado);
 	}
+	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
 
-	running_block(tripu);
+		running_espera_io(tripu);
+		sem_wait(tripu->sem_planificacion);
+		//running_block(tripu);este no se usaria nunca
+		enviar_tarea_io(tripu, CONSUMIR_INSUMO, nombre_archivo, caracter_a_consumir);
 
-	enviar_tarea_io(tripu, CONSUMIR_INSUMO, nombre_archivo, caracter_a_consumir);
+	}
+
 	// TODO: Se envia a Mongo Store el NOMBRE DE ARCHIVO, CARACTER DE LLENADO, CANTIDAD
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
@@ -913,7 +994,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 			sem_post(tripu->mutex_expulsado);
 		}
 	}
-
+	sem_post(bloqueado_disponible); //termino de hacer su io
 	cambios_de_tarea(tripu);
 	//tripu->tarea_a_realizar= NULL;
 
@@ -939,10 +1020,12 @@ void descartar_basura(tripulante_plani* tripu) {
 	}else{
 		sem_post(tripu->mutex_expulsado);
 	}
+	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
+		running_espera_io(tripu);
+		sem_wait(tripu->sem_planificacion);
+		enviar_tarea_io(tripu, TIRAR_BASURA, "", ' ');
+	}
 
-	running_block(tripu);
-
-	enviar_tarea_io(tripu, TIRAR_BASURA, "", ' ');
 	// TODO: Se envia a Mongo Store el NOMBRE DE ARCHIVO, CARACTER DE LLENADO, CANTIDAD
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
@@ -960,7 +1043,7 @@ void descartar_basura(tripulante_plani* tripu) {
 			sem_post(tripu->mutex_expulsado);
 		}
 	}
-
+	sem_post(bloqueado_disponible); //termino de hacer su io
 	cambios_de_tarea(tripu);
 	//tripu->tarea_a_realizar= NULL;
 

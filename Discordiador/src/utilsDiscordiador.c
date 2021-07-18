@@ -104,9 +104,7 @@ void jkasdhja{
 }
 */
 void enviar_tarea_io(tripulante_plani* tripu, codigo_operacion op_code, char* nombre_archivo, char caracter) {
-	//agregarse en la lista de espera de bloq
-	//incrementar valor contador para destrabar hilo q da el pulso
-	//QUE SE TRABE CON SEMAFORO sem_wait(entrada salida)
+
 	archivo_tarea* tarea_io = malloc(sizeof(archivo_tarea));
 
 	strcat(nombre_archivo, "\0");
