@@ -1,5 +1,5 @@
 #include "paginacion.h"
-
+#include <math.h>
 
 uint32_t get_timestamp(void) {
 	struct timeval tv;
@@ -117,13 +117,14 @@ void iniciar_tabla_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_
 	puntero_inicio += tamanio_patota;
 
 	tabla_patota->patota->tareas = puntero_inicio;
+
 	puntero_inicio += tareas_de_la_patota->tamanio_tareas;
 
 	int32_t tamanio_tripulantes = 0;
 
 	for(int c=0; c<cantidad_tripulantes; c++) {
 
-		dl_tripulante* direccion_tripulante = malloc(sizeof(dl_tripulante));
+		t_dl_tripulante* direccion_tripulante = malloc(sizeof(t_dl_tripulante));
 		direccion_tripulante->direccion_logica = puntero_inicio;
 		//direccion_tripulante->id_tripulante = nuevo_tripulante->id_tripulante;
 		puntero_inicio += tamanio_tripulante;
@@ -160,7 +161,7 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 		case TRIPULANTE:
 			serializar_tripulante(estructura, buffer);
 
-			dl_tripulante* direccion_tripulante = malloc(sizeof(dl_tripulante));
+			t_dl_tripulante* direccion_tripulante = malloc(sizeof(t_dl_tripulante));
 			direccion_tripulante->direccion_logica = puntero_inicio;
 			direccion_tripulante->id_tripulante = ((t_tcb*)estructura)->id_tripulante;
 			//puntero_inicio += tamanio_tripulante;
@@ -249,6 +250,110 @@ void asignar_frame_disponible(t_pagina* pagina, uint32_t pid) {
 	frames[pagina->numero_de_frame]->proceso = pid;
 
 	printf("Proceso en el frame: %u\n", frames[pagina->numero_de_frame]->proceso);
+}
+
+t_tabla_paginas_patota* buscar_tabla_patota(uint32_t id_patota) {
+
+	bool se_encuentra_patota(void* tabla){
+		return ((t_tabla_paginas_patota*)tabla)->patota->pid == id_patota;
+	}
+
+	t_tabla_paginas_patota* tabla_buscada = list_find(tablas_paginas, se_encuentra_patota);
+
+	return tabla_buscada;
+}
+
+int32_t buscar_pagina_por_id(t_tabla_paginas_patota* tabla_patota_buscada, uint32_t id_tripulante_a_buscar) {
+
+
+	//buscar direccion logica con el id del tripulante
+	//a partir de la direc logica sacar pagina y luego offset
+
+	t_list* direccion_tripulantes = tabla_patota_buscada->direccion_tripulantes;
+
+	bool mismo_id_tripulante(void* dl_tripulante) {
+		return (((t_dl_tripulante*)dl_tripulante)->id_tripulante == id_tripulante_a_buscar);
+	}
+
+	t_dl_tripulante* direc_logica_tripulante = list_find(direccion_tripulantes, mismo_id_tripulante);
+
+	return direc_logica_tripulante->direccion_logica;
+}
+
+int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada) {
+	int32_t numero = direccion_logica / TAMANIO_PAGINA;
+
+	int32_t entera = (int32_t) numero;
+
+	int32_t resto = direccion_logica % TAMANIO_PAGINA;
+
+	int32_t numero_de_frame = buscar_frame(entera, tabla_patota_buscada->paginas);
+
+	int32_t inicio = numero_de_frame * TAMANIO_PAGINA;
+
+	return inicio + resto;
+
+}
+
+int32_t buscar_frame(int32_t nro_pagina, t_list* paginas){
+	bool se_encuentra_pagina(void* pagina){
+		return ((t_pagina*)pagina)->numero_de_pagina == nro_pagina;
+	}
+
+	t_pagina* pagina = list_find(paginas, se_encuentra_pagina);
+
+	return pagina->numero_de_frame;
+}
+
+t_tcb* encontrar_tripulante_memoria(int32_t direccion_fisica) {
+
+	t_tcb* tripulante = malloc(sizeof(t_tcb));
+
+	void* inicio = (void*) direccion_fisica;
+	uint32_t desplazamiento = 0;
+
+	memcpy(&(tripulante->id_tripulante), inicio + desplazamiento, sizeof(tripulante->id_tripulante));
+	desplazamiento += sizeof(tripulante->id_tripulante);
+
+	memcpy(&(tripulante->estado_tripulante), inicio + desplazamiento, sizeof(tripulante->estado_tripulante));
+	desplazamiento += sizeof(tripulante->estado_tripulante);
+
+	memcpy(&(tripulante->posicion_x), inicio + desplazamiento, sizeof(tripulante->posicion_x));
+	desplazamiento += sizeof(tripulante->posicion_x);
+
+	memcpy(&(tripulante->posicion_y), inicio + desplazamiento, sizeof(tripulante->posicion_y));
+	desplazamiento += sizeof(tripulante->posicion_y);
+
+	memcpy(&(tripulante->id_tarea_a_realizar), inicio + desplazamiento, sizeof(tripulante->id_tarea_a_realizar));
+	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+
+	memcpy(&(tripulante->puntero_PCB), inicio + desplazamiento, sizeof(tripulante->puntero_PCB));
+	desplazamiento += sizeof(tripulante->puntero_PCB);
+
+	return tripulante;
+}
+void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica) {
+
+	void* inicio = (void*) direccion_fisica;
+	uint32_t desplazamiento = 0;
+
+	memcpy(inicio + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
+	desplazamiento += sizeof(tripulante->id_tripulante);
+
+	memcpy(inicio + desplazamiento, &(tripulante->estado_tripulante), sizeof(tripulante->estado_tripulante));
+	desplazamiento += sizeof(tripulante->estado_tripulante);
+
+	memcpy(inicio + desplazamiento, &(tripulante->posicion_x), sizeof(tripulante->posicion_x));
+	desplazamiento += sizeof(tripulante->posicion_x);
+
+	memcpy(inicio + desplazamiento, &(tripulante->posicion_y), sizeof(tripulante->posicion_y));
+	desplazamiento += sizeof(tripulante->posicion_y);
+
+	memcpy(inicio + desplazamiento, &(tripulante->id_tarea_a_realizar), sizeof(tripulante->id_tarea_a_realizar));
+	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+
+	memcpy(inicio + desplazamiento, &(tripulante->puntero_PCB), sizeof(tripulante->puntero_PCB));
+	desplazamiento += sizeof(tripulante->puntero_PCB);
 }
 
 /*

@@ -22,7 +22,7 @@ typedef struct {
 	t_pcb* patota;
 	t_list* paginas;					// Páginas que componen a la Patota (incluyendo el PCB, Tareas y TCBs)
 	int32_t direccion_patota;			// Dirección lógica del PCB
-	t_list* direccion_tripulantes;		// Direcciones lógicas de los tripulantes que componen a la patota
+	t_list* direccion_tripulantes;		// Direcciones lógicas de los tripulantes que componen a la patota con su respectivo id_tripulante
 } t_tabla_paginas_patota;
 
 
@@ -37,7 +37,7 @@ typedef struct {
 typedef struct {
 	int32_t id_tripulante;
 	int32_t direccion_logica;
-} dl_tripulante;
+} t_dl_tripulante;
 
 
 t_list* tablas_paginas;
@@ -62,10 +62,20 @@ bool hay_frame_libre(void);
 int32_t obtener_siguiente_frame(t_list* paginas, int32_t contador);
 int32_t obtener_frame_libre(void);
 
+
 // Serializaciones para guardar estructuras
 void serializar_patota(t_pcb* patota, void* buffer);
 void serializar_tareas(tareas_patota* tareas_de_la_patota, void* buffer);
 void serializar_tripulante(t_tcb* tripulante, void* buffer);
+
+t_tabla_paginas_patota* buscar_tabla_patota(uint32_t id_patota);
+int32_t buscar_pagina_por_id(t_tabla_paginas_patota* tabla_patota_buscada, uint32_t id_tripulante_a_buscar);
+int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada);
+int32_t buscar_frame(int32_t nro_pagina, t_list* paginas);
+
+t_tcb* encontrar_tripulante_memoria(int32_t direccion_fisica);
+void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica);
+
 
 // Otras funciones
 int32_t cantidad_paginas_usadas(int32_t tamanio);
