@@ -666,18 +666,10 @@ void tripulante_hilo(void* tripulante){
 
 	while(tripu->tarea_a_realizar != NULL){
 
-		sem_wait(tripu->sem_planificacion); //Queda trabado hasta que el hilo de ready_running le hace el post (TRABADO EN READY)
+
 
 		//Entra a exec
-		sem_wait(tripu->mutex_expulsado);
 
-		if(tripu->expulsado){
-
-			sem_post(tripu->mutex_expulsado);
-			return;
-		}else{
-			sem_post(tripu->mutex_expulsado);
-		}
 
 
 		posicion_tarea->posicion_x = tripu->tarea_a_realizar->posicion_x;
@@ -686,9 +678,18 @@ void tripulante_hilo(void* tripulante){
 		uint32_t distancia = obtener_distancia(posicion_tripu,posicion_tarea);
 		tripu->cantidad_realizada = 0;
 
+		sem_wait(tripu->mutex_expulsado);
+		if(tripu->expulsado){
+			sem_post(tripu->mutex_expulsado);
+			return;
 
+		}else{
+			sem_post(tripu->mutex_expulsado);
+		}
+		sem_wait(tripu->sem_planificacion); //Queda trabado hasta que el hilo de ready_running le hace el post (TRABADO EN READY)
 
 		while(distancia > 0 && !tripu->elegido_sabotaje){ //Cambiar condicion con variable goblal hay_sabotaje
+			sem_wait(tripu->sem_tripu);
 
 			obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
 			tripu->cantidad_realizada= tripu->cantidad_realizada+1;
@@ -711,9 +712,10 @@ void tripulante_hilo(void* tripulante){
 				}
 			}
 
-			sem_wait(tripu->sem_tripu);         //Trabado por el pulso (rafaga), te lo dan siempre que estes en Exec
+			         //Trabado por el pulso (rafaga), te lo dan siempre que estes en Exec
 
-
+			printf("hola \n");
+			fflush(stdout);
 
 		}
 
@@ -789,7 +791,7 @@ void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tar
 			//posicion_tripu->posicion_x = posicion_tripu->posicion_x - 1 ;
 			posicion_tripu->posicion_x--;
 			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
-			//return posicion_tripu;
+			return;
 		}
 
 		if(posicion_tripu->posicion_x < posicion_tarea->posicion_x){
@@ -797,7 +799,7 @@ void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tar
 			posicion_tripu->posicion_x++;
 			// actualizar en mi ram
 			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
-			//return posicion_tripu;
+			return;
 		}
 	}
 
@@ -807,7 +809,7 @@ void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tar
 				posicion_tripu->posicion_y--;
 				// actualizar en mi ram
 				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
-			//	return posicion_tripu;
+				return;
 			}
 
 			if(posicion_tripu->posicion_y < posicion_tarea->posicion_y){
@@ -815,10 +817,10 @@ void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tar
 				posicion_tripu->posicion_y++;
 				// actualizar en mi ram
 				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
-				//return posicion_tripu;
+				return;
 			}
 	}
-	//return posicion_tripu;
+	return;
 }
 
 
