@@ -1,6 +1,13 @@
 #include "paginacion.h"
 
 
+uint32_t get_timestamp(void) {
+	struct timeval tv;
+	gettimeofday(&tv,NULL);
+	uint32_t  timestamp = (uint32_t)((tv.tv_sec)*1000 + (tv.tv_usec)/1000);
+	return timestamp;
+}
+
 int32_t cantidad_paginas_usadas(int32_t tamanio) {
 
     int32_t cantidad_paginas = 0;
@@ -27,15 +34,9 @@ void inicializar_frames(void) {
 }
 
 
-int32_t obtener_siguiente_frame(t_list* paginas, int32_t contador) {
-	t_pagina* pagina_buscada = list_get(paginas, contador);
-	return pagina_buscada->numero_de_frame;
-}
-
-
 int32_t obtener_frame_disponible(void) {
 	int32_t num_frame;
-	if(hay_frame_libre() == 1) {
+	if(hay_frame_libre()) {
 		num_frame = obtener_frame_libre();
 		return num_frame;
 	}
@@ -46,18 +47,21 @@ int32_t obtener_frame_disponible(void) {
 	}
 }
 
-int hay_frame_libre(void) {
+
+bool hay_frame_libre(void) {
+
 	for(int i=0; i<cantidad_frames; i++) {
-		if(frames[i] == LIBRE) {
-			return 1;
+		if(frames[i]->estado == LIBRE) {
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
+
 
 int32_t obtener_frame_libre(void) {
 	for(int i=0; i<cantidad_frames; i++) {
-		if(frames[i] == LIBRE) {
+		if(frames[i]->estado == LIBRE) {
 			return i;
 		}
 	}
@@ -65,14 +69,31 @@ int32_t obtener_frame_libre(void) {
 }
 
 
-t_tabla_paginas_patota* crear_tabla_paginas(void) {
+t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* nueva_patota, int32_t tamanio_total) {
 
 	t_tabla_paginas_patota* tabla = malloc(sizeof(t_tabla_paginas_patota));
+	tabla->patota = malloc(sizeof(t_pcb));
+	tabla->patota->pid = nueva_patota->pid;
+	tabla->patota->tareas = nueva_patota->tareas;
 	tabla->paginas = list_create();
 	tabla->direccion_tripulantes = list_create();
+
+	int32_t cantidad_paginas = cantidad_paginas_usadas(tamanio_total);
+
+	for(int i=0; i<cantidad_paginas; i++) {
+		t_pagina* pagina = malloc(sizeof(t_pagina));
+		pagina->numero_de_pagina = contador_pagina;
+		pagina->P = 0;
+		pagina->numero_de_frame = -1;
+		pagina->U = 0;
+
+		list_add_in_index(tabla->paginas, i, pagina);
+
+		contador_pagina++;
+	}
+
 	return tabla;
 }
-
 
 
 
@@ -95,15 +116,16 @@ void iniciar_tabla_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_
 	tabla_patota->direccion_patota = puntero_inicio;
 	puntero_inicio += tamanio_patota;
 
-	tabla_patota->direccion_tareas = puntero_inicio;
+	tabla_patota->patota->tareas = puntero_inicio;
 	puntero_inicio += tareas_de_la_patota->tamanio_tareas;
-
 
 	int32_t tamanio_tripulantes = 0;
 
 	for(int c=0; c<cantidad_tripulantes; c++) {
 
-		uint32_t direccion_tripulante = puntero_inicio;
+		dl_tripulante* direccion_tripulante = malloc(sizeof(dl_tripulante));
+		direccion_tripulante->direccion_logica = puntero_inicio;
+		//direccion_tripulante->id_tripulante = nuevo_tripulante->id_tripulante;
 		puntero_inicio += tamanio_tripulante;
 
 		tamanio_tripulantes += tamanio_tripulante;
@@ -116,29 +138,46 @@ void iniciar_tabla_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_
 }
 
 
-void guardar_patota_en_memoria(void* estructura, tipo_estructura tipo, t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total) {
+void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tabla_paginas_patota* tabla_patota, int32_t tamanio_estructura) {
 
-
-	int32_t pid;
-	int32_t desplazamiento = 0;
-	int32_t paginas_necesarias = list_size(tabla_patota->paginas);
-
-	void* buffer = malloc(tamanio_total);
+	void* buffer = malloc(tamanio_estructura);
 
 	switch(tipo) {
 
 		case PATOTA:
+			serializar_patota(estructura, buffer);
+
+			tabla_patota->direccion_patota = puntero_inicio;
+			//puntero_inicio += tamanio_patota;
 			break;
+
 		case TAREAS:
+			serializar_tareas(estructura, buffer);
+
+			tabla_patota->patota->tareas = puntero_inicio;
 			break;
+
 		case TRIPULANTE:
+			serializar_tripulante(estructura, buffer);
+
+			dl_tripulante* direccion_tripulante = malloc(sizeof(dl_tripulante));
+			direccion_tripulante->direccion_logica = puntero_inicio;
+			direccion_tripulante->id_tripulante = ((t_tcb*)estructura)->id_tripulante;
+			//puntero_inicio += tamanio_tripulante;
+
+			list_add(tabla_patota->direccion_tripulantes, direccion_tripulante);
+			break;
+
+		default:
 			break;
 	}
 
+	int32_t pid = tabla_patota->patota->pid;
 
-	int offset = 0;
+	int32_t paginas_necesarias = cantidad_paginas_usadas(tamanio_estructura);
 
-	int32_t sobrante = tamanio_total - (paginas_necesarias-1) * TAMANIO_PAGINA;
+	int32_t sobrante = tamanio_estructura - (paginas_necesarias-1) * TAMANIO_PAGINA;
+	int32_t offset = 0;
 
 	for(int c=0; c<paginas_necesarias; c++) {
 
@@ -147,29 +186,69 @@ void guardar_patota_en_memoria(void* estructura, tipo_estructura tipo, t_tabla_p
 		asignar_frame_disponible(pagina_buscada, pid);
 
 		int32_t num_frame = pagina_buscada->numero_de_frame;
+		uint32_t offset_frame = TAMANIO_PAGINA - frames[num_frame]->espacio_libre;
 
-		int32_t inicio = num_frame * TAMANIO_PAGINA;
+		printf("Offset Frame: %u\n", offset_frame);
+
+		int32_t inicio = num_frame * TAMANIO_PAGINA + offset_frame;
+		printf("Dirección Física de la estructura: %u\n\n", num_frame, inicio);
 
 		if(paginas_necesarias == 1) {
-			memcpy(memoria_principal + inicio, buffer + offset, sobrante);
-			offset += sobrante;
+
+			if(frames[num_frame]->espacio_libre > sobrante) {
+				memcpy(memoria_principal + inicio, buffer + offset, sobrante);
+				offset += sobrante;
+				puntero_inicio += sobrante;
+				printf("Puntero inicio: %u\n", puntero_inicio);
+
+				frames[num_frame]->espacio_libre -= sobrante;
+
+				if(frames[num_frame]->espacio_libre < 0) {
+					frames[num_frame]->estado = OCUPADO;
+				}
+			}
+			else{
+				int32_t resto = sobrante - frames[num_frame]->espacio_libre;
+
+				memcpy(memoria_principal + inicio, buffer + offset, frames[num_frame]->espacio_libre);
+				offset += frames[num_frame]->espacio_libre;
+
+				frames[num_frame]->estado = OCUPADO;
+
+			}
+
 		}
 		else {
 			memcpy(memoria_principal + inicio, buffer + offset, TAMANIO_PAGINA);
 			offset += TAMANIO_PAGINA;
+			puntero_inicio += TAMANIO_PAGINA;
+			//frames[num_frame]->espacio_libre = ;
+			frames[num_frame]->estado = OCUPADO;
 		}
+
 	}
 
+	sem_post(crear_pagina_sem);
 }
 
 
 void asignar_frame_disponible(t_pagina* pagina, uint32_t pid) {
 
 	pagina->numero_de_frame = obtener_frame_disponible();
-	pagina->tiempo_referencia = temporal_get_string_time("%H:%M:%S:%MS");
-	frame* frame_ocupado = frames[pagina->numero_de_frame];
-	frame_ocupado->pagina = pagina->numero_de_pagina;
-	frame_ocupado->proceso = pid;
+
+	printf("Numero de Frame: %u\n", pagina->numero_de_frame);
+
+	pagina->tiempo_referencia = get_timestamp();
+
+	pagina->P = 1;
+
+	printf("Tiempo de referencia: %u\n", pagina->tiempo_referencia);
+
+	frames[pagina->numero_de_frame]->pagina = pagina->numero_de_pagina;
+
+	frames[pagina->numero_de_frame]->proceso = pid;
+
+	printf("Proceso en el frame: %u\n", frames[pagina->numero_de_frame]->proceso);
 }
 
 /*
@@ -352,6 +431,50 @@ void administrar_guardar_patota(t_tabla_paginas_patota* tabla_patota, int32_t ta
  */
 
 
+// Funciones para Guardar las Estructuras
+void serializar_patota(t_pcb* patota, void* buffer) {
+
+	int32_t desplazamiento = 0;
+
+	memcpy(buffer + desplazamiento, &(patota->pid), sizeof(patota->pid));
+	desplazamiento += sizeof(patota->pid);
+
+	memcpy(buffer + desplazamiento, &(patota->tareas), sizeof(patota->tareas));
+	desplazamiento += sizeof(patota->tareas);
+}
+
+
+void serializar_tareas(tareas_patota* tareas_de_la_patota, void* buffer) {
+
+	int32_t desplazamiento = 0;
+
+	memcpy(buffer + desplazamiento, tareas_de_la_patota->tareas, tareas_de_la_patota->tamanio_tareas);
+	desplazamiento += tareas_de_la_patota->tamanio_tareas;
+}
+
+
+void serializar_tripulante(t_tcb* tripulante, void* buffer) {
+
+	int32_t desplazamiento = 0;
+
+	memcpy(buffer + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
+	base_segmento += sizeof(tripulante->id_tripulante);
+
+	memcpy(buffer + desplazamiento, &(tripulante->estado_tripulante), sizeof(tripulante->estado_tripulante));
+	desplazamiento += sizeof(tripulante->estado_tripulante);
+
+	memcpy(buffer + desplazamiento, &(tripulante->posicion_x), sizeof(tripulante->posicion_x));
+	desplazamiento += sizeof(tripulante->posicion_x);
+
+	memcpy(buffer + desplazamiento, &(tripulante->posicion_y), sizeof(tripulante->posicion_y));
+	desplazamiento += sizeof(tripulante->posicion_y);
+
+	memcpy(buffer + desplazamiento, &(tripulante->id_tarea_a_realizar), sizeof(tripulante->id_tarea_a_realizar));
+	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+
+	memcpy(buffer + desplazamiento, &(tripulante->puntero_PCB), sizeof(tripulante->puntero_PCB));
+	desplazamiento += sizeof(tripulante->puntero_PCB);
+}
 
 
 
@@ -360,3 +483,4 @@ void administrar_guardar_patota(t_tabla_paginas_patota* tabla_patota, int32_t ta
 bool menor_a_mayor_por_frame(void* pagina, void* pagina_siguiente) {
 	return ((t_pagina*)pagina)->numero_de_frame < ((t_pagina*)pagina_siguiente)->numero_de_frame;
 }
+

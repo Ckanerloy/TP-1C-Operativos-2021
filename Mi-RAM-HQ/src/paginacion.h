@@ -11,7 +11,7 @@ typedef struct {
 	int32_t numero_de_frame;			// Frame en donde está guardada la página
 	int32_t U;							// Bit de Uso
 	int32_t P;							// Bit de Presencia
-	int32_t tiempo_referencia;			// Tiempo de referencia de la página (para aplicar el LRU)
+	uint32_t tiempo_referencia;			// Tiempo de referencia de la página (para aplicar el LRU)
 } t_pagina;
 
 
@@ -49,19 +49,27 @@ frame** frames;
 
 
 // Inicio de Paginación
-t_tabla_paginas_patota* crear_tabla_paginas(void);
+t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* patota, int32_t tamanio_total);
 void iniciar_tabla_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total, tareas_patota* tareas_de_la_patota, int32_t cantidad_tripulantes);
+void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tabla_paginas_patota* tabla_patota, int32_t tamanio_estructura);
 
 
 // Uso de Frames
 void inicializar_frames(void);
+void asignar_frame_disponible(t_pagina* pagina, uint32_t pid);
 int32_t obtener_frame_disponible(void);
-int hay_frame_libre(void);
+bool hay_frame_libre(void);
 int32_t obtener_siguiente_frame(t_list* paginas, int32_t contador);
 int32_t obtener_frame_libre(void);
+
+// Serializaciones para guardar estructuras
+void serializar_patota(t_pcb* patota, void* buffer);
+void serializar_tareas(tareas_patota* tareas_de_la_patota, void* buffer);
+void serializar_tripulante(t_tcb* tripulante, void* buffer);
 
 // Otras funciones
 int32_t cantidad_paginas_usadas(int32_t tamanio);
 bool menor_a_mayor_por_frame(void* pagina, void* pagina_siguiente);
+uint32_t get_timestamp(void);
 
 #endif /* PAGINACION_H_ */

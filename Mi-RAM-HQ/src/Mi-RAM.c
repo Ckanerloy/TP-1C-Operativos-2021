@@ -260,31 +260,48 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						nueva_patota = crear_pcb();
 
-						tabla_patota = crear_tabla_paginas();
+						tabla_patota = crear_tabla_paginas(nueva_patota, tamanio_total);
 
-						iniciar_tabla_patota(tabla_patota, tamanio_total, tareas_de_la_patota, patota_recibida->cantidad_tripulantes);
+						guardar_estructura_en_memoria(nueva_patota, PATOTA, tabla_patota, tamanio_patota);
+						uint32_t direccion_pcb = tabla_patota->direccion_patota;
 
-						// Pcb
-						guardar_patota_en_memoria(nueva_patota, PATOTA, tabla_patota, tamanio_total);
+						log_info(logger, "Se inició la Patota %u con %u tripulante/s.\n", nueva_patota->pid, patota_recibida->cantidad_tripulantes);
+
+						sem_wait(crear_pagina_sem);
+
+						guardar_estructura_en_memoria(tareas_de_la_patota, TAREAS, tabla_patota, tareas_de_la_patota->tamanio_tareas);
+
+						log_info(logger, "Se guardaron las tareas de la Patota %u, las cuales son: \n%s\n", nueva_patota->pid, patota_recibida->tareas_de_patota);
+
+						sem_wait(crear_pagina_sem);
 
 
-						printf("Dirección lógica del PCB: %u\n", tabla_patota->direccion_patota);
-						printf("Dirección lógica de las Tareas: %u\n", tabla_patota->direccion_tareas);
-						for(int c=0; c<patota_recibida->cantidad_tripulantes; c++) {
-							printf("Dirección lógica del Tripulante %d: %u\n", c+1, (uint32_t)list_get(tabla_patota->direccion_tripulantes, c));
+						int posicion = 0;
+						for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
+
+							t_tcb* nuevo_tripulante = crear_tcb(direccion_pcb, atoi(parser_posiciones[posicion]), atoi(parser_posiciones[posicion+1]));
+
+							guardar_estructura_en_memoria(nuevo_tripulante, TRIPULANTE, tabla_patota, tamanio_tripulante);
+
+							log_info(logger, "Se inició el Tripulante %u en el estado %c, con una posición en X: %u y una posición en Y: %u.\n", nuevo_tripulante->id_tripulante, nuevo_tripulante->estado_tripulante, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
+
+							//personaje_crear(amongOs, nuevo_tripulante->id_tripulante, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
+
+							sem_wait(crear_pagina_sem);
 
 							string_append_with_format(&ids_enviar, "%u|", contador_id_tripu);
 							contador_id_tripu++;
+							free(nuevo_tripulante);
+							posicion += 2;
 						}
 
+						printf("Dirección lógica del PCB: %u\n", tabla_patota->direccion_patota);
+						printf("Dirección lógica de las Tareas: %u\n", tabla_patota->patota->tareas);
 
-
-
-						// Tareas
-
-
-						// Tripulantes
-
+						for(int c=0; c<patota_recibida->cantidad_tripulantes; c++) {
+							dl_tripulante* direccion_tripu = list_get(tabla_patota->direccion_tripulantes, c);
+							printf("Dirección lógica del Tripulante %d: %u\n", direccion_tripu->id_tripulante, direccion_tripu->direccion_logica);
+						}
 
 						printf("Cantidad de páginas usadas: %u\n", list_size(tabla_patota->paginas));
 
@@ -312,6 +329,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				cerrar_conexion(logger, conexion);
 
 				free(ids_enviar);
+				free(parser_posiciones);
 
 				free(respuesta_iniciar_patota->ids_tripu);
 				free(respuesta_iniciar_patota);
@@ -586,10 +604,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				free(memoria_principal);
 				printf("Memoria Principal liberada...\n");
 
-				/*if(esquema_elegido == 'P') {
-					free(area_swap);
-					printf("Area de Swap liberada...\n\n");
-				}*/
+				if(esquema_elegido == 'P') {
+					//free(area_swap);
+					//printf("Area de Swap liberada...\n\n");
+					list_destroy(tablas_paginas);
+					free(frames);
+				}
 
 				log_info(logger, "Se ha cerrado el programa de forma exitosa.\n");
 				terminar_programa(config, logger);
@@ -673,7 +693,6 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			puntero_inicio = 0;
 			log_info(logger, "Las páginas tendran un tamaño de %u bytes cada una.\n", TAMANIO_PAGINA);
 			log_info(logger, "Se utilizará el algoritmo de %s para reemplazar las páginas.\n", ALGORITMO_REEMPLAZO);
-			tablas_paginas = list_create();
 			inicializar_frames();
 			inicializar_swap();
 
