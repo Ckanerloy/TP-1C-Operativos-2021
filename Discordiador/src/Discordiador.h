@@ -55,6 +55,7 @@ pthread_t hilo_new_ready;
 pthread_t hilo_ready_running;
 pthread_t hilo_solucion;   //preguntar
 pthread_t hilo_creador_rafagas;
+pthread_t hilo_susp_block;
 
 pthread_t hilo_tripulante_sabo;
 

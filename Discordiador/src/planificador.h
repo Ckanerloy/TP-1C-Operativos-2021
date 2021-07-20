@@ -32,6 +32,7 @@ t_queue* cola_new;
 t_queue* cola_ready;
 t_queue* cola_exit;
 t_queue* cola_auxiliar_sabotaje;
+t_queue* cola_io;
 
 //Lista de los semaforos de los tripulantes
 t_list* lista_semaforos_tripulantes;
@@ -47,19 +48,24 @@ t_list* tripulantes_exec_block;
 sem_t* mutex_ready;
 sem_t* mutex_exit;
 sem_t* mutex_new;
-//sem_t* mutex_expulsado;
+sem_t* mutex_io;
+
 sem_t* mutex_ready_running;
 sem_t* mutex_new_ready;
 sem_t* mutex_rafaga;
+sem_t* mutex_cola_io;
 
 sem_t* planificacion_on;
 sem_t* planificacion_on_ready_running;
 sem_t* planificion_rafaga;
+sem_t* planificacion_on_io;
 
 sem_t* multitarea_disponible;
+sem_t* bloqueado_disponible;
 
 sem_t* contador_tripulantes_en_ready;
 sem_t* contador_tripulantes_en_new;
+sem_t* contador_tripulantes_espera_io;
 
 
 //Hilos
@@ -72,6 +78,7 @@ int valor_sabotaje;
 uint32_t new_ready_off;
 uint32_t ready_running_off;
 uint32_t dar_pulsos_off;
+uint32_t esperando_bloqueado;
 
 // Datos del Config
 int GRADO_MULTITAREA;
@@ -84,6 +91,7 @@ algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo);
 void elegir_algoritmo(void);
 void obtener_planificacion_de_config(t_config* config);
 void new_ready();
+void esperandoIo_bloqueado();
 void ready_running();
 void iniciar_planificacion();
 void ready_exit(tripulante_plani* tripu);
@@ -96,6 +104,7 @@ void finalizar_semaforos_plani();
 void inicializar_listas();
 void pulso_rafaga();
 void running_ready(tripulante_plani* tripulante);
+
 void block_exit(tripulante_plani* tripu);
 void new_exit(tripulante_plani* tripu);
 void running_exit(tripulante_plani* tripu);
@@ -107,7 +116,7 @@ void poner_en_uno_semaforo(tripulante_plani* tripulante);
 void suspendido_ready(tripulante_plani* tripu);
 void actualizar_estado(tripulante_plani* tripu, char estado);
 t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota);
-posiciones* obtener_posiciones(uint32_t id_tripulante,uint32_t id_patota);
+void obtener_posiciones(posiciones* posiciones_buscadas,uint32_t id_tripulante,uint32_t id_patota);
 uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
 
 
@@ -120,7 +129,7 @@ void realizar_tarea_sabotaje(tripulante_plani* tripu);
 void cambios_de_tarea(tripulante_plani* tripu);
 
 
-posiciones* obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu);
+void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu);
 
 void actualizar_posicion(tripulante_plani* tripu, posiciones* nuevaPosicion);
 

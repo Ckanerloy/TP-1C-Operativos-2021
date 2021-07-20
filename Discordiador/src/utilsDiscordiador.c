@@ -93,7 +93,16 @@ void terminar_tripulante(tripulante_plani* tripu) {
 	close(conexion_mi_ram);
 }
 
+/*
+void jkasdhja{
+	sem_wait(LugarDisponiblePraBloqueado);
+	sem_wait(contador_Esperando)
 
+	da pulso al tripulante->sem_entrada_salida
+
+
+}
+*/
 void enviar_tarea_io(tripulante_plani* tripu, codigo_operacion op_code, char* nombre_archivo, char caracter) {
 
 	archivo_tarea* tarea_io = malloc(sizeof(archivo_tarea));

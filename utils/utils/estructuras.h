@@ -129,6 +129,9 @@ typedef struct {
 	sem_t* mutex_expulsado;
 
 	uint cantidad_realizada;
+
+	uint puedo_ejecutar_io;
+
 } tripulante_plani;
 
 

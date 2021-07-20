@@ -75,6 +75,9 @@ void crear_hilos(){
 	pthread_create(&hilo_creador_rafagas, NULL,(void*)rafaga_cpu, lista_tripulantes);
 	pthread_detach(hilo_creador_rafagas);
 
+	pthread_create(&hilo_susp_block, NULL,(void*)esperandoIo_bloqueado, NULL);
+	pthread_detach(hilo_susp_block);
+
 }
 
 void iniciar_escucha_sabotaje(void){
@@ -299,14 +302,19 @@ tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* t
 	//tenemos variable global q dice la posicion del sabotaje
 
 	posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
-	posicion_tripu1 = obtener_posiciones(tripulante1->id_tripulante, tripulante1->numero_patota);
+	obtener_posiciones(posicion_tripu1,tripulante1->id_tripulante, tripulante1->numero_patota);
 
 	posiciones* posicion_tripu2 = malloc(sizeof(posiciones));
-	posicion_tripu2 = obtener_posiciones(tripulante2->id_tripulante, tripulante2->numero_patota);
+	obtener_posiciones(posicion_tripu2,tripulante2->id_tripulante, tripulante2->numero_patota);
 
 	int32_t distancia1 = obtener_distancia(posicion_tripu1, posicion_sabotaje);
 	int32_t distancia2 = obtener_distancia(posicion_tripu2, posicion_sabotaje);
 
+	posicion_tripu1=NULL;
+	posicion_tripu2=NULL;
+
+	free(posicion_tripu1);
+	free(posicion_tripu2);
 	if(distancia1 <= distancia2) {
 		return tripulante1;
 	}
@@ -392,7 +400,7 @@ void obtener_orden_input(){
 
 	// sem_t* saca = malloc(sizeof(sem_t));
 
-	 int valorPulsos;
+	 int a;
 	 switch(operacion){
 
 		case INICIAR_PLANIFICACION:
@@ -415,9 +423,15 @@ void obtener_orden_input(){
 			dar_pulsos_off = 0;
 			sem_post(mutex_rafaga);
 
+			sem_wait(mutex_io);
+			esperando_bloqueado = 0;
+			sem_post(mutex_io);
+
+
 			sem_post(planificacion_on);
 			sem_post(planificacion_on_ready_running);
 			sem_post(planificion_rafaga);
+			sem_post(planificacion_on_io);
 			break;
 
 		case PAUSAR_PLANIFICACION:
@@ -440,6 +454,11 @@ void obtener_orden_input(){
 			sem_wait(mutex_rafaga);
 			dar_pulsos_off = 1;
 			sem_post(mutex_rafaga);
+
+			sem_wait(mutex_io);
+			esperando_bloqueado = 1;
+			sem_post(mutex_io);
+
 
 			break;
 
@@ -568,6 +587,7 @@ void obtener_orden_input(){
 						tripulante->elegido_sabotaje=0;
 						tripulante->fui_elegido_antes=0;
 						tripulante->cantidad_realizada=0;
+						tripulante->puedo_ejecutar_io=0;
 
 
 						sem_t* sem_plani=malloc(sizeof(sem_t));
@@ -649,7 +669,17 @@ void obtener_orden_input(){
 
 		case OBTENER_BITACORA:
 
-			iniciar_escucha_sabotaje();
+			sem_getvalue(contador_tripulantes_espera_io, &a);
+			printf("cantidad esperando a pasar a bloq %d", a);
+			fflush(stdout);
+
+			sem_getvalue(contador_tripulantes_en_new, &a);
+			printf("cantidad EN NEW %d", a);
+			fflush(stdout);
+			sem_getvalue(contador_tripulantes_en_ready, &a);
+			printf("cantidad EN readdy %d", a);
+			fflush(stdout);
+			//iniciar_escucha_sabotaje();
 			/*
 			if(parser_consola[1] == NULL) {
 				log_error(logger, "Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.");
