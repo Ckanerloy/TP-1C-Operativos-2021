@@ -404,6 +404,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				cerrar_conexion(logger, conexion);
 
+				free(tripulante_buscado_por_ubicacion);
 				free(tripulante_por_ubicacion);
 				free(respuesta_ok_ubicacion);
 				break;
@@ -434,11 +435,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_para_ubicacion->id_tripulante);
 
-					printf("Dirección lógica del tripulante %u: %u\n", tripulante_para_ubicacion->id_tripulante, direccion_logica);
-
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
-
-					printf("Dirección física del tripulante %u: %u\n", tripulante_para_ubicacion->id_tripulante, direccion_fisica);
 
 					tripulante_con_ubicacion = encontrar_tripulante_memoria(direccion_fisica);
 
@@ -497,11 +494,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_por_estado->id_tripulante);
 
-					printf("Dirección lógica del tripulante %u: %u\n", tripulante_por_estado->id_tripulante, direccion_logica);
-
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
-
-					printf("Dirección física del tripulante %u: %u\n", tripulante_por_estado->id_tripulante, direccion_fisica);
 
 					tripulante_buscado_por_estado = encontrar_tripulante_memoria(direccion_fisica);
 					//tripulante_buscado_por_estado = obtener_tripulante_de_paginas(direccion_fisica);
@@ -525,6 +518,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				cerrar_conexion(logger, conexion);
 
+				free(tripulante_buscado_por_estado);
+				free(tripulante_por_estado);
 				free(respuesta_por_estado);
 				break;
 
@@ -534,6 +529,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				respuesta_con_tarea_tripulante->tarea = malloc(sizeof(t_tarea));
 
 				recibir_mensaje(tripulante_para_tarea, operacion, conexion);
+
+				t_tcb* tripulante_con_tarea;
 
 				if(esquema_elegido == 'S') {
 
@@ -545,7 +542,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
-					t_tcb* tripulante_con_tarea = obtener_contenido_de_segmento(segmento_buscado);
+					tripulante_con_tarea = obtener_contenido_de_segmento(segmento_buscado);
 					int32_t id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
 
 					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante(patota_buscada->segmentos, TAREAS, id_tarea_a_buscar_del_tripu, patota_buscada->tamanio_tareas);
@@ -569,6 +566,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						respuesta_con_tarea_tripulante->tarea->tiempo = 0;
 					}
 
+					tarea_buscada = NULL;
+					free(tarea_buscada);
+
 					actualizar_segmento(tripulante_con_tarea, TRIPULANTE, segmento_buscado);
 
 					list_replace(patota_buscada->segmentos, indice, segmento_buscado);
@@ -578,6 +578,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					//TODO por paginacion
 
 
+					// HARDCODEADO
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
 
@@ -595,6 +596,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				cerrar_conexion(logger, conexion);
 
+				free(tripulante_con_tarea);
 				free(tripulante_para_tarea);
 				free(respuesta_con_tarea_tripulante->tarea);
 				free(respuesta_con_tarea_tripulante);

@@ -659,9 +659,14 @@ t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_estructura 
 	}
 	else{
 		t_tarea* tarea_buscada = list_get(tareas_de_la_patota, id_proxima_tarea_del_tripu);
+		list_remove(tareas_de_la_patota, id_proxima_tarea_del_tripu);
+		list_destroy_and_destroy_elements(tareas_de_la_patota, free);
+		//tareas = NULL;
+		free(tareas);
 		return tarea_buscada;
 	}
 }
+
 
 
 t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas) {
@@ -679,5 +684,6 @@ t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas) {
 		posicion++;
 	}
 
+	limpiar_parser(parser_tarea);
 	return tareas_totales;
 }

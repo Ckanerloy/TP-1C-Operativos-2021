@@ -698,7 +698,7 @@ void* serializar_tripulante(t_tcb* tripulante, uint32_t tamanio) {
 	int32_t desplazamiento = 0;
 
 	memcpy(buffer + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
-	base_segmento += sizeof(tripulante->id_tripulante);
+	desplazamiento += sizeof(tripulante->id_tripulante);
 
 	memcpy(buffer + desplazamiento, &(tripulante->estado_tripulante), sizeof(tripulante->estado_tripulante));
 	desplazamiento += sizeof(tripulante->estado_tripulante);
@@ -725,7 +725,7 @@ void* obtener_tripulante_de_paginas(uint32_t direccion_fisica) {
 
 	void* inicio = (void*)memoria_principal + direccion_fisica;
 
-	memcpy(buffer, inicio, sizeof(t_tcb));
+	memcpy(buffer, inicio, tamanio_tripulante);
 
 	return buffer;
 }
@@ -763,7 +763,7 @@ t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica) {
 /*
 t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica) {
 
-	t_tcb* tripulante = malloc(sizeof(t_tcb));
+	t_tcb* tripulante = malloc(tamanio_tripulante);
 
 	void* inicio = (void*)memoria_principal + direccion_fisica;
 	uint32_t desplazamiento = 0;
@@ -771,24 +771,36 @@ t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica) {
 	memcpy(&(tripulante->id_tripulante), inicio + desplazamiento, sizeof(tripulante->id_tripulante));
 	desplazamiento += sizeof(tripulante->id_tripulante);
 
+	printf("Id del tripulante obtenido: %u\n", tripulante->id_tripulante);
+
 	memcpy(&(tripulante->estado_tripulante), inicio + desplazamiento, sizeof(tripulante->estado_tripulante));
 	desplazamiento += sizeof(tripulante->estado_tripulante);
+
+	printf("Estado del tripulante obtenido: %c\n", tripulante->estado_tripulante);
 
 	memcpy(&(tripulante->posicion_x), inicio + desplazamiento, sizeof(tripulante->posicion_x));
 	desplazamiento += sizeof(tripulante->posicion_x);
 
+	printf("Posicion X del tripulante obtenido: %u\n", tripulante->posicion_x);
+
 	memcpy(&(tripulante->posicion_y), inicio + desplazamiento, sizeof(tripulante->posicion_y));
 	desplazamiento += sizeof(tripulante->posicion_y);
+
+	printf("Posicion Y del tripulante obtenido: %u\n", tripulante->posicion_y);
 
 	memcpy(&(tripulante->id_tarea_a_realizar), inicio + desplazamiento, sizeof(tripulante->id_tarea_a_realizar));
 	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
 
+	printf("Id de la tarea a realizar del tripulante obtenido: %u\n", tripulante->id_tarea_a_realizar);
+
 	memcpy(&(tripulante->puntero_PCB), inicio + desplazamiento, sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);
 
-	return tripulante;
-}*/
+	printf("Dirección de la patota del tripulante obtenido: %u\n", tripulante->puntero_PCB);
 
+	return tripulante;
+}
+*/
 
 void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica) {
 

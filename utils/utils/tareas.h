@@ -50,7 +50,7 @@ typedef struct {
 
 char** obtener_tareas(char* tareas_patota);
 t_tarea* obtener_la_tarea(char* tarea_tripulante);
-
+void limpiar_parser(char** parser);
 
 #endif /* TAREAS_H_ */
 

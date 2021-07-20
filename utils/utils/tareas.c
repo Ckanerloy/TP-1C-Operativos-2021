@@ -47,21 +47,21 @@ t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 
 	// Para las Tareas de Entrada y Salida
 	if(parser_tarea[1] != NULL) {
-		char** parser_parametros = NULL;
-
 		t_tarea* tarea_nueva = malloc(sizeof(t_tarea));
 
 		tarea_nueva->operacion = mapeo_tareas_tripulantes(parser_tarea[0]);
 
-		parser_parametros = string_split(parser_tarea[1], ";");
+		char** parser_parametros = string_split(parser_tarea[1], ";");
 
 		tarea_nueva->cantidad = atoi(parser_parametros[0]);
 		tarea_nueva->posicion_x = atoi(parser_parametros[1]);
 		tarea_nueva->posicion_y = atoi(parser_parametros[2]);
 		tarea_nueva->tiempo = atoi(parser_parametros[3]);
 
-		free(parser_tarea);
-		free(parser_parametros);
+		free(parser_tarea[1]);
+		free(parser_tarea[0]);
+		//limpiar_parser(parser_tarea);
+		limpiar_parser(parser_parametros);
 		return tarea_nueva;
 	}
 	else {	// Para las Tareas comunes
@@ -75,10 +75,21 @@ t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 		tarea_nueva->posicion_x = atoi(parser_tarea_comun[1]);
 		tarea_nueva->posicion_y = atoi(parser_tarea_comun[2]);
 		tarea_nueva->tiempo = atoi(parser_tarea_comun[3]);
-		free(parser_tarea);
-		free(parser_tarea_comun);
+
+		free(parser_tarea[1]);
+		free(parser_tarea[0]);
+		//limpiar_parser(parser_tarea);
+		limpiar_parser(parser_tarea_comun);
 		return tarea_nueva;
 	}
 }
 
+
+void limpiar_parser(char** parser) {
+	int limpiador = 0;
+	while(parser[limpiador] != NULL) {
+		free(parser[limpiador]);
+		limpiador++;
+	}
+}
 
