@@ -270,6 +270,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						sem_wait(crear_pagina_sem);
 
 						guardar_estructura_en_memoria(tareas_de_la_patota, TAREAS, tabla_patota, tareas_de_la_patota->tamanio_tareas);
+						tabla_patota->tamanio_tareas = tareas_de_la_patota->tamanio_tareas;
 
 						log_info(logger, "Se guardaron las tareas de la Patota %u, las cuales son: \n%s\n", nueva_patota->pid, patota_recibida->tareas_de_patota);
 
@@ -382,7 +383,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
 
-					t_tcb* tripulante_buscado_por_ubicacion = encontrar_tripulante_memoria(direccion_fisica);
+					printf("Dirección lógica: %u\n", direccion_logica);
+					printf("Dirección física: %u\n", direccion_fisica);
+
+					tripulante_buscado_por_ubicacion = encontrar_tripulante_memoria(direccion_fisica);
 
 					tripulante_buscado_por_ubicacion->posicion_x = tripulante_por_ubicacion->posicion_x;
 					tripulante_buscado_por_ubicacion->posicion_y = tripulante_por_ubicacion->posicion_y;
@@ -436,6 +440,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_para_ubicacion->id_tripulante);
 
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					printf("Dirección lógica: %u\n", direccion_logica);
+					printf("Dirección física: %u\n", direccion_fisica);
 
 					tripulante_con_ubicacion = encontrar_tripulante_memoria(direccion_fisica);
 
@@ -496,8 +503,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
 
+					printf("Dirección lógica: %u\n", direccion_logica);
+					printf("Dirección física: %u\n", direccion_fisica);
+
 					tripulante_buscado_por_estado = encontrar_tripulante_memoria(direccion_fisica);
-					//tripulante_buscado_por_estado = obtener_tripulante_de_paginas(direccion_fisica);
 
 					estado_anterior = tripulante_buscado_por_estado->estado_tripulante;
 
@@ -545,7 +554,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					tripulante_con_tarea = obtener_contenido_de_segmento(segmento_buscado);
 					int32_t id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
 
-					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante(patota_buscada->segmentos, TAREAS, id_tarea_a_buscar_del_tripu, patota_buscada->tamanio_tareas);
+					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante_segmentacion(patota_buscada->segmentos, TAREAS, id_tarea_a_buscar_del_tripu, patota_buscada->tamanio_tareas);
 
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
@@ -575,18 +584,46 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				}
 				else if(esquema_elegido  == 'P') {
-					//TODO por paginacion
 
+					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_para_tarea->id_patota);
 
-					// HARDCODEADO
+					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_para_tarea->id_tripulante);
+
+					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					printf("Dirección lógica: %u\n", direccion_logica);
+					printf("Dirección física: %u\n", direccion_fisica);
+
+					printf("Dirección física de las tareas: %u\n", tabla_patota_buscada->patota->tareas);
+
+					tripulante_con_tarea = encontrar_tripulante_memoria(direccion_fisica);
+					int32_t id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
+
+					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante_paginacion(tabla_patota_buscada->patota->tareas, id_tarea_a_buscar_del_tripu, tabla_patota_buscada->tamanio_tareas);
+
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
 
-					respuesta_con_tarea_tripulante->tarea->operacion = TAREA_VACIA;
-					respuesta_con_tarea_tripulante->tarea->cantidad = 0;
-					respuesta_con_tarea_tripulante->tarea->posicion_x = 0;
-					respuesta_con_tarea_tripulante->tarea->posicion_y = 0;
-					respuesta_con_tarea_tripulante->tarea->tiempo = 0;
+					if(tarea_buscada != NULL) {
+						respuesta_con_tarea_tripulante->tarea->operacion = tarea_buscada->operacion;
+						respuesta_con_tarea_tripulante->tarea->cantidad = tarea_buscada->cantidad;
+						respuesta_con_tarea_tripulante->tarea->posicion_x = tarea_buscada->posicion_x;
+						respuesta_con_tarea_tripulante->tarea->posicion_y = tarea_buscada->posicion_y;
+						respuesta_con_tarea_tripulante->tarea->tiempo = tarea_buscada->tiempo;
+						tripulante_con_tarea->id_tarea_a_realizar++;
+					}
+					else {
+						respuesta_con_tarea_tripulante->tarea->operacion = TAREA_VACIA;
+						respuesta_con_tarea_tripulante->tarea->cantidad = 0;
+						respuesta_con_tarea_tripulante->tarea->posicion_x = 0;
+						respuesta_con_tarea_tripulante->tarea->posicion_y = 0;
+						respuesta_con_tarea_tripulante->tarea->tiempo = 0;
+					}
+
+					tarea_buscada = NULL;
+					free(tarea_buscada);
+
+					actualizar_tripulante_memoria(tripulante_con_tarea, direccion_fisica);
 
 				}
 
@@ -644,7 +681,25 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				}
 				else if(esquema_elegido  == 'P') {
-					//crear_pagina(estructura, tipo_estructura);
+					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_a_eliminar->id_patota);
+
+					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_a_eliminar->id_tripulante);
+
+					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					printf("Dirección lógica: %u\n", direccion_logica);
+					printf("Dirección física: %u\n", direccion_fisica);
+
+					int indice = 0;
+
+					/*
+					 * Implementar lógica para eliminar la memoria que involucra a este tripulante
+					 *
+					 *
+					 * - De haber eliminado a todos los tripulantes, tambien eliminar a la patota con sus tareas
+					 * 			 Esto hace que los frames que ocupa esta páginas se liberen,
+					 * 			 lo mismo con las paginas del proceso, van a quedar libres
+					 */
 
 				}
 

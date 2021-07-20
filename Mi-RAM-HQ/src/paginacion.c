@@ -719,7 +719,7 @@ void* serializar_tripulante(t_tcb* tripulante, uint32_t tamanio) {
 }
 
 
-void* obtener_tripulante_de_paginas(uint32_t direccion_fisica) {
+void* obtener_tripulante_de_memoria(uint32_t direccion_fisica) {
 
 	void* buffer = malloc(sizeof(t_tcb));
 
@@ -731,12 +731,23 @@ void* obtener_tripulante_de_paginas(uint32_t direccion_fisica) {
 }
 
 
+void* obtener_tareas_de_memoria(uint32_t direccion_fisica, uint32_t tamanio_tareas) {
+
+	void* buffer = malloc(tamanio_tareas);
+
+	void* inicio = (void*)memoria_principal + direccion_fisica;
+
+	memcpy(buffer, inicio, tamanio_tareas);
+
+	return buffer;
+}
+
 
 t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica) {
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
 
-	void* buffer = obtener_tripulante_de_paginas(direccion_fisica);
+	void* buffer = obtener_tripulante_de_memoria(direccion_fisica);
 	uint32_t desplazamiento = 0;
 
 	memcpy(&(tripulante->id_tripulante), buffer + desplazamiento, sizeof(tripulante->id_tripulante));
@@ -760,47 +771,17 @@ t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica) {
 	return tripulante;
 }
 
-/*
-t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica) {
 
-	t_tcb* tripulante = malloc(tamanio_tripulante);
+char* encontrar_tareas_en_memoria(uint32_t direccion_fisica, uint32_t tamanio_tareas) {
 
-	void* inicio = (void*)memoria_principal + direccion_fisica;
-	uint32_t desplazamiento = 0;
+	char* tareas = malloc(tamanio_tareas);
 
-	memcpy(&(tripulante->id_tripulante), inicio + desplazamiento, sizeof(tripulante->id_tripulante));
-	desplazamiento += sizeof(tripulante->id_tripulante);
+	void* buffer = obtener_tareas_de_memoria(direccion_fisica, tamanio_tareas);
 
-	printf("Id del tripulante obtenido: %u\n", tripulante->id_tripulante);
+	memcpy(tareas, buffer, tamanio_tareas);
 
-	memcpy(&(tripulante->estado_tripulante), inicio + desplazamiento, sizeof(tripulante->estado_tripulante));
-	desplazamiento += sizeof(tripulante->estado_tripulante);
-
-	printf("Estado del tripulante obtenido: %c\n", tripulante->estado_tripulante);
-
-	memcpy(&(tripulante->posicion_x), inicio + desplazamiento, sizeof(tripulante->posicion_x));
-	desplazamiento += sizeof(tripulante->posicion_x);
-
-	printf("Posicion X del tripulante obtenido: %u\n", tripulante->posicion_x);
-
-	memcpy(&(tripulante->posicion_y), inicio + desplazamiento, sizeof(tripulante->posicion_y));
-	desplazamiento += sizeof(tripulante->posicion_y);
-
-	printf("Posicion Y del tripulante obtenido: %u\n", tripulante->posicion_y);
-
-	memcpy(&(tripulante->id_tarea_a_realizar), inicio + desplazamiento, sizeof(tripulante->id_tarea_a_realizar));
-	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
-
-	printf("Id de la tarea a realizar del tripulante obtenido: %u\n", tripulante->id_tarea_a_realizar);
-
-	memcpy(&(tripulante->puntero_PCB), inicio + desplazamiento, sizeof(tripulante->puntero_PCB));
-	desplazamiento += sizeof(tripulante->puntero_PCB);
-
-	printf("Dirección de la patota del tripulante obtenido: %u\n", tripulante->puntero_PCB);
-
-	return tripulante;
+	return tareas;
 }
-*/
 
 void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica) {
 
@@ -831,3 +812,23 @@ bool menor_a_mayor_por_frame(void* pagina, void* pagina_siguiente) {
 	return ((t_pagina*)pagina)->numero_de_frame < ((t_pagina*)pagina_siguiente)->numero_de_frame;
 }
 
+
+
+t_tarea* buscar_proxima_tarea_del_tripulante_paginacion(uint32_t direccion_fisica, uint32_t id_tarea_buscada, uint32_t tamanio_tareas) {
+
+	char* tareas_de_patota = encontrar_tareas_en_memoria(direccion_fisica, tamanio_tareas);
+
+	t_list* tareas_de_la_patota = obtener_las_tareas(tareas_de_patota, tamanio_tareas);
+
+	if(list_size(tareas_de_la_patota)-1 < id_tarea_buscada) {
+		return NULL;
+	}
+	else{
+		t_tarea* tarea_buscada = list_get(tareas_de_la_patota, id_tarea_buscada);
+		list_remove(tareas_de_la_patota, id_tarea_buscada);
+		list_destroy_and_destroy_elements(tareas_de_la_patota, free);
+		//tareas = NULL;
+		free(tareas_de_patota);
+		return tarea_buscada;
+	}
+}

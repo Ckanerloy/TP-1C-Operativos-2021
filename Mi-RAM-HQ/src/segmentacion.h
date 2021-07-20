@@ -55,7 +55,7 @@ t_tcb* encontrar_tripulante(t_segmento* segmento);
 // Búsqueda de Segmento
 t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota_buscada);
 t_segmento* buscar_por_id(t_list* segmentos, tipo_estructura tipo_de_segmento, uint32_t valor);
-t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_estructura tipo_de_segmento, int32_t id_proxima_tarea_del_tripu, uint32_t tamanio_tareas);
+t_tarea* buscar_proxima_tarea_del_tripulante_segmentacion(t_list* segmentos, tipo_estructura tipo_de_segmento, int32_t id_proxima_tarea_del_tripu, uint32_t tamanio_tareas);
 t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas);
 
 

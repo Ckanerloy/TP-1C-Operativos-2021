@@ -24,6 +24,7 @@ typedef struct {
 	t_list* paginas;					// Páginas que componen a la Patota (incluyendo el PCB, Tareas y TCBs)
 	int32_t direccion_patota;			// Dirección lógica del PCB
 	t_list* direccion_tripulantes;		// Direcciones lógicas de los tripulantes que componen a la patota con su respectivo id_tripulante
+	uint32_t tamanio_tareas;
 } t_tabla_paginas_patota;
 
 
@@ -77,6 +78,7 @@ int32_t buscar_frame(int32_t nro_pagina, t_list* paginas);
 t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica);
 void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica);
 
+t_tarea* buscar_proxima_tarea_del_tripulante_paginacion(uint32_t direccion_fisica, uint32_t id_tarea_buscada, uint32_t tamanio_tareas);
 
 // Otras funciones
 int32_t cantidad_paginas_usadas(int32_t tamanio);
