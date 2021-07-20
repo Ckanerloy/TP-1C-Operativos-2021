@@ -12,6 +12,7 @@ typedef struct {
 	int32_t U;							// Bit de Uso
 	int32_t P;							// Bit de Presencia
 	uint32_t tiempo_referencia;			// Tiempo de referencia de la página (para aplicar el LRU)
+	int32_t estado;						// Si la página esta LIBRE u OCUPADO
 } t_pagina;
 
 
@@ -64,16 +65,16 @@ int32_t obtener_frame_libre(void);
 
 
 // Serializaciones para guardar estructuras
-void serializar_patota(t_pcb* patota, void* buffer);
-void serializar_tareas(tareas_patota* tareas_de_la_patota, void* buffer);
-void serializar_tripulante(t_tcb* tripulante, void* buffer);
+void* serializar_patota(t_pcb* patota, uint32_t tamanio);
+void* serializar_tareas(tareas_patota* tareas_de_la_patota, uint32_t tamanio);
+void* serializar_tripulante(t_tcb* tripulante, uint32_t tamanio);
 
 t_tabla_paginas_patota* buscar_tabla_patota(uint32_t id_patota);
 int32_t buscar_pagina_por_id(t_tabla_paginas_patota* tabla_patota_buscada, uint32_t id_tripulante_a_buscar);
 int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada);
 int32_t buscar_frame(int32_t nro_pagina, t_list* paginas);
 
-t_tcb* encontrar_tripulante_memoria(int32_t direccion_fisica);
+t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica);
 void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica);
 
 
