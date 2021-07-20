@@ -12,8 +12,8 @@ void iniciar_archivo_dump(void) {
 	strcpy(dump_memoria->path_dump, path_dump);
 
 	free(path_dump);
-	//dump_memoria->sem_dump = malloc(sizeof(sem_t));
-	//sem_init(dump_memoria->sem_dump, 0, 1);
+	dump_memoria->sem_dump = malloc(sizeof(sem_t));
+	sem_init(dump_memoria->sem_dump, 0, 1);
 }
 
 
@@ -40,7 +40,7 @@ void iniciar_dump_memoria(void) {
 		registrar_dump_segmentacion();
 	}
 	else if(esquema_elegido == 'P') {
-		//registrar_dump_paginacion();
+		registrar_dump_paginacion();
 	}
 	else {
 		log_error(logger, "No hay ningún esquema de memoria elegido.\n");
@@ -81,7 +81,6 @@ void registrar_dump_segmentacion(void) {
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
 
 			escribir_en_archivo(buffer);
-			free(buffer);
 		}
 		else {
 			char* buffer = string_new();
@@ -91,47 +90,33 @@ void registrar_dump_segmentacion(void) {
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
 
 			escribir_en_archivo(buffer);
-			free(buffer);
 		}
 	}
 }
 
 
 
-/*
+
 void registrar_dump_paginacion(void) {
 
-	t_list* patotas_dump = list_create();
-	t_list* paginas_dump = list_create();
-
-	patotas_dump = list_duplicate(tablas_paginas);
-	list_sort(patotas_dump, menor_a_mayor_por_frame);
-
-	for(int i=0; i<list_size(patotas_dump); i++) {
-
-		t_tabla_paginas_patota* patota_a_mostrar = list_get(patotas_dump, i);
-		paginas_dump = list_duplicate(patota_a_mostrar->paginas);
-
-		t_pagina* pagina_a_mostrar = list_get(tablas_paginas, i);
+	for(int i=0; i<cantidad_frames; i++) {
 
 		char* buffer = string_new();
-		string_append_with_format(&buffer, "Marco: %u     ", pagina_a_mostrar->numero_de_frame);
+		string_append_with_format(&buffer, "Marco: %u     ", i);
 
-		if(pagina_a_mostrar->estado_pagina == OCUPADO) {
+		if(frames[i]->estado == OCUPADO) {
 			string_append_with_format(&buffer, "Estado: Ocupado     ");
-			string_append_with_format(&buffer, "Proceso: %u     ", patota_a_mostrar->patota->pid);
-			string_append_with_format(&buffer, "Pagina: %u\n", pagina_a_mostrar->numero_de_pagina);
+			string_append_with_format(&buffer, "Proceso: %u     ", frames[i]->proceso);
+			string_append_with_format(&buffer, "Pagina: %u\n", frames[i]->pagina);
 		}
-		else if (pagina_a_mostrar->estado_pagina == LIBRE){
+		else if (frames[i]->estado == LIBRE){
 			string_append_with_format(&buffer, "Estado: Libre     ");
 			string_append_with_format(&buffer, "Proceso: -     ");
 			string_append_with_format(&buffer, "Pagina: -\n");
 		}
-		else {
-		}
 		escribir_en_archivo(buffer);
 	}
-}*/
+}
 
 
 void escribir_en_archivo(char* buffer){
@@ -140,7 +125,7 @@ void escribir_en_archivo(char* buffer){
 
 	fseek(archivo, 0, SEEK_END);
 
-	fwrite(buffer,strlen(buffer), 1, archivo);
+	fwrite(buffer, strlen(buffer), 1, archivo);
 
 	fclose(archivo);
 

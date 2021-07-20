@@ -135,12 +135,19 @@ t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libr
 
 void verificar_compactacion(void) {
 
-	if(segmentos_libres() > 0) {
-		compactar();
+	if(esquema_elegido == 'S') {
+		if(segmentos_libres() > 0) {
+				compactar();
+		}
+		else {
+			log_warning(logger, "No hay segmentos libres para poder compactar.\n");
+		}
 	}
-	else {
-		log_error(logger, "No hay segmentos libres para poder compactar.\n");
+	else{
+		log_error(logger, "Se ha elegido el esquema de Paginación. ¡Para Compactar hacelo en Segmentación!\n");
 	}
+
+
 }
 
 /*
@@ -220,73 +227,65 @@ void compactar(void) {
 
 void compactar(void) {
 
-	if(esquema_elegido == 'S') {
-		log_info(logger, "Inicio de rutina de compactación de memoria...\n");
+	log_info(logger, "Inicio de rutina de compactación de memoria...\n");
 
-		t_segmento* segmento;
-		uint32_t inicio = 0;
-		t_list* ocupados_ordenados = list_sorted(segmentos_ocupados(), menor_a_mayor_segun_inicio);
+	t_segmento* segmento;
+	uint32_t inicio = 0;
+	t_list* ocupados_ordenados = list_sorted(segmentos_ocupados(), menor_a_mayor_segun_inicio);
 
-		printf("Cantidad de Segmentos Libres: %u\n", list_size(segmentos_libres()));
-		printf("Cantidad de Segmentos: %u\n\n", list_size(segmentos));
+	printf("Cantidad de Segmentos Libres: %u\n", list_size(segmentos_libres()));
+	printf("Cantidad de Segmentos: %u\n\n", list_size(segmentos));
 
-		for(int i=0; i<list_size(ocupados_ordenados); i++){
+	for(int i=0; i<list_size(ocupados_ordenados); i++){
 
-			segmento = (t_segmento*) list_get(ocupados_ordenados, i);
+		segmento = (t_segmento*) list_get(ocupados_ordenados, i);
 
-			void* aux = malloc(segmento->tamanio_segmento);
+		void* aux = malloc(segmento->tamanio_segmento);
 
-			printf("Numero de segmento ANTES de COMPACTAR: %u\n", segmento->numero_de_segmento);
-			printf("Inicio de segmento ANTES de COMPACTAR: %u\n", segmento->inicio);
-			printf("Tamaño del segmento ANTES de COMPACTAR: %u\n", segmento->tamanio_segmento);
+		printf("Numero de segmento ANTES de COMPACTAR: %u\n", segmento->numero_de_segmento);
+		printf("Inicio de segmento ANTES de COMPACTAR: %u\n", segmento->inicio);
+		printf("Tamaño del segmento ANTES de COMPACTAR: %u\n", segmento->tamanio_segmento);
 
-			memcpy(aux, memoria_principal + segmento->inicio, segmento->tamanio_segmento);
+		memcpy(aux, memoria_principal + segmento->inicio, segmento->tamanio_segmento);
 
-			memcpy(memoria_principal + inicio, aux, segmento->tamanio_segmento);
+		memcpy(memoria_principal + inicio, aux, segmento->tamanio_segmento);
 
-			segmento->inicio = inicio;
-			segmento->numero_de_segmento = i;
+		segmento->inicio = inicio;
+		segmento->numero_de_segmento = i;
 
-			printf("Numero de segmento DESPUES de COMPACTAR: %u\n", segmento->numero_de_segmento);
-			printf("Inicio de segmento DESPUES de COMPACTAR: %u\n", segmento->inicio);
-			printf("Tamaño del segmento DESPUES de COMPACTAR: %u\n\n", segmento->tamanio_segmento);
+		printf("Numero de segmento DESPUES de COMPACTAR: %u\n", segmento->numero_de_segmento);
+		printf("Inicio de segmento DESPUES de COMPACTAR: %u\n", segmento->inicio);
+		printf("Tamaño del segmento DESPUES de COMPACTAR: %u\n\n", segmento->tamanio_segmento);
 
-			free(aux);
+		free(aux);
 
-			inicio += segmento->tamanio_segmento;
-		}
-
-		for(int c=0; c<list_size(segmentos_libres()); c++) {
-			t_segmento* segmento_buscado = list_get(segmentos_libres(), c);
-
-			printf("\n\nEstado del Segmento: %u\n\n", segmento_buscado->estado_segmento);
-
-			if(segmento_buscado->estado_segmento == LIBRE) {
-				list_remove(segmentos, c);
-				//free(segmento_buscado);
-				contador_segmento--;
-			}
-		}
-
-		printf("Cantidad de Segmentos despues de compactar: %u\n", list_size(segmentos));
-		printf("Cantidad de Segmentos Libres despues de compactar: %u\n\n", list_size(segmentos_libres()));
-
-		crear_segmento_libre(inicio, memoria_libre_total);
-
-		printf("Cantidad de Segmentos Libres despues de compactar: %u\n", list_size(segmentos_libres()));
-		printf("Cantidad de Segmentos despues de crear el segmento: %u\n", list_size(segmentos));
-
-		printf("Incio de segmento libre compactado: %u\n", inicio);
-		printf("Tamaño de segmento libre compactado: %u\n", memoria_libre_total);
-
-		//memoria_libre_total; 						//toda la memoria libre esta dentro de un segmento gigante
-		//memoria_restante = 0; 													// la memoria suelta queda en cero por que esta toda en la memoria libre por segmento
-
-		log_info(logger, "Se compactó la memoria.\n");
+		inicio += segmento->tamanio_segmento;
 	}
-	else if(esquema_elegido == 'P') {
-		log_warning(logger, "Se ha elegido el esquema de Paginación. ¡Para Compactar hacelo en Segmentación!\n");
+
+	for(int c=0; c<list_size(segmentos_libres()); c++) {
+		t_segmento* segmento_buscado = list_get(segmentos_libres(), c);
+
+		printf("\n\nEstado del Segmento: %u\n\n", segmento_buscado->estado_segmento);
+
+		if(segmento_buscado->estado_segmento == LIBRE) {
+			list_remove(segmentos, c);
+			//free(segmento_buscado);
+			contador_segmento--;
+		}
 	}
+
+	printf("Cantidad de Segmentos despues de compactar: %u\n", list_size(segmentos));
+	printf("Cantidad de Segmentos Libres despues de compactar: %u\n\n", list_size(segmentos_libres()));
+
+	crear_segmento_libre(inicio, memoria_libre_total);
+
+	printf("Cantidad de Segmentos Libres despues de compactar: %u\n", list_size(segmentos_libres()));
+	printf("Cantidad de Segmentos despues de crear el segmento: %u\n", list_size(segmentos));
+
+	printf("Incio de segmento libre compactado: %u\n", inicio);
+	printf("Tamaño de segmento libre compactado: %u\n", memoria_libre_total);
+
+	log_info(logger, "Se compactó la memoria.\n");
 }
 
 
@@ -294,8 +293,6 @@ void liberar_segmento(t_segmento* segmento_a_liberar) {
 	segmento_a_liberar->tipo_segmento = VACIO;
 	segmento_a_liberar->estado_segmento = LIBRE;
 	segmento_a_liberar->id_segmento = 0;
-	//memoria_libre_por_segmento += segmento_a_liberar->tamanio_segmento;
-	//memoria_libre_total = memoria_restante + memoria_libre_por_segmento;
 	memoria_libre_total += segmento_a_liberar->tamanio_segmento;
 }
 
@@ -672,7 +669,6 @@ t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas) {
 	t_list* tareas_totales = list_create();
 
 	char** parser_tarea = obtener_tareas(tareas);
-	//char** parser_tarea = string_split(tareas, "\n");
 
 	int posicion = 0;
 	while(parser_tarea[posicion] != NULL) {

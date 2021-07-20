@@ -767,8 +767,6 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 			log_info(logger, "Se utilizará el criterio de %s para colocar el segmento en memoria.\n", CRITERIO_SELECCION);
 			tablas_segmentos = list_create();
 			segmentos = list_create();
-			//memoria_libre_por_segmento = 0;
-			//memoria_libre_total = memoria_restante;		// memoria_compactada = MEMORIA TOTAL LIBRE = TAMANIO_MEMORIA - memoria ocupada
 			base_segmento = 0;
 			crear_segmento_libre(0, TAMANIO_MEMORIA);
 			break;
