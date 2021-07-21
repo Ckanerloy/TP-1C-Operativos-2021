@@ -325,6 +325,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						printf("\nULTIMA PAGINA: %u\n", ultima_pagina->numero_de_pagina);
 						printf("ULTIMO FRAME USADO: %u \n", ultima_pagina->numero_de_frame);
 
+						puntero_inicio += frames[ultima_pagina->numero_de_frame]->espacio_libre;
+
+						printf("\n\n                     PUNTERO INICIO: %u\n\n", puntero_inicio);
+
 
 						list_add(tablas_paginas, tabla_patota);
 
