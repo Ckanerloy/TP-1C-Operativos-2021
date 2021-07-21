@@ -40,6 +40,9 @@ void iniciar_variables_y_semaforos(void) {
 
 	ids = list_create();
 
+	mutex_segmentos = malloc(sizeof(sem_t));
+	sem_init(mutex_segmentos, 0, 1);
+
 	crear_segmento_sem = malloc(sizeof(sem_t));
 	sem_init(crear_segmento_sem, 0, 0);
 
@@ -183,16 +186,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						tabla_patota = crear_tabla_segmentos(nueva_patota);
 
+						sem_wait(mutex_segmentos);
 						t_segmento* segmento_patota = administrar_guardar_segmento(nueva_patota, PATOTA, tamanio_patota);
 						list_add(tabla_patota->segmentos, segmento_patota);
+						sem_post(mutex_segmentos);
+
 						uint32_t direccion_pcb = segmento_patota->inicio;
 
 						log_info(logger, "Se inició la Patota %u con %u tripulante/s.\n", nueva_patota->pid, patota_recibida->cantidad_tripulantes);
 
 						sem_wait(crear_segmento_sem);
 
+						sem_wait(mutex_segmentos);
 						t_segmento* segmento_tareas = administrar_guardar_segmento(tareas_de_la_patota, TAREAS, tamanio_tareas);
 						list_add(tabla_patota->segmentos, segmento_tareas);
+						sem_post(mutex_segmentos);
+
 						tabla_patota->patota->tareas = segmento_tareas->inicio;
 						tabla_patota->tamanio_tareas = tamanio_tareas;
 
@@ -205,8 +214,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 							t_tcb* nuevo_tripulante = crear_tcb(direccion_pcb, atoi(parser_posiciones[posicion]), atoi(parser_posiciones[posicion+1]));
 
+							sem_wait(mutex_segmentos);
 							t_segmento* segmento_tripulante = administrar_guardar_segmento(nuevo_tripulante, TRIPULANTE, tamanio_tripulante);
 							list_add(tabla_patota->segmentos, segmento_tripulante);
+							sem_post(mutex_segmentos);
 
 							log_info(logger, "Se inició el Tripulante %u en el estado %c, con una posición en X: %u y una posición en Y: %u.\n", nuevo_tripulante->id_tripulante, nuevo_tripulante->estado_tripulante, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
 
@@ -356,22 +367,25 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					int indice = 0;
 
+					sem_wait(mutex_segmentos);
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_por_ubicacion->id_patota);
-
 					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_por_ubicacion->id_tripulante);
+					sem_post(mutex_segmentos);
 
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
+					sem_wait(mutex_segmentos);
 					tripulante_buscado_por_ubicacion = obtener_contenido_de_segmento(segmento_buscado);
+					sem_post(mutex_segmentos);
 
 					tripulante_buscado_por_ubicacion->posicion_x = tripulante_por_ubicacion->posicion_x;
 					tripulante_buscado_por_ubicacion->posicion_y = tripulante_por_ubicacion->posicion_y;
 
 					//TODO: actualizar la posicion del tripulante en el MAPA
-
+					sem_wait(mutex_segmentos);
 					actualizar_segmento(tripulante_buscado_por_ubicacion, TRIPULANTE, segmento_buscado);
-
 					list_replace(patota_buscada->segmentos, indice, segmento_buscado);
+					sem_post(mutex_segmentos);
 
 				}
 				else if(esquema_elegido  == 'P') {
@@ -423,11 +437,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				if(esquema_elegido == 'S') {
 
+					sem_wait(mutex_segmentos);
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_para_ubicacion->id_patota);
-
 					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_para_ubicacion->id_tripulante);
-
 					tripulante_con_ubicacion = obtener_contenido_de_segmento(segmento_buscado);
+					sem_post(mutex_segmentos);
 
 					respuesta_con_ubicacion->posicion_x = tripulante_con_ubicacion->posicion_x;
 					respuesta_con_ubicacion->posicion_y = tripulante_con_ubicacion->posicion_y;
@@ -478,21 +492,26 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					int indice = 0;
 
+					sem_wait(mutex_segmentos);
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_por_estado->id_patota);
-
 					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_por_estado->id_tripulante);
+					sem_post(mutex_segmentos);
 
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
+					sem_wait(mutex_segmentos);
 					tripulante_buscado_por_estado = obtener_contenido_de_segmento(segmento_buscado);
+					sem_post(mutex_segmentos);
 
 					estado_anterior = tripulante_buscado_por_estado->estado_tripulante;
 
 					tripulante_buscado_por_estado->estado_tripulante = tripulante_por_estado->estado;
 
+					sem_wait(mutex_segmentos);
 					actualizar_segmento(tripulante_buscado_por_estado, TRIPULANTE, segmento_buscado);
 
 					list_replace(patota_buscada->segmentos, indice, segmento_buscado);
+					sem_post(mutex_segmentos);
 
 				}
 				else if(esquema_elegido  == 'P') {
@@ -545,16 +564,21 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					int indice = 0;
 
+					sem_wait(mutex_segmentos);
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_para_tarea->id_patota);
-
 					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_para_tarea->id_tripulante);
+					sem_post(mutex_segmentos);
 
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
+					sem_wait(mutex_segmentos);
 					tripulante_con_tarea = obtener_contenido_de_segmento(segmento_buscado);
+					sem_post(mutex_segmentos);
 					int32_t id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
 
+					sem_wait(mutex_segmentos);
 					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante_segmentacion(patota_buscada->segmentos, TAREAS, id_tarea_a_buscar_del_tripu, patota_buscada->tamanio_tareas);
+					sem_post(mutex_segmentos);
 
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
@@ -578,9 +602,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					tarea_buscada = NULL;
 					free(tarea_buscada);
 
+					sem_wait(mutex_segmentos);
 					actualizar_segmento(tripulante_con_tarea, TRIPULANTE, segmento_buscado);
 
 					list_replace(patota_buscada->segmentos, indice, segmento_buscado);
+					sem_post(mutex_segmentos);
 
 				}
 				else if(esquema_elegido  == 'P') {
@@ -649,12 +675,19 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					int indice = 0;
 
+					sem_wait(mutex_segmentos);
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_a_eliminar->id_patota);
 					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_a_eliminar->id_tripulante);
+					sem_post(mutex_segmentos);
+
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
+					sem_wait(mutex_segmentos);
 					list_remove(patota_buscada->segmentos, indice);
+					sem_post(mutex_segmentos);
+
 					liberar_segmento(segmento_buscado);
+
 
 					// Tienen que haber 2 segmentos en una patota, los cuales son el PCB y las TAREAS
 					if(list_size(patota_buscada->segmentos) == 2) {
