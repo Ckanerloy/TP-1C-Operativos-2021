@@ -474,6 +474,7 @@ void obtener_orden_input(){
 			break;
 
 		case INICIAR_PATOTA:
+			// TODO
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 1|1
@@ -812,7 +813,7 @@ void obtener_orden_input(){
 
 
 		case TERMINAR_PROGRAMA:
-
+/*
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") != -1){
 				enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
@@ -834,6 +835,23 @@ void obtener_orden_input(){
 			finalizar_semaforos_plani();
 			terminar_programa(config, logger);
 			sem_post(finalizar_programa);
+*/
+			sem_getvalue(contador_tripulantes_espera_io,&a);
+			printf("cantidad esperando a pasar a bloq %d",a);
+			fflush(stdout);
+
+			sem_getvalue(contador_tripulantes_en_new,&a);
+			printf("cantidad EN NEW %d",a);
+			fflush(stdout);
+
+
+			sem_getvalue(contador_tripulantes_en_ready,&a);
+			printf("cantidad EN readdy %d",a);
+			fflush(stdout);
+
+			sem_getvalue(multitarea_disponible,&a);
+			printf("cantidad multitarea disponible %d",a);
+			fflush(stdout);
 
 			break;
 

@@ -472,7 +472,7 @@ void ready_running() {
             sem_post(tripulante_a_running->sem_planificacion);
         //}
 
-        sem_post(planificacion_on_ready_running);
+
 
 		sem_wait(mutex_ready_running);
 
@@ -484,6 +484,7 @@ void ready_running() {
 			sem_post(mutex_ready_running);
 		}
 
+		sem_post(planificacion_on_ready_running);
         tripulante_a_running = NULL;
 
         free(tripulante_a_running);
