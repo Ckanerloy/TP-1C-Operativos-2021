@@ -713,8 +713,6 @@ void tripulante_hilo(void* tripulante){
 			}
 
 			         //Trabado por el pulso (rafaga), te lo dan siempre que estes en Exec
-
-			printf("hola \n");
 			fflush(stdout);
 
 		}

@@ -685,7 +685,7 @@ void obtener_orden_input(){
 			sem_getvalue(contador_tripulantes_en_ready,&a);
 			printf("cantidad EN readdy %d",a);
 			fflush(stdout);
-			//iniciar_escucha_sabotaje();
+			iniciar_escucha_sabotaje();
 			/*
 			if(parser_consola[1] == NULL) {
 				log_error(logger, "Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.");
