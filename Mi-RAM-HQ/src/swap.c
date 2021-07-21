@@ -60,3 +60,80 @@ int obtener_marco_libre(void) {
 	return -1;
 }
 
+
+/*
+ * APLICAR LRU:
+ * 	- busco proxima victima segun el tiempo de referencia mas lejano
+ *
+ */
+
+int32_t aplicar_LRU(void) {
+
+	int32_t frame_libre;
+
+	uint32_t tiempo_mas_viejo = get_timestamp();
+	int posicion;
+
+	t_tabla_paginas_patota* tabla;
+	t_tabla_paginas_patota* tabla_a_devolver;
+	t_pagina* pagina_obtenida;
+
+	for(int i=0;i<list_size(tablas_paginas);i++){
+		tabla = list_get(tablas_paginas, i);
+
+		for(int j=0;j<list_size(tabla->paginas);j++){
+			pagina_obtenida = list_get(tabla->paginas, j);
+
+			if(pagina_obtenida->tiempo_referencia < tiempo_mas_viejo){
+				tiempo_mas_viejo = pagina_obtenida->tiempo_referencia;
+				tabla_a_devolver = tabla;
+				posicion = j;
+			}
+
+		}
+	}
+
+	log_info(logger,"Se eliminará una página por LRU");
+	t_pagina* pagina_a_remover = list_get(tabla_a_devolver->paginas, posicion);
+
+	// Obtengo todos los datos que se encuentran en el frame de dicha pagina, para pasarlos a SWAP
+
+	uint32_t frame_a_buscar = pagina_a_remover->numero_de_frame;
+	pagina_a_remover->P = 0;
+	pagina_a_remover->numero_de_frame = -1;
+
+	printf("El Frame de la Página %u es %u\n", pagina_a_remover->numero_de_pagina, frame_a_buscar);
+
+	void* buffer = malloc(TAMANIO_PAGINA);
+	uint32_t inicio_frame = frame_a_buscar * TAMANIO_PAGINA;
+
+	memcpy(buffer, memoria_principal + inicio_frame, TAMANIO_PAGINA);
+
+	uint32_t desplazamiento = inicio_frame + TAMANIO_PAGINA;
+
+	uint32_t offset = (desplazamiento - inicio_frame) - TAMANIO_PAGINA;
+
+	log_debug(logger,"Se eliminó por LRU el Frame donde comenzaba en: %u", offset);
+
+	/*
+	 * 	Este buffer lo mando a SWAP
+	 *
+	 */
+
+	memoria_libre_total += (TAMANIO_PAGINA - frames[frame_a_buscar]->espacio_libre);
+	// Liberar Frame
+	frames[frame_a_buscar]->espacio_libre = TAMANIO_PAGINA;
+	frames[frame_a_buscar]->estado = LIBRE;
+	frames[frame_a_buscar]->pagina = -1;
+	frames[frame_a_buscar]->proceso = -1;
+
+
+
+	frame_libre = frame_a_buscar;
+
+	printf("Se libero el Frame %u\n", frame_libre);
+
+	return frame_libre;
+}
+
+

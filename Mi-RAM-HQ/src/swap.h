@@ -27,5 +27,7 @@ void inicializar_swap(void);
 void* iniciar_area_swap(void);
 int obtener_marco_libre(void);
 
+int32_t aplicar_LRU(void);
+
 
 #endif /* SWAP_H_ */

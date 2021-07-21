@@ -321,6 +321,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						printf("Espacio del ultimo Frame usado por esta patota: %u\n", frames[ultima_pagina->numero_de_frame]->espacio_libre);
 
 						frames[ultima_pagina->numero_de_frame]->estado = OCUPADO;
+						ultima_pagina->estado = OCUPADO;
+						printf("\nULTIMA PAGINA: %u\n", ultima_pagina->numero_de_pagina);
+						printf("ULTIMO FRAME USADO: %u \n", ultima_pagina->numero_de_frame);
+
 
 						list_add(tablas_paginas, tabla_patota);
 
@@ -408,8 +412,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					//TODO: actualizar la posicion del tripulante en el MAPA
 
 					actualizar_tripulante_memoria(tripulante_buscado_por_ubicacion, direccion_fisica);
-
-					//list_replace(patota_buscada->segmentos, indice, segmento_buscado);
+					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 
 				}
 
@@ -462,7 +465,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					respuesta_con_ubicacion->posicion_x = tripulante_con_ubicacion->posicion_x;
 					respuesta_con_ubicacion->posicion_y = tripulante_con_ubicacion->posicion_y;
-
+					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 				}
 
 				respuesta_con_ubicacion->id_tripulante = tripulante_para_ubicacion->id_tripulante;
@@ -534,7 +537,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					//TODO: actualizar la posicion del tripulante en el MAPA
 
 					actualizar_tripulante_memoria(tripulante_buscado_por_estado, direccion_fisica);
-
+					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 				}
 
 				respuesta_por_estado->id_tripulante = tripulante_por_estado->id_tripulante;
@@ -650,7 +653,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					free(tarea_buscada);
 
 					actualizar_tripulante_memoria(tripulante_con_tarea, direccion_fisica);
-
+					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 				}
 
 				log_info(logger, "Se envió la próxima tarea que tendrá que ejecutar el Tripulante %u de la Patota %u.\n", respuesta_con_tarea_tripulante->id_tripulante, tripulante_para_tarea->id_patota);
@@ -723,7 +726,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					printf("Dirección lógica: %u\n", direccion_logica);
 					printf("Dirección física: %u\n", direccion_fisica);
 
-					int indice = 0;
+					//int indice = 0;
 
 					/*
 					 * Implementar lógica para eliminar la memoria que involucra a este tripulante

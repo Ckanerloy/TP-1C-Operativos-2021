@@ -10,9 +10,10 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <string.h>
+#include "commons/collections/list.h"
 
-typedef enum
-{
+
+typedef enum {
 	GENERAR_OXIGENO,
 	CONSUMIR_OXIGENO,
 	GENERAR_COMIDA,
@@ -32,8 +33,7 @@ typedef enum
 } codigo_sabotaje;
 
 
-
-// cambiar a char*
+// Estructura administrativa para enviar la tarea a Discordiador
 typedef struct {
 	codigo_tarea operacion;
 	uint32_t cantidad;
@@ -43,11 +43,7 @@ typedef struct {
 } t_tarea;
 
 
-
-
-
-
-
+t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas);
 char** obtener_tareas(char* tareas_patota);
 t_tarea* obtener_la_tarea(char* tarea_tripulante);
 void limpiar_parser(char** parser);

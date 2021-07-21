@@ -77,12 +77,15 @@ int32_t buscar_frame(int32_t nro_pagina, t_list* paginas);
 
 t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica);
 void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica);
+void actualizar_referencia(t_list* paginas, uint32_t direccion_logica);
 
 t_tarea* buscar_proxima_tarea_del_tripulante_paginacion(uint32_t direccion_fisica, uint32_t id_tarea_buscada, uint32_t tamanio_tareas);
+
 
 // Otras funciones
 int32_t cantidad_paginas_usadas(int32_t tamanio);
 bool menor_a_mayor_por_frame(void* pagina, void* pagina_siguiente);
+bool menor_a_mayor_segun_num(void* pagina, void* pagina_siguiente);
 uint32_t get_timestamp(void);
 
 #endif /* PAGINACION_H_ */

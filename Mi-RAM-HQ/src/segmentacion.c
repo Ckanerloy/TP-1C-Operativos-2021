@@ -666,24 +666,3 @@ t_tarea* buscar_proxima_tarea_del_tripulante_segmentacion(t_list* segmentos, tip
 		return tarea_buscada;
 	}
 }
-
-
-
-t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas) {
-
-	t_list* tareas_totales = list_create();
-
-	char** parser_tarea = obtener_tareas(tareas);
-
-	int posicion = 0;
-	while(parser_tarea[posicion] != NULL) {
-
-		t_tarea* tarea_a_guardar = obtener_la_tarea(parser_tarea[posicion]);
-
-		list_add_in_index(tareas_totales, posicion, tarea_a_guardar);
-		posicion++;
-	}
-
-	limpiar_parser(parser_tarea);
-	return tareas_totales;
-}
