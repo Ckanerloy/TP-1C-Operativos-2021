@@ -88,5 +88,6 @@ int32_t cantidad_paginas_usadas(int32_t tamanio);
 bool menor_a_mayor_por_frame(void* pagina, void* pagina_siguiente);
 bool menor_a_mayor_segun_num(void* pagina, void* pagina_siguiente);
 uint32_t get_timestamp(void);
+void liberar_frame(uint32_t num_frame);
 
 #endif /* PAGINACION_H_ */

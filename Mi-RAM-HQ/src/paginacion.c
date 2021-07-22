@@ -8,6 +8,13 @@ uint32_t get_timestamp(void) {
 	return timestamp;
 }
 
+void liberar_frame(uint32_t num_frame) {
+	frames[num_frame]->estado = LIBRE;
+	frames[num_frame]->espacio_libre = TAMANIO_PAGINA;
+	frames[num_frame]->pagina = -1;
+	frames[num_frame]->proceso = -1;
+}
+
 int32_t cantidad_paginas_usadas(int32_t tamanio) {
 
     int32_t cantidad_paginas = 0;
@@ -26,10 +33,7 @@ void inicializar_frames(void) {
 	frames = calloc(cantidad_frames, sizeof(frame));
 	for(int i=0; i<cantidad_frames; i++) {
 		frames[i] = malloc(sizeof(frame));
-		frames[i]->estado = LIBRE;
-		frames[i]->espacio_libre = TAMANIO_PAGINA;
-		frames[i]->pagina = -1;
-		frames[i]->proceso = -1;
+		liberar_frame(i);
 	}
 }
 
@@ -427,8 +431,6 @@ void funcion() {
 		}
 
 	}
-
-
 
 }*/
 

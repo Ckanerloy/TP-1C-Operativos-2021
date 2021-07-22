@@ -734,8 +734,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 
 
-
-
 				}
 				else if(esquema_elegido  == 'P') {
 					sem_wait(mutex_paginas);
@@ -763,10 +761,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						frames[numero_frame_inicio]->espacio_libre += tamanio_tripulante;
 
 						if(frames[numero_frame_inicio]->espacio_libre == TAMANIO_PAGINA) {
-							frames[numero_frame_inicio]->estado = LIBRE;
-							frames[numero_frame_inicio]->espacio_libre = TAMANIO_PAGINA;
-							frames[numero_frame_inicio]->pagina = -1;
-							frames[numero_frame_inicio]->proceso = -1;
+							liberar_frame(numero_frame_inicio);
 						}
 					}
 					// El dato está en 2 frames
@@ -776,17 +771,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						frames[numero_frame_final]->espacio_libre += resto_frame_final;
 
 						if(frames[numero_frame_inicio]->espacio_libre == TAMANIO_PAGINA) {
-							frames[numero_frame_inicio]->estado = LIBRE;
-							frames[numero_frame_inicio]->espacio_libre = TAMANIO_PAGINA;
-							frames[numero_frame_inicio]->pagina = -1;
-							frames[numero_frame_inicio]->proceso = -1;
+							liberar_frame(numero_frame_inicio);
 						}
 
 						if(frames[numero_frame_final]->espacio_libre == TAMANIO_PAGINA) {
-							frames[numero_frame_final]->estado = LIBRE;
-							frames[numero_frame_final]->espacio_libre = TAMANIO_PAGINA;
-							frames[numero_frame_final]->pagina = -1;
-							frames[numero_frame_final]->proceso = -1;
+							liberar_frame(numero_frame_final);
 						}
 
 					}
@@ -798,10 +787,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						for(int c=0; c<cantidad_frames; c++) {
 							if(frames[c]->proceso == tabla_patota_buscada->patota->pid) {
-								frames[c]->estado = LIBRE;
-								frames[c]->espacio_libre = TAMANIO_PAGINA;
-								frames[c]->pagina = -1;
-								frames[c]->proceso = -1;
+								liberar_frame(c);
 							}
 						}
 
