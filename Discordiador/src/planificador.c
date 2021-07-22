@@ -8,7 +8,7 @@ algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo) {
 	//FIFO
 	if(strcmp(algoritmo,"FIFO") == 0)
 	{
-		algoritmo_elegido = FIFO;
+		algoritmo_elegido = FIFO; // @suppress("Symbol is not resolved")
 	}
 
 	//RR
@@ -110,11 +110,11 @@ void elegir_algoritmo() {
 
 	switch(algoritmo_elegido){
 
-		case FIFO:
+		case FIFO: // @suppress("Symbol is not resolved")
 			printf("Eligio el algoritmo FIFO.\n");
 			break;
 
-		case RR:
+		case RR: // @suppress("Symbol is not resolved")
 			printf("Eligio el algoritmo Round Robin con un Quantum de %u. \n", QUANTUM);
 			break;
 
@@ -476,6 +476,7 @@ void ready_running() {
 			tripulante_a_running = queue_pop(cola_ready);
 			sem_post(mutex_ready);
 
+
 			actualizar_estado(tripulante_a_running, 'E');
 			switch(tripulante_a_running->estado_anterior){
 				case 'E':
@@ -525,22 +526,24 @@ void running_ready(tripulante_plani* tripu){
 void running_block(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'B');
+	tripu->puedo_ejecutar_io=0;
+
 	sem_wait(mutex_cola_io);
 	queue_push(cola_io,tripu);
 	sem_post(mutex_cola_io);
-	sem_post(contador_tripulantes_espera_io);
 
+	sem_post(contador_tripulantes_espera_io);
 	sem_post(multitarea_disponible);
 }
 
 
 void block_ready(tripulante_plani* tripu){
+	actualizar_estado(tripu, 'R');
+	tripu->puedo_ejecutar_io=0;
+
 	sem_wait(mutex_ready);
 	queue_push(cola_ready, tripu);
 	sem_post(mutex_ready);
-
-	tripu->puedo_ejecutar_io=0;
-	actualizar_estado(tripu, 'R');
 
 	sem_post(contador_tripulantes_en_ready);
 }
@@ -718,7 +721,7 @@ void tripulante_hilo(void* tripulante){
 			}
 
 			if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
-				if(algoritmo_elegido == RR){
+				if(algoritmo_elegido == RR){ // @suppress("Symbol is not resolved")
 					if(tripu->cantidad_realizada == QUANTUM){
 						running_ready(tripu);
 						sem_wait(tripu->sem_planificacion);
@@ -741,7 +744,7 @@ void tripulante_hilo(void* tripulante){
 
 
 		if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
-			if(algoritmo_elegido == RR){
+			if(algoritmo_elegido == RR){ // @suppress("Symbol is not resolved")
 				if(tripu->cantidad_realizada == QUANTUM){
 					running_ready(tripu);
 					tripu->cantidad_realizada = 0;

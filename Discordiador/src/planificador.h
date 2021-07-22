@@ -104,7 +104,7 @@ void finalizar_semaforos_plani();
 void inicializar_listas();
 void pulso_rafaga();
 void running_ready(tripulante_plani* tripulante);
-
+void running_block(tripulante_plani* tripu);
 void block_exit(tripulante_plani* tripu);
 void new_exit(tripulante_plani* tripu);
 void running_exit(tripulante_plani* tripu);

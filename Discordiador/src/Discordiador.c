@@ -204,7 +204,7 @@ void iniciar_escucha_sabotaje(void){
 				actualizar_estado(tripulante, 'S');
 			}
 		}
-//
+
 
 
 		t_tarea* ayuda=malloc(sizeof(t_tarea));
@@ -236,6 +236,7 @@ void iniciar_escucha_sabotaje(void){
 
 
 		sem_wait(termine_sabotaje);
+		queue_clean(cola_ready);
 
 		tripu_mas_cercano->estado_anterior='R';
 		sem_wait(tripu_mas_cercano->sem_tripu);
@@ -480,7 +481,7 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 1|1
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 1|1 2|0
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 7|7 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
 
@@ -850,7 +851,13 @@ void obtener_orden_input(){
 
 
 			sem_getvalue(contador_tripulantes_en_ready,&a);
-			printf("cantidad EN readdy %d",a);
+			printf("cantidad EN readdy sem %d",a);
+			fflush(stdout);
+
+			largo = queue_size(cola_ready);
+
+
+			printf("cantidad EN readdy largo size %d",largo);
 			fflush(stdout);
 
 			sem_getvalue(multitarea_disponible,&a);
@@ -858,20 +865,7 @@ void obtener_orden_input(){
 			fflush(stdout);
 
 
-			largo = list_size(lista_tripulantes);
-			for(int i=0;i<largo;i++){
-				tripulante = list_get(lista_tripulantes,i);
-				printf("id del tripulante %d  ,",tripulante->id_tripulante);
-				printf("estado anterior %c",tripulante->estado_anterior);
 
-				sem_getvalue(tripulante->sem_planificacion,&a);
-				printf("sem principal %d  ,",a);
-
-				sem_getvalue(tripulante->sem_tripu,&a);
-				printf("sem secundaria %d \n",a);
-				fflush(stdout);
-
-			}
 			break;
 
 
