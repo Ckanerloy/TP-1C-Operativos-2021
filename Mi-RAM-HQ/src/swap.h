@@ -19,7 +19,7 @@ void* contenido_swap;
 t_list* paginas_swap;
 
 int32_t cantidad_paginas_swap;
-estado* estado_frames_en_swap;
+
 int archivo_swap;
 
 

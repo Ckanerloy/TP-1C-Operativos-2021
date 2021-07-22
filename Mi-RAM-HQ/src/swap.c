@@ -2,17 +2,24 @@
 
 void inicializar_swap(void) {
 
+	if((TAMANIO_SWAP % TAMANIO_PAGINA) != 0) {
+		log_error(logger, "No se puede iniciar la memoria, ya que no es múltiplo del Tamaño de las páginas.\n");
+		abort();
+	}
 	cantidad_paginas_swap =	TAMANIO_SWAP / TAMANIO_PAGINA;
 
 	log_info(logger, "Entran %d páginas en Memoria Swap.\n", cantidad_paginas_swap);
 
 	paginas_swap = list_create();
 
-	estado_frames_en_swap = malloc(sizeof(estado) * cantidad_paginas_swap);
-
-	for(int i=0;i<cantidad_paginas_swap;i++){
+	//estado_frames_en_swap = calloc(cantidad_paginas_swap, sizeof(frame));
+/*	for(int i=0;i<cantidad_paginas_swap;i++){
+		estado_frames_en_swap[i] = malloc(sizeof(frame));
 		estado_frames_en_swap[i] = LIBRE;
-	}
+		estado_frames_en_swap[i]->espacio_libre = TAMANIO_PAGINA;
+		estado_frames_en_swap[i]->pagina = -1;
+		estado_frames_en_swap[i]->proceso = -1;
+	}*/
 
 	area_swap = iniciar_area_swap();
 }
@@ -61,11 +68,7 @@ int obtener_marco_libre(void) {
 }
 
 
-/*
- * APLICAR LRU:
- * 	- busco proxima victima segun el tiempo de referencia mas lejano
- *
- */
+
 
 int32_t aplicar_LRU(void) {
 
@@ -136,4 +139,14 @@ int32_t aplicar_LRU(void) {
 	return frame_libre;
 }
 
+
+
+int32_t aplicar_CLOCK() {
+
+	int32_t frame_libre;
+
+	uint32_t tiempo_mas_viejo = get_timestamp();
+	int posicion;
+
+}
 

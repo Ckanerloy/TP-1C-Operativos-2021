@@ -470,6 +470,8 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
 
+			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
+
 			// PRUEBAS PARA DISCORDIADOR
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota1.txt 9|9 0|0 5|5
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota2.txt 4|0 2|6 8|2

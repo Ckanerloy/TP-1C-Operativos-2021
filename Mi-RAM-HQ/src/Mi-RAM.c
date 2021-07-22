@@ -271,7 +271,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						nueva_patota = crear_pcb();
 
-						tabla_patota = crear_tabla_paginas(nueva_patota, tamanio_total);
+						tabla_patota = crear_tabla_paginas(nueva_patota, tamanio_total, patota_recibida->cantidad_tripulantes);
 
 						guardar_estructura_en_memoria(nueva_patota, PATOTA, tabla_patota, tamanio_patota);
 						uint32_t direccion_pcb = tabla_patota->direccion_patota;
@@ -355,7 +355,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				free(ids_enviar);
 				free(parser_posiciones);
-
 				free(respuesta_iniciar_patota->ids_tripu);
 				free(respuesta_iniciar_patota);
 				free(patota_recibida->tareas_de_patota);
@@ -730,16 +729,78 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					printf("Dirección lógica: %u\n", direccion_logica);
 					printf("Dirección física: %u\n", direccion_fisica);
 
-					//int indice = 0;
+					int32_t direccion_fisica_final = direccion_fisica + 21;
+					printf("EL TRIPU TERMINA EN %u\n", direccion_fisica_final);
 
-					/*
-					 * Implementar lógica para eliminar la memoria que involucra a este tripulante
-					 *
-					 *
-					 * - De haber eliminado a todos los tripulantes, tambien eliminar a la patota con sus tareas
-					 * 			 Esto hace que los frames que ocupa esta páginas se liberen,
-					 * 			 lo mismo con las paginas del proceso, van a quedar libres
-					 */
+					int32_t frame_inicio = direccion_fisica / TAMANIO_PAGINA;
+					int32_t numero_frame_inicio = (int32_t) frame_inicio;
+					int32_t resto_frame_inicio = direccion_fisica % TAMANIO_PAGINA;
+
+					int32_t frame_final = (direccion_fisica + tamanio_tripulante) / TAMANIO_PAGINA;
+					int32_t numero_frame_final = (int32_t) frame_final;
+					int32_t resto_frame_final = (direccion_fisica +tamanio_tripulante) % TAMANIO_PAGINA;
+
+					if(numero_frame_inicio == numero_frame_final) {
+
+						frames[numero_frame_inicio]->espacio_libre += tamanio_tripulante;
+
+						if(frames[numero_frame_inicio]->espacio_libre == TAMANIO_PAGINA) {
+							frames[numero_frame_inicio]->estado = LIBRE;
+							frames[numero_frame_inicio]->espacio_libre = TAMANIO_PAGINA;
+							frames[numero_frame_inicio]->pagina = -1;
+							frames[numero_frame_inicio]->proceso = -1;
+						}
+					}
+					// El dato está en 2 frames
+					else {
+
+						frames[numero_frame_inicio]->espacio_libre += (TAMANIO_PAGINA - resto_frame_inicio);
+						frames[numero_frame_final]->espacio_libre += resto_frame_final;
+
+						if(frames[numero_frame_inicio]->espacio_libre == TAMANIO_PAGINA) {
+							frames[numero_frame_inicio]->estado = LIBRE;
+							frames[numero_frame_inicio]->espacio_libre = TAMANIO_PAGINA;
+							frames[numero_frame_inicio]->pagina = -1;
+							frames[numero_frame_inicio]->proceso = -1;
+						}
+
+						if(frames[numero_frame_final]->espacio_libre == TAMANIO_PAGINA) {
+							frames[numero_frame_final]->estado = LIBRE;
+							frames[numero_frame_final]->espacio_libre = TAMANIO_PAGINA;
+							frames[numero_frame_final]->pagina = -1;
+							frames[numero_frame_final]->proceso = -1;
+						}
+
+					}
+					tabla_patota_buscada->cantidad_tripulantes--;
+					memoria_libre_total += tamanio_tripulante;
+
+
+					if(tabla_patota_buscada->cantidad_tripulantes == 0) {
+
+						for(int c=0; c<cantidad_frames; c++) {
+							if(frames[c]->proceso == tabla_patota_buscada->patota->pid) {
+								frames[c]->estado = LIBRE;
+								frames[c]->espacio_libre = TAMANIO_PAGINA;
+								frames[c]->pagina = -1;
+								frames[c]->proceso = -1;
+							}
+						}
+
+						memoria_libre_total += tamanio_patota;
+						memoria_libre_total += tabla_patota_buscada->tamanio_tareas;
+					}
+
+
+
+/*
+ 1. si el frame donde estaba quedo totalmente libre, asi lo ponemos como LIBRE
+ 	-Segun la dirección física podemos saber donde arranca el tripu, si arranca en un frame, y termina en el otro,
+ 	 	 hay que liberar todos esos datos, y en el caso que un frame quede con espacio_libre == TAMANIO_PAGINA
+ 	 	 ese frame se libera por completo.
+
+ 2. si la patota se quedó sin tripulantes, asi liberamos todos los frames y paginas que tienen a esta patota
+ */
 
 				}
 
@@ -847,6 +908,11 @@ void elegir_esquema_de_memoria(char* ESQUEMA)
 	switch(cod_mem) {
 
 		case PAGINACION:
+
+			if((TAMANIO_MEMORIA % TAMANIO_PAGINA) != 0) {
+				log_error(logger, "No se puede iniciar la memoria, ya que no es múltiplo del Tamaño de las páginas.\n");
+				abort();
+			}
 
 			esquema_elegido = 'P';
 			tablas_paginas = list_create();

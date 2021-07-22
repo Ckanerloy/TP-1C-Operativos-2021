@@ -25,6 +25,7 @@ typedef struct {
 	int32_t direccion_patota;			// Dirección lógica del PCB
 	t_list* direccion_tripulantes;		// Direcciones lógicas de los tripulantes que componen a la patota con su respectivo id_tripulante
 	uint32_t tamanio_tareas;
+	int32_t cantidad_tripulantes;
 } t_tabla_paginas_patota;
 
 
@@ -48,10 +49,10 @@ int32_t contador_pagina;
 int32_t puntero_inicio;					// Puntero que indica cuando inicia la siguiente estructura
 uint32_t cantidad_frames;
 frame** frames;
-
+frame** estado_frames_en_swap;
 
 // Inicio de Paginación
-t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* patota, int32_t tamanio_total);
+t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* patota, int32_t tamanio_total, int32_t cantidad_tripulantes);
 void iniciar_tabla_patota(t_tabla_paginas_patota* tabla_patota, int32_t tamanio_total, tareas_patota* tareas_de_la_patota, int32_t cantidad_tripulantes);
 void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tabla_paginas_patota* tabla_patota, int32_t tamanio_estructura);
 

@@ -78,7 +78,7 @@ int32_t obtener_frame_libre(void) {
 }
 
 
-t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* nueva_patota, int32_t tamanio_total) {
+t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* nueva_patota, int32_t tamanio_total, int32_t cantidad_tripulantes) {
 
 	//contador_pagina = 0;
 
@@ -88,6 +88,7 @@ t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* nueva_patota, int32_t tamanio
 	tabla->patota->tareas = nueva_patota->tareas;
 	tabla->paginas = list_create();
 	tabla->direccion_tripulantes = list_create();
+	tabla->cantidad_tripulantes = cantidad_tripulantes;
 
 	int32_t cantidad_paginas = cantidad_paginas_usadas(tamanio_total);
 	for(int i=0; i<cantidad_paginas; i++) {
