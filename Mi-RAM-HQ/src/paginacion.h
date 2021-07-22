@@ -33,7 +33,7 @@ typedef struct {
 	int32_t estado;						// Si el Frame esta LIBRE u OCUPADO
 	int32_t proceso;					// El Proceso o Patota que está ocupando dicho Frame
 	int32_t pagina;						// La página que tiene cargada dicho Frame
-	int32_t espacio_libre;				//
+	int32_t espacio_libre;
 } frame;
 
 
@@ -43,13 +43,20 @@ typedef struct {
 } t_dl_tripulante;
 
 
+typedef struct {
+	t_pagina* pagina;
+	t_tabla_paginas_patota* tabla;
+} estructura_CLOCK;
+
+
+
 t_list* tablas_paginas;
 
 int32_t contador_pagina;
 int32_t puntero_inicio;					// Puntero que indica cuando inicia la siguiente estructura
 uint32_t cantidad_frames;
 frame** frames;
-frame** estado_frames_en_swap;
+estado* frames_swap;
 
 // Inicio de Paginación
 t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* patota, int32_t tamanio_total, int32_t cantidad_tripulantes);
@@ -75,6 +82,8 @@ t_tabla_paginas_patota* buscar_tabla_patota(uint32_t id_patota);
 int32_t buscar_pagina_por_id(t_tabla_paginas_patota* tabla_patota_buscada, uint32_t id_tripulante_a_buscar);
 int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada);
 int32_t buscar_frame(int32_t nro_pagina, t_list* paginas);
+t_pagina* buscar_pagina(int32_t nro_pagina, t_list* paginas);
+
 
 t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica);
 void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica);

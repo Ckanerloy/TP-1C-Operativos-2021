@@ -1,5 +1,6 @@
 #include "Mi-RAM.h"
 
+
 int main(void) {
 
 	config = crear_config(CONFIG_PATH);
@@ -27,6 +28,7 @@ int main(void) {
 
 	return EXIT_SUCCESS;
 }
+
 
 void iniciar_variables_y_semaforos(void) {
 
@@ -411,6 +413,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_por_ubicacion->id_patota);
 					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_por_ubicacion->id_tripulante);
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					if(direccion_fisica == -1) {
+						log_warning(logger, "La página del tripulante %u no se encuentra cargada en Memoria Principal.\n", tripulante_por_ubicacion->id_tripulante);
+						break;
+					}
+
 					sem_post(mutex_paginas);
 
 					printf("Dirección lógica: %u\n", direccion_logica);
@@ -469,6 +477,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_para_ubicacion->id_patota);
 					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_para_ubicacion->id_tripulante);
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					if(direccion_fisica == -1) {
+						log_warning(logger, "La página del tripulante %u no se encuentra cargada en Memoria Principal.\n", tripulante_para_ubicacion->id_tripulante);
+						break;
+					}
+
 					sem_post(mutex_paginas);
 
 					printf("Dirección lógica: %u\n", direccion_logica);
@@ -538,6 +552,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_por_estado->id_patota);
 					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_por_estado->id_tripulante);
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					if(direccion_fisica == -1) {
+						log_warning(logger, "La página del tripulante %u no se encuentra cargada en Memoria Principal.\n", tripulante_por_estado->id_tripulante);
+						break;
+					}
+
 					sem_post(mutex_paginas);
 
 					printf("Dirección lógica: %u\n", direccion_logica);
@@ -635,12 +655,28 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_para_tarea->id_patota);
 					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_para_tarea->id_tripulante);
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					if(direccion_fisica == -1) {
+						log_warning(logger, "La página del tripulante %u no se encuentra cargada en Memoria Principal.\n", tripulante_para_tarea->id_tripulante);
+						break;
+					}
+
+					int32_t direccion_fisica_tareas = obtener_direc_fisica_con_direccion_logica(tabla_patota_buscada->patota->tareas, tabla_patota_buscada);
+
+					if(direccion_fisica_tareas == -1) {
+						log_warning(logger, "La página de las tareas de la Patota %u no se encuentra cargada en Memoria Principal.\n", tripulante_para_tarea->id_patota);
+						break;
+					}
+
+
 					sem_post(mutex_paginas);
 
 					printf("Dirección lógica: %u\n", direccion_logica);
 					printf("Dirección física: %u\n", direccion_fisica);
 
-					printf("Dirección física de las tareas: %u\n", tabla_patota_buscada->patota->tareas);
+					printf("Dirección lógica de las tareas: %u\n", tabla_patota_buscada->patota->tareas);
+					printf("Dirección física de las tareas: %u\n", direccion_fisica_tareas);
+
 
 					sem_wait(mutex_paginas);
 					tripulante_con_tarea = encontrar_tripulante_memoria(direccion_fisica);
@@ -648,7 +684,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					int32_t id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
 
 					sem_wait(mutex_paginas);
-					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante_paginacion(tabla_patota_buscada->patota->tareas, id_tarea_a_buscar_del_tripu, tabla_patota_buscada->tamanio_tareas);
+					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante_paginacion(direccion_fisica_tareas, id_tarea_a_buscar_del_tripu, tabla_patota_buscada->tamanio_tareas);
 					sem_post(mutex_paginas);
 
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
@@ -709,7 +745,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
 					sem_wait(mutex_segmentos);
-					t_segmento* segmento = list_remove(patota_buscada->segmentos, indice);
+					//t_segmento* segmento = list_remove(patota_buscada->segmentos, indice);
+					list_remove(patota_buscada->segmentos, indice);
 					sem_post(mutex_segmentos);
 
 					liberar_segmento(segmento_buscado);
@@ -732,6 +769,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_a_eliminar->id_patota);
 					int32_t direccion_logica = buscar_pagina_por_id(tabla_patota_buscada, tripulante_a_eliminar->id_tripulante);
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, tabla_patota_buscada);
+
+					if(direccion_fisica == -1) {
+						log_warning(logger, "La página del tripulante no se encuentra cargada en Memoria Principal.\n");
+						break;
+					}
+
 					sem_post(mutex_paginas);
 
 					printf("Dirección lógica: %u\n", direccion_logica);
