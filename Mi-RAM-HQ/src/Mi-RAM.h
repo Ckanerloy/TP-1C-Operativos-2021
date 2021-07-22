@@ -68,6 +68,7 @@ sem_t* crear_segmento_sem;
 sem_t* crear_pagina_sem;
 sem_t* espera;
 sem_t* mutex_segmentos;
+sem_t* mutex_paginas;
 
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_actualizar_estado;
