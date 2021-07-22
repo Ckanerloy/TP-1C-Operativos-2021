@@ -424,7 +424,7 @@ void new_ready() {
 		sem_post(tripulante_a_ready->sem_planificacion);
 
 		actualizar_estado(tripulante_a_ready, 'R');
-
+		tripulante_a_ready->estado_anterior='R';
 		sem_post(contador_tripulantes_en_ready);
 
 		sem_wait(mutex_new_ready);
@@ -459,32 +459,45 @@ void ready_running() {
 
         tripulante_plani* tripulante_a_running = malloc(sizeof(tripulante_plani));
 
-        sem_wait(mutex_ready);
-        tripulante_a_running = queue_pop(cola_ready);
-        sem_post(mutex_ready);
 
-        actualizar_estado(tripulante_a_running, 'E');
-
-        //if(tripulante_a_running->estado_anterior=='E'){
-        //	sem_post(tripulante_a_running->sem_tripu);
-
-        //}else{
-            sem_post(tripulante_a_running->sem_planificacion);
-        //}
-
-
-
-		sem_wait(mutex_ready_running);
-
+        sem_wait(mutex_ready_running);
 		if(ready_running_off){
 			sem_post(mutex_ready_running);
+
+			sem_post(contador_tripulantes_en_ready);
+			sem_post(multitarea_disponible);
+
 			sem_wait(planificacion_on_ready_running);
 
 		}else{
 			sem_post(mutex_ready_running);
+
+			sem_wait(mutex_ready);
+			tripulante_a_running = queue_pop(cola_ready);
+			sem_post(mutex_ready);
+
+			actualizar_estado(tripulante_a_running, 'E');
+			switch(tripulante_a_running->estado_anterior){
+				case 'E':
+					sem_post(tripulante_a_running->sem_tripu);
+					break;
+
+				case 'R':
+					sem_post(tripulante_a_running->sem_planificacion);
+					break;
+
+				case 'B':
+
+					running_block(tripulante_a_running);
+					break;
+
+			}
+
+
 		}
 
 		sem_post(planificacion_on_ready_running);
+
         tripulante_a_running = NULL;
 
         free(tripulante_a_running);
@@ -535,6 +548,7 @@ void block_ready(tripulante_plani* tripu){
 
 void block_exit(tripulante_plani* tripu){
 
+	//TODO ACA HAY Q SACARLO DE LA COLA DE BLOQ DEJANDO EL MISMO ORDEN
 	sem_wait(mutex_exit);
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
@@ -668,10 +682,9 @@ void tripulante_hilo(void* tripulante){
 	while(tripu->tarea_a_realizar != NULL){
 
 
-
 		//Entra a exec
 
-
+		sem_wait(tripu->sem_planificacion); //Queda trabado hasta que el hilo de ready_running le hace el post (TRABADO EN READY)
 
 		posicion_tarea->posicion_x = tripu->tarea_a_realizar->posicion_x;
 		posicion_tarea->posicion_y = tripu->tarea_a_realizar->posicion_y;
@@ -687,7 +700,7 @@ void tripulante_hilo(void* tripulante){
 		}else{
 			sem_post(tripu->mutex_expulsado);
 		}
-		sem_wait(tripu->sem_planificacion); //Queda trabado hasta que el hilo de ready_running le hace el post (TRABADO EN READY)
+
 
 		while(distancia > 0 && !tripu->elegido_sabotaje){ //Cambiar condicion con variable goblal hay_sabotaje
 			sem_wait(tripu->sem_tripu);

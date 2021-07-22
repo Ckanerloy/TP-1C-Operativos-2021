@@ -129,6 +129,7 @@ void iniciar_escucha_sabotaje(void){
 		dar_pulsos_off = 1;
 		sem_post(mutex_rafaga);
 
+		sleep(1);
 
 		largo = list_size(lista_tripulantes);
 		for(int i=0;i<largo;i++){
@@ -184,10 +185,7 @@ void iniciar_escucha_sabotaje(void){
 		posicion_sabotaje->posicion_y=10;
 
 
-		//HAY Q SACARLO DE LA LISTA AL MAS CERCANO
-		int largoaa=list_size(bloqueado_suspendido);
-		printf("largo lista %u",largoaa);
-		fflush(stdout);
+
 
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
@@ -219,7 +217,8 @@ void iniciar_escucha_sabotaje(void){
 		tripu_mas_cercano->tarea_auxiliar=ayuda;
 
 		actualizar_estado(tripu_mas_cercano, 'E');
-		sem_post(mutex_rafaga);
+
+
 		tripu_mas_cercano->elegido_sabotaje=1;
 
 
@@ -237,6 +236,9 @@ void iniciar_escucha_sabotaje(void){
 
 
 		sem_wait(termine_sabotaje);
+
+		tripu_mas_cercano->estado_anterior='R';
+		sem_wait(tripu_mas_cercano->sem_tripu);
 
 		largo = list_size(bloqueado_suspendido);
 
@@ -675,7 +677,7 @@ void obtener_orden_input(){
 			break;
 
 		case OBTENER_BITACORA:
-
+/*
 			sem_getvalue(contador_tripulantes_espera_io,&a);
 			printf("cantidad esperando a pasar a bloq %d",a);
 			fflush(stdout);
@@ -686,6 +688,8 @@ void obtener_orden_input(){
 			sem_getvalue(contador_tripulantes_en_ready,&a);
 			printf("cantidad EN readdy %d",a);
 			fflush(stdout);
+
+			*/
 			iniciar_escucha_sabotaje();
 			/*
 			if(parser_consola[1] == NULL) {
@@ -850,9 +854,24 @@ void obtener_orden_input(){
 			fflush(stdout);
 
 			sem_getvalue(multitarea_disponible,&a);
-			printf("cantidad multitarea disponible %d",a);
+			printf("cantidad multitarea disponible %d \n",a);
 			fflush(stdout);
 
+
+			largo = list_size(lista_tripulantes);
+			for(int i=0;i<largo;i++){
+				tripulante = list_get(lista_tripulantes,i);
+				printf("id del tripulante %d  ,",tripulante->id_tripulante);
+				printf("estado anterior %c",tripulante->estado_anterior);
+
+				sem_getvalue(tripulante->sem_planificacion,&a);
+				printf("sem principal %d  ,",a);
+
+				sem_getvalue(tripulante->sem_tripu,&a);
+				printf("sem secundaria %d \n",a);
+				fflush(stdout);
+
+			}
 			break;
 
 
