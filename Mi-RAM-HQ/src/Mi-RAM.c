@@ -799,6 +799,14 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						memoria_libre_total += tamanio_patota;
 						memoria_libre_total += tabla_patota_buscada->tamanio_tareas;
+
+						list_clean_and_destroy_elements(tabla_patota_buscada->direccion_tripulantes, free);
+						list_clean_and_destroy_elements(tabla_patota_buscada->paginas, free);
+						free(tabla_patota_buscada->patota);
+						int indice = obtener_indice(tablas_paginas, tabla_patota_buscada);
+						list_remove(tablas_paginas, indice);
+						free(tabla_patota_buscada);
+
 					}
 
 
