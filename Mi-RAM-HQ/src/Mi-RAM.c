@@ -367,6 +367,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				free(patota_recibida->tareas_de_patota);
 				free(patota_recibida->posiciones);
 				free(patota_recibida);
+				free(tareas_de_la_patota->tareas);
+				free(tareas_de_la_patota);
 				break;
 
 			case ACTUALIZAR_UBICACION_TRIPULANTE:
@@ -707,30 +709,20 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 
 					sem_wait(mutex_segmentos);
-					list_remove(patota_buscada->segmentos, indice);
+					t_segmento* segmento = list_remove(patota_buscada->segmentos, indice);
 					sem_post(mutex_segmentos);
 
 					liberar_segmento(segmento_buscado);
-
 
 					// Tienen que haber 2 segmentos en una patota, los cuales son el PCB y las TAREAS
 					if(list_size(patota_buscada->segmentos) == 2) {
 
 						list_clean_and_destroy_elements(patota_buscada->segmentos, (void*)liberar_segmento);
 
-						/*for(int i=0; i<list_size(patota_buscada->segmentos); i++) {
-
-							list_remove(patota_buscada->segmentos, i);
-							liberar_segmento(list_get(patota_buscada->segmentos, i));
-
-						}*/
-
-
 						int indice_patota = obtener_indice(tablas_segmentos, patota_buscada);
-						list_remove(tablas_segmentos, indice_patota);
-						//list_destroy(patota_buscada->segmentos);
-						free(patota_buscada->patota);
-						free(patota_buscada);
+						t_tabla_segmentos_patota* tabla_patota = list_remove(tablas_segmentos, indice_patota);
+						free(tabla_patota->patota);
+						free(tabla_patota);
 					}
 
 
@@ -842,16 +834,37 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				sleep(1);
 				printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
 				free(crear_segmento_sem);
+				free(crear_pagina_sem);
 				free(mutex_paginas);
 				free(mutex_segmentos);
 				free(memoria_principal);
 				printf("Memoria Principal liberada...\n");
 
+				if(esquema_elegido == 'S') {
+					for(int i=0; i<list_size(tablas_segmentos); i++) {
+
+
+						t_tabla_segmentos_patota* tabla_patota = list_remove(tablas_segmentos, i);
+
+						for(int j=0; j<list_size(tabla_patota->segmentos); j++){
+							t_segmento* segmento = list_remove(tabla_patota->segmentos, j);
+							free(segmento);
+						}
+						free(tabla_patota->segmentos);
+						free(tabla_patota);
+					}
+					free(tablas_segmentos);
+					for(int r=0; r<list_size(segmentos); r++) {
+						t_segmento* segmento = list_remove(segmentos, r);
+						free(segmento);
+					}
+					free(segmentos);
+				}
+
 				if(esquema_elegido == 'P') {
 					//free(area_swap);
 					//printf("Area de Swap liberada...\n\n");
 					list_destroy(tablas_paginas);
-					free(frames);
 				}
 
 				log_info(logger, "Se ha cerrado el programa de forma exitosa.\n");
