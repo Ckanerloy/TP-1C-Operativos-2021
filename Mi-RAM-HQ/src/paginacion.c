@@ -40,29 +40,6 @@ void inicializar_frames(void) {
 }
 
 
-t_pagina* obtener_pagina_disponible(t_list* paginas) {
-
-	bool esta_libre(void* pagina) {
-		return ((t_pagina*)pagina)->estado == LIBRE;
-	}
-	list_sort(paginas, menor_a_mayor_segun_num);
-	t_pagina* pagina_buscada = list_find(paginas, esta_libre);
-	return pagina_buscada;
-}
-
-
-int32_t obtener_frame_disponible(void) {
-	int32_t num_frame;
-	if(hay_frame_libre()) {
-		num_frame = obtener_frame_libre();
-		return num_frame;
-	}
-	else {
-		return frame_disponible_segun_algoritmo();
-	}
-}
-
-
 bool hay_frame_libre(void) {
 
 	for(int i=0; i<cantidad_frames; i++) {
@@ -81,6 +58,36 @@ int32_t obtener_frame_libre(void) {
 		}
 	}
 	return -1;
+}
+
+
+int32_t obtener_frame_disponible(void) {
+	int32_t num_frame;
+
+	if(hay_frame_libre()) {
+		num_frame = obtener_frame_libre();
+
+		log_info(logger,"El frame a asignar en memoria es el: %d", num_frame);
+		return num_frame;
+	}
+
+	else {
+
+		log_info(logger,"Todos los frames están ocupados, por lo que se aplicará el algoritmo de reemplazo dado por el archivo de Configuración.\n");
+
+		return frame_disponible_segun_algoritmo();
+	}
+}
+
+
+t_pagina* obtener_pagina_disponible(t_list* paginas) {
+
+	bool esta_libre(void* pagina) {
+		return ((t_pagina*)pagina)->estado == LIBRE;
+	}
+	list_sort(paginas, menor_a_mayor_segun_num);
+	t_pagina* pagina_buscada = list_find(paginas, esta_libre);
+	return pagina_buscada;
 }
 
 

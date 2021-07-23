@@ -108,5 +108,6 @@ void limpiar_parser(char** parser) {
 		free(parser[limpiador]);
 		limpiador++;
 	}
+	free(parser);
 }
 
