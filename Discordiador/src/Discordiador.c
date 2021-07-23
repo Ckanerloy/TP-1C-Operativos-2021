@@ -875,10 +875,10 @@ void obtener_orden_input(){
 			sem_getvalue(multitarea_disponible,&a);
 			printf("cantidad multitarea disponible %d \n",a);
 			fflush(stdout);
-
+			largo = list_size(lista_tripulantes);
 			for(recorrido=0; recorrido<largo; recorrido++){
 				tripulante=list_get(lista_tripulantes, recorrido);
-				printf("Tripulante: %d, estado: %d, io: %d \n", tripulante->id_tripulante, tripulante->estado, tripulante->puedo_ejecutar_io);
+				printf("Tripulante: %d, estado: %d, io: %d, CICLOS cpu %d \n", tripulante->id_tripulante, tripulante->estado, tripulante->puedo_ejecutar_io,tripulante->sem_tripu);
 			}
 
 			break;
