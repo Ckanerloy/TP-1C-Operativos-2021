@@ -902,22 +902,9 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 
 	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){ //NI Q SEA CUANDO LO ESTAS HACIENDO
 
-		//cambio de estado
-		//running_esperaIo
 		running_block(tripu);
-		//running_espera_io(tripu);
-
-
-		//sem_wait(tripu->sem_planificacion);
-
-		//CAMBIAR ESTADO A UNO NUEVO
-		//AGREGARTE A LA COLA IO
-		//TRABARTE CON SEM PLANI ??
 
 		enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
-
-
-
 
 	}
 
@@ -943,12 +930,16 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 		}
 
 	}
-	sem_post(bloqueado_disponible); //termino de hacer su io
+	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
+		sem_post(bloqueado_disponible);
+		tripu->puedo_ejecutar_io=0;
+	}
+	 //termino de hacer su io
 	//incrementas lugar libre de bloqueo
 	cambios_de_tarea(tripu);
 	//tripu->tarea_a_realizar=NULL;
 
-	if(!(tripu->fui_elegido_antes)){
+	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
 		if(tripu->tarea_a_realizar!=NULL){
 			block_ready(tripu);
 		}else{
@@ -1001,12 +992,14 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 			sem_post(tripu->mutex_expulsado);
 		}
 	}
-	sem_post(bloqueado_disponible); //termino de hacer su io
-
+	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
+		sem_post(bloqueado_disponible);
+		tripu->puedo_ejecutar_io=0;
+	}
 	cambios_de_tarea(tripu);
 	//tripu->tarea_a_realizar= NULL;
 
-	if(!(tripu->elegido_sabotaje)){
+	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
 		if(tripu->tarea_a_realizar!=NULL){
 			block_ready(tripu);
 		}else{
@@ -1052,11 +1045,14 @@ void descartar_basura(tripulante_plani* tripu) {
 			sem_post(tripu->mutex_expulsado);
 		}
 	}
-	sem_post(bloqueado_disponible); //termino de hacer su io
+	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
+		sem_post(bloqueado_disponible);
+		tripu->puedo_ejecutar_io=0;
+	}
 	cambios_de_tarea(tripu);
 	//tripu->tarea_a_realizar= NULL;
 
-	if(!(tripu->elegido_sabotaje)){
+	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
 		if(tripu->tarea_a_realizar != NULL){
 			block_ready(tripu);
 		}else{
@@ -1102,7 +1098,7 @@ void otras_tareas(tripulante_plani* tripu){
 
 	//tripu->tarea_a_realizar= NULL;
 
-	if(!(tripu->elegido_sabotaje)){
+	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
 			if(tripu->tarea_a_realizar!=NULL){
 				running_ready(tripu);
 			}else{

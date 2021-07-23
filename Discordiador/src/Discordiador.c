@@ -186,7 +186,7 @@ void iniciar_escucha_sabotaje(void){
 
 
 
-
+		//cuidado sin la lista esta vacia
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
 		printf("id asignado: %u",tripu_mas_cercano->id_tripulante);
@@ -200,6 +200,9 @@ void iniciar_escucha_sabotaje(void){
 			tripulante = list_get(lista_tripulantes,i);
 			if(tripulante->estado == 'B'){
 				tripulante->estado_anterior = 'B';
+				if(tripulante->puedo_ejecutar_io==1){
+					tripulante->puedo_ejecutar_io=0;
+				}
 				list_add(bloqueado_suspendido,tripulante);
 				actualizar_estado(tripulante, 'S');
 			}
@@ -251,7 +254,7 @@ void iniciar_escucha_sabotaje(void){
 
 
 		list_clean(bloqueado_suspendido);
-
+		sem_post(bloqueado_disponible);
 
 		//Vuelve a activar los hilos de planificacion
 /*
@@ -446,6 +449,7 @@ void obtener_orden_input(){
 			sem_post(planificacion_on_ready_running);
 			sem_post(planificion_rafaga);
 			sem_post(planificacion_on_io);
+
 			break;
 
 		case PAUSAR_PLANIFICACION:
@@ -856,20 +860,11 @@ void obtener_orden_input(){
 			terminar_programa(config, logger);
 			sem_post(finalizar_programa);
 */
-			sem_getvalue(contador_tripulantes_espera_io,&a);
-			printf("cantidad esperando a pasar a bloq %d",a);
-			fflush(stdout);
-
-			sem_getvalue(contador_tripulantes_en_new,&a);
-			printf("cantidad EN NEW %d",a);
-			fflush(stdout);
 
 
-			sem_getvalue(contador_tripulantes_en_ready,&a);
-			printf("cantidad EN readdy sem %d",a);
-			fflush(stdout);
 
-			largo = list_size(lista_tripulantes);
+
+			largo = queue_size(cola_ready);
 
 
 
