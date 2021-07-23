@@ -14,7 +14,7 @@ algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo) {
 	//RR
 	if(strcmp(algoritmo,"RR") == 0)
 	{
-		algoritmo_elegido = RR;
+		algoritmo_elegido = RR; // @suppress("Symbol is not resolved")
 	}
 	return algoritmo_elegido;
 }
@@ -387,11 +387,17 @@ void esperandoIo_bloqueado(){
 		tripulante_a_block= queue_pop(cola_io);
 		sem_post(mutex_cola_io);
 
-		tripulante_a_block->puedo_ejecutar_io=1;
+		if(tripulante_a_block->expulsado){
+			sem_post(bloqueado_disponible);
+		}else{
+			tripulante_a_block->puedo_ejecutar_io=1;
+		}
+
 
 		sem_wait(mutex_io);
 		if(new_ready_off){
 			sem_post(mutex_io);
+
 			sem_wait(planificacion_on_io);
 
 		}else{
@@ -555,7 +561,7 @@ void block_exit(tripulante_plani* tripu){
 	sem_wait(mutex_exit);
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
-
+	tripu->puedo_ejecutar_io=0;
 	actualizar_estado(tripu, 'T');
 }
 
@@ -930,6 +936,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 		sem_wait(tripu->mutex_expulsado);
 		if(tripu->expulsado){
 			sem_post(tripu->mutex_expulsado);
+			sem_post(bloqueado_disponible);
 			return;
 		}else{
 			sem_post(tripu->mutex_expulsado);
@@ -988,6 +995,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 		sem_wait(tripu->mutex_expulsado);
 		if(tripu->expulsado){
 			sem_post(tripu->mutex_expulsado);
+			sem_post(bloqueado_disponible);
 			return;
 		}else{
 			sem_post(tripu->mutex_expulsado);
@@ -1037,6 +1045,7 @@ void descartar_basura(tripulante_plani* tripu) {
 
 		sem_wait(tripu->mutex_expulsado);
 		if(tripu->expulsado){
+			sem_post(bloqueado_disponible);
 			sem_post(tripu->mutex_expulsado);
 			return;
 		}else{

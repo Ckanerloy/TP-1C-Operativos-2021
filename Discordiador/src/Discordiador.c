@@ -477,20 +477,35 @@ void obtener_orden_input(){
 			break;
 
 		case INICIAR_PATOTA:
+
 			// TODO
-			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
+			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 1|1
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 7|7 2|0
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 5|5 5|5
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
 
-			// PRUEBAS PARA DISCORDIADOR
+			//ESTABILIDAD GENERAL:
+
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota1.txt 9|9 0|0 5|5
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota2.txt 4|0 2|6 8|2
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota3.txt 2|3 5|8 5|3
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota4.txt 0|9 4|4 9|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota5.txt 0|2 9|6 3|5
+
+			//USO cpu
+			// INICIAR_PATOTA 2 /home/utnso/tareas/CPU_Patota1.txt 1|1
+			// INICIAR_PATOTA 1 /home/utnso/tareas/CPU_Patota2.txt 1|0
+
+			//IO
+			//> INICIAR_PATOTA 2 /home/utnso/tareas/IO_Patota1.txt 1|1
+			// INICIAR_PATOTA 1 /home/utnso/tareas/IO_Patota2.txt 1|0
+			// INICIAR_PATOTA 1 /home/utnso/tareas/IO_Patota3.txt 0|1
+
+			// INICIAR_PATOTA 1 /home/utnso/tareas/CPU_Patota3.txt 0|1
+			//
+			//
 
 			// PRUEBAS PARA MI RAM
 			// Ej: INICIAR_PATOTA 4 /home/utnso/tareas/SEG_PatotaA.txt
@@ -854,7 +869,9 @@ void obtener_orden_input(){
 			printf("cantidad EN readdy sem %d",a);
 			fflush(stdout);
 
-			largo = queue_size(cola_ready);
+			largo = list_size(lista_tripulantes);
+
+
 
 
 			printf("cantidad EN readdy largo size %d",largo);
@@ -864,7 +881,10 @@ void obtener_orden_input(){
 			printf("cantidad multitarea disponible %d \n",a);
 			fflush(stdout);
 
-
+			for(recorrido=0; recorrido<largo; recorrido++){
+				tripulante=list_get(lista_tripulantes, recorrido);
+				printf("Tripulante: %d, estado: %d, io: %d \n", tripulante->id_tripulante, tripulante->estado, tripulante->puedo_ejecutar_io);
+			}
 
 			break;
 
