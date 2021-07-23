@@ -1,5 +1,4 @@
 #include "planificador.h"
-#include <sys/types.h>
 
 algoritmo_planificacion mapeo_algoritmo_planificacion(char* algoritmo) {
 
@@ -826,27 +825,27 @@ void realizar_tarea(tripulante_plani* tripu){
 
 	switch(tripu->tarea_a_realizar->operacion) {
 
-		case GENERAR_OXIGENO:
+		case GENERAR_OXIGENO: // @suppress("Symbol is not resolved")
 			generar_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
-		case CONSUMIR_OXIGENO:
+		case CONSUMIR_OXIGENO: // @suppress("Symbol is not resolved")
 			consumir_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
-		case GENERAR_COMIDA:
+		case GENERAR_COMIDA: // @suppress("Symbol is not resolved")
 			generar_insumo("Comida.ims", 'C', tripu);
 			break;
 
-		case CONSUMIR_COMIDA:
+		case CONSUMIR_COMIDA: // @suppress("Symbol is not resolved")
 			consumir_insumo("Comida.ims",'C', tripu);
 			break;
 
-		case GENERAR_BASURA:
+		case GENERAR_BASURA: // @suppress("Symbol is not resolved")
 			generar_insumo("Basura.ims", 'B', tripu);
 			break;
 
-		case DESCARTAR_BASURA:
+		case DESCARTAR_BASURA: // @suppress("Symbol is not resolved")
 			descartar_basura(tripu);
 			break;
 
@@ -928,7 +927,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 		if(tripu->tarea_a_realizar!=NULL){
 			block_ready(tripu);
 		}else{
-			block_exit(tripu);
+			//block_exit(tripu);
 			terminar_tripulante(tripu);
 		}
 	}
@@ -985,7 +984,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 		if(tripu->tarea_a_realizar!=NULL){
 			block_ready(tripu);
 		}else{
-			block_exit(tripu);
+			//block_exit(tripu);
 			terminar_tripulante(tripu);
 		}
 	}
@@ -1034,7 +1033,7 @@ void descartar_basura(tripulante_plani* tripu) {
 		if(tripu->tarea_a_realizar != NULL){
 			block_ready(tripu);
 		}else{
-			block_exit(tripu);
+			//block_exit(tripu);
 			terminar_tripulante(tripu);
 		}
 	}

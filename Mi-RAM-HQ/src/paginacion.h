@@ -38,16 +38,16 @@ typedef struct {
 
 
 typedef struct {
-	int32_t id_tripulante;
-	int32_t direccion_logica;
-} t_dl_tripulante;
+	int32_t estado;
+	int32_t pagina;
+	int32_t espacio_libre;
+} frame_swap;
 
 
 typedef struct {
-	t_pagina* pagina;
-	t_tabla_paginas_patota* tabla;
-} estructura_CLOCK;
-
+	int32_t id_tripulante;
+	int32_t direccion_logica;
+} t_dl_tripulante;
 
 
 t_list* tablas_paginas;
@@ -56,7 +56,7 @@ int32_t contador_pagina;
 int32_t puntero_inicio;					// Puntero que indica cuando inicia la siguiente estructura
 uint32_t cantidad_frames;
 frame** frames;
-estado* frames_swap;
+frame_swap** frames_swap;
 
 // Inicio de Paginación
 t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* patota, int32_t tamanio_total, int32_t cantidad_tripulantes);
@@ -80,7 +80,7 @@ void* serializar_tripulante(t_tcb* tripulante, uint32_t tamanio);
 
 t_tabla_paginas_patota* buscar_tabla_patota(uint32_t id_patota);
 int32_t buscar_pagina_por_id(t_tabla_paginas_patota* tabla_patota_buscada, uint32_t id_tripulante_a_buscar);
-int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada);
+int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada, codigo_operacion operacion);
 int32_t buscar_frame(int32_t nro_pagina, t_list* paginas);
 t_pagina* buscar_pagina(int32_t nro_pagina, t_list* paginas);
 
