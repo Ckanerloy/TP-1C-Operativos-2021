@@ -686,7 +686,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					int32_t id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
 
 					sem_wait(mutex_paginas);
-					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante_paginacion(direccion_fisica_tareas, id_tarea_a_buscar_del_tripu, tabla_patota_buscada->tamanio_tareas);
+					t_tarea* tarea_buscada = buscar_proxima_tarea_del_tripulante_paginacion(direccion_fisica_tareas, id_tarea_a_buscar_del_tripu, tabla_patota_buscada->tamanio_tareas, tabla_patota_buscada);
 					sem_post(mutex_paginas);
 
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
@@ -713,7 +713,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					sem_wait(mutex_paginas);
 					actualizar_tripulante_memoria(tripulante_con_tarea, direccion_fisica);
-					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
+					//actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 					sem_post(mutex_paginas);
 				}
 

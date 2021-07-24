@@ -173,7 +173,6 @@ int32_t aplicar_LRU(void) {
 	int32_t espacio_ocupado = frames[frame_a_buscar]->puntero_frame;
 
 	memcpy(buffer, memoria_principal + inicio_frame, espacio_ocupado);
-	mem_hexdump(buffer, espacio_ocupado);
 
 	uint32_t desplazamiento = inicio_frame + espacio_ocupado;
 	printf("DESPLAZAMIENTO LRU: %u\n", desplazamiento);
@@ -298,8 +297,6 @@ int32_t aplicar_CLOCK() {
 
 	memcpy(buffer, memoria_principal + inicio_frame, espacio_ocupado);
 
-	mem_hexdump(buffer, espacio_ocupado);
-
 	uint32_t desplazamiento = inicio_frame + espacio_ocupado;
 	printf("DESPLAZAMIENTO CLOCK: %u\n", desplazamiento);
 
@@ -345,7 +342,6 @@ int guardar_pagina_en_swap(void* buffer, int32_t numero_pagina, int32_t espacio_
 
 	memcpy(stream, buffer, espacio_ocupado);
 	stream += espacio_ocupado;
-
 	memset(stream, '\0', TAMANIO_PAGINA - espacio_ocupado);
 
 	printf("FRAME ELEGIDO: %u\n", frame_libre);
@@ -398,8 +394,6 @@ void* leer_frame_en_swap(int32_t numero_frame, int32_t espacio_ocupado) {
 	void* inicio_area_swap = (void*) area_swap + (numero_frame * TAMANIO_PAGINA);
 
 	memcpy(buffer, inicio_area_swap, espacio_ocupado);
-
-	//mem_hexdump(buffer, TAMANIO_PAGINA);
 
 	log_info(logger, "Se recuperó los datos de Swap.\n");
 	return buffer;

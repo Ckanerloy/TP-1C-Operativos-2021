@@ -90,7 +90,9 @@ t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica);
 void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica);
 void actualizar_referencia(t_list* paginas, uint32_t direccion_logica);
 
-t_tarea* buscar_proxima_tarea_del_tripulante_paginacion(uint32_t direccion_fisica, uint32_t id_tarea_buscada, uint32_t tamanio_tareas);
+void* obtener_tareas_de_memoria(uint32_t direccion_fisica, uint32_t tamanio_tareas, t_tabla_paginas_patota* tabla_patota);
+char* encontrar_tareas_en_memoria(uint32_t direccion_fisica, uint32_t tamanio_tareas, t_tabla_paginas_patota* tabla_patota_buscada);
+t_tarea* buscar_proxima_tarea_del_tripulante_paginacion(uint32_t direccion_fisica, uint32_t id_tarea_buscada, uint32_t tamanio_tareas, t_tabla_paginas_patota* tabla_patota_buscada);
 
 
 // Otras funciones
