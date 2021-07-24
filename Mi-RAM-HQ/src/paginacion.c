@@ -384,7 +384,7 @@ int32_t buscar_pagina_por_id(t_tabla_paginas_patota* tabla_patota_buscada, uint3
 }
 
 
-int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada, codigo_operacion operacion) {
+int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada) {
 	printf("\nDireccion Lógica: %u\n", direccion_logica);
 
 	int32_t numero_pag = direccion_logica / TAMANIO_PAGINA;
@@ -396,26 +396,36 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 
 		int32_t inicio = pagina_buscada->numero_de_frame * TAMANIO_PAGINA;
 
-		if(operacion != PEDIR_UBICACION_TRIPULANTE) {
-			pagina_buscada->tiempo_referencia = get_timestamp();
-			pagina_buscada->U = 1;
-		}
-
 		printf("Direccion Física: %u\n\n", inicio+resto);
 
 		return inicio + resto;
 	}
 	else {
+		//TODO
 		log_info(logger, "La página del tripulante no se encuentra cargada en Memoria Principal.\n");
 		// Como la pagina existe (ya que esta en la lista de las paginas de la patota) y tiene P = 0
 		//		tengo que traerla desde memoria SWAP, y reemplazarla por el frame disponible que me otorge el algoritmo
 		int32_t frame_disponible = frame_disponible_segun_algoritmo();
-		// traer desde memoria virtual a este frame_disponible
-		//int offset = UBICACION DEL DATO EN FRAME DE SWAP
 
-		//int32_t nueva_direccion_fisica = frame_disponible * TAMANIO_PAGINA + resto;
-		//return nueva_direccion_fisica;
-		return -1;
+		printf("FRAME DISPONIBLE: %u\n", frame_disponible);
+
+
+		int32_t espacio_buscado;
+		void* buffer_recuperado = recuperar_en_swap(pagina_buscada->numero_de_pagina, &espacio_buscado);
+
+		printf("ESPACIO OCUPADO: %u\n", espacio_buscado);
+
+		pagina_buscada->numero_de_frame = frame_disponible;
+		pagina_buscada->P = 1;
+		pagina_buscada->U = 1;
+
+		// traer desde memoria virtual a este frame_disponible
+		int32_t inicio_frame = frame_disponible * TAMANIO_PAGINA;
+		memcpy(memoria_principal + inicio_frame, buffer_recuperado, TAMANIO_PAGINA);
+
+
+		printf("Direccion Física: %u\n\n", inicio_frame + resto);
+		return inicio_frame + resto;
 	}
 	//int32_t numero_de_frame = buscar_frame(entera, tabla_patota_buscada->paginas);
 }
@@ -430,27 +440,6 @@ t_pagina* buscar_pagina(int32_t nro_pagina, t_list* paginas) {
 	t_pagina* pagina = list_find(paginas, se_encuentra_pagina);
 	return pagina;
 }
-
-
-/*
-int32_t buscar_frame(int32_t nro_pagina, t_list* paginas){
-
-	bool se_encuentra_pagina(void* pagina){
-		return ((t_pagina*)pagina)->numero_de_pagina == nro_pagina;
-	}
-
-	t_pagina* pagina = list_find(paginas, se_encuentra_pagina);
-
-	if(pagina->P == 1) {
-		return pagina->numero_de_frame;
-	}
-	else {
-		log_warning(logger, "La página no se encuentra cargada en Memoria Principal.\n");
-
-		int32_t frame_disponible = frame_disponible_segun_algoritmo();
-		return frame_disponible;
-	}
-}*/
 
 
 
@@ -533,6 +522,14 @@ void* obtener_tareas_de_memoria(uint32_t direccion_fisica, uint32_t tamanio_tare
 
 	memcpy(buffer, inicio, tamanio_tareas);
 
+/*
+ * 		Tengo que ir leyendo todos los frames en donde esta la tarea
+ * 		if(tamanio_tareas > 32) {
+ * 			quiere decir que las tareas esta en este frame que recupere
+ * 		}
+ *
+ */
+
 	return buffer;
 }
 
@@ -575,6 +572,8 @@ char* encontrar_tareas_en_memoria(uint32_t direccion_fisica, uint32_t tamanio_ta
 
 	memcpy(tareas, buffer, tamanio_tareas);
 
+	printf("TAREAS: \n%s\n", tareas);
+
 	free(buffer);
 	return tareas;
 }
@@ -587,20 +586,32 @@ void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica)
 	memcpy(inicio + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
 	desplazamiento += sizeof(tripulante->id_tripulante);
 
+	printf("ID TRIPULANTE: %u\n", tripulante->id_tripulante);
+
 	memcpy(inicio + desplazamiento, &(tripulante->estado_tripulante), sizeof(tripulante->estado_tripulante));
 	desplazamiento += sizeof(tripulante->estado_tripulante);
+
+	printf("ESTADO TRIPULANTE: %c\n", tripulante->estado_tripulante);
 
 	memcpy(inicio + desplazamiento, &(tripulante->posicion_x), sizeof(tripulante->posicion_x));
 	desplazamiento += sizeof(tripulante->posicion_x);
 
+	printf("POSICION X: %u\n", tripulante->posicion_x);
+
 	memcpy(inicio + desplazamiento, &(tripulante->posicion_y), sizeof(tripulante->posicion_y));
 	desplazamiento += sizeof(tripulante->posicion_y);
+
+	printf("POSICION Y: %u\n", tripulante->posicion_y);
 
 	memcpy(inicio + desplazamiento, &(tripulante->id_tarea_a_realizar), sizeof(tripulante->id_tarea_a_realizar));
 	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
 
+	printf("ID TAREA A REALIZAR: %u\n", tripulante->id_tarea_a_realizar);
+
 	memcpy(inicio + desplazamiento, &(tripulante->puntero_PCB), sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);
+
+	printf("PUNTERO PCB: %u\n", tripulante->puntero_PCB);
 }
 
 
@@ -615,6 +626,7 @@ void actualizar_referencia(t_list* paginas, uint32_t direccion_logica) {
 
 	t_pagina* pagina_a_actualizar = list_find(paginas, misma_pagina);
 	pagina_a_actualizar->tiempo_referencia = get_timestamp();
+	pagina_a_actualizar->U = 1;
 }
 
 

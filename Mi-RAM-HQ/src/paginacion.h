@@ -80,7 +80,7 @@ void* serializar_tripulante(t_tcb* tripulante, uint32_t tamanio);
 
 t_tabla_paginas_patota* buscar_tabla_patota(uint32_t id_patota);
 int32_t buscar_pagina_por_id(t_tabla_paginas_patota* tabla_patota_buscada, uint32_t id_tripulante_a_buscar);
-int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada, codigo_operacion operacion);
+int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada);
 int32_t buscar_frame(int32_t nro_pagina, t_list* paginas);
 t_pagina* buscar_pagina(int32_t nro_pagina, t_list* paginas);
 

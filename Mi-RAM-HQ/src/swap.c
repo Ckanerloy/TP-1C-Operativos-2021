@@ -1,5 +1,6 @@
 #include "swap.h"
 
+
 void inicializar_swap(void) {
 
 	if((TAMANIO_SWAP % TAMANIO_PAGINA) != 0) {
@@ -55,6 +56,7 @@ void* iniciar_area_swap(void) {
 	}
 }
 
+
 // Necesitamos ayuda por file system TODO
 void escribir_en_swap(char* buffer){
 	sem_wait(sem_swap);
@@ -71,6 +73,18 @@ void escribir_en_swap(char* buffer){
 }
 
 
+// Devuelvo el numero de frame
+int32_t buscar_por_pagina(int32_t numero_pagina) {
+
+	for(int c=0; c<cantidad_paginas_swap; c++) {
+		if(frames_swap[c]->pagina == numero_pagina) {
+			return c;
+		}
+	}
+	return -1;
+}
+
+
 int32_t obtener_frame_libre_swap(void) {
 
 	for(int frame_disponible=0; frame_disponible < cantidad_paginas_swap; frame_disponible++) {
@@ -79,7 +93,7 @@ int32_t obtener_frame_libre_swap(void) {
 			return frame_disponible;
 		}
 	}
-	log_info(logger, "No hay frames disponibles en Swap.\n");
+	log_error(logger, "No hay frames disponibles en Swap.\n");
 	return -1;
 }
 
@@ -128,11 +142,12 @@ int32_t aplicar_LRU(void) {
 			pagina_obtenida = list_get(tabla->paginas, j);
 
 			if(pagina_obtenida->tiempo_referencia < tiempo_mas_viejo){
-				tiempo_mas_viejo = pagina_obtenida->tiempo_referencia;
-				tabla_a_devolver = tabla;
-				posicion = j;
+				if(pagina_obtenida->P == 1){
+					tiempo_mas_viejo = pagina_obtenida->tiempo_referencia;
+					tabla_a_devolver = tabla;
+					posicion = j;
+				}
 			}
-
 		}
 	}
 
@@ -158,6 +173,7 @@ int32_t aplicar_LRU(void) {
 	int32_t espacio_ocupado = TAMANIO_PAGINA - frames[frame_a_buscar]->espacio_libre;
 
 	memcpy(buffer, memoria_principal + inicio_frame, espacio_ocupado);
+	mem_hexdump(buffer, espacio_ocupado);
 
 	uint32_t desplazamiento = inicio_frame + espacio_ocupado;
 	printf("DESPLAZAMIENTO LRU: %u\n", desplazamiento);
@@ -173,15 +189,12 @@ int32_t aplicar_LRU(void) {
 	 *	Guardo en SWAP solamente el buffer (void*) y el número de página, asi que cuando tenga que retornarlo, lo
 	 *		busco por el número de página (obtenido por la Dirección Lógica) y retorno el buffer (void*) para guardarlo en un frame disponible
 	 */
-	 guardar_pagina_en_swap(buffer, pagina_obtenida->numero_de_pagina, espacio_ocupado);
+	 guardar_pagina_en_swap(buffer, pagina_a_remover->numero_de_pagina, espacio_ocupado);
 
 
 	memoria_libre_total += (TAMANIO_PAGINA - frames[frame_a_buscar]->espacio_libre);
 
 	liberar_frame(frame_a_buscar);
-
-
-
 
 	frame_libre = frame_a_buscar;
 
@@ -285,6 +298,8 @@ int32_t aplicar_CLOCK() {
 
 	memcpy(buffer, memoria_principal + inicio_frame, espacio_ocupado);
 
+	mem_hexdump(buffer, espacio_ocupado);
+
 	uint32_t desplazamiento = inicio_frame + espacio_ocupado;
 	printf("DESPLAZAMIENTO CLOCK: %u\n", desplazamiento);
 
@@ -299,7 +314,7 @@ int32_t aplicar_CLOCK() {
 	 *	Guardo en SWAP solamente el buffer (void*) y el número de página, asi que cuando tenga que retornarlo, lo
 	 *		busco por el número de página (obtenido por la Dirección Lógica) y retorno el buffer (void*) para guardarlo en un frame disponible
 	 */
-	 guardar_pagina_en_swap(buffer, pagina_obtenida->numero_de_pagina, espacio_ocupado);
+	guardar_pagina_en_swap(buffer, pagina_obtenida->numero_de_pagina, espacio_ocupado);
 
 
 	memoria_libre_total += (TAMANIO_PAGINA - frames[frame_a_buscar]->espacio_libre);
@@ -326,144 +341,67 @@ int guardar_pagina_en_swap(void* buffer, int32_t numero_pagina, int32_t espacio_
 	pagina_swap->numero_de_frame = frame_libre;
 	pagina_swap->tiempo_referencia = get_timestamp();
 
-	int32_t inicio = frame_libre * TAMANIO_PAGINA;
-	memcpy(area_swap + inicio, buffer, espacio_ocupado);
-	area_swap += espacio_ocupado;
-	memset(area_swap, '\n', TAMANIO_PAGINA - espacio_ocupado);
+	void* stream = (void*) area_swap + (frame_libre * TAMANIO_PAGINA);
 
+	memcpy(stream, buffer, espacio_ocupado);
+	stream += espacio_ocupado;
+
+	memset(stream, '\0', TAMANIO_PAGINA - espacio_ocupado);
+
+	printf("FRAME ELEGIDO: %u\n", frame_libre);
 	frames_swap[frame_libre]->pagina = pagina_swap->numero_de_pagina;
+	printf("PAGINA GUARDADA: %u\n", frames_swap[frame_libre]->pagina);
+
+
 	frames_swap[frame_libre]->estado = OCUPADO;
 	frames_swap[frame_libre]->espacio_libre = TAMANIO_PAGINA - espacio_ocupado;
+	printf("ESPACIO LIBRE FRAME SWAP: %u\n", frames_swap[frame_libre]->espacio_libre);
 
 	list_add(paginas_swap, pagina_swap);
 
-	if(msync(area_swap, espacio_ocupado, MS_SYNC) < 0) {
-
-		if(logger->is_active_console == false){
-			logger->is_active_console = true;
-		}
+	if(msync(area_swap, TAMANIO_SWAP, MS_SYNC) < 0) {
 		log_error(logger,"[msync]Error al volcar los cambios a Swap.\n");
 		return -1;
 
 	}else {
 
-		if(logger->is_active_console == false){
-			logger->is_active_console = true;
-		}
 		log_info(logger,"[msync]Se agregó la pagina en Swap exitosamente.\n");
 	}
+
 	return 0;
 }
 
 
+void* recuperar_en_swap(int32_t numero_pagina, int32_t *espacio_usado) {
 
-/*
-int guardarPaginaEnSwapNueva(nombre* nombreRestaurante,uint32_t idPedido,nombre* nombrePlato,int cantidad){
-	PedidoSwap* pedido = verificarPedidoSwap(idPedido,nombreRestaurante);
-	ContenidoPaginaSwap* contenido = buscarPaginaEnPedidoSwap(pedido,nombrePlato->nombre);
-	if(contenido){
+	int32_t numero_frame = buscar_por_pagina(numero_pagina);
 
-		if(logger->is_active_console == false){
-			logger->is_active_console = true;
-		}
-		log_error(logger,"La pagina %s ya se encuentra cargada en memoria",contenido->nombrePlato);
-	}else{
-		int marco = buscarMarcoLibre();
-		Pagina* pagina = malloc(sizeof(Pagina));
-		pagina->frame = marco;
-		pagina->P = 0;
-		pagina->U = 1;
-		pagina->M = 0;
-		pagina->nroPagina = contadorPagina;
-
-		ContenidoPaginaSwap* contenidoPag = malloc(sizeof(ContenidoPaginaSwap));
-		contenidoPag->cantTotal = cantidad;
-		contenidoPag->cantLista = 0;
-		contenidoPag->nroPagina = contadorPagina;
-		char* nombre = string_duplicate(nombrePlato->nombre);
-		strcpy(contenidoPag->nombrePlato,nombrePlato->nombre);
-
-		char* cantTotal = string_itoa(cantidad);
-		char* cantLista = string_itoa(0);
-		char* paginaACopiar = string_new();
-
-		string_append(&paginaACopiar,cantTotal);
-		string_append(&paginaACopiar,",");
-		string_append(&paginaACopiar,cantLista);
-		string_append(&paginaACopiar,",");
-		string_append(&paginaACopiar,nombre);
-
-		pthread_mutex_lock(&swapPagina);
-		void* stream = mapeo + (tamanioPagina*marco);
-		memcpy(stream,paginaACopiar,strlen(paginaACopiar));
-		stream += strlen(paginaACopiar);
-		memset(stream, '\0', tamanioPagina - strlen(paginaACopiar));
-
-		framesEnSwap[marco] = OCUPADO;
-		list_add(paginasEnSwap,pagina);
-		pthread_mutex_unlock(&swapPagina);
-
-		pthread_mutex_lock(&agregarPedidoSwap);
-		list_add(pedido->platos,contenidoPag);
-		pthread_mutex_unlock(&agregarPedidoSwap);
-
-
-		if(logger->is_active_console == false){
-			logger->is_active_console = true;
-		}
-		uint32_t posicionRelativa = (stream - mapeo) - strlen(paginaACopiar);
-		log_info(logger,"Se inserto en SWAP el plato: %s en el frame: %d, donde comienza en: %u",nombrePlato->nombre,marco,posicionRelativa);
-
-		if(msync(mapeo,strlen(paginaACopiar), MS_SYNC) < 0) {
-
-			if(logger->is_active_console == false){
-				logger->is_active_console = true;
-			}
-			log_error(logger,"[msync]Error al volcar los cambios a SWAP");
-			return -1;
-		}else{
-
-			if(logger->is_active_console == false){
-				logger->is_active_console = true;
-			}
-			log_info(logger,"[msync]Se agregó la pagina en SWAP exitosamente");
-		}
-
-		free(cantTotal);
-		free(cantLista);
-		free(nombre);
-		free(paginaACopiar);
+	if(numero_frame == -1) {
+		log_error(logger, "La página no está cargada en ningún frame de la Memoria Swap.\n");
+		return 0;
 	}
 
-	pthread_mutex_lock(&modifPagina);
-	contadorPagina++;
-	pthread_mutex_unlock(&modifPagina);
+	int32_t espacio_ocupado = TAMANIO_PAGINA - frames_swap[numero_frame]->espacio_libre;
 
-	return 0;
-}*/
+	void* buffer = leer_frame_en_swap(numero_frame, espacio_ocupado);
 
+	*espacio_usado = espacio_ocupado;
 
-/*
-char** leerPaginaGuardadaEnSwap(int frame){
-	pthread_mutex_lock(&leerPagina);
-	char* pagina = malloc(tamanioPagina + 1);
-	memset(pagina, '\0', tamanioPagina + 1);
-
-	void* stream = mapeo + (tamanioPagina*frame);
-	memcpy(pagina,stream,tamanioPagina);
-	pthread_mutex_unlock(&leerPagina);
-
-	char** separarPagina = string_split(pagina,",");
-
-	if(logger->is_active_console == false){
-		logger->is_active_console = true;
-	}
-	log_info(logger,"Se procede a leer en SWAP la página en el frame %d",frame);
-	//printf("Cantidad total: %s\n Cantidad lista: %s\n Nombre plato: %s\n\n",separarPagina[0],separarPagina[1],separarPagina[2]);
-
-	free(pagina);
-	return separarPagina;
-}*/
+	return buffer;
+}
 
 
+void* leer_frame_en_swap(int32_t numero_frame, int32_t espacio_ocupado) {
+
+	void* buffer = malloc(espacio_ocupado);
+
+	void* inicio_area_swap = (void*) area_swap + (numero_frame * TAMANIO_PAGINA);
+
+	memcpy(buffer, inicio_area_swap, espacio_ocupado);
+
+	//mem_hexdump(buffer, TAMANIO_PAGINA);
+
+	log_info(logger, "Se recuperó los datos de Swap.\n");
+	return buffer;
+}
 

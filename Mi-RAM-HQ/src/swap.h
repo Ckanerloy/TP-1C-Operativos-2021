@@ -34,5 +34,8 @@ int32_t aplicar_CLOCK(void);
 
 int guardar_pagina_en_swap(void* buffer, int32_t numero_pagina, int32_t espacio_ocupado);
 
+void* recuperar_en_swap(int32_t numero_pagina, int32_t* espacio_usado);
+
+void* leer_frame_en_swap(int32_t numero_frame, int32_t espacio_ocupado);
 
 #endif /* SWAP_H_ */
