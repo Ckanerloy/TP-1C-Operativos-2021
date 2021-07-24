@@ -450,7 +450,10 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 
 		// traer desde memoria virtual a este frame_disponible
 		int32_t inicio_frame = frame_disponible * TAMANIO_PAGINA;
-		memcpy(memoria_principal + inicio_frame, buffer_recuperado, TAMANIO_PAGINA);
+
+		printf("INICIO_FRAME : %u\n", inicio_frame);
+
+		memcpy(memoria_principal + inicio_frame, buffer_recuperado, espacio_buscado);
 
 		actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 

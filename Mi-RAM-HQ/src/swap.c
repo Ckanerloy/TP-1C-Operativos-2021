@@ -342,7 +342,7 @@ int guardar_pagina_en_swap(void* buffer, int32_t numero_pagina, int32_t espacio_
 
 	memcpy(stream, buffer, espacio_ocupado);
 	stream += espacio_ocupado;
-	memset(stream, '\0', TAMANIO_PAGINA - espacio_ocupado);
+	//memset(stream, '\0', TAMANIO_PAGINA - espacio_ocupado -1 );
 
 	printf("FRAME ELEGIDO: %u\n", frame_libre);
 	frames_swap[frame_libre]->pagina = pagina_swap->numero_de_pagina;
