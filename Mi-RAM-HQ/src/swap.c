@@ -107,13 +107,13 @@ int32_t frame_disponible_segun_algoritmo(void) {
 	if(algoritmo_elegido == LRU) {
 		frame = aplicar_LRU();
 
-		log_info(logger,"El frame a asignar en memoria es el: %d", frame);
+		log_info(logger,"El frame a asignar en memoria mediante LRU es el: %d", frame);
 		return frame;
 	}
 	else if(algoritmo_elegido == CLOCK) {
 		frame = aplicar_CLOCK();
 
-		log_info(logger,"El frame a asignar en memoria es el: %d", frame);
+		log_info(logger,"El frame a asignar en memoria mediante CLOCK es el: %d", frame);
 		return frame;
 	}
 	else {
@@ -170,7 +170,7 @@ int32_t aplicar_LRU(void) {
 	uint32_t inicio_frame = frame_a_buscar * TAMANIO_PAGINA;
 	printf("INICIO FRAME EN LRU: %u\n", inicio_frame);
 
-	int32_t espacio_ocupado = TAMANIO_PAGINA - frames[frame_a_buscar]->espacio_libre;
+	int32_t espacio_ocupado = frames[frame_a_buscar]->puntero_frame;
 
 	memcpy(buffer, memoria_principal + inicio_frame, espacio_ocupado);
 	mem_hexdump(buffer, espacio_ocupado);
@@ -294,7 +294,7 @@ int32_t aplicar_CLOCK() {
 	uint32_t inicio_frame = frame_a_buscar * TAMANIO_PAGINA;
 	printf("INICIO FRAME EN CLOCK: %u\n", inicio_frame);
 
-	int32_t espacio_ocupado = TAMANIO_PAGINA - frames[frame_a_buscar]->espacio_libre;
+	int32_t espacio_ocupado = frames[frame_a_buscar]->puntero_frame;
 
 	memcpy(buffer, memoria_principal + inicio_frame, espacio_ocupado);
 

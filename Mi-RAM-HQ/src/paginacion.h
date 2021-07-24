@@ -33,7 +33,8 @@ typedef struct {
 	int32_t estado;						// Si el Frame esta LIBRE u OCUPADO
 	int32_t proceso;					// El Proceso o Patota que está ocupando dicho Frame
 	int32_t pagina;						// La página que tiene cargada dicho Frame
-	int32_t espacio_libre;
+	int32_t espacio_libre;				// El espacio libre del frame (para verificar si esta libre)
+	int32_t puntero_frame;				// Puntero que apunta el último byte usado del Frame
 } frame;
 
 

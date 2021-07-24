@@ -12,6 +12,7 @@ uint32_t get_timestamp(void) {
 void liberar_frame(uint32_t num_frame) {
 	frames[num_frame]->estado = LIBRE;
 	frames[num_frame]->espacio_libre = TAMANIO_PAGINA;
+	frames[num_frame]->puntero_frame = 0;
 	frames[num_frame]->pagina = -1;
 	frames[num_frame]->proceso = -1;
 }
@@ -192,14 +193,17 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 
 			if(frames[num_frame]->espacio_libre >= sobrante) {
 				printf("Espacio libre del frame antes de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame antes de guardar: %u\n", frames[num_frame]->puntero_frame);
 
 				memcpy(memoria_principal + inicio_frame, buffer + offset, sobrante);
 				offset += sobrante;
 				puntero_inicio += sobrante;
 
 				frames[num_frame]->espacio_libre -= sobrante;
+				frames[num_frame]->puntero_frame += sobrante;
 
 				printf("Espacio libre del frame despues de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame despues de guardar: %u\n", frames[num_frame]->puntero_frame);
 
 				if(frames[num_frame]->espacio_libre == 0) {
 					frames[num_frame]->estado = OCUPADO;
@@ -209,6 +213,7 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 			else {
 
 				printf("Espacio libre del frame antes de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame antes de guardar: %u\n", frames[num_frame]->puntero_frame);
 
 				memcpy(memoria_principal + inicio_frame, buffer + offset, frames[num_frame]->espacio_libre);
 				offset += frames[num_frame]->espacio_libre;
@@ -218,8 +223,11 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 
 				int32_t resto = sobrante - frames[num_frame]->espacio_libre;
 				frames[num_frame]->espacio_libre = 0;
+				frames[num_frame]->puntero_frame = TAMANIO_PAGINA;
 
 				printf("Espacio libre del frame despues de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame despues de guardar: %u\n", frames[num_frame]->puntero_frame);
+
 
 				printf("Resto a guardar: %u\n", resto);
 
@@ -244,14 +252,18 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 
 
 				printf("Espacio libre del frame antes de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame antes de guardar: %u\n", frames[num_frame]->puntero_frame);
+
 
 				memcpy(memoria_principal + inicio_frame, buffer + offset, resto);
 				offset += resto;
 				puntero_inicio += resto;
 
 				frames[num_frame]->espacio_libre -= resto;
+				frames[num_frame]->puntero_frame += resto;
 
 				printf("Espacio libre del frame despues de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame despues de guardar: %u\n", frames[num_frame]->puntero_frame);
 
 				if(frames[num_frame]->espacio_libre == 0) {
 					frames[num_frame]->estado = OCUPADO;
@@ -266,15 +278,18 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 			if(frames[num_frame]->espacio_libre == TAMANIO_PAGINA) {
 
 				printf("Espacio libre del frame antes de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame antes de guardar: %u\n", frames[num_frame]->puntero_frame);
 
 				memcpy(memoria_principal + inicio_frame, buffer + offset, TAMANIO_PAGINA);
 				offset += TAMANIO_PAGINA;
 				puntero_inicio += TAMANIO_PAGINA;
 				frames[num_frame]->espacio_libre = 0;
+				frames[num_frame]->puntero_frame = TAMANIO_PAGINA;
 				frames[num_frame]->estado = OCUPADO;
 				pagina_buscada->estado = OCUPADO;
 
 				printf("Espacio libre del frame despues de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame despues de guardar: %u\n", frames[num_frame]->puntero_frame);
 
 			}
 
@@ -283,6 +298,7 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 			else {
 
 				printf("Espacio libre del frame antes de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame antes de guardar: %u\n", frames[num_frame]->puntero_frame);
 
 				memcpy(memoria_principal + inicio_frame, buffer + offset, frames[num_frame]->espacio_libre);
 				offset += frames[num_frame]->espacio_libre;
@@ -292,8 +308,10 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 
 				int32_t resto = TAMANIO_PAGINA - frames[num_frame]->espacio_libre;
 				frames[num_frame]->espacio_libre = 0;
+				frames[num_frame]->puntero_frame = TAMANIO_PAGINA;
 
 				printf("Espacio libre del frame despues de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame despues de guardar: %u\n", frames[num_frame]->puntero_frame);
 
 				printf("Resto a guardar: %u\n", resto);
 
@@ -313,14 +331,17 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 				printf("Inicio del nuevo frame: %u\n", inicio_frame);
 
 				printf("Espacio libre del frame antes de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame antes de guardar: %u\n", frames[num_frame]->puntero_frame);
 
 				memcpy(memoria_principal + inicio_frame, buffer + offset, resto);
 				offset += resto;
 				puntero_inicio += resto;
 
 				frames[num_frame]->espacio_libre -= resto;
+				frames[num_frame]->puntero_frame += resto;
 
 				printf("Espacio libre del frame despues de guardar: %u\n", frames[num_frame]->espacio_libre);
+				printf("Puntero del frame despues de guardar: %u\n", frames[num_frame]->puntero_frame);
 
 
 				if(frames[num_frame]->espacio_libre == 0) {
