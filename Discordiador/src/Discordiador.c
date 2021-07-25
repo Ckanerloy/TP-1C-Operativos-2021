@@ -129,6 +129,7 @@ void iniciar_escucha_sabotaje(void){
 		dar_pulsos_off = 1;
 		sem_post(mutex_rafaga);
 
+		sleep(1);
 
 		largo = list_size(lista_tripulantes);
 		for(int i=0;i<largo;i++){
@@ -184,11 +185,7 @@ void iniciar_escucha_sabotaje(void){
 		posicion_sabotaje->posicion_y=10;
 
 
-		//HAY Q SACARLO DE LA LISTA AL MAS CERCANO
-		int largoaa=list_size(bloqueado_suspendido);
-		printf("largo lista %u",largoaa);
-		fflush(stdout);
-
+		//cuidado sin la lista esta vacia
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
 		printf("id asignado: %u",tripu_mas_cercano->id_tripulante);
@@ -202,11 +199,15 @@ void iniciar_escucha_sabotaje(void){
 			tripulante = list_get(lista_tripulantes,i);
 			if(tripulante->estado == 'B'){
 				tripulante->estado_anterior = 'B';
+				if(tripulante->puedo_ejecutar_io==1){
+					tripulante->puedo_ejecutar_io=0;
+					sem_post(bloqueado_disponible);
+				}
 				list_add(bloqueado_suspendido,tripulante);
 				actualizar_estado(tripulante, 'S');
 			}
 		}
-//
+
 
 
 		t_tarea* ayuda=malloc(sizeof(t_tarea));
@@ -219,7 +220,8 @@ void iniciar_escucha_sabotaje(void){
 		tripu_mas_cercano->tarea_auxiliar=ayuda;
 
 		actualizar_estado(tripu_mas_cercano, 'E');
-		sem_post(mutex_rafaga);
+
+		// TODO aca seria corre a sabotaje
 		tripu_mas_cercano->elegido_sabotaje=1;
 
 
@@ -232,11 +234,16 @@ void iniciar_escucha_sabotaje(void){
 		if(tripu_mas_cercano->estado_anterior=='R'){
 			sem_post(tripu_mas_cercano->sem_planificacion);
 		}else{
-			sem_post(tripu_mas_cercano->sem_tripu);
+			//sem_post(tripu_mas_cercano->sem_tripu);
 		}
 
 
 		sem_wait(termine_sabotaje);
+		// TODO aca mandar a mongo resolvi sabotaje
+		queue_clean(cola_ready);
+
+		tripu_mas_cercano->estado_anterior='R';
+	//	sem_wait(tripu_mas_cercano->sem_tripu);
 
 		largo = list_size(bloqueado_suspendido);
 
@@ -248,7 +255,6 @@ void iniciar_escucha_sabotaje(void){
 
 
 		list_clean(bloqueado_suspendido);
-
 
 		//Vuelve a activar los hilos de planificacion
 /*
@@ -432,6 +438,7 @@ void obtener_orden_input(){
 			sem_post(planificacion_on_ready_running);
 			sem_post(planificion_rafaga);
 			sem_post(planificacion_on_io);
+
 			break;
 
 		case PAUSAR_PLANIFICACION:
@@ -467,13 +474,16 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 1|1
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 1|1 2|0
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 5|5 5|5
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
 
 			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
 
 			// PRUEBAS PARA DISCORDIADOR
+
+			//ESTABILIDAD GENERAL:
+
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota1.txt 9|9 0|0 5|5
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota2.txt 4|0 2|6 8|2
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota3.txt 2|3 5|8 5|3
@@ -481,6 +491,22 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota5.txt 0|2 9|6 3|5
 
 			// PRUEBAS PARA SEGMENTACION
+
+			//USO cpu
+			// INICIAR_PATOTA 2 /home/utnso/tareas/CPU_Patota1.txt 1|1
+			// INICIAR_PATOTA 1 /home/utnso/tareas/CPU_Patota2.txt 1|0
+
+			//IO
+			//> INICIAR_PATOTA 2 /home/utnso/tareas/IO_Patota1.txt 1|1
+			// INICIAR_PATOTA 1 /home/utnso/tareas/IO_Patota2.txt 1|0
+			// INICIAR_PATOTA 1 /home/utnso/tareas/IO_Patota3.txt 0|1
+
+			// INICIAR_PATOTA 1 /home/utnso/tareas/CPU_Patota3.txt 0|1
+			//
+			//
+
+			// PRUEBAS PARA MI RAM
+
 			// Ej: INICIAR_PATOTA 4 /home/utnso/tareas/SEG_PatotaA.txt
 			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/SEG_PatotaB.txt
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/SEG_PatotaC.txt
@@ -674,6 +700,7 @@ void obtener_orden_input(){
 
 			sem_getvalue(contador_tripulantes_espera_io, &a);
 			printf("cantidad esperando a pasar a bloq %d", a);
+/*
 			fflush(stdout);
 
 			sem_getvalue(contador_tripulantes_en_new, &a);
@@ -682,7 +709,9 @@ void obtener_orden_input(){
 			sem_getvalue(contador_tripulantes_en_ready, &a);
 			printf("cantidad EN readdy %d", a);
 			fflush(stdout);
-			//iniciar_escucha_sabotaje();
+
+			*/
+			iniciar_escucha_sabotaje();
 			/*
 			if(parser_consola[1] == NULL) {
 				log_error(logger, "Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.");
@@ -708,7 +737,7 @@ void obtener_orden_input(){
 			 * MONGO STORE IMPRIME LA BITACORA
 			 */
 
-			cerrar_conexion(logger,conexion_mongo_store);
+			//cerrar_conexion(logger,conexion_mongo_store);
 			//free(id_tripulante_x_bitacora);
 			//cerrar_conexion(logger,conexion_mongo_store);
 
@@ -809,7 +838,7 @@ void obtener_orden_input(){
 
 
 		case TERMINAR_PROGRAMA:
-
+/*
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") != -1){
 				enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
@@ -831,6 +860,31 @@ void obtener_orden_input(){
 			finalizar_semaforos_plani();
 			terminar_programa(config, logger);
 			sem_post(finalizar_programa);
+*/
+
+
+
+
+			largo = queue_size(cola_ready);
+
+
+
+
+			printf("cantidad EN readdy largo size %d",largo);
+			fflush(stdout);
+
+			sem_getvalue(multitarea_disponible,&a);
+			printf("cantidad multitarea disponible %d \n",a);
+			fflush(stdout);
+
+
+			largo = list_size(lista_tripulantes);
+			for(recorrido=0; recorrido<largo; recorrido++){
+
+				tripulante=list_get(lista_tripulantes, recorrido);
+				sem_getvalue(tripulante->sem_tripu,&a);
+				printf("Tripulante: %d, estado: %d, io: %d, CICLOS cpu %d \n", tripulante->id_tripulante, tripulante->estado, tripulante->puedo_ejecutar_io,a);
+			}
 
 			break;
 
