@@ -85,8 +85,8 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 int32_t buscar_frame(int32_t nro_pagina, t_list* paginas);
 t_pagina* buscar_pagina(int32_t nro_pagina, t_list* paginas);
 
-
-t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica);
+void* obtener_tripulante_de_memoria(uint32_t direccion_fisica, uint32_t direccion_logica, t_tabla_paginas_patota* tabla_patota);
+t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica, uint32_t direccion_logica, t_tabla_paginas_patota* tabla_patota);
 void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica);
 void actualizar_referencia(t_list* paginas, uint32_t direccion_logica);
 

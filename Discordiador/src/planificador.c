@@ -964,7 +964,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 			block_ready(tripu);
 		}else{
 			//block_exit(tripu);
-			terminar_tripulante(tripu);
+			//terminar_tripulante(tripu);
 		}
 	}
 
@@ -1026,7 +1026,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 			block_ready(tripu);
 		}else{
 			//block_exit(tripu);
-			terminar_tripulante(tripu);
+			//terminar_tripulante(tripu);
 		}
 	}
 }
@@ -1080,7 +1080,7 @@ void descartar_basura(tripulante_plani* tripu) {
 			block_ready(tripu);
 		}else{
 			//block_exit(tripu);
-			terminar_tripulante(tripu);
+			//terminar_tripulante(tripu);
 		}
 	}
 }
@@ -1130,7 +1130,7 @@ void otras_tareas(tripulante_plani* tripu){
 				running_ready(tripu);
 			}else{
 				running_exit(tripu);
-				terminar_tripulante(tripu);
+				//terminar_tripulante(tripu);
 			}
 	}
 }
