@@ -51,6 +51,9 @@ void iniciar_variables_y_semaforos(void) {
 	mutex_direcciones_paginas = malloc(sizeof(sem_t));
 	sem_init(mutex_direcciones_paginas, 0, 1);
 
+	mutex_frames = malloc(sizeof(sem_t));
+	sem_init(mutex_frames, 0, 1);
+
 	crear_segmento_sem = malloc(sizeof(sem_t));
 	sem_init(crear_segmento_sem, 0, 0);
 
@@ -332,12 +335,17 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						t_pagina* ultima_pagina = list_get(tabla_patota->paginas, list_size(tabla_patota->paginas)-1);
 						printf("Espacio del ultimo Frame usado por esta patota: %u\n", frames[ultima_pagina->numero_de_frame]->espacio_libre);
 
+						sem_wait(mutex_frames);
 						frames[ultima_pagina->numero_de_frame]->estado = OCUPADO;
+						sem_post(mutex_frames);
+
 						ultima_pagina->estado = OCUPADO;
 						printf("\nULTIMA PAGINA: %u\n", ultima_pagina->numero_de_pagina);
 						printf("ULTIMO FRAME USADO: %u \n", ultima_pagina->numero_de_frame);
 
+						sem_wait(mutex_frames);
 						puntero_inicio += frames[ultima_pagina->numero_de_frame]->espacio_libre;
+						sem_post(mutex_frames);
 
 						printf("\n\n                     PUNTERO INICIO: %u\n\n", puntero_inicio);
 
@@ -814,16 +822,17 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					int32_t resto_frame_final = (direccion_fisica +tamanio_tripulante) % TAMANIO_PAGINA;
 
 					if(numero_frame_inicio == numero_frame_final) {
-
+						sem_wait(mutex_frames);
 						frames[numero_frame_inicio]->espacio_libre += tamanio_tripulante;
 
 						if(frames[numero_frame_inicio]->espacio_libre == TAMANIO_PAGINA) {
 							liberar_frame(numero_frame_inicio);
 						}
+						sem_post(mutex_frames);
 					}
 					// El dato está en 2 frames
 					else {
-
+						sem_wait(mutex_frames);
 						frames[numero_frame_inicio]->espacio_libre += (TAMANIO_PAGINA - resto_frame_inicio);
 						frames[numero_frame_final]->espacio_libre += resto_frame_final;
 
@@ -834,6 +843,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						if(frames[numero_frame_final]->espacio_libre == TAMANIO_PAGINA) {
 							liberar_frame(numero_frame_final);
 						}
+						sem_post(mutex_frames);
 
 					}
 					tabla_patota_buscada->cantidad_tripulantes--;
@@ -841,12 +851,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 
 					if(tabla_patota_buscada->cantidad_tripulantes == 0) {
-
+						sem_wait(mutex_frames);
 						for(int c=0; c<cantidad_frames; c++) {
 							if(frames[c]->proceso == tabla_patota_buscada->patota->pid) {
 								liberar_frame(c);
 							}
 						}
+						sem_post(mutex_frames);
 
 						memoria_libre_total += tamanio_patota;
 						memoria_libre_total += tabla_patota_buscada->tamanio_tareas;
@@ -854,8 +865,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						list_clean_and_destroy_elements(tabla_patota_buscada->direccion_tripulantes, free);
 						list_clean_and_destroy_elements(tabla_patota_buscada->paginas, free);
 						free(tabla_patota_buscada->patota);
+						sem_wait(mutex_paginas);
 						int indice = obtener_indice(tablas_paginas, tabla_patota_buscada);
 						list_remove(tablas_paginas, indice);
+						sem_post(mutex_paginas);
 						free(tabla_patota_buscada);
 
 					}
@@ -922,7 +935,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				}
 
 				if(esquema_elegido == 'P') {
-
 					for(int i=0; i<list_size(tablas_paginas); i++) {
 						t_tabla_paginas_patota* tabla_patota = list_remove(tablas_paginas, i);
 
