@@ -485,6 +485,7 @@ void ready_running() {
 			switch(tripulante_a_running->estado_anterior){
 				case 'E':
 					sem_post(tripulante_a_running->sem_tripu);
+					tripulante_a_running->estado_anterior='R';
 					break;
 
 				case 'R':
@@ -1108,11 +1109,10 @@ void realizar_tarea_sabotaje(tripulante_plani* tripu){
 	//Avisar a I-mongo que estoy en la posicion de la tarea sabotaje
 	//Lo pasamos a la lista de bloqueados suspendidos
 	tripu->estado_anterior='R';
-
+	actualizar_estado(tripu, 'S');
+	list_add(bloqueado_suspendido,tripu);
 	sleep(DURACION_SABOTAJE);
 
-	list_add(bloqueado_suspendido,tripu);
-	actualizar_estado(tripu, 'S');
 
 	cambios_de_tarea(tripu);
 }

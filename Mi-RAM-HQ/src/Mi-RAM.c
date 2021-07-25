@@ -380,6 +380,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					t_tabla_segmentos_patota* patota_buscada = buscar_tabla_de_patota(tripulante_para_ubicacion->id_patota);
 
+					printf("id q estoy buscando: %d \n",tripulante_para_ubicacion->id_tripulante);
+					fflush(stdout);
 					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_para_ubicacion->id_tripulante);
 
 					t_tcb* tripulante_con_ubicacion = obtener_contenido_de_segmento(segmento_buscado);

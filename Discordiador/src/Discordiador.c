@@ -185,7 +185,6 @@ void iniciar_escucha_sabotaje(void){
 		posicion_sabotaje->posicion_y=10;
 
 
-
 		//cuidado sin la lista esta vacia
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
@@ -202,6 +201,7 @@ void iniciar_escucha_sabotaje(void){
 				tripulante->estado_anterior = 'B';
 				if(tripulante->puedo_ejecutar_io==1){
 					tripulante->puedo_ejecutar_io=0;
+					sem_post(bloqueado_disponible);
 				}
 				list_add(bloqueado_suspendido,tripulante);
 				actualizar_estado(tripulante, 'S');
@@ -234,7 +234,7 @@ void iniciar_escucha_sabotaje(void){
 		if(tripu_mas_cercano->estado_anterior=='R'){
 			sem_post(tripu_mas_cercano->sem_planificacion);
 		}else{
-			sem_post(tripu_mas_cercano->sem_tripu);
+			//sem_post(tripu_mas_cercano->sem_tripu);
 		}
 
 
@@ -242,7 +242,7 @@ void iniciar_escucha_sabotaje(void){
 		queue_clean(cola_ready);
 
 		tripu_mas_cercano->estado_anterior='R';
-		sem_wait(tripu_mas_cercano->sem_tripu);
+	//	sem_wait(tripu_mas_cercano->sem_tripu);
 
 		largo = list_size(bloqueado_suspendido);
 
@@ -254,7 +254,6 @@ void iniciar_escucha_sabotaje(void){
 
 
 		list_clean(bloqueado_suspendido);
-		sem_post(bloqueado_disponible);
 
 		//Vuelve a activar los hilos de planificacion
 /*
@@ -736,7 +735,7 @@ void obtener_orden_input(){
 			 * MONGO STORE IMPRIME LA BITACORA
 			 */
 
-			cerrar_conexion(logger,conexion_mongo_store);
+			//cerrar_conexion(logger,conexion_mongo_store);
 			//free(id_tripulante_x_bitacora);
 			//cerrar_conexion(logger,conexion_mongo_store);
 
@@ -875,10 +874,14 @@ void obtener_orden_input(){
 			sem_getvalue(multitarea_disponible,&a);
 			printf("cantidad multitarea disponible %d \n",a);
 			fflush(stdout);
+
+
 			largo = list_size(lista_tripulantes);
 			for(recorrido=0; recorrido<largo; recorrido++){
+
 				tripulante=list_get(lista_tripulantes, recorrido);
-				printf("Tripulante: %d, estado: %d, io: %d, CICLOS cpu %d \n", tripulante->id_tripulante, tripulante->estado, tripulante->puedo_ejecutar_io,tripulante->sem_tripu);
+				sem_getvalue(tripulante->sem_tripu,&a);
+				printf("Tripulante: %d, estado: %d, io: %d, CICLOS cpu %d \n", tripulante->id_tripulante, tripulante->estado, tripulante->puedo_ejecutar_io,a);
 			}
 
 			break;
