@@ -88,7 +88,6 @@ void registrar_dump_segmentacion(void) {
 			string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);
 			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio);
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
-
 			escribir_en_archivo(buffer);
 		}
 	}
@@ -113,6 +112,21 @@ void registrar_dump_paginacion(void) {
 			string_append_with_format(&buffer, "Estado: Libre     ");
 			string_append_with_format(&buffer, "Proceso: -     ");
 			string_append_with_format(&buffer, "Pagina: -\n");
+		}
+
+		escribir_en_archivo(buffer);
+	}
+
+	char* buffer_swap = string_new();
+	string_append_with_format(&buffer_swap, "------------ MARCOS EN SWAP---------------\n");
+	escribir_en_archivo(buffer_swap);
+
+	for(int c=0; c<cantidad_paginas_swap; c++) {
+
+		char* buffer = string_new();
+		if(frames_swap[c]->estado == OCUPADO) {
+			string_append_with_format(&buffer, "Marco: %u     ", c);
+			string_append_with_format(&buffer, "Pagina: %u\n", frames_swap[c]->pagina);
 		}
 		escribir_en_archivo(buffer);
 	}

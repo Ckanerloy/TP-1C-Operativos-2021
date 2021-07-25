@@ -78,6 +78,12 @@ void terminar_tripulante(tripulante_plani* tripu) {
 
 	t_tripulante* tripulante_terminado = malloc(sizeof(t_tripulante));
 
+	sem_wait(mutex_exit);
+	queue_push(cola_exit, tripu);
+	sem_post(mutex_exit);
+
+	tripu->estado = 'T';
+
 	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
 	tripulante_terminado->id_patota = tripu->numero_patota;

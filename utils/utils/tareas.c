@@ -5,27 +5,27 @@ codigo_tarea mapeo_tareas_tripulantes(char* tarea) {
 	codigo_tarea tarea_a_realizar;
 
 	if(strcmp(tarea, "GENERAR_OXIGENO") == 0) {
-		tarea_a_realizar = GENERAR_OXIGENO;
+		tarea_a_realizar = GENERAR_OXIGENO; // @suppress("Symbol is not resolved")
 	}
 
 	else if(strcmp(tarea, "CONSUMIR_OXIGENO") == 0) {
-		tarea_a_realizar = CONSUMIR_OXIGENO;
+		tarea_a_realizar = CONSUMIR_OXIGENO;// @suppress("Symbol is not resolved")
 	}
 
 	else if(strcmp(tarea, "GENERAR_COMIDA") == 0) {
-		tarea_a_realizar = GENERAR_COMIDA;
+		tarea_a_realizar = GENERAR_COMIDA;// @suppress("Symbol is not resolved")
 	}
 
 	else if(strcmp(tarea, "CONSUMIR_COMIDA") == 0) {
-		tarea_a_realizar = CONSUMIR_COMIDA;
+		tarea_a_realizar = CONSUMIR_COMIDA;// @suppress("Symbol is not resolved")
 	}
 
 	else if(strcmp(tarea, "GENERAR_BASURA") == 0) {
-		tarea_a_realizar = GENERAR_BASURA;
+		tarea_a_realizar = GENERAR_BASURA;// @suppress("Symbol is not resolved")
 	}
 
 	else if(strcmp(tarea, "DESCARTAR_BASURA") == 0) {
-		tarea_a_realizar = DESCARTAR_BASURA;
+		tarea_a_realizar = DESCARTAR_BASURA;// @suppress("Symbol is not resolved")
 	}
 
 	else {
@@ -47,21 +47,19 @@ t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 
 	// Para las Tareas de Entrada y Salida
 	if(parser_tarea[1] != NULL) {
-		char** parser_parametros = NULL;
-
 		t_tarea* tarea_nueva = malloc(sizeof(t_tarea));
 
 		tarea_nueva->operacion = mapeo_tareas_tripulantes(parser_tarea[0]);
 
-		parser_parametros = string_split(parser_tarea[1], ";");
+		char** parser_parametros = string_split(parser_tarea[1], ";");
 
 		tarea_nueva->cantidad = atoi(parser_parametros[0]);
 		tarea_nueva->posicion_x = atoi(parser_parametros[1]);
 		tarea_nueva->posicion_y = atoi(parser_parametros[2]);
 		tarea_nueva->tiempo = atoi(parser_parametros[3]);
 
-		free(parser_tarea);
-		free(parser_parametros);
+		limpiar_parser(parser_tarea);
+		limpiar_parser(parser_parametros);
 		return tarea_nueva;
 	}
 	else {	// Para las Tareas comunes
@@ -75,10 +73,41 @@ t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 		tarea_nueva->posicion_x = atoi(parser_tarea_comun[1]);
 		tarea_nueva->posicion_y = atoi(parser_tarea_comun[2]);
 		tarea_nueva->tiempo = atoi(parser_tarea_comun[3]);
-		free(parser_tarea);
-		free(parser_tarea_comun);
+
+		limpiar_parser(parser_tarea);
+		limpiar_parser(parser_tarea_comun);
 		return tarea_nueva;
 	}
 }
 
+
+t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas) {
+
+	t_list* tareas_totales = list_create();
+
+	char** parser_tarea = obtener_tareas(tareas);
+
+	int posicion = 0;
+	while(parser_tarea[posicion] != NULL) {
+
+		t_tarea* tarea_a_guardar = obtener_la_tarea(parser_tarea[posicion]);
+
+		list_add_in_index(tareas_totales, posicion, tarea_a_guardar);
+		posicion++;
+	}
+
+	limpiar_parser(parser_tarea);
+	return tareas_totales;
+}
+
+
+
+void limpiar_parser(char** parser) {
+	int limpiador = 0;
+	while(parser[limpiador] != NULL) {
+		free(parser[limpiador]);
+		limpiador++;
+	}
+	free(parser);
+}
 

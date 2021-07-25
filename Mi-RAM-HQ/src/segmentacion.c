@@ -136,10 +136,13 @@ t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libr
 void verificar_compactacion(void) {
 
 	if(esquema_elegido == 'S') {
-		if(segmentos_libres() > 0) {
+		t_list* seg_vacio = segmentos_libres();
+		if(seg_vacio > 0) {
+				free(seg_vacio);
 				compactar();
 		}
 		else {
+			free(seg_vacio);
 			log_warning(logger, "No hay segmentos libres para poder compactar.\n");
 		}
 	}
@@ -233,8 +236,8 @@ void compactar(void) {
 	uint32_t inicio = 0;
 	t_list* ocupados_ordenados = list_sorted(segmentos_ocupados(), menor_a_mayor_segun_inicio);
 
-	printf("Cantidad de Segmentos Libres: %u\n", list_size(segmentos_libres()));
-	printf("Cantidad de Segmentos: %u\n\n", list_size(segmentos));
+	//printf("Cantidad de Segmentos Libres: %u\n", list_size(segmentos_libres()));
+	//printf("Cantidad de Segmentos: %u\n\n", list_size(segmentos));
 
 	for(int i=0; i<list_size(ocupados_ordenados); i++){
 
@@ -261,9 +264,10 @@ void compactar(void) {
 
 		inicio += segmento->tamanio_segmento;
 	}
+	t_list* seg_vacios = segmentos_libres();
 
-	for(int c=0; c<list_size(segmentos_libres()); c++) {
-		t_segmento* segmento_buscado = list_get(segmentos_libres(), c);
+	for(int c=0; c<list_size(seg_vacios); c++) {
+		t_segmento* segmento_buscado = list_get(seg_vacios, c);
 
 		printf("\n\nEstado del Segmento: %u\n\n", segmento_buscado->estado_segmento);
 
@@ -275,16 +279,16 @@ void compactar(void) {
 	}
 
 	printf("Cantidad de Segmentos despues de compactar: %u\n", list_size(segmentos));
-	printf("Cantidad de Segmentos Libres despues de compactar: %u\n\n", list_size(segmentos_libres()));
+	printf("Cantidad de Segmentos Libres despues de compactar: %u\n\n", list_size(seg_vacios));
 
 	crear_segmento_libre(inicio, memoria_libre_total);
 
-	printf("Cantidad de Segmentos Libres despues de compactar: %u\n", list_size(segmentos_libres()));
+	printf("Cantidad de Segmentos Libres despues de compactar: %u\n", list_size(seg_vacios));
 	printf("Cantidad de Segmentos despues de crear el segmento: %u\n", list_size(segmentos));
 
 	printf("Incio de segmento libre compactado: %u\n", inicio);
 	printf("Tamaño de segmento libre compactado: %u\n", memoria_libre_total);
-
+	free(seg_vacios);
 	log_info(logger, "Se compactó la memoria.\n");
 }
 
@@ -330,7 +334,8 @@ bool esta_ocupado(void* segmento) {
 
 
 t_list* segmentos_libres(void) {
-	return list_filter(segmentos, (void*) esta_libre);
+	t_list* seg_vacios = list_filter(segmentos, (void*) esta_libre);
+	return seg_vacios;
 }
 
 
@@ -354,7 +359,11 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
 
 			t_list* segmentos_con_espacio_ordenados = list_sorted(segmentos_con_espacio, menor_a_mayor_segun_tamanio);
 
-			t_segmento* mejor_segmento = list_get(segmentos_con_espacio_ordenados, 0);
+			t_segmento* mejor_segmento = list_remove(segmentos_con_espacio_ordenados, 0);
+
+			free(segmentos_vacios);
+			free(segmentos_con_espacio);
+			free(segmentos_con_espacio_ordenados);
 
 			return mejor_segmento;
 		}
@@ -365,21 +374,28 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
 
 			t_segmento* primer_segmento = list_find(segmentos_vacios, memoria_igual_o_mas_grande);
 
+			free(segmentos_vacios);
 			return primer_segmento;
 		}
 	}
-
+	free(segmentos_vacios);
 	return NULL;
 }
 
 
 bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado) {
 
+	t_list* segmentos_vacios = segmentos_libres();
+
 	bool _memoria_igual_o_mas_grande(void* segmento) {
 		return tamanio_buscado <= ((t_segmento*)segmento)->tamanio_segmento;
 	}
 
-	return list_any_satisfy(segmentos_libres(), (void*) _memoria_igual_o_mas_grande);
+
+
+	bool respuesta = list_any_satisfy(segmentos_vacios, (void*) _memoria_igual_o_mas_grande);
+	free(segmentos_vacios);
+	return respuesta;
 }
 
 
@@ -564,6 +580,7 @@ void* encontrar_tarea(t_segmento* segmento) {
 			return tareas;
 	}
 	else {
+		free(tareas);
 		return NULL;
 	}
 }
@@ -642,7 +659,7 @@ t_segmento* buscar_por_id(t_list* segmentos, tipo_estructura tipo_de_segmento, u
 }
 
 
-t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_estructura tipo_de_segmento, int32_t id_proxima_tarea_del_tripu, uint32_t tamanio_tareas) {
+t_tarea* buscar_proxima_tarea_del_tripulante_segmentacion(t_list* segmentos, tipo_estructura tipo_de_segmento, int32_t id_proxima_tarea_del_tripu, uint32_t tamanio_tareas) {
 
 	bool misma_tarea(void* segmento) {
 		return ((t_segmento*)segmento)->tipo_segmento == tipo_de_segmento;
@@ -655,29 +672,15 @@ t_tarea* buscar_proxima_tarea_del_tripulante(t_list* segmentos, tipo_estructura 
 	t_list* tareas_de_la_patota = obtener_las_tareas(tareas, tamanio_tareas);
 
 	if(list_size(tareas_de_la_patota)-1 < id_proxima_tarea_del_tripu) {
+		list_destroy_and_destroy_elements(tareas_de_la_patota, free);
+		free(tareas);
 		return NULL;
 	}
 	else{
 		t_tarea* tarea_buscada = list_get(tareas_de_la_patota, id_proxima_tarea_del_tripu);
+		list_remove(tareas_de_la_patota, id_proxima_tarea_del_tripu);
+		list_destroy_and_destroy_elements(tareas_de_la_patota, free);
+		free(tareas);
 		return tarea_buscada;
 	}
-}
-
-
-t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas) {
-
-	t_list* tareas_totales = list_create();
-
-	char** parser_tarea = obtener_tareas(tareas);
-
-	int posicion = 0;
-	while(parser_tarea[posicion] != NULL) {
-
-		t_tarea* tarea_a_guardar = obtener_la_tarea(parser_tarea[posicion]);
-
-		list_add_in_index(tareas_totales, posicion, tarea_a_guardar);
-		posicion++;
-	}
-
-	return tareas_totales;
 }

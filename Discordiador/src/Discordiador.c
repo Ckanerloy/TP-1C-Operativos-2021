@@ -463,12 +463,15 @@ void obtener_orden_input(){
 			break;
 
 		case INICIAR_PATOTA:
+			//TODO
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 1|1
 			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
+
+			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
 
 			// PRUEBAS PARA DISCORDIADOR
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota1.txt 9|9 0|0 5|5
