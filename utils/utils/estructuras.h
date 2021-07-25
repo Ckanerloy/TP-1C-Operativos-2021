@@ -136,6 +136,11 @@ typedef struct {
 
 } t_respuesta_mongo;
 
+typedef struct {
+	posiciones* posicion_anterior;
+	posiciones* posicion_nueva;
+
+}bitacora_posiciones;
 
 typedef struct {
 	int32_t cantidad;

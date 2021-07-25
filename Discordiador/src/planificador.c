@@ -708,8 +708,26 @@ void tripulante_hilo(void* tripulante){
 
 		while(distancia > 0 && !tripu->elegido_sabotaje){ //Cambiar condicion con variable goblal hay_sabotaje
 			sem_wait(tripu->sem_tripu);
+			//TODO: MANDAR A BITACORA POSICION ANTERIOR Y NUEVA
+			bitacora_posiciones* bitacora_posi= malloc(sizeof(bitacora_posiciones));
+			bitacora_posi->posicion_anterior= malloc(sizeof(posiciones));
+
+			bitacora_posi->posicion_anterior->posicion_x=posicion_tripu->posicion_x;
+			bitacora_posi->posicion_anterior->posicion_y=posicion_tripu->posicion_y;
 
 			obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
+
+			bitacora_posi->posicion_nueva= malloc(sizeof(posiciones));
+			bitacora_posi->posicion_nueva->posicion_x=posicion_tripu->posicion_x;
+			bitacora_posi->posicion_nueva->posicion_y=posicion_tripu->posicion_y;
+
+			//MANDAR A MONGO BITACORA_POSI
+
+			free(bitacora_posi->posicion_nueva);
+			free(bitacora_posi->posicion_anterior);
+			free(bitacora_posi);
+
+
 			tripu->cantidad_realizada= tripu->cantidad_realizada+1;
 			distancia--;
 
@@ -845,26 +863,32 @@ void realizar_tarea(tripulante_plani* tripu){
 	switch(tripu->tarea_a_realizar->operacion) {
 
 		case GENERAR_OXIGENO:
+			// TODO aca indicar comienzo de la tarea
 			generar_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
 		case CONSUMIR_OXIGENO:
+			// TODO aca indicar comienzo de la tarea
 			consumir_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
 		case GENERAR_COMIDA:
+			// TODO aca indicar comienzo de la tarea
 			generar_insumo("Comida.ims", 'C', tripu);
 			break;
 
 		case CONSUMIR_COMIDA:
+			// TODO aca indicar comienzo de la tarea
 			consumir_insumo("Comida.ims",'C', tripu);
 			break;
 
 		case GENERAR_BASURA:
+			// TODO aca indicar comienzo de la tarea
 			generar_insumo("Basura.ims", 'B', tripu);
 			break;
 
 		case DESCARTAR_BASURA:
+			// TODO aca indicar comienzo de la tarea
 			descartar_basura(tripu);
 			break;
 
@@ -873,6 +897,7 @@ void realizar_tarea(tripulante_plani* tripu){
 			break;
 
 		default:
+			// TODO aca indicar comienzo de la tarea
 			otras_tareas(tripu);
 			break;
 		}
@@ -928,6 +953,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
 		sem_post(bloqueado_disponible);
 		tripu->puedo_ejecutar_io=0;
+		// TODO termine de hacer la tarea
 	}
 	 //termino de hacer su io
 	//incrementas lugar libre de bloqueo
@@ -990,6 +1016,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
 		sem_post(bloqueado_disponible);
 		tripu->puedo_ejecutar_io=0;
+		// TODO termine de hacer la tarea
 	}
 
 	cambios_de_tarea(tripu);
@@ -1044,6 +1071,7 @@ void descartar_basura(tripulante_plani* tripu) {
 	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
 		sem_post(bloqueado_disponible);
 		tripu->puedo_ejecutar_io=0;
+		// TODO termine de hacer la tarea
 	}
 	cambios_de_tarea(tripu);
 	//tripu->tarea_a_realizar= NULL;
@@ -1090,6 +1118,10 @@ void otras_tareas(tripulante_plani* tripu){
 		}
 
 	}
+	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
+		// TODO termine de hacer la tarea
+	}
+
 	cambios_de_tarea(tripu);
 
 	//tripu->tarea_a_realizar= NULL;
@@ -1111,6 +1143,7 @@ void realizar_tarea_sabotaje(tripulante_plani* tripu){
 	tripu->estado_anterior='R';
 	actualizar_estado(tripu, 'S');
 	list_add(bloqueado_suspendido,tripu);
+
 	sleep(DURACION_SABOTAJE);
 
 

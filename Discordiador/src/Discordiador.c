@@ -221,7 +221,7 @@ void iniciar_escucha_sabotaje(void){
 
 		actualizar_estado(tripu_mas_cercano, 'E');
 
-
+		// TODO aca seria corre a sabotaje
 		tripu_mas_cercano->elegido_sabotaje=1;
 
 
@@ -239,6 +239,7 @@ void iniciar_escucha_sabotaje(void){
 
 
 		sem_wait(termine_sabotaje);
+		// TODO aca mandar a mongo resolvi sabotaje
 		queue_clean(cola_ready);
 
 		tripu_mas_cercano->estado_anterior='R';
