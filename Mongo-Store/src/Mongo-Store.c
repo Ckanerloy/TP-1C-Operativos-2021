@@ -29,7 +29,9 @@ int main(void)
 		else{
 			printf("Hay un FileSystem existente\n");
 			iniciar_superbloque();//Inicio el FS existente
-			crear_directorio_file_vacio("/Files/PRUEBA111.IMS");
+			crear_archivo_metadata("/Files/PRUEBA111.IMS");
+			crear_archivo_bitacora("/Files/Bitacoras/PRUEBATRIPULANTE.ims");
+
 	}
 
 	/*// Recibe la señal para enviar sabotaje
@@ -89,7 +91,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 }
 
 // Crear un nuevo archivo por defecto dentro de /Files
-char* crear_directorio_file_vacio(char* path_archivo){
+char* crear_archivo_metadata(char* path_archivo){
 
 
 	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path_archivo) + 2);
@@ -121,10 +123,33 @@ char* crear_directorio_file_vacio(char* path_archivo){
 	return path_completo;
 }
 
-/*ejemplo:
-	SIZE=132
-	BLOCK_COUNT=3
-	BLOCKS=[1,2,3]
-	CARACTER_LLENADO=O
-	MD5_ARCHIVO=BD1014D173BA92CC014850A7087E254E
-*/
+char* crear_archivo_bitacora(char* path_archivo){
+
+	//PUNTO_MONTAJE/Files/Bitacoras/Tripulante1.ims
+	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path_archivo) + 2);
+
+	path_completo = concatenar_path(path_archivo);
+
+	FILE* archivo = fopen( path_completo , "w" );
+
+	if (archivo == NULL){
+		printf("****************ERROR | No se pudo crear el archivo %s ****************\n", path_completo);
+		exit(-1);
+	}
+
+	fclose(archivo);
+
+	t_config* contenido_archivo = config_create(path_completo);
+
+	// Valores default del archivo
+	config_set_value(contenido_archivo, "SIZE", "0");
+	config_set_value(contenido_archivo, "BLOCKS", "0");
+
+	config_save(contenido_archivo);
+
+	config_destroy(contenido_archivo);
+
+	return path_completo;
+}
+
+

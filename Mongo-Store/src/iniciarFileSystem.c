@@ -2,7 +2,7 @@
 #include "memory.h"
 #include <sys/types.h>
 
- #include <fcntl.h>
+#include <fcntl.h>
 #include <sys/mman.h>
 
 
@@ -110,7 +110,7 @@ void iniciar_superbloque(){
 	}
 
 
-			//msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
+			msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
 
 			memcpy(super_bloque, &(superBloqueFile->tamanioBloque), sizeof(uint32_t));
 			memcpy(super_bloque+sizeof(uint32_t), &(superBloqueFile->cantidadBloques), sizeof(uint32_t));

@@ -42,6 +42,7 @@ pthread_t hilo_recibir_mensajes;
 
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
-char* crear_directorio_file_vacio(char* nombre_archivo);
+char* crear_archivo_metadata(char* nombre_archivo);
+char* crear_archivo_bitacora(char* nombre_archivo);
 
 #endif /* MONGO_STORE_H_ */
