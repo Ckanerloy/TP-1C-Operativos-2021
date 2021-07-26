@@ -637,6 +637,10 @@ void obtener_orden_input(){
 						sem_t* mutex_tripu_expulsado=malloc(sizeof(sem_t));
 						sem_init(mutex_tripu_expulsado, 0, 1);
 
+						tripulante->tarea_a_realizar=malloc(sizeof(t_tarea));
+
+						//tripulante->tarea_auxiliar=malloc(sizeof(t_tarea));
+
 						tripulante->mutex_expulsado=mutex_tripu_expulsado;
 
 						pthread_create(&hilo_tripulante,NULL,(void*)tripulante_hilo,tripulante);

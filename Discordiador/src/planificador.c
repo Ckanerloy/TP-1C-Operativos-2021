@@ -206,7 +206,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 }
 
 
-t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota){
+void obtener_siguiente_tarea(tripulante_plani* tripu,uint32_t id_tripulante, uint32_t numero_patota){
 /*
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 
@@ -249,7 +249,8 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 		}
 		if(respuesta_tarea->tarea == NULL) {
 			log_warning(logger, "No hay mas tareas para realizar.");
-			return NULL;
+			tripu->tarea_a_realizar=NULL;
+			return;
 		}
 	}
 	else {
@@ -257,24 +258,22 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 		abort();
 	}
 
-	t_tarea* tarea_buscada =malloc(sizeof(t_tarea));
-	tarea_buscada = respuesta_tarea->tarea;
+	tripu->tarea_a_realizar->operacion=respuesta_tarea->tarea->operacion;
+	tripu->tarea_a_realizar->cantidad=respuesta_tarea->tarea->cantidad;
+	tripu->tarea_a_realizar->posicion_x=respuesta_tarea->tarea->posicion_x;
+	tripu->tarea_a_realizar->posicion_y=respuesta_tarea->tarea->posicion_y;
+	tripu->tarea_a_realizar->tiempo=respuesta_tarea->tarea->tiempo;
 
 	close(conexion_mi_ram);
 
 	free(tripulante_consulta);
-	respuesta_tarea->tarea=NULL;
 	free(respuesta_tarea->tarea);
 	free(respuesta_tarea);
 
-	if(tarea_buscada->operacion == TAREA_VACIA) {
-		free(tarea_buscada);
-		return NULL;
+	if(tripu->tarea_a_realizar->operacion == TAREA_VACIA) {
+		tripu->tarea_a_realizar=NULL;
+		return;
 	}
-	else {
-		return tarea_buscada;
-	}
-
 
 }
 
@@ -1191,7 +1190,7 @@ void cambios_de_tarea(tripulante_plani* tripu) {
 		}else{
 
 			//tripu->tarea_a_realizar= NULL;
-			tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
+			obtener_siguiente_tarea(tripu,tripu->id_tripulante, tripu->numero_patota);
 		}
 	}
 }
