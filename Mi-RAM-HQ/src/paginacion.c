@@ -373,6 +373,8 @@ void asignar_frame_disponible(t_pagina* pagina, uint32_t pid) {
 	frames[pagina->numero_de_frame]->pagina = pagina->numero_de_pagina;
 
 	frames[pagina->numero_de_frame]->proceso = pid;
+
+	log_info(logger, "Se asignó la Página %u en el Frame %u.\n", pagina->numero_de_pagina, pagina->numero_de_frame);
 }
 
 
@@ -416,7 +418,7 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 
 		int32_t inicio = pagina_buscada->numero_de_frame * TAMANIO_PAGINA;
 
-		//printf("Direccion Física: %u\n\n", inicio+resto);
+		printf("Direccion Física: %u\n\n", inicio+resto);
 
 		return inicio + resto;
 	}
@@ -424,6 +426,7 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 		//TODO
 		log_info(logger, "La Página %u no se encuentra cargada en Memoria Principal.\n", numero_pag);
 
+		sem_wait(mutex_swap);
 		int32_t frame_disponible = frame_disponible_segun_algoritmo();
 
 		int32_t espacio_ocupado;
@@ -433,19 +436,24 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 		pagina_buscada->P = 1;
 		pagina_buscada->U = 1;
 
+		printf("FRAME DISPONIBLE POR SWAP: %u\n", frame_disponible);
+		printf("PAGINA RECUPERADA POR SWAP: %u\n", pagina_buscada->numero_de_pagina);
+
 		frames[frame_disponible]->pagina = pagina_buscada->numero_de_pagina;
 		frames[frame_disponible]->espacio_libre = TAMANIO_PAGINA - espacio_ocupado;
 		frames[frame_disponible]->estado = OCUPADO;
 		frames[frame_disponible]->puntero_frame = espacio_ocupado;
 		frames[frame_disponible]->proceso = tabla_patota_buscada->patota->pid;
+		sem_post(mutex_swap);
 
 		int32_t inicio_frame = frame_disponible * TAMANIO_PAGINA;
 		memcpy(memoria_principal + inicio_frame, buffer_recuperado, espacio_ocupado);
+		printf("INICIO FRAME SACADO DE SWAP: %u\n", inicio_frame);
 
 		memoria_libre_total -= espacio_ocupado;
 		actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 
-		log_info(logger, "Se recuperó la Página %u desde Memoria Virtual.\n", pagina_buscada->numero_de_pagina);
+		log_info(logger, "Se recuperó la Página %u desde Memoria Virtual y se asignó al Frame %u.\n", pagina_buscada->numero_de_pagina, frame_disponible);
 
 		return inicio_frame + resto;
 	}
@@ -527,7 +535,9 @@ void* obtener_tripulante_de_memoria(uint32_t direccion_fisica, uint32_t direccio
 
 	void* buffer = malloc(tamanio_tripulante);
 
-	void* inicio;
+	printf("TAMAÑO TRIPULANTE: %u\n", tamanio_tripulante);
+
+	void* inicio; //= (void*)memoria_principal + direccion_fisica;
 
 	//memcpy(buffer, inicio, tamanio_tripulante);
 
@@ -539,6 +549,11 @@ void* obtener_tripulante_de_memoria(uint32_t direccion_fisica, uint32_t direccio
 	int32_t offset_buffer = 0;
 	int32_t direccion_fisica_nueva = direccion_fisica;
 
+	printf("DIRECCION LOGICA FINAL TRIPULANTE: %u\n", direccion_logica_final);
+	printf("DIRECCION LOGICA ACTUAL TRIPULANTE: %u\n", direccion_logica_tripulante);
+	printf("DIRECCION FISICA ACTUAL TRIPULANTE: %u\n", direccion_fisica);
+
+	sem_wait(mutex_tripulante_swap);
 	while(direccion_logica_tripulante != direccion_logica_final) {
 
 		faltante = TAMANIO_PAGINA - offset_frame;
@@ -551,13 +566,18 @@ void* obtener_tripulante_de_memoria(uint32_t direccion_fisica, uint32_t direccio
 			offset_buffer += faltante;
 			direccion_fisica_nueva = obtener_direc_fisica_con_direccion_logica(direccion_logica_tripulante, tabla_patota);
 			offset_frame = direccion_fisica_nueva % TAMANIO_PAGINA;
+			printf("DIRECCION LOGICA ACTUAL TRIPULANTE: %u\n", direccion_logica_tripulante);
+			printf("DIRECCION FISICA NUEVA TRIPULANTE: %u\n", direccion_fisica_nueva);
 		}
 		else{
 			memcpy(buffer + offset_buffer, inicio, lectura_tripulante);
 			direccion_logica_tripulante += lectura_tripulante;
 			offset_buffer += lectura_tripulante;
+			printf("DIRECCION LOGICA ACTUAL TRIPULANTE: %u\n", direccion_logica_tripulante);
+			printf("DIRECCION FISICA NUEVA TRIPULANTE: %u\n", direccion_fisica_nueva);
 		}
 	}
+	sem_post(mutex_tripulante_swap);
 	return buffer;
 }
 
@@ -612,20 +632,32 @@ t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica, uint32_t direccio
 	memcpy(&(tripulante->id_tripulante), buffer + desplazamiento, sizeof(tripulante->id_tripulante));
 	desplazamiento += sizeof(tripulante->id_tripulante);
 
+	printf("ID TRIPULANTE: %u\n", tripulante->id_tripulante);
+
 	memcpy(&(tripulante->estado_tripulante), buffer + desplazamiento, sizeof(tripulante->estado_tripulante));
 	desplazamiento += sizeof(tripulante->estado_tripulante);
+
+	printf("ESTADO TRIPULANTE: %c\n", tripulante->estado_tripulante);
 
 	memcpy(&(tripulante->posicion_x), buffer + desplazamiento, sizeof(tripulante->posicion_x));
 	desplazamiento += sizeof(tripulante->posicion_x);
 
+	printf("POSICION Y: %u\n", tripulante->posicion_x);
+
 	memcpy(&(tripulante->posicion_y), buffer + desplazamiento, sizeof(tripulante->posicion_y));
 	desplazamiento += sizeof(tripulante->posicion_y);
+
+	printf("POSICION X: %u\n", tripulante->posicion_y);
 
 	memcpy(&(tripulante->id_tarea_a_realizar), buffer + desplazamiento, sizeof(tripulante->id_tarea_a_realizar));
 	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
 
+	printf("ID TAREA A REALIZAR: %u\n", tripulante->id_tarea_a_realizar);
+
 	memcpy(&(tripulante->puntero_PCB), buffer + desplazamiento, sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);
+
+	printf("PUNTERO PCB: %u\n", tripulante->puntero_PCB);
 
 	free(buffer);
 	return tripulante;
@@ -644,12 +676,43 @@ char* encontrar_tareas_en_memoria(uint32_t direccion_fisica, uint32_t tamanio_ta
 	return tareas;
 }
 
-void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica) {
+void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica, t_tabla_paginas_patota* tabla_patota) {
 
-	void* inicio = (void*)memoria_principal + direccion_fisica;
-	uint32_t desplazamiento = 0;
+	void* inicio;// = (void*)memoria_principal + direccion_fisica;
 
-	memcpy(inicio + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
+	void* buffer = serializar_tripulante(tripulante, tamanio_tripulante);
+
+	int32_t lectura_tripulante = tamanio_tripulante;
+	int32_t direccion_logica_tripulante = buscar_pagina_por_id(tabla_patota, tripulante->id_tripulante);
+	int32_t direccion_logica_final = direccion_logica_tripulante + tamanio_tripulante;
+	int32_t offset_frame = direccion_fisica % TAMANIO_PAGINA;
+	int32_t faltante;
+	int32_t offset_buffer = 0;
+	int32_t direccion_fisica_nueva = direccion_fisica;
+
+	sem_wait(mutex_tripulante_swap);
+	while(direccion_logica_tripulante != direccion_logica_final) {
+
+		faltante = TAMANIO_PAGINA - offset_frame;
+		inicio = (void*)memoria_principal + direccion_fisica_nueva;
+
+		if(lectura_tripulante >= faltante){
+			lectura_tripulante -= faltante;
+			memcpy(inicio, buffer + offset_buffer, faltante);
+			direccion_logica_tripulante += faltante;
+			offset_buffer += faltante;
+			direccion_fisica_nueva = obtener_direc_fisica_con_direccion_logica(direccion_logica_tripulante, tabla_patota);
+			offset_frame = direccion_fisica_nueva % TAMANIO_PAGINA;
+		}
+		else{
+			memcpy(inicio, buffer + offset_buffer, lectura_tripulante);
+			direccion_logica_tripulante += lectura_tripulante;
+			offset_buffer += lectura_tripulante;
+		}
+	}
+	sem_post(mutex_tripulante_swap);
+
+	/*memcpy(inicio + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
 	desplazamiento += sizeof(tripulante->id_tripulante);
 
 	memcpy(inicio + desplazamiento, &(tripulante->estado_tripulante), sizeof(tripulante->estado_tripulante));
@@ -665,7 +728,7 @@ void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica)
 	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
 
 	memcpy(inicio + desplazamiento, &(tripulante->puntero_PCB), sizeof(tripulante->puntero_PCB));
-	desplazamiento += sizeof(tripulante->puntero_PCB);
+	desplazamiento += sizeof(tripulante->puntero_PCB);*/
 }
 
 

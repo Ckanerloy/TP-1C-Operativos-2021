@@ -51,6 +51,9 @@ void iniciar_variables_y_semaforos(void) {
 	mutex_direcciones_paginas = malloc(sizeof(sem_t));
 	sem_init(mutex_direcciones_paginas, 0, 1);
 
+	mutex_frames = malloc(sizeof(sem_t));
+	sem_init(mutex_frames, 0, 1);
+
 	crear_segmento_sem = malloc(sizeof(sem_t));
 	sem_init(crear_segmento_sem, 0, 0);
 
@@ -59,6 +62,9 @@ void iniciar_variables_y_semaforos(void) {
 
 	mutex_tripulante_swap = malloc(sizeof(sem_t));
 	sem_init(mutex_tripulante_swap, 0, 1);
+
+	mutex_swap = malloc(sizeof(sem_t));
+	sem_init(mutex_swap, 0, 1);
 }
 
 
@@ -335,12 +341,17 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						t_pagina* ultima_pagina = list_get(tabla_patota->paginas, list_size(tabla_patota->paginas)-1);
 						//printf("Espacio del ultimo Frame usado por esta patota: %u\n", frames[ultima_pagina->numero_de_frame]->espacio_libre);
 
+						sem_wait(mutex_frames);
 						frames[ultima_pagina->numero_de_frame]->estado = OCUPADO;
+						sem_post(mutex_frames);
+
 						ultima_pagina->estado = OCUPADO;
 						//printf("\nULTIMA PAGINA: %u\n", ultima_pagina->numero_de_pagina);
 						//printf("ULTIMO FRAME USADO: %u \n", ultima_pagina->numero_de_frame);
 
+						sem_wait(mutex_frames);
 						puntero_inicio += frames[ultima_pagina->numero_de_frame]->espacio_libre;
+						sem_post(mutex_frames);
 
 						//printf("\n\n                     PUNTERO INICIO: %u\n\n", puntero_inicio);
 
@@ -442,7 +453,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					//TODO: actualizar la posicion del tripulante en el MAPA
 					sem_wait(mutex_paginas);
-					actualizar_tripulante_memoria(tripulante_buscado_por_ubicacion, direccion_fisica);
+					actualizar_tripulante_memoria(tripulante_buscado_por_ubicacion, direccion_fisica, tabla_patota_buscada);
 					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 					sem_post(mutex_paginas);
 
@@ -592,7 +603,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					//TODO: actualizar la posicion del tripulante en el MAPA
 					sem_wait(mutex_paginas);
-					actualizar_tripulante_memoria(tripulante_buscado_por_estado, direccion_fisica);
+					actualizar_tripulante_memoria(tripulante_buscado_por_estado, direccion_fisica, tabla_patota_buscada);
 					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 					sem_post(mutex_paginas);
 				}
@@ -734,7 +745,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					free(tarea_buscada);
 
 					sem_wait(mutex_paginas);
-					actualizar_tripulante_memoria(tripulante_con_tarea, direccion_fisica);
+					actualizar_tripulante_memoria(tripulante_con_tarea, direccion_fisica, tabla_patota_buscada);
 					//actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 					sem_post(mutex_paginas);
 				}
@@ -751,7 +762,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				free(respuesta_con_tarea_tripulante);
 				break;
 
-/*TODO			case EXPULSAR_TRIPULANTE:
+			case EXPULSAR_TRIPULANTE:
 				tripulante_a_eliminar = malloc(sizeof(t_tripulante));
 				respuesta_tripulante_eliminado = malloc(sizeof(t_respuesta_tripulante));
 
@@ -795,58 +806,85 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					sem_wait(mutex_paginas);
 					t_tabla_paginas_patota* patota_buscada = buscar_tabla_patota(tripulante_a_eliminar->id_patota);
 					int32_t direccion_logica = buscar_pagina_por_id(patota_buscada, tripulante_a_eliminar->id_tripulante);
+					int32_t direccion_logica_final = direccion_logica + tamanio_tripulante;
 					sem_post(mutex_paginas);
 
 					sem_wait(mutex_direcciones_paginas);
 					int32_t direccion_fisica = obtener_direc_fisica_con_direccion_logica(direccion_logica, patota_buscada);
-					tripulante_a_eliminar = encontrar_tripulante_memoria(direccion_fisica, direccion_logica, tabla_patota_buscada);
 					sem_post(mutex_direcciones_paginas);
+
 					if(direccion_fisica == -1) {
 						log_warning(logger, "La página del tripulante no se encuentra cargada en Memoria Principal.\n");
 						break;
 					}
 
 					int32_t frame_inicio = direccion_fisica / TAMANIO_PAGINA;
-					int32_t numero_frame_inicio = (int32_t) frame_inicio;
+					//int32_t numero_frame_inicio = (int32_t) frame_inicio;
+					printf("FRAME INICIO: %u\n", frame_inicio);
 					int32_t resto_frame_inicio = direccion_fisica % TAMANIO_PAGINA;
+					printf("RESTO FRAME INICIO: %u\n", resto_frame_inicio);
 
-					int32_t frame_final = (direccion_fisica + tamanio_tripulante) / TAMANIO_PAGINA;
-					int32_t numero_frame_final = (int32_t) frame_final;
-					int32_t resto_frame_final = (direccion_fisica +tamanio_tripulante) % TAMANIO_PAGINA;
+					int32_t direccion_fisica_final = obtener_direc_fisica_con_direccion_logica(direccion_logica_final, patota_buscada);
+					int32_t frame_final = direccion_fisica_final / TAMANIO_PAGINA;
+					//int32_t numero_frame_final = (int32_t) frame_final;
+					printf("FRAME FINAL: %u\n", frame_final);
+					int32_t resto_frame_final = direccion_fisica_final % TAMANIO_PAGINA;
+					printf("RESTO FRAME FINAL: %u\n", resto_frame_final);
 
 					int32_t num_pagina = direccion_logica / TAMANIO_PAGINA;
+					printf("PAGINA TRIPULANTE: %u\n", num_pagina);
+
 					t_pagina* pagina_tripulante = buscar_pagina(num_pagina, patota_buscada->paginas);
-					int indice_pagina = obtener_indice(patota_buscada->paginas, pagina_tripulante);
+					//int indice_pagina = obtener_indice(patota_buscada->paginas, pagina_tripulante);
 
-					if(numero_frame_inicio == numero_frame_final) {
+					if(frame_inicio == frame_final) {
+						sem_wait(mutex_frames);
+						frames[frame_inicio]->espacio_libre += tamanio_tripulante;
 
-						frames[numero_frame_inicio]->espacio_libre += tamanio_tripulante;
-
-						if(frames[numero_frame_inicio]->espacio_libre == TAMANIO_PAGINA) {
-							liberar_frame(numero_frame_inicio);
+						if(frames[frame_inicio]->espacio_libre == TAMANIO_PAGINA) {
+							//liberar_frame(numero_frame_inicio);
 							pagina_tripulante->estado = LIBRE;
-							list_remove(patota_buscada->paginas, indice_pagina);
-							free(pagina_tripulante);
-							log_info(logger, "Se liberó la Página %u, al igual que el Frame %u.\n", num_pagina, numero_frame_inicio);
+							pagina_tripulante->U = 0;
+							pagina_tripulante->P = 0;
+							pagina_tripulante->tiempo_referencia = 0;
+							//list_remove(patota_buscada->paginas, indice_pagina);
+							//free(pagina_tripulante);
+							log_info(logger, "Se liberó la Página %u, al igual que el Frame %u.\n", num_pagina, frame_inicio);
+							liberar_frame(frame_inicio);
 						}
+						sem_post(mutex_frames);
 					}
 					// El dato está en 2 frames
 					else {
 
-						frames[numero_frame_inicio]->espacio_libre += (TAMANIO_PAGINA - resto_frame_inicio);
-						frames[numero_frame_final]->espacio_libre += resto_frame_final;
+						// Todo en este caso voy a tener que buscar los datos del frame Final
 
-						if(frames[numero_frame_inicio]->espacio_libre == TAMANIO_PAGINA) {
-							liberar_frame(numero_frame_inicio);
-						}
+						sem_wait(mutex_frames);
+						frames[frame_inicio]->espacio_libre += (TAMANIO_PAGINA - resto_frame_inicio);
+						frames[frame_final]->espacio_libre += resto_frame_final;
 
-						if(frames[numero_frame_final]->espacio_libre == TAMANIO_PAGINA) {
-							liberar_frame(numero_frame_final);
+				/*		if(frames[numero_frame_inicio]->espacio_libre == TAMANIO_PAGINA) {
+							//liberar_frame(numero_frame_inicio);
 							pagina_tripulante->estado = LIBRE;
-							list_remove(patota_buscada->paginas, indice_pagina);
-							free(pagina_tripulante);
+							pagina_tripulante->U = 0;
+							pagina_tripulante->tiempo_referencia = 0;
+							//list_remove(patota_buscada->paginas, indice_pagina);
+							//free(pagina_tripulante);
 							log_info(logger, "Se liberó la Página %u, al igual que el Frame %u.\n", num_pagina, numero_frame_inicio);
+						}*/
+
+						if(frames[frame_final]->espacio_libre == TAMANIO_PAGINA) {
+							t_pagina* pagina_a_sacar = buscar_pagina(frames[frame_final]->pagina, patota_buscada->paginas);
+							pagina_a_sacar->estado = LIBRE;
+							pagina_a_sacar->U = 0;
+							pagina_a_sacar->P = 0;
+							pagina_a_sacar->tiempo_referencia = 0;
+							//list_remove(patota_buscada->paginas, indice_pagina);
+							//free(pagina_tripulante);
+							log_info(logger, "Se liberó la Página %u, al igual que el Frame %u.\n", frames[frame_final]->pagina, frame_final);
+							liberar_frame(frame_final);
 						}
+						sem_post(mutex_frames);
 
 					}
 					patota_buscada->cantidad_tripulantes--;
@@ -854,24 +892,42 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 
 					if(patota_buscada->cantidad_tripulantes == 0) {
+						sem_wait(mutex_frames);
 
-						for(int c=0; c<cantidad_frames; c++) {
+						for(int c=0; c<list_size(patota_buscada->paginas); c++) {
+							t_pagina* pagina_patota = list_get(patota_buscada->paginas, c);
+							pagina_patota->U = 0;
+							pagina_patota->P = 0;
+							pagina_patota->tiempo_referencia = 0;
+							pagina_patota->estado = LIBRE;
+
 							if(frames[c]->proceso == patota_buscada->patota->pid) {
 								liberar_frame(c);
 							}
 						}
+
 						log_info(logger, "La Patota %u fue expulsada de la nave.\n", patota_buscada->patota->pid);
+
+						sem_post(mutex_frames);
+
 
 						memoria_libre_total += tamanio_patota;
 						memoria_libre_total += patota_buscada->tamanio_tareas;
 
-						int indice = obtener_indice(tablas_paginas, patota_buscada);
+
+					/*	list_clean_and_destroy_elements(tabla_patota_buscada->direccion_tripulantes, free);
+						list_clean_and_destroy_elements(tabla_patota_buscada->paginas, free);
+						free(tabla_patota_buscada->patota);
+						sem_wait(mutex_paginas);
+						int indice = obtener_indice(tablas_paginas, tabla_patota_buscada);
 						list_remove(tablas_paginas, indice);
+						sem_post(mutex_paginas);
+						free(tabla_patota_buscada);
 
 						list_clean_and_destroy_elements(patota_buscada->direccion_tripulantes, free);
 						list_clean_and_destroy_elements(patota_buscada->paginas, free);
 						free(patota_buscada->patota);
-						free(patota_buscada);
+						free(patota_buscada);*/
 					}
 
 				}
@@ -888,7 +944,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				free(tripulante_a_eliminar);
 				free(respuesta_tripulante_eliminado);
 				break;
-*/
+
 			case CERRAR_MODULO:
 				cerrar_conexion(logger, conexion);
 

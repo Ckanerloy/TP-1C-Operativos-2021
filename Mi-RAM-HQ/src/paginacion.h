@@ -3,7 +3,6 @@
 
 #include "Mi-RAM.h"
 #include "utils/estructuras.h"
-#include "swap.h"
 
 
 typedef struct {
@@ -15,6 +14,8 @@ typedef struct {
 	int32_t estado;						// Si la página esta LIBRE u OCUPADO
 } t_pagina;
 
+
+#include "swap.h"
 
 // DIRECCION_LOGICA = NUMERO_PAGINA * TAMANIO_PAGINA + DESPLAZAMIENTO;
 // DIRECCION_FISICA = NUMERO_FRAME * TAMANIO_FRAME + DESPLAZAMIENTO;
@@ -87,7 +88,7 @@ t_pagina* buscar_pagina(int32_t nro_pagina, t_list* paginas);
 
 void* obtener_tripulante_de_memoria(uint32_t direccion_fisica, uint32_t direccion_logica, t_tabla_paginas_patota* tabla_patota);
 t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica, uint32_t direccion_logica, t_tabla_paginas_patota* tabla_patota);
-void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica);
+void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica, t_tabla_paginas_patota* tabla_patota);
 void actualizar_referencia(t_list* paginas, uint32_t direccion_logica);
 
 void* obtener_tareas_de_memoria(uint32_t direccion_fisica, uint32_t tamanio_tareas, t_tabla_paginas_patota* tabla_patota);
