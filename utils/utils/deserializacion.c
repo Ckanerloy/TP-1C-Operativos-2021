@@ -32,7 +32,7 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 			deserializar_tripulante(mensaje, conexion);
 			break;
 
-		case RECIBIR_SABOTAJE:
+		case SABOTAJE:
 			deserializar_sabotaje(mensaje,conexion);
 			break;
 
@@ -186,21 +186,6 @@ void deserializar_estado_tripulante(t_tripulante_estado* mensaje, int32_t conexi
 }
 
 
-void deserializar_sabotaje(t_respuesta_mongo* mensaje,int32_t conexion) {
-	uint32_t tamanio;
-	uint32_t desplazamiento = 0;
-	void* buffer_deserializar;
-	buffer_deserializar = recibir_buffer(&tamanio, conexion);
-
-	memcpy(&(mensaje->sabotaje_on), buffer_deserializar + desplazamiento, sizeof(mensaje->sabotaje_on));
-	desplazamiento += sizeof(mensaje->sabotaje_on);
-
-	// FALTARIA AGREGAR LAS POSICIONES
-
-	free(buffer_deserializar);
-}
-
-
 // Respuestas
 void deserializar_respuesta_patota(t_respuesta_iniciar_patota* mensaje, int32_t conexion) {
 	uint32_t tamanio;
@@ -307,6 +292,24 @@ void deserializar_respuesta_nueva_tarea(t_respuesta_tarea_tripulante* mensaje, i
 	// Tiempo de la tarea
 	memcpy(&(mensaje->tarea->tiempo), buffer_deserializar + desplazamiento, sizeof(mensaje->tarea->tiempo));
 	desplazamiento += sizeof(mensaje->tarea->tiempo);
+
+	free(buffer_deserializar);
+}
+
+
+void deserializar_sabotaje(posicion_sabotaje* mensaje, int32_t conexion) {
+	uint32_t tamanio;
+	uint32_t desplazamiento = 0;
+	void* buffer_deserializar;
+	buffer_deserializar = recibir_buffer(&tamanio, conexion);
+
+	// Posicion X del Sabotaje
+	memcpy(&(mensaje->posicion_x), buffer_deserializar + desplazamiento, sizeof(mensaje->posicion_x));
+	desplazamiento += sizeof(mensaje->posicion_x);
+
+	// Posicion Y del Sabotaje
+	memcpy(&(mensaje->posicion_y), buffer_deserializar + desplazamiento, sizeof(mensaje->posicion_y));
+	desplazamiento += sizeof(mensaje->posicion_y);
 
 	free(buffer_deserializar);
 }

@@ -1,8 +1,7 @@
 #include "serializacion.h"
 
 
-void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion)
-{
+void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion) {
 	t_paquete* paquete_a_armar = malloc(sizeof(t_paquete));
 	crear_buffer(paquete_a_armar);
 	uint32_t tamanio_paquete = 0;
@@ -17,8 +16,7 @@ void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion)
 }
 
 
-void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, uint32_t* tamanio_paquete)
-{
+void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion operacion, uint32_t* tamanio_paquete) {
 
 	uint32_t tamanio_preparado = 0;
 	paquete->op_code = operacion;
@@ -55,7 +53,8 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			tamanio_preparado = serializar_paquete_tripulante(paquete, mensaje);
 			break;
 
-		case ENVIAR_SABOTAJE:
+		case SABOTAJE:
+			tamanio_preparado = serializar_paquete_sabotaje(paquete, mensaje);
 			break;
 
 
@@ -128,8 +127,7 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 }
 
 
-uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota* mensaje)
-{
+uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 	uint32_t tamanio_a_enviar = 0;
@@ -182,8 +180,7 @@ uint32_t serializar_paquete_iniciar_patota(t_paquete* paquete, t_iniciar_patota*
 }
 
 
-uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tripulante* mensaje)
-{
+uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tripulante* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
@@ -226,8 +223,7 @@ uint32_t serializar_paquete_tripulante(t_paquete* paquete, t_tripulante* mensaje
 }
 
 
-uint32_t serializar_paquete_ubicacion_tripulante(t_paquete* paquete, t_tripulante_ubicacion* mensaje)
-{
+uint32_t serializar_paquete_ubicacion_tripulante(t_paquete* paquete, t_tripulante_ubicacion* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
@@ -278,8 +274,7 @@ uint32_t serializar_paquete_ubicacion_tripulante(t_paquete* paquete, t_tripulant
 }
 
 
-uint32_t serializar_paquete_estado_tripulante(t_paquete* paquete, t_tripulante_estado* mensaje)
-{
+uint32_t serializar_paquete_estado_tripulante(t_paquete* paquete, t_tripulante_estado* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
@@ -326,15 +321,53 @@ uint32_t serializar_paquete_estado_tripulante(t_paquete* paquete, t_tripulante_e
 }
 
 
-//uint32_t serializar_paquete_sabotaje(t_paquete* paquete, tripulante_sabotaje* mensaje) {}
+uint32_t serializar_paquete_sabotaje(t_paquete* paquete, posicion_sabotaje* mensaje) {
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
+
+	uint32_t tamanio_a_enviar = 0;
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->size = sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y);
+
+	void* stream_auxiliar = malloc(buffer->size);
+
+	// Posicion X del Sabotaje
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->posicion_x), sizeof(mensaje->posicion_x));
+	desplazamiento += sizeof(mensaje->posicion_x);
+
+	// Posicion Y del Sabotaje
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->posicion_y), sizeof(mensaje->posicion_y));
+	desplazamiento += sizeof(mensaje->posicion_y);
+
+	tamanio_a_enviar = sizeof(mensaje->posicion_x) + sizeof(mensaje->posicion_y);
+
+
+	if(desplazamiento != tamanio_a_enviar)
+	{
+		puts("ERROR. Tamanio diferentes.\n");
+		//log_error(logger);
+		abort();
+	}
+
+	else
+	{
+		paquete->buffer = buffer;
+		paquete->buffer->size = desplazamiento;
+		paquete->buffer->stream = stream_auxiliar;
+
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+
+		return tamanio;
+	}
+}
 
 
 
 
 
 // Respuestas
-uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta_iniciar_patota* mensaje)
-{
+uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta_iniciar_patota* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
@@ -383,8 +416,7 @@ uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta_ini
 	}
 }
 
-uint32_t serializar_respuesta_tripulante(t_paquete* paquete, t_respuesta_tripulante* mensaje)
-{
+uint32_t serializar_respuesta_tripulante(t_paquete* paquete, t_respuesta_tripulante* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
@@ -425,8 +457,7 @@ uint32_t serializar_respuesta_tripulante(t_paquete* paquete, t_respuesta_tripula
 	}
 }
 
-uint32_t serializar_respuesta_nueva_ubicacion(t_paquete* paquete, t_respuesta_tripulante_ubicacion* mensaje)
-{
+uint32_t serializar_respuesta_nueva_ubicacion(t_paquete* paquete, t_respuesta_tripulante_ubicacion* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
@@ -476,8 +507,8 @@ uint32_t serializar_respuesta_nueva_ubicacion(t_paquete* paquete, t_respuesta_tr
 	}
 }
 
-uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_tarea_tripulante* mensaje)
-{
+
+uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_tarea_tripulante* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
@@ -543,8 +574,7 @@ uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_t
 
 
 // Tareas I/O
-uint32_t serializar_paquete_tarea_io(t_paquete* paquete, archivo_tarea* mensaje)
-{
+uint32_t serializar_paquete_tarea_io(t_paquete* paquete, archivo_tarea* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 

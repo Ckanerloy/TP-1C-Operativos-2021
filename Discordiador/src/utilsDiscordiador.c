@@ -133,8 +133,3 @@ void enviar_tarea_io(tripulante_plani* tripu, codigo_operacion op_code, char* no
 	close(conexion_mongo_store);
 }
 
-
-void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
-
-}
-

@@ -127,8 +127,6 @@ void iniciar_planificacion() {
 
 	cola_new = queue_create();
 
-
-
 	cola_io = queue_create();
 
 	cola_ready = queue_create();
@@ -205,7 +203,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 }
 
 
-t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota){
+void obtener_siguiente_tarea(tripulante_plani* tripu,uint32_t id_tripulante, uint32_t numero_patota){
 /*
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 
@@ -248,7 +246,8 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 		}
 		if(respuesta_tarea->tarea == NULL) {
 			log_warning(logger, "No hay mas tareas para realizar.");
-			return NULL;
+			tripu->tarea_a_realizar=NULL;
+			return;
 		}
 	}
 	else {
@@ -256,24 +255,22 @@ t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota)
 		abort();
 	}
 
-	t_tarea* tarea_buscada =malloc(sizeof(t_tarea));
-	tarea_buscada = respuesta_tarea->tarea;
+	tripu->tarea_a_realizar->operacion=respuesta_tarea->tarea->operacion;
+	tripu->tarea_a_realizar->cantidad=respuesta_tarea->tarea->cantidad;
+	tripu->tarea_a_realizar->posicion_x=respuesta_tarea->tarea->posicion_x;
+	tripu->tarea_a_realizar->posicion_y=respuesta_tarea->tarea->posicion_y;
+	tripu->tarea_a_realizar->tiempo=respuesta_tarea->tarea->tiempo;
 
 	close(conexion_mi_ram);
 
 	free(tripulante_consulta);
-	respuesta_tarea->tarea=NULL;
 	free(respuesta_tarea->tarea);
 	free(respuesta_tarea);
 
-	if(tarea_buscada->operacion == TAREA_VACIA) {
-		free(tarea_buscada);
-		return NULL;
+	if(tripu->tarea_a_realizar->operacion == TAREA_VACIA) {
+		tripu->tarea_a_realizar=NULL;
+		return;
 	}
-	else {
-		return tarea_buscada;
-	}
-
 
 }
 
@@ -416,8 +413,6 @@ void new_ready() {
 
 		sem_wait(planificacion_on);
 
-
-
 		sem_wait(mutex_new);
 		tripulante_a_ready = queue_pop(cola_new);
 		sem_post(mutex_new);
@@ -429,6 +424,7 @@ void new_ready() {
 		sem_post(tripulante_a_ready->sem_planificacion);
 
 		actualizar_estado(tripulante_a_ready, 'R');
+		log_info(logger,"El tripulante con id %d de la patota %d paso de New a Ready",tripulante_a_ready->id_tripulante,tripulante_a_ready->numero_patota);
 		tripulante_a_ready->estado_anterior='R';
 		sem_post(contador_tripulantes_en_ready);
 
@@ -481,6 +477,7 @@ void ready_running() {
 
 
 			actualizar_estado(tripulante_a_running, 'E');
+			log_info(logger,"El tripulante con id %d de la patota %d paso de Ready a Execute",tripulante_a_running->id_tripulante,tripulante_a_running->numero_patota);
 			switch(tripulante_a_running->estado_anterior){
 				case 'E':
 					sem_post(tripulante_a_running->sem_tripu);
@@ -516,6 +513,7 @@ void running_ready(tripulante_plani* tripu){
 	sem_post(mutex_ready);
 
 	actualizar_estado(tripu, 'R');
+	log_info(logger,"El tripulante con id %d de la patota %d paso de Execute a Ready",tripu->id_tripulante,tripu->numero_patota);
 	sem_post(contador_tripulantes_en_ready);
 
 	sem_post(multitarea_disponible);
@@ -528,6 +526,7 @@ void running_ready(tripulante_plani* tripu){
 void running_block(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'B');
+	log_info(logger,"El tripulante con id %d de la patota %d paso de Execute a Block",tripu->id_tripulante,tripu->numero_patota);
 	tripu->puedo_ejecutar_io=0;
 
 	sem_wait(mutex_cola_io);
@@ -541,6 +540,7 @@ void running_block(tripulante_plani* tripu){
 
 void block_ready(tripulante_plani* tripu){
 	actualizar_estado(tripu, 'R');
+	log_info(logger,"El tripulante con id %d de la patota %d paso de Block a Ready",tripu->id_tripulante,tripu->numero_patota);
 	tripu->puedo_ejecutar_io=0;
 	tripu->estado_anterior='R';
 	sem_wait(mutex_ready);
@@ -559,6 +559,7 @@ void block_exit(tripulante_plani* tripu){
 	sem_post(mutex_exit);
 	tripu->puedo_ejecutar_io=0;
 	actualizar_estado(tripu, 'T');
+	log_info(logger,"El tripulante con id %d de la patota %d paso de Block a Exit",tripu->id_tripulante,tripu->numero_patota);
 }
 
 // Creo que este ya no va
@@ -569,6 +570,7 @@ void new_exit(tripulante_plani* tripu){
 	sem_wait(contador_tripulantes_en_new);
 
 	actualizar_estado(tripu, 'T');
+	log_info(logger,"El tripulante con id %d de la patota %d paso de New a Exit",tripu->id_tripulante,tripu->numero_patota);
 }
 
 
@@ -579,6 +581,7 @@ void running_exit(tripulante_plani* tripu){
 	sem_post(mutex_exit);
 
 	actualizar_estado(tripu, 'T');
+	log_info(logger,"El tripulante con id %d de la patota %d paso de Running a Exit",tripu->id_tripulante,tripu->numero_patota);
 
 	sem_post(multitarea_disponible);
 }
@@ -591,6 +594,7 @@ void suspendido_ready(tripulante_plani* tripu){
 	sem_post(mutex_ready);
 
 	actualizar_estado(tripu, 'R');
+	log_info(logger,"El tripulante con id %d de la patota %d paso de Block Suspended a Ready",tripu->id_tripulante,tripu->numero_patota);
 
 	sem_post(contador_tripulantes_en_ready);
 }
@@ -614,7 +618,7 @@ void ready_exit(tripulante_plani* tripu){
 			queue_push(cola_exit, tripulante);
 			sem_post(mutex_exit);
 			actualizar_estado(tripu, 'T');
-
+			log_info(logger,"El tripulante con id %d de la patota %d paso de Ready a Exit",tripu->id_tripulante,tripu->numero_patota);
 		} else {
 			queue_push(cola_auxiliar_sabotaje, tripulante);
 		}
@@ -643,6 +647,7 @@ void ready_exit(tripulante_plani* tripu){
 void running_suspendido(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'S');
+	log_info(logger,"El tripulante con id %d de la patota %d paso de Executed a Block Suspended",tripu->id_tripulante,tripu->numero_patota);
 	sem_post(multitarea_disponible);
 
 }
@@ -651,6 +656,7 @@ void running_suspendido(tripulante_plani* tripu){
 void ready_suspendido(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'S');
+	log_info(logger,"El tripulante con id %d de la patota %d paso de Ready a Block Suspended",tripu->id_tripulante,tripu->numero_patota);
 	//int a;
 	//sem_getvalue(contador_tripulantes_en_ready,&a);
 	//printf("valor semaforo %u",a);
@@ -728,6 +734,16 @@ void tripulante_hilo(void* tripulante){
 
 
 			tripu->cantidad_realizada= tripu->cantidad_realizada+1;
+
+			if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
+				if(algoritmo_elegido == RR){ // @suppress("Symbol is not resolved")
+					if(tripu->cantidad_realizada == QUANTUM){
+					running_ready(tripu);
+					sem_wait(tripu->sem_planificacion);
+					}
+				}
+			}
+
 			distancia--;
 
 			sem_wait(tripu->mutex_expulsado);
@@ -736,15 +752,6 @@ void tripulante_hilo(void* tripulante){
 				return;
 			}else{
 				sem_post(tripu->mutex_expulsado);
-			}
-
-			if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
-				if(algoritmo_elegido == RR){ // @suppress("Symbol is not resolved")
-					if(tripu->cantidad_realizada == QUANTUM){
-						running_ready(tripu);
-						sem_wait(tripu->sem_planificacion);
-					}
-				}
 			}
 
 			         //Trabado por el pulso (rafaga), te lo dan siempre que estes en Exec
@@ -1190,7 +1197,7 @@ void cambios_de_tarea(tripulante_plani* tripu) {
 		}else{
 
 			//tripu->tarea_a_realizar= NULL;
-			tripu->tarea_a_realizar= obtener_siguiente_tarea(tripu->id_tripulante, tripu->numero_patota);
+			obtener_siguiente_tarea(tripu,tripu->id_tripulante, tripu->numero_patota);
 		}
 	}
 }

@@ -2,8 +2,7 @@
 
 int main(void) {
 
-	logger = crear_log("discordiador.log", "Discordiador");
-	logger_sin_pantalla =  log_create("discordiador.log", "logger_sin_pantalla" , 0, LOG_LEVEL_INFO);;
+	logger = crear_log_sin_pantalla("Discordiador.log", "Discordiador");
 
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
@@ -63,8 +62,8 @@ void crear_hilos(){
 	pthread_create(&hilo_consola, NULL,(void*)iniciar_escucha_por_consola, NULL);
 	pthread_detach(hilo_consola);
 
-	//pthread_create(&hilo_sabotaje, NULL,(void*)iniciar_escucha_sabotaje, NULL);
-	//pthread_detach(hilo_sabotaje);
+	pthread_create(&hilo_sabotaje, NULL,(void*)iniciar_escucha_sabotaje, NULL);
+	pthread_detach(hilo_sabotaje);
 
 	pthread_create(&hilo_new_ready, NULL,(void*)new_ready, NULL);
 	pthread_detach(hilo_new_ready);
@@ -81,259 +80,248 @@ void crear_hilos(){
 }
 
 void iniciar_escucha_sabotaje(void){
+	conexion_sabotaje = iniciar_servidor(IP_DISCORDIADOR, PUERTO_DISCORDIADOR);
 
-	//conexion_sabotaje = iniciar_servidor(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+	while(1) {
+		int32_t conexion_cliente = esperar_conexion(conexion_sabotaje);
+		pthread_create(&hilo_tripulante_sabo, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
+		pthread_detach(hilo_tripulante_sabo);
+	}
+}
 
+void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 
+	posicion_sabotaje* posicion_recibida;
 
-	//int32_t* conexion_cliente = esperar_conexion(conexion_sabotaje);
+	switch(operacion){
 
-	//codigo_operacion operacion;
+		case SABOTAJE:
+			posicion_recibida = malloc(sizeof(posicion_sabotaje));
+			recibir_mensaje(posicion_recibida, operacion, conexion_cliente);
 
-	//recv(*conexion_cliente, &operacion, sizeof(operacion), MSG_WAITALL);
+			printf("POSICION X SABOTAJE: %u\n", posicion_recibida->posicion_x);
+			printf("POSICION Y SABOTAJE: %u\n", posicion_recibida->posicion_y);
+			//la señal te llega filesystem tiene ip y puerto de disc
 
-	//switch(operacion){
-	//	case posiciones:
+			/*int largo;
 
-    //}
+			tripulante_plani* tripu_mas_cercano;
 
+			tripulante_plani* tripulante;
 
-	//
-	//
-	//while(1){
+			//Para parar los hilos de planificacion
 
-		t_respuesta_mongo* respuesta=malloc(sizeof(t_respuesta_mongo));
-		//recibir_mensaje(respuesta, RECIBIR_SABOTAJE, conexion_sabotaje);
+			sem_wait(mutex_new_ready);
+			new_ready_off = 1;
+			sem_post(mutex_new_ready);
 
+			sem_wait(mutex_ready_running);
+			ready_running_off = 1;
+			sem_post(mutex_ready_running);
 
+			sem_wait(mutex_rafaga);
+			dar_pulsos_off = 1;
+			sem_post(mutex_rafaga);
 
-		//la señal te llega  filesystem tiene ip y puerto de disc
+			sleep(1);
 
-		int largo;
-
-		tripulante_plani* tripu_mas_cercano = malloc(sizeof(tripulante_plani));
-
-		tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
-
-		//Para parar los hilos de planificacion
-
-		sem_wait(mutex_new_ready);
-		new_ready_off = 1;
-		sem_post(mutex_new_ready);
-
-		sem_wait(mutex_ready_running);
-		ready_running_off = 1;
-		sem_post(mutex_ready_running);
-
-		sem_wait(mutex_rafaga);
-		dar_pulsos_off = 1;
-		sem_post(mutex_rafaga);
-
-		sleep(1);
-
-		largo = list_size(lista_tripulantes);
-		for(int i=0;i<largo;i++){
-			tripulante = list_get(lista_tripulantes,i);
-			if(tripulante->estado == 'E'){
-				tripulante->estado_anterior = 'E';
-				list_add_sorted(bloqueado_suspendido, (void*) tripulante,(void*)menorId);
-				running_suspendido(tripulante);
-			}
-		}
-
-		for(int i=0;i<largo;i++){
-			tripulante = list_get(lista_tripulantes,i);
-			if(tripulante->estado == 'R'){
-				tripulante->estado_anterior = 'R';
-				list_add_sorted(bloqueado_suspendido_ready, (void*) tripulante,(void*)menorId);
-				ready_suspendido(tripulante);
-			}
-		}
-
-		list_add_all(bloqueado_suspendido,bloqueado_suspendido_ready);
-
-
-		//se supone q te viene la tarea de imongo, le buscas la poscion
-	//ESTO VA A IR
-
-
-
-		/*esto va
-		posicion_sabotaje=malloc(sizeof(posiciones));
-		posicion_sabotaje->posicion_x=respuesta->tarea_sabotaje->posicion_x;
-		posicion_sabotaje->posicion_y=respuesta->tarea_sabotaje->posicion_y;
-
-		*/
-
-
-
-
-
-
-		//posicion_sabotaje->posicion_x = respuesta->tarea_sabotaje->posicion_x;
-		//posicion_sabotaje->posicion_y = respuesta->tarea_sabotaje->posicion_y;
-
-
-	 //esto vas a pedir memoria cuando aceptas el mensaje no aca
-
-
-		//hardcodeado
-
-		//TODO RESPUESTA de imongo
-		posicion_sabotaje=malloc(sizeof(posiciones));
-		posicion_sabotaje->posicion_x=10;
-		posicion_sabotaje->posicion_y=10;
-
-
-		//cuidado sin la lista esta vacia
-		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
-
-		printf("id asignado: %u",tripu_mas_cercano->id_tripulante);
-		fflush(stdout);
-
-		int indice=obtener_indice(bloqueado_suspendido, tripu_mas_cercano);
-		list_remove(bloqueado_suspendido, indice);
-
-
-		for(int i=0;i<largo;i++){
-			tripulante = list_get(lista_tripulantes,i);
-			if(tripulante->estado == 'B'){
-				tripulante->estado_anterior = 'B';
-				if(tripulante->puedo_ejecutar_io==1){
-					tripulante->puedo_ejecutar_io=0;
-					sem_post(bloqueado_disponible);
+			largo = list_size(lista_tripulantes);
+			for(int i=0;i<largo;i++){
+				tripulante = list_get(lista_tripulantes,i);
+				if(tripulante->estado == 'E'){
+					tripulante->estado_anterior = 'E';
+					list_add_sorted(bloqueado_suspendido, (void*) tripulante,(void*)menorId);
+					running_suspendido(tripulante);
 				}
-				list_add(bloqueado_suspendido,tripulante);
-				actualizar_estado(tripulante, 'S');
 			}
-		}
+
+			for(int i=0;i<largo;i++){
+				tripulante = list_get(lista_tripulantes,i);
+				if(tripulante->estado == 'R'){
+					tripulante->estado_anterior = 'R';
+					list_add_sorted(bloqueado_suspendido_ready, (void*) tripulante,(void*)menorId);
+					ready_suspendido(tripulante);
+				}
+			}
+
+			list_add_all(bloqueado_suspendido, bloqueado_suspendido_ready);
+
+
+			//se supone q te viene la tarea de imongo, le buscas la poscion
+		//ESTO VA A IR
 
 
 
-		t_tarea* ayuda=malloc(sizeof(t_tarea));
-		ayuda->posicion_x=10;
-		ayuda->posicion_y=10;
-		ayuda->operacion=REALIZAR_TAREA_SABOTAJE;
-		ayuda->cantidad=0;
-		ayuda->tiempo=0;
+			/*esto va
+			posicion_sabotaje=malloc(sizeof(posiciones));
+			posicion_sabotaje->posicion_x=respuesta->tarea_sabotaje->posicion_x;
+			posicion_sabotaje->posicion_y=respuesta->tarea_sabotaje->posicion_y;
+			*/
 
-		tripu_mas_cercano->tarea_auxiliar=ayuda;
-
-		actualizar_estado(tripu_mas_cercano, 'E');
-
-		// TODO aca seria corre a sabotaje
-		tripu_mas_cercano->elegido_sabotaje=1;
+			//posicion_sabotaje->posicion_x = respuesta->tarea_sabotaje->posicion_x;
+			//posicion_sabotaje->posicion_y = respuesta->tarea_sabotaje->posicion_y;
 
 
-
-		sem_wait(mutex_rafaga);
-		dar_pulsos_off=0;
-		sem_post(mutex_rafaga);
-		sem_post(planificion_rafaga);
-
-		if(tripu_mas_cercano->estado_anterior=='R'){
-			sem_post(tripu_mas_cercano->sem_planificacion);
-		}else{
-			//sem_post(tripu_mas_cercano->sem_tripu);
-		}
+		 //esto vas a pedir memoria cuando aceptas el mensaje no aca
 
 
-		sem_wait(termine_sabotaje);
-		// TODO aca mandar a mongo resolvi sabotaje
-		queue_clean(cola_ready);
+			//hardcodeado*/
 
-		tripu_mas_cercano->estado_anterior='R';
-	//	sem_wait(tripu_mas_cercano->sem_tripu);
-
-		largo = list_size(bloqueado_suspendido);
-
-		for(int i=0;i<largo;i++){
-			tripulante = list_get(bloqueado_suspendido,i);
-			tripulante->cantidad_realizada = 0;
-			suspendido_ready(tripulante);
-		}
+			//TODO RESPUESTA de imongo
+			/*posicion_sabotaje=malloc(sizeof(posiciones));
+			posicion_sabotaje->posicion_x=10;
+			posicion_sabotaje->posicion_y=10;
 
 
-		list_clean(bloqueado_suspendido);
+			//cuidado sin la lista esta vacia
+			tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
-		//Vuelve a activar los hilos de planificacion
-/*
-		sem_wait(mutex_new_ready);
-		new_ready_off = 0;
-		sem_post(mutex_new_ready);
+			log_info(logger, "El tripulante con id %u, corre en panico hacia el sabotaje", tripu_mas_cercano->id_tripulante);
 
-		if(new_ready_off==0){
-			sem_post(planificacion_on);
-		}
+			int indice=obtener_indice(bloqueado_suspendido, tripu_mas_cercano);
+			list_remove(bloqueado_suspendido, indice);
 
 
-		sem_wait(mutex_ready_running);
-		ready_running_off = 0;
-		sem_post(mutex_ready_running);
+			for(int i=0;i<largo;i++){
+				tripulante = list_get(lista_tripulantes,i);
+				if(tripulante->estado == 'B'){
+					tripulante->estado_anterior = 'B';
+					if(tripulante->puedo_ejecutar_io==1){
+						tripulante->puedo_ejecutar_io=0;
+						sem_post(bloqueado_disponible);
+					}
+					list_add(bloqueado_suspendido,tripulante);
+					actualizar_estado(tripulante, 'S');
+					log_info(logger,"El tripulante con id %d de la patota %d paso de Block a Block Suspended",tripulante->id_tripulante,tripulante->numero_patota);
+				}
+			}
 
-		if(ready_running_off==0){
-			sem_post(planificacion_on_ready_running);
-		}
+
+
+			t_tarea* ayuda=malloc(sizeof(t_tarea));
+			ayuda->posicion_x=10;
+			ayuda->posicion_y=10;
+			ayuda->operacion=REALIZAR_TAREA_SABOTAJE;
+			ayuda->cantidad=0;
+			ayuda->tiempo=0;
+
+			tripu_mas_cercano->tarea_auxiliar=ayuda;
+
+			actualizar_estado(tripu_mas_cercano, 'E');
+			log_info(logger,"El tripulante con id %d de la patota %d paso de Block Suspended a Execute",tripu_mas_cercano->id_tripulante,tripu_mas_cercano->numero_patota);
+			// TODO aca seria corre a sabotaje
+			tripu_mas_cercano->elegido_sabotaje=1;
+
+
+
+			sem_wait(mutex_rafaga);
+			dar_pulsos_off=0;
+			sem_post(mutex_rafaga);
+			sem_post(planificion_rafaga);
+
+			if(tripu_mas_cercano->estado_anterior=='R'){
+				sem_post(tripu_mas_cercano->sem_planificacion);
+			}else{
+				//sem_post(tripu_mas_cercano->sem_tripu);
+			}
+
+
+			sem_wait(termine_sabotaje);
+			// TODO aca mandar a mongo resolvi sabotaje
+			queue_clean(cola_ready);
+
+			tripu_mas_cercano->estado_anterior='R';
+		//	sem_wait(tripu_mas_cercano->sem_tripu);
+
+			largo = list_size(bloqueado_suspendido);
+
+			for(int i=0;i<largo;i++){
+				tripulante = list_get(bloqueado_suspendido,i);
+				tripulante->cantidad_realizada = 0;
+				suspendido_ready(tripulante);
+			}
+
+
+			list_clean(bloqueado_suspendido);*/
+
+			//Vuelve a activar los hilos de planificacion
+		/*
+			sem_wait(mutex_new_ready);
+			new_ready_off = 0;
+			sem_post(mutex_new_ready);
+
+			if(new_ready_off==0){
+				sem_post(planificacion_on);
+			}
+
+
+			sem_wait(mutex_ready_running);
+			ready_running_off = 0;
+			sem_post(mutex_ready_running);
+
+			if(ready_running_off==0){
+				sem_post(planificacion_on_ready_running);
+			}
+		*/
+			/*sem_wait(mutex_rafaga);
+			dar_pulsos_off = 1;
+			sem_post(mutex_rafaga);
+
+		//		if(dar_pulsos_off==0){
+		//			sem_post(planificion_rafaga);
+		//		}
+
+		//	tripu_mas_cercano->estado='E';
+
+			posicion_sabotaje=NULL;
+			respuesta=NULL;
+
+			free(respuesta);
+			free(posicion_sabotaje);
 */
-		sem_wait(mutex_rafaga);
-		dar_pulsos_off = 1;
-		sem_post(mutex_rafaga);
-
-//		if(dar_pulsos_off==0){
-//			sem_post(planificion_rafaga);
-//		}
-
-	//	tripu_mas_cercano->estado='E';
-
-		posicion_sabotaje=NULL;
-		tripu_mas_cercano=NULL;
-		tripulante=NULL;
-		respuesta=NULL;
-
-		free(respuesta);
-		free(posicion_sabotaje);
-		free(tripulante);
-		free(tripu_mas_cercano);
-		//FINAL
-	//	sem_wait(mutex_sabotaje);
-	//	valor_sabotaje=0;
-	//	sem_post(mutex_sabotaje);
-	//}
-
-}
+			//FINAL
+		//	sem_wait(mutex_sabotaje);
+		//	valor_sabotaje=0;
+		//	sem_post(mutex_sabotaje);
+		//}
 
 
+/*			tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
+			//tenemos variable global q dice la posicion del sabotaje
 
-tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
-	//tenemos variable global q dice la posicion del sabotaje
+			posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
+			obtener_posiciones(posicion_tripu1,tripulante1->id_tripulante, tripulante1->numero_patota);
 
-	posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
-	obtener_posiciones(posicion_tripu1,tripulante1->id_tripulante, tripulante1->numero_patota);
+			posiciones* posicion_tripu2 = malloc(sizeof(posiciones));
+			obtener_posiciones(posicion_tripu2,tripulante2->id_tripulante, tripulante2->numero_patota);
 
-	posiciones* posicion_tripu2 = malloc(sizeof(posiciones));
-	obtener_posiciones(posicion_tripu2,tripulante2->id_tripulante, tripulante2->numero_patota);
+			int32_t distancia1 = obtener_distancia(posicion_tripu1, posicion_sabotaje);
+			int32_t distancia2 = obtener_distancia(posicion_tripu2, posicion_sabotaje);
 
-	int32_t distancia1 = obtener_distancia(posicion_tripu1, posicion_sabotaje);
-	int32_t distancia2 = obtener_distancia(posicion_tripu2, posicion_sabotaje);
+			posicion_tripu1=NULL;
+			posicion_tripu2=NULL;
 
-	posicion_tripu1=NULL;
-	posicion_tripu2=NULL;
+			free(posicion_tripu1);
+			free(posicion_tripu2);
+			if(distancia1 <= distancia2) {
+				return tripulante1;
+			}
+			else {
+				return tripulante2;
+			}
 
-	free(posicion_tripu1);
-	free(posicion_tripu2);
-	if(distancia1 <= distancia2) {
-		return tripulante1;
+			//obtener_distancia(posicion_tripu1, posicion_tripu2);
+
+			//aca esTA MAL
+
+		}*/
+		break;
+
+		default:
+			break;
 	}
-	else {
-		return tripulante2;
-	}
-
-	//obtener_distancia(posicion_tripu1, posicion_tripu2);
-
-	//aca esTA MAL
-
+	return;
 }
-
 
 
 bool menorId(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
@@ -351,6 +339,9 @@ void iniciar_escucha_por_consola(){
 }
 
 void obtener_datos_de_config(t_config* config) {
+
+	IP_DISCORDIADOR = config_get_string_value(config, "IP_DISCORDIADOR");
+	PUERTO_DISCORDIADOR = config_get_string_value(config, "PUERTO_DISCORDIADOR");
 
 	IP_MI_RAM = config_get_string_value(config, "IP_MI_RAM_HQ");
 	PUERTO_MI_RAM = config_get_string_value(config, "PUERTO_MI_RAM_HQ");
@@ -629,6 +620,10 @@ void obtener_orden_input(){
 						sem_t* mutex_tripu_expulsado=malloc(sizeof(sem_t));
 						sem_init(mutex_tripu_expulsado, 0, 1);
 
+						tripulante->tarea_a_realizar=malloc(sizeof(t_tarea));
+
+						//tripulante->tarea_auxiliar=malloc(sizeof(t_tarea));
+
 						tripulante->mutex_expulsado=mutex_tripu_expulsado;
 
 						pthread_create(&hilo_tripulante,NULL,(void*)tripulante_hilo,tripulante);
@@ -637,12 +632,15 @@ void obtener_orden_input(){
 						list_add(lista_semaforos_tripulantes, tripulante->sem_tripu); //Creo que no se usan mas
 						list_add(lista_tripulantes,tripulante);
 
+						log_info(logger,"Se inicializo al tripulante con id: %d, correspondiente a la patota %d en el estado New \n",tripulante->id_tripulante,tripulante->numero_patota);
+
 						sem_wait(mutex_new);
 						queue_push(cola_new,tripulante);
 						sem_post(mutex_new);
 
 
 						sem_post(contador_tripulantes_en_new);
+
 					}
 
 				}
@@ -679,7 +677,7 @@ void obtener_orden_input(){
 			largo = list_size(lista_tripulantes);
 
 			printf("-------------------------------------------------------------------------\n");
-			printf("Estado de la Nave: %s \n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
+			printf("Estado de la Nave: %s \n", (char*)temporal_get_string_time("%d/%m/%y %H:%M:%S"));
 
 			for(recorrido=0; recorrido<largo; recorrido++){
 				tripulante=list_get(lista_tripulantes, recorrido);
@@ -728,6 +726,9 @@ void obtener_orden_input(){
 			 * 					O
 			 * MONGO STORE IMPRIME LA BITACORA
 			 */
+
+			//TODO
+			//Guardar en el log la bitacora del tripulante que devuelve mongo
 
 			//cerrar_conexion(logger,conexion_mongo_store);
 			//free(id_tripulante_x_bitacora);

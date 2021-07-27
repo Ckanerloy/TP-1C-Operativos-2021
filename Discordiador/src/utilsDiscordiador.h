@@ -22,7 +22,4 @@ uint32_t cantidad_argumentos_ingresados(char** parser_consola);
 
 void terminar_tripulante(tripulante_plani* tripu);
 void enviar_tarea_io(tripulante_plani* tripu, codigo_operacion op_code, char* nombre_archivo, char caracter);
-
-void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
-
 #endif /* UTILSDISCORDIADOR_H_ */

@@ -116,7 +116,7 @@ void poner_en_uno_semaforo(tripulante_plani* tripulante);
 
 void suspendido_ready(tripulante_plani* tripu);
 void actualizar_estado(tripulante_plani* tripu, char estado);
-t_tarea* obtener_siguiente_tarea(uint32_t id_tripulante, uint32_t numero_patota);
+void obtener_siguiente_tarea(tripulante_plani* tripu,uint32_t id_tripulante, uint32_t numero_patota);
 void obtener_posiciones(posiciones* posiciones_buscadas,uint32_t id_tripulante,uint32_t id_patota);
 uint32_t obtener_distancia(posiciones* posicion_tripu, posiciones* posicion_tarea);
 
