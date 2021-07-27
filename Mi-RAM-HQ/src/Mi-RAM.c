@@ -40,8 +40,6 @@ void iniciar_variables_y_semaforos(void) {
 	contador_segmento = 0;
 	contador_pagina = 0;
 
-	ids = list_create();
-
 	mutex_segmentos = malloc(sizeof(sem_t));
 	sem_init(mutex_segmentos, 0, 1);
 
@@ -475,7 +473,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				log_info(logger, "Se actualizaron las posiciones del Tripulante %u de la Patota %u, siendo estas la posición X: %u y la posición Y: %u.\n", tripulante_por_ubicacion->id_tripulante, tripulante_por_ubicacion->id_patota, tripulante_por_ubicacion->posicion_x, tripulante_por_ubicacion->posicion_y);
 
-				enviar_mensaje(respuesta_ok_ubicacion, RESPUESTA_OK_UBICACION, conexion);
+				//enviar_mensaje(respuesta_ok_ubicacion, RESPUESTA_OK_UBICACION, conexion);
 
 				cerrar_conexion(logger, conexion);
 
@@ -624,7 +622,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				log_info(logger, "El tripulante %u de la Patota %u cambió del Estado %c al Estado %c.\n", tripulante_buscado_por_estado->id_tripulante, tripulante_por_estado->id_patota, estado_anterior, tripulante_buscado_por_estado->estado_tripulante);
 
-				enviar_mensaje(respuesta_por_estado, RESPUESTA_OK_ESTADO, conexion);
+				//enviar_mensaje(respuesta_por_estado, RESPUESTA_OK_ESTADO, conexion);
 
 				cerrar_conexion(logger, conexion);
 
@@ -819,6 +817,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						log_info(logger, "La Patota %u fue expulsada de la nave.\n", patota_buscada->patota->pid);
 
+						list_destroy_and_destroy_elements(patota_buscada->direccion_tareas, free);
+						list_destroy_and_destroy_elements(patota_buscada->direccion_tripulantes, free);
+						free(patota_buscada->segmentos);
 						free(patota_buscada->patota);
 						free(patota_buscada);
 					}
@@ -991,11 +992,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 					free(tablas_segmentos);
 
-					for(int r=0; r<list_size(segmentos); r++) {
+					/*for(int r=0; r<list_size(segmentos); r++) {
 						t_segmento* segmento = list_remove(segmentos, r);
 						free(segmento);
 					}
-					free(segmentos);
+					free(segmentos);*/
+					list_destroy_and_destroy_elements(segmentos, free);
 				}
 
 				if(esquema_elegido == 'P') {

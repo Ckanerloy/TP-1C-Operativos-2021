@@ -181,7 +181,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 	enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion_mi_ram);
 
-	if(validacion_envio(conexion_mi_ram) == 1) {
+	/*if(validacion_envio(conexion_mi_ram) == 1) {
 		recibir_mensaje(respuesta_estado, RESPUESTA_OK_ESTADO, conexion_mi_ram);
 
 		if(respuesta_estado->respuesta != 1) {
@@ -197,7 +197,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 		log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
 		abort();
 	}
-
+*/
 	close(conexion_mi_ram);
 
 	free(tripulante_estado);
