@@ -64,6 +64,20 @@ uint32_t tamanio_tripulantes;
 uint32_t tamanio_patota;
 uint32_t tamanio_tareas;
 
+
+typedef struct {
+	int32_t id_tripulante;
+	int32_t direccion_logica;
+} t_dl_tripulante;
+
+
+typedef struct {
+	int32_t id_tarea;
+	int32_t direccion_logica;
+	uint32_t tamanio_tarea;
+} t_dl_tarea;
+
+
 sem_t* crear_segmento_sem;
 sem_t* crear_pagina_sem;
 sem_t* espera;

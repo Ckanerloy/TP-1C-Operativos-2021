@@ -19,6 +19,8 @@ typedef struct	tabla_segmentos_patota {
 	t_pcb* patota;
 	uint32_t tamanio_tareas;
 	t_list* segmentos;
+	t_list* direccion_tripulantes;
+	t_list* direccion_tareas;
 } t_tabla_segmentos_patota;
 
 
@@ -35,27 +37,27 @@ void verificar_compactacion(void);
 void compactar(void);
 
 // Guardar en Memoria
-t_segmento* administrar_guardar_segmento(void* estructura, tipo_estructura tipo_segmento, uint32_t tamanio);
+t_segmento* administrar_guardar_segmento(void* estructura, tipo_estructura tipo_segmento, uint32_t tamanio, t_tabla_segmentos_patota* tabla_patota);
 void guardar_patota(t_pcb* nueva_patota);
-void guardar_tareas(tareas_patota* tareas_de_patota);
+void guardar_tareas(t_list* tareas_de_patota);
 void guardar_tripulante(t_tcb* nuevo_tripulante);
 
 // Actualizar Segmento en Memoria
-void actualizar_segmento(void* estructura, tipo_estructura tipo_segmento, t_segmento* segmento);
+void actualizar_segmento(void* estructura, tipo_estructura tipo_segmento, t_segmento* segmento, t_tabla_segmentos_patota* tabla_patota);
 void actualizar_patota(t_pcb* patota, uint32_t inicio_segmento);
-void actualizar_tareas(tareas_patota* tareas_de_la_patota, uint32_t inicio_segmento);
-void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento);
+void actualizar_tareas(t_list* tareas_de_la_patota, uint32_t inicio_segmento, t_tabla_segmentos_patota* tabla_patota);
+void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento, t_tabla_segmentos_patota* tabla_patota);
 
 // Obtener en Memoria
-void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir);
+void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir, t_tabla_segmentos_patota* tabla_patota);
 t_pcb* encontrar_patota(t_segmento* segmento);
-void* encontrar_tarea(t_segmento* segmento);
+tarea* encontrar_tarea(t_segmento* segmento, t_tabla_segmentos_patota* tabla_patota, int32_t id_tarea_buscada);
 t_tcb* encontrar_tripulante(t_segmento* segmento);
 
 // Búsqueda de Segmento
 t_tabla_segmentos_patota* buscar_tabla_de_patota(uint32_t id_patota_buscada);
 t_segmento* buscar_por_id(t_list* segmentos, tipo_estructura tipo_de_segmento, uint32_t valor);
-t_tarea* buscar_proxima_tarea_del_tripulante_segmentacion(t_list* segmentos, tipo_estructura tipo_de_segmento, int32_t id_proxima_tarea_del_tripu, uint32_t tamanio_tareas);
+t_tarea* buscar_proxima_tarea_del_tripulante_segmentacion(t_list* segmentos, tipo_estructura tipo_de_segmento, int32_t id_proxima_tarea_del_tripu, t_tabla_segmentos_patota* tabla_patota);
 
 
 // Otras funciones
