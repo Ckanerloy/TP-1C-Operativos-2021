@@ -830,18 +830,18 @@ void obtener_orden_input(){
 
 
 		case TERMINAR_PROGRAMA:
-/*
+
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") != -1){
 				enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
 				cerrar_conexion(logger, conexion_mi_ram);
 			}
-			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+			/*conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 	  		if(resultado_conexion(conexion_mongo_store, logger, "Mongo Store") != -1) {
 	  			enviar_mensaje("", CERRAR_MODULO, conexion_mongo_store);
 	 			cerrar_conexion(logger, conexion_mongo_store);
 	 			}
-
+*/
 			printf("Terminando programa... \n");
 			sleep(1);
 			printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
@@ -852,7 +852,7 @@ void obtener_orden_input(){
 			finalizar_semaforos_plani();
 			terminar_programa(config, logger);
 			sem_post(finalizar_programa);
-*/
+
 
 
 

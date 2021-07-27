@@ -91,18 +91,17 @@ void verificar_compactacion(void) {
 	if(esquema_elegido == 'S') {
 		t_list* seg_vacio = segmentos_libres();
 		if(seg_vacio > 0) {
-				//free(seg_vacio);
+				free(seg_vacio);
 				compactar();
 		}
 		else {
-			//free(seg_vacio);
+			free(seg_vacio);
 			log_warning(logger, "No hay segmentos libres para poder compactar.\n");
 		}
 	}
 	else{
 		log_error(logger, "Se ha elegido el esquema de Paginación. ¡Para Compactar hacelo en Segmentación!\n");
 	}
-
 
 }
 
@@ -129,6 +128,7 @@ void compactar(void) {
 		segmento->numero_de_segmento = i;
 
 		free(aux);
+		free(ocupados_ordenados);
 
 		inicio += segmento->tamanio_segmento;
 	}
@@ -147,7 +147,7 @@ void compactar(void) {
 	list_destroy_and_destroy_elements(seg_vacios, free);
 
 	crear_segmento_libre(inicio, memoria_libre_total);
-
+	free(seg_vacios);
 	log_info(logger, "Se compactaron %u segmentos libres de la memoria.\n", cantidad_segmentos_libres);
 }
 
@@ -487,6 +487,9 @@ t_tarea* buscar_proxima_tarea_del_tripulante_segmentacion(t_list* segmentos, tip
 	tarea* tarea_pedida = encontrar_tarea(segmento_tareas, tabla_patota, id_proxima_tarea_del_tripu);
 
 	t_tarea* tarea_a_retornar = obtener_la_tarea(tarea_pedida->tarea);
+
+	free(tarea_pedida->tarea);
+	free(tarea_pedida);
 
 	return tarea_a_retornar;
 }
