@@ -164,6 +164,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				recibir_mensaje(patota_recibida, operacion, conexion);
 
 				tareas_de_la_patota = list_create();
+				tamanio_tareas = 0;
 
 				parser_posiciones = string_split(patota_recibida->posiciones, "|");
 

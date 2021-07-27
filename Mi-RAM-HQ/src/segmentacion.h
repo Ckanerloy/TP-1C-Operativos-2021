@@ -30,17 +30,12 @@ t_list* segmentos;
 
 // Inicio en Segmentación
 t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
-t_segmento* crear_segmento(void* estructura, tipo_estructura tipo_segmento, uint32_t tamanio);
 t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libre_segmento);
 void liberar_segmento(t_segmento* segmento_a_liberar) ;
 void verificar_compactacion(void);
 void compactar(void);
 
-// Guardar en Memoria
 t_segmento* administrar_guardar_segmento(void* estructura, tipo_estructura tipo_segmento, uint32_t tamanio, t_tabla_segmentos_patota* tabla_patota);
-void guardar_patota(t_pcb* nueva_patota);
-void guardar_tareas(t_list* tareas_de_patota);
-void guardar_tripulante(t_tcb* nuevo_tripulante);
 
 // Actualizar Segmento en Memoria
 void actualizar_segmento(void* estructura, tipo_estructura tipo_segmento, t_segmento* segmento, t_tabla_segmentos_patota* tabla_patota);
