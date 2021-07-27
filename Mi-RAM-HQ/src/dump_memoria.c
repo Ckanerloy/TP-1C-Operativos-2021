@@ -20,7 +20,7 @@ void iniciar_archivo_dump(void) {
 
 void iniciar_dump_memoria(void) {
 
-	log_info(logger, "Se solicitó dump de memoria.");
+	log_info(logger, "Se solicitó dump de memoria.\n");
 
 	FILE* archivo = fopen(dump_memoria->path_dump, "w");
 

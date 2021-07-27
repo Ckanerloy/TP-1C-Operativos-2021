@@ -132,31 +132,31 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 	switch(tipo) {
 
 		case PATOTA:
+			sem_wait(mutex_serializacion);
 			buffer = serializar_patota(estructura, tamanio_estructura);
 			tabla_patota->direccion_patota = puntero_inicio;
-
+			sem_post(mutex_serializacion);
 			//printf("\nDIRECCIÓN LÓGICA DE LA PATOTA %u: %u\n\n", pid, puntero_inicio);
 
 			break;
 
 		case TAREAS:
+			sem_wait(mutex_serializacion);
 			buffer = serializar_tareas(estructura, tamanio_estructura, tabla_patota);
 			tabla_patota->patota->tareas = puntero_inicio;
-
+			sem_post(mutex_serializacion);
 			//printf("\nDIRECCIÓN LÓGICA DE LAS TAREAS DE LA PATOTA %u: %u\n\n", pid, puntero_inicio);
 
 			break;
 
 		case TRIPULANTE:
+			sem_wait(mutex_serializacion);
 			buffer = serializar_tripulante(estructura, tamanio_estructura);
-
 			t_dl_tripulante* direccion_tripulante = malloc(sizeof(t_dl_tripulante));
 			direccion_tripulante->direccion_logica = puntero_inicio;
 			direccion_tripulante->id_tripulante = ((t_tcb*)estructura)->id_tripulante;
-
-			//printf("\nDIRECCIÓN LÓGICA DEL TRIPULANTE DE LA PATOTA %u: %u\n\n", pid, puntero_inicio);
-
 			list_add(tabla_patota->direccion_tripulantes, direccion_tripulante);
+			sem_post(mutex_serializacion);
 			break;
 
 		default:
@@ -506,32 +506,21 @@ void* serializar_tareas(t_list* tareas_de_la_patota, uint32_t tamanio, t_tabla_p
 
 	void* buffer = malloc(tamanio);
 	int32_t desplazamiento = 0;
+	int32_t cantidad_tareas = list_size(tareas_de_la_patota);
 
-	printf("CANTIDAD TAREAS DE LA PATOTA: %u\n", list_size(tareas_de_la_patota));
-
-	for(int i=0; i<list_size(tareas_de_la_patota); i++) {
-		tarea* tarea_a_guardar = list_remove(tareas_de_la_patota, i);
+	for(int i=0; i<cantidad_tareas; i++) {
+		tarea* tarea_a_guardar = list_get(tareas_de_la_patota, i);
 		t_dl_tarea* direccion_tarea = malloc(sizeof(t_dl_tarea));
+
 		direccion_tarea->id_tarea = i;
-
-		printf("TAREA A GUARDAR: %s\n", tarea_a_guardar->tarea);
-		printf("TAMANIO TAREA: %u\n", tarea_a_guardar->tamanio_tarea);
 		direccion_tarea->direccion_logica = puntero_inicio + desplazamiento;
-
 		memcpy(buffer + desplazamiento, tarea_a_guardar->tarea, tarea_a_guardar->tamanio_tarea);
 		desplazamiento += tarea_a_guardar->tamanio_tarea;
-
-
 		direccion_tarea->tamanio_tarea = tarea_a_guardar->tamanio_tarea;
-
-		printf("DIRECCION LOGICA DE LA TAREA %u: %u\n", direccion_tarea->id_tarea, direccion_tarea->direccion_logica);
 
 		list_add_in_index(tabla_patota->direccion_tareas, i, direccion_tarea);
 		free(tarea_a_guardar);
 	}
-
-	//memcpy(buffer + desplazamiento, tareas_de_la_patota->tareas, tareas_de_la_patota->tamanio_tareas);
-	//desplazamiento += tareas_de_la_patota->tamanio_tareas;
 	return buffer;
 }
 

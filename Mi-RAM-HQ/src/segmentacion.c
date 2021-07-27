@@ -115,18 +115,11 @@ void compactar(void) {
 	uint32_t inicio = 0;
 	t_list* ocupados_ordenados = list_sorted(segmentos_ocupados(), menor_a_mayor_segun_inicio);
 
-	//printf("Cantidad de Segmentos Libres: %u\n", list_size(segmentos_libres()));
-	//printf("Cantidad de Segmentos: %u\n\n", list_size(segmentos));
-
 	for(int i=0; i<list_size(ocupados_ordenados); i++){
 
 		segmento = (t_segmento*) list_get(ocupados_ordenados, i);
 
 		void* aux = malloc(segmento->tamanio_segmento);
-
-		printf("Numero de segmento ANTES de COMPACTAR: %u\n", segmento->numero_de_segmento);
-		printf("Inicio de segmento ANTES de COMPACTAR: %u\n", segmento->inicio);
-		printf("Tamaño del segmento ANTES de COMPACTAR: %u\n", segmento->tamanio_segmento);
 
 		memcpy(aux, memoria_principal + segmento->inicio, segmento->tamanio_segmento);
 
@@ -135,40 +128,27 @@ void compactar(void) {
 		segmento->inicio = inicio;
 		segmento->numero_de_segmento = i;
 
-		printf("Numero de segmento DESPUES de COMPACTAR: %u\n", segmento->numero_de_segmento);
-		printf("Inicio de segmento DESPUES de COMPACTAR: %u\n", segmento->inicio);
-		printf("Tamaño del segmento DESPUES de COMPACTAR: %u\n\n", segmento->tamanio_segmento);
-
 		free(aux);
 
 		inicio += segmento->tamanio_segmento;
 	}
 	t_list* seg_vacios = segmentos_libres();
+	int32_t cantidad_segmentos_libres = list_size(seg_vacios);
 
-	for(int c=0; c<list_size(segmentos); c++) {
-		t_segmento* segmento_buscado = list_get(segmentos, c);
+	for(int i=0; i<list_size(seg_vacios); i++) {
+		t_segmento* segmento_obtenido = list_get(seg_vacios, i);
 
-		printf("\n\nEstado del Segmento: %u\n\n", segmento_buscado->estado_segmento);
+		int indice = obtener_indice(segmentos, segmento_obtenido);
+		list_remove(segmentos, indice);
+		contador_segmento--;
 
-		if(segmento_buscado->estado_segmento == LIBRE) {
-			t_segmento* segmento_removido = list_remove(segmentos, c);
-			free(segmento_removido);
-			contador_segmento--;
-		}
 	}
 
-	printf("Cantidad de Segmentos despues de compactar: %u\n", list_size(segmentos));
-	printf("Cantidad de Segmentos Libres despues de compactar: %u\n\n", list_size(seg_vacios));
+	list_destroy_and_destroy_elements(seg_vacios, free);
 
 	crear_segmento_libre(inicio, memoria_libre_total);
 
-	printf("Cantidad de Segmentos Libres despues de compactar: %u\n", list_size(seg_vacios));
-	printf("Cantidad de Segmentos despues de crear el segmento: %u\n", list_size(segmentos));
-
-	printf("Incio de segmento libre compactado: %u\n", inicio);
-	printf("Tamaño de segmento libre compactado: %u\n", memoria_libre_total);
-	free(seg_vacios);
-	log_info(logger, "Se compactó la memoria.\n");
+	log_info(logger, "Se compactaron %u segmentos libres de la memoria.\n", cantidad_segmentos_libres);
 }
 
 
@@ -207,8 +187,7 @@ bool esta_ocupado(void* segmento) {
 
 
 t_list* segmentos_libres(void) {
-	t_list* seg_vacios = list_filter(segmentos, (void*) esta_libre);
-	return seg_vacios;}
+	return list_filter(segmentos, (void*) esta_libre);}
 
 
 t_list* segmentos_ocupados(void) {

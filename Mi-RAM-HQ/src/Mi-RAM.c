@@ -65,6 +65,9 @@ void iniciar_variables_y_semaforos(void) {
 
 	mutex_swap = malloc(sizeof(sem_t));
 	sem_init(mutex_swap, 0, 1);
+
+	mutex_serializacion = malloc(sizeof(sem_t));
+	sem_init(mutex_serializacion, 0, 1);
 }
 
 
@@ -132,7 +135,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 	t_iniciar_patota* patota_recibida;
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 	int32_t tamanio_total;
-	//tareas_patota* tareas_de_la_patota;
 	t_list* tareas_de_la_patota;
 
 	// ACTUALIZAR_UBICACION_TRIPULANTE
@@ -179,15 +181,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				int32_t cantidad_tareas_patota = cantidad_tareas(tareas_de_patota);
 				printf("CANTIDAD DE TAREAS DE LA PATOTA %u: %u\n", contador_id_patota, cantidad_tareas_patota);
 
-
-				//tareas_de_la_patota->tamanio_tareas = patota_recibida->tamanio_tareas+1;
-				//tareas_de_la_patota->tareas = tareas_de_patota;
-
 				for(int i=0; i<cantidad_tareas_patota; i++){
 					tarea* nueva_tarea = malloc(sizeof(tarea));
 					strcat(tareas_de_patota[i], "\0");
 					nueva_tarea->tamanio_tarea = strlen(tareas_de_patota[i])+1;
-					//nueva_tarea->tamanio_tarea = tamanio_tarea;
 					nueva_tarea->tarea = malloc(nueva_tarea->tamanio_tarea);
 					strcpy(nueva_tarea->tarea, tareas_de_patota[i]);
 					tamanio_tareas += nueva_tarea->tamanio_tarea;
@@ -198,10 +195,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				}
 
 				printf("TAMAÑO TOTAL DE LAS TAREAS: %u\n", tamanio_tareas);
-
-
-				//tareas_de_la_patota->tareas = malloc(tareas_de_la_patota->tamanio_tareas);
-				//strcpy(tareas_de_la_patota->tareas, patota_recibida->tareas_de_patota);
 
 				tamanio_tripulante = sizeof(uint32_t) + sizeof(char) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t);
 				tamanio_tripulantes = tamanio_tripulante * patota_recibida->cantidad_tripulantes;
@@ -447,7 +440,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				}
 				else if(esquema_elegido  == 'P') {
-					//int indice = 0;
 
 					sem_wait(mutex_paginas);
 					t_tabla_paginas_patota* tabla_patota_buscada = buscar_tabla_patota(tripulante_por_ubicacion->id_patota);
@@ -463,10 +455,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						break;
 					}
 
-
-
-					//printf("Dirección lógica: %u\n", direccion_logica);
-					//printf("Dirección física: %u\n", direccion_fisica);
 
 					sem_wait(mutex_paginas);
 					tripulante_buscado_por_ubicacion = encontrar_tripulante_memoria(direccion_fisica, direccion_logica, tabla_patota_buscada);
@@ -889,9 +877,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 					// El dato está en 2 frames
 					else {
-
-						// Todo en este caso voy a tener que buscar los datos del frame Final
-
 						sem_wait(mutex_frames);
 						frames[frame_inicio]->espacio_libre += (TAMANIO_PAGINA - resto_frame_inicio);
 						frames[frame_final]->espacio_libre += resto_frame_final;
@@ -1057,7 +1042,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 t_pcb* crear_pcb() {
 	t_pcb* proceso_patota =  malloc(sizeof(t_pcb));
 	proceso_patota->pid = contador_id_patota;
-	proceso_patota->tareas = 0; //Direccion de memoria de las tareas
+	proceso_patota->tareas = 0; 	//Direccion de memoria de las tareas
 	return proceso_patota;
 }
 
