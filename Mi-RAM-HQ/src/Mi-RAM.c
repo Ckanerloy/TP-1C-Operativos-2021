@@ -123,7 +123,6 @@ void iniciar_comunicacion() {
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
 
 		pthread_detach(hilo_recibir_mensajes);
-
 	}
 }
 

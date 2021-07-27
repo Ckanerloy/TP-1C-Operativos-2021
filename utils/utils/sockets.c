@@ -1,8 +1,7 @@
 #include "sockets.h"
 
 
-int32_t crear_conexion(char *ip, char* puerto)
-{
+int32_t crear_conexion(char *ip, char* puerto) {
 	struct addrinfo hints;
 	struct addrinfo *server_info = malloc(sizeof(struct addrinfo));
 
@@ -40,6 +39,7 @@ int32_t resultado_conexion(int32_t conexion, t_log* logger, char* modulo) {
 	}
 }
 
+
 int32_t validacion_envio(int32_t conexion_cliente) {
 
 	codigo_operacion cod_op;
@@ -52,8 +52,7 @@ int32_t validacion_envio(int32_t conexion_cliente) {
 	}
 }
 
-void cerrar_conexion(t_log* logger, int32_t socket)
-{
+void cerrar_conexion(t_log* logger, int32_t socket) {
 	if(socket <= 0 ) {
 		log_error(logger, "No existe tal conexion.\n");
 	}
@@ -64,8 +63,7 @@ void cerrar_conexion(t_log* logger, int32_t socket)
 }
 
 
-int32_t iniciar_servidor(char* IP, char* PUERTO)
-{
+int32_t iniciar_servidor(char* IP, char* PUERTO) {
 	int32_t socket_servidor;
 	int32_t activo = 1;
 
@@ -101,30 +99,26 @@ int32_t iniciar_servidor(char* IP, char* PUERTO)
 
 
 // Crearia el hilo en esta parte??
-int32_t esperar_conexion(int32_t socket_servidor)
-{
-	//int32_t* socket_cliente = malloc(sizeof(int32_t));
+int32_t esperar_conexion(int32_t socket_servidor) {
 	struct sockaddr_in dir_cliente;
 	socklen_t tam_direccion = sizeof(struct sockaddr_in);
 
 	// Espero que se conecte alguien ...
 	int32_t socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
-	//log_info(logger, "¡Se creó una conexión!");
-
 	return socket_cliente;
 }
 
 
 
-void escuchar_conexion(int32_t conexion_cliente)
-{
+void escuchar_conexion(int32_t conexion_cliente) {
 	codigo_operacion operacion;
 
 	recv(conexion_cliente, &operacion, sizeof(operacion), MSG_WAITALL);
 
 	procesar_mensajes(operacion, conexion_cliente);
 }
+
 
 void obtener_operando(int32_t* conexion_cliente, t_paquete* paquete) {
 
@@ -133,22 +127,19 @@ void obtener_operando(int32_t* conexion_cliente, t_paquete* paquete) {
 }
 
 
-void recibir_operacion(int32_t socket_cliente, codigo_operacion operacion)
-{
+void recibir_operacion(int32_t socket_cliente, codigo_operacion operacion) {
 	recv(socket_cliente, &operacion, sizeof(operacion), MSG_WAITALL);
 }
 
 
-void eliminar_paquete(t_paquete* paquete)
-{
+void eliminar_paquete(t_paquete* paquete) {
 	free(paquete->buffer->stream);
 	free(paquete->buffer);
 	free(paquete);
 }
 
 
-void* recibir_buffer(uint32_t* size, int32_t conexion_cliente)
-{
+void* recibir_buffer(uint32_t* size, int32_t conexion_cliente) {
 	void * buffer;
 	recv(conexion_cliente, size, sizeof(uint32_t), MSG_WAITALL);
 	buffer = malloc(*size);
@@ -158,8 +149,7 @@ void* recibir_buffer(uint32_t* size, int32_t conexion_cliente)
 }
 
 
-void crear_buffer(t_paquete* paquete)
-{
+void crear_buffer(t_paquete* paquete) {
 	paquete->buffer = malloc(sizeof(t_buffer));
 	paquete->buffer->size = 0;
 	paquete->buffer->stream = NULL;

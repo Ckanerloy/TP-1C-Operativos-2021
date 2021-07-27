@@ -23,6 +23,8 @@ char** parser_posiciones;
 uint32_t operacion;
 
 // Conexiones
+char* IP_DISCORDIADOR;
+char* PUERTO_DISCORDIADOR;
 char* IP_MI_RAM;
 char* PUERTO_MI_RAM;
 char* IP_MONGO_STORE;
@@ -60,10 +62,9 @@ pthread_t hilo_susp_block;
 pthread_t hilo_tripulante_sabo;
 
 t_log* logger;
-t_log* logger_sin_pantalla;
 t_config* config;
 
-posiciones* posicion_sabotaje;
+//posiciones* posicion_sabotaje;
 
 //void iniciar_escucha_sabotaje(void);
 void iniciar_escucha_por_consola();
@@ -73,6 +74,10 @@ void crear_hilos();
 void iniciar_escucha_sabotaje();
 void inicializar_semaforos();
 
+
+// Sabotaje
+void iniciar_escucha_sabotaje(void);
+void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
 
 tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2);

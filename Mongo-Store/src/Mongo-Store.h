@@ -17,6 +17,7 @@
 #include "utils/sockets.h"
 #include "utils/loader.h"
 #include "utils/estructuras.h"
+#include "utils/tareas.h"
 #include "bitArray.h"
 #include "commons/bitarray.h"
 #include "iniciarFileSystem.h"
@@ -27,6 +28,7 @@
 
 // Datos del Config
 char* PUERTO;
+char* PUERTO_DISCORDIADOR;
 char* PUNTO_MONTAJE;
 int TIEMPO_SINCRONIZACION;
 char** POSICIONES_SABOTAJE;
@@ -38,6 +40,7 @@ t_config* config;
 
 pthread_t hilo_recibir_mensajes;
 
+int32_t num_sabotaje;
 
 
 void obtener_datos_de_config(t_config* config);
@@ -45,4 +48,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 char* crear_archivo_metadata(char* nombre_archivo);
 char* crear_archivo_bitacora(char* nombre_archivo);
 
+void iniciar_sabotaje(void);
+uint32_t cantidad_posiciones(char** parser);
 #endif /* MONGO_STORE_H_ */

@@ -21,8 +21,7 @@ typedef enum
 	PEDIDO_TAREA,
 	PEDIR_UBICACION_TRIPULANTE,
 	ACTUALIZAR_ESTADO_TRIPULANTE,
-	ENVIAR_SABOTAJE,
-	RECIBIR_SABOTAJE,
+	SABOTAJE,
 	CERRAR_MODULO,
 
 	RESPUESTA_INICIAR_PATOTA,
@@ -34,7 +33,8 @@ typedef enum
 
 	GENERAR_INSUMO,
 	CONSUMIR_INSUMO,
-	TIRAR_BASURA
+	TIRAR_BASURA,
+	ACTUALIZACION_TRIPULANTE
 } codigo_operacion;
 
 
@@ -76,12 +76,7 @@ typedef enum
 	FIRST_FIT
 } criterio_seleccion;
 
-/*
-typedef struct {
-	char** tareas;
-	uint32_t tamanio_tareas;
-} tareas_patota;
-*/
+
 typedef struct {
 	char* tarea;
 	uint32_t tamanio_tarea;
@@ -100,6 +95,10 @@ typedef struct {
 } t_paquete;
 
 
+typedef struct {
+	uint32_t posicion_x;
+	uint32_t posicion_y;
+} posicion_sabotaje;
 
 
 // Estructuras para Discordiador
