@@ -35,10 +35,10 @@ codigo_tarea mapeo_tareas_tripulantes(char* tarea) {
 	return tarea_a_realizar;
 }
 
-
+/*
 char** obtener_tareas(char* tareas_patota) {
 	return string_split(tareas_patota, "\n");
-}
+}*/
 
 
 // Para tareas de I/O
@@ -80,7 +80,7 @@ t_tarea* obtener_la_tarea(char* tarea_tripulante) {
 	}
 }
 
-
+/*
 t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas) {
 
 	t_list* tareas_totales = list_create();
@@ -98,8 +98,7 @@ t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas) {
 
 	limpiar_parser(parser_tarea);
 	return tareas_totales;
-}
-
+}*/
 
 
 void limpiar_parser(char** parser) {
@@ -110,4 +109,3 @@ void limpiar_parser(char** parser) {
 	}
 	free(parser);
 }
-

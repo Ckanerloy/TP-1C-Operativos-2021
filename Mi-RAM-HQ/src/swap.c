@@ -16,12 +16,17 @@ void inicializar_swap(void) {
 	frames_swap = calloc(cantidad_paginas_swap, sizeof(frame_swap));
 	for(int i=0; i<cantidad_paginas_swap; i++){
 		frames_swap[i] = malloc(sizeof(frame_swap));
-		frames_swap[i]->estado = LIBRE;
-		frames_swap[i]->pagina = -1;
+		liberar_frame_swap(i);
 	}
 
 	sem_swap = malloc(sizeof(sem_t));
 	sem_init(sem_swap, 0, 1);
+
+	sem_lru = malloc(sizeof(sem_t));
+	sem_init(sem_lru, 0, 1);
+
+	sem_clock = malloc(sizeof(sem_t));
+	sem_init(sem_clock, 0, 1);
 
 	area_swap = iniciar_area_swap();
 }
@@ -57,27 +62,19 @@ void* iniciar_area_swap(void) {
 }
 
 
-// Necesitamos ayuda por file system TODO
-void escribir_en_swap(char* buffer){
-	sem_wait(sem_swap);
-	FILE* archivo = fopen(dump_memoria->path_dump, "r+");
-	//archivo_swap;
-	fseek(archivo, 0, SEEK_END);
-
-	fwrite(buffer, strlen(buffer), 1, archivo);
-
-	close(archivo_swap);
-
-	sem_post(sem_swap);
-	free(buffer);
-}
-
-
 // Devuelvo el numero de frame
-int32_t buscar_por_pagina(int32_t numero_pagina) {
+int32_t buscar_frame_por_pagina(int32_t numero_pagina) {
+
+	bool misma_pagina(void* pagina) {
+		return ((t_pagina*)pagina)->numero_de_pagina == numero_pagina;
+	}
+
+	t_pagina* pagina_buscada = list_find(paginas_swap, misma_pagina);
+	int indice = obtener_indice(paginas_swap, pagina_buscada);
 
 	for(int c=0; c<cantidad_paginas_swap; c++) {
 		if(frames_swap[c]->pagina == numero_pagina) {
+			list_remove(paginas_swap, indice);
 			return c;
 		}
 	}
@@ -97,7 +94,12 @@ int32_t obtener_frame_libre_swap(void) {
 	return -1;
 }
 
+void liberar_frame_swap(int32_t numero_frame) {
 
+	frames_swap[numero_frame]->espacio_libre = TAMANIO_PAGINA;
+	frames_swap[numero_frame]->estado = LIBRE;
+	frames_swap[numero_frame]->pagina = -1;
+}
 
 
 int32_t frame_disponible_segun_algoritmo(void) {
@@ -107,13 +109,13 @@ int32_t frame_disponible_segun_algoritmo(void) {
 	if(algoritmo_elegido == LRU) {
 		frame = aplicar_LRU();
 
-		log_info(logger,"El frame a asignar en memoria mediante LRU es el: %d", frame);
+		log_info(logger,"El frame a asignar en memoria mediante LRU es el: %d.\n", frame);
 		return frame;
 	}
 	else if(algoritmo_elegido == CLOCK) {
 		frame = aplicar_CLOCK();
 
-		log_info(logger,"El frame a asignar en memoria mediante CLOCK es el: %d", frame);
+		log_info(logger,"El frame a asignar en memoria mediante CLOCK es el: %d.\n", frame);
 		return frame;
 	}
 	else {
@@ -126,6 +128,7 @@ int32_t frame_disponible_segun_algoritmo(void) {
 
 int32_t aplicar_LRU(void) {
 
+
 	int32_t frame_libre;
 
 	uint32_t tiempo_mas_viejo = get_timestamp();
@@ -135,7 +138,9 @@ int32_t aplicar_LRU(void) {
 	t_tabla_paginas_patota* tabla_a_devolver;
 	t_pagina* pagina_obtenida;
 
+	sem_wait(sem_lru);
 	for(int i=0; i<list_size(tablas_paginas); i++){
+		printf("CANTIDAD PATOTAS: %u\n", list_size(tablas_paginas));
 		tabla = list_get(tablas_paginas, i);
 
 		for(int j=0; j<list_size(tabla->paginas); j++){
@@ -146,39 +151,44 @@ int32_t aplicar_LRU(void) {
 					tiempo_mas_viejo = pagina_obtenida->tiempo_referencia;
 					tabla_a_devolver = tabla;
 					posicion = j;
+					printf("PAGINA: %u\n", pagina_obtenida->numero_de_pagina);
+					printf("FRAME DE LA PAGINA: %u\n", pagina_obtenida->numero_de_frame);
+					printf("PROCESO: %u\n", tabla->patota->pid);
 				}
+
 			}
 		}
 	}
-
+	sem_post(sem_lru);
 	log_info(logger,"Se reemplazará una página por el algoritmo de LRU.\n");
+	printf("TAMAÑO DE LA LISTA DE PAGINAS DE LA TABLA: %u\n", list_size(tabla_a_devolver->paginas));
+
 	t_pagina* pagina_a_remover = list_get(tabla_a_devolver->paginas, posicion);
-
-	// Obtengo todos los datos que se encuentran en el frame de dicha pagina, para pasarlos a SWAP
-
 	uint32_t frame_a_buscar = pagina_a_remover->numero_de_frame;
-	printf("NUMERO DE PAGINA: %u\n", pagina_a_remover->numero_de_pagina);
-
-	printf("FRAME VICTIMA: %u\n", frame_a_buscar);
 	pagina_a_remover->P = 0;
+	pagina_a_remover->U = 1;
 	pagina_a_remover->numero_de_frame = -1;
 	pagina_a_remover->tiempo_referencia = get_timestamp();
 
-	printf("El Frame de la Página %u es %u\n", pagina_a_remover->numero_de_pagina, frame_a_buscar);
+	printf("PRESENCIA: %u\n", pagina_a_remover->P);
+	printf("BIT DE USO: %u\n", pagina_a_remover->U);
+	printf("ESTADO: %u\n", pagina_a_remover->estado);
+	printf("NUMERO DE FRAME: %u\n", pagina_a_remover->numero_de_frame);
+	printf("NUMERO DE PAGINA: %u\n", pagina_a_remover->numero_de_pagina);
+	printf("TIEMPO DE REFERENCIA: %u\n", pagina_a_remover->tiempo_referencia);
+
+	log_info(logger, "Se desalojará la Página %u del Frame %u.\n", pagina_a_remover->numero_de_pagina, frame_a_buscar);
 
 	void* buffer = malloc(TAMANIO_PAGINA);
 	uint32_t inicio_frame = frame_a_buscar * TAMANIO_PAGINA;
-	printf("INICIO FRAME EN LRU: %u\n", inicio_frame);
+	printf("INICIO FRAME A SWAPPEAR: %u\n", inicio_frame);
 
 	int32_t espacio_ocupado = frames[frame_a_buscar]->puntero_frame;
+	printf("ESPACIO OCUPADO DEL FRAME: %u\n", espacio_ocupado);
 
 	memcpy(buffer, memoria_principal + inicio_frame, espacio_ocupado);
 
-	uint32_t desplazamiento = inicio_frame + espacio_ocupado;
-	printf("DESPLAZAMIENTO LRU: %u\n", desplazamiento);
-
 	uint32_t offset = TAMANIO_PAGINA - espacio_ocupado;
-	printf("OFFSET LRU: %u\n", offset);
 
 	log_debug(logger,"Se reemplazó la página por LRU en el Frame donde comienza en: %u", offset);
 
@@ -188,7 +198,7 @@ int32_t aplicar_LRU(void) {
 	 *	Guardo en SWAP solamente el buffer (void*) y el número de página, asi que cuando tenga que retornarlo, lo
 	 *		busco por el número de página (obtenido por la Dirección Lógica) y retorno el buffer (void*) para guardarlo en un frame disponible
 	 */
-	 guardar_pagina_en_swap(buffer, pagina_a_remover->numero_de_pagina, espacio_ocupado);
+	 guardar_pagina_en_swap(buffer, pagina_a_remover, espacio_ocupado);
 
 
 	memoria_libre_total += (TAMANIO_PAGINA - frames[frame_a_buscar]->espacio_libre);
@@ -197,7 +207,7 @@ int32_t aplicar_LRU(void) {
 
 	frame_libre = frame_a_buscar;
 
-	printf("Se libero el Frame %u\n", frame_libre);
+	log_info(logger, "Se libero el Frame %u\n", frame_libre);
 
 	return frame_libre;
 }
@@ -235,15 +245,13 @@ int32_t aplicar_CLOCK() {
 
 	t_list* lista_en_memoria = list_filter(lista_a_iterar, esta_en_memoria);
 	list_sort(lista_en_memoria, menor_a_mayor_por_frame_en_clock);
-	printf("LA LISTA TIENE %d frames\n", list_size(lista_en_memoria));
-
 
 	int salir = 1;
 	while(salir == 1){
 		for(int i=0; i<list_size(lista_en_memoria); i++){
 
 			pagina_aux = list_get(lista_en_memoria, i);
-			printf("FRAME %d, BIT DE USO: %d\n",pagina_aux->numero_de_frame, pagina_aux->U);
+			//printf("FRAME %d, BIT DE USO: %d\n",pagina_aux->numero_de_frame, pagina_aux->U);
 
 			if(pagina_aux->U == 0){
 				pagina_obtenida = pagina_aux;
@@ -266,7 +274,7 @@ int32_t aplicar_CLOCK() {
 
 			}else if(pagina_aux->U == 1){
 				pagina_aux->U = 0;
-				printf("FRAME %d, BIT DE USO: %d\n",pagina_aux->numero_de_frame, pagina_aux->U);
+				//printf("FRAME %d, BIT DE USO: %d\n",pagina_aux->numero_de_frame, pagina_aux->U);
 			}
 		}
 
@@ -280,28 +288,23 @@ int32_t aplicar_CLOCK() {
 	// Obtengo todos los datos que se encuentran en el frame de dicha pagina, para pasarlos a SWAP
 
 	uint32_t frame_a_buscar = pagina_obtenida->numero_de_frame;
-	printf("NUMERO DE PAGINA: %u\n", pagina_obtenida->numero_de_pagina);
+	//printf("NUMERO DE PAGINA: %u\n", pagina_obtenida->numero_de_pagina);
 
-	printf("FRAME VICTIMA: %u\n", frame_a_buscar);
+	//printf("FRAME VICTIMA: %u\n", frame_a_buscar);
 	pagina_obtenida->P = 0;
 	pagina_obtenida->numero_de_frame = -1;
 	pagina_obtenida->tiempo_referencia = get_timestamp();
 
-	printf("El Frame de la Página %u es %u\n", pagina_obtenida->numero_de_pagina, frame_a_buscar);
+	//printf("El Frame de la Página %u es %u\n", pagina_obtenida->numero_de_pagina, frame_a_buscar);
 
 	void* buffer = malloc(TAMANIO_PAGINA);
 	uint32_t inicio_frame = frame_a_buscar * TAMANIO_PAGINA;
-	printf("INICIO FRAME EN CLOCK: %u\n", inicio_frame);
-
 	int32_t espacio_ocupado = frames[frame_a_buscar]->puntero_frame;
 
 	memcpy(buffer, memoria_principal + inicio_frame, espacio_ocupado);
 
-	uint32_t desplazamiento = inicio_frame + espacio_ocupado;
-	printf("DESPLAZAMIENTO CLOCK: %u\n", desplazamiento);
-
+	//uint32_t desplazamiento = inicio_frame + espacio_ocupado;
 	uint32_t offset = TAMANIO_PAGINA - espacio_ocupado;
-	printf("OFFSET CLOCK: %u\n", offset);
 
 	log_debug(logger,"Se reemplazó la página por CLOCK en el Frame donde comienza en: %u", offset);
 
@@ -311,7 +314,7 @@ int32_t aplicar_CLOCK() {
 	 *	Guardo en SWAP solamente el buffer (void*) y el número de página, asi que cuando tenga que retornarlo, lo
 	 *		busco por el número de página (obtenido por la Dirección Lógica) y retorno el buffer (void*) para guardarlo en un frame disponible
 	 */
-	guardar_pagina_en_swap(buffer, pagina_obtenida->numero_de_pagina, espacio_ocupado);
+	guardar_pagina_en_swap(buffer, pagina_obtenida, espacio_ocupado);
 
 
 	memoria_libre_total += (TAMANIO_PAGINA - frames[frame_a_buscar]->espacio_libre);
@@ -320,40 +323,31 @@ int32_t aplicar_CLOCK() {
 
 	frame_libre = frame_a_buscar;
 
-	printf("Se libero el Frame %u\n", frame_libre);
+	//printf("Se libero el Frame %u\n", frame_libre);
 
 	return frame_libre;
 
 }
 
 
-// TODO
-int guardar_pagina_en_swap(void* buffer, int32_t numero_pagina, int32_t espacio_ocupado) {
+int guardar_pagina_en_swap(void* buffer, t_pagina* pagina, int32_t espacio_ocupado) {
 
 	int32_t frame_libre = obtener_frame_libre_swap();
-	t_pagina* pagina_swap = malloc(sizeof(t_pagina));
-	pagina_swap->P = 0;
-	pagina_swap->U = 1;
-	pagina_swap->numero_de_pagina = numero_pagina;
-	pagina_swap->numero_de_frame = frame_libre;
-	pagina_swap->tiempo_referencia = get_timestamp();
+	pagina->numero_de_frame = frame_libre;
+	pagina->tiempo_referencia = get_timestamp();
 
-	void* stream = (void*) area_swap + (frame_libre * TAMANIO_PAGINA);
-
+	void* stream = (void*)area_swap + (frame_libre * TAMANIO_PAGINA);
 	memcpy(stream, buffer, espacio_ocupado);
 	stream += espacio_ocupado;
-	//memset(stream, '\0', TAMANIO_PAGINA - espacio_ocupado -1 );
 
 	printf("FRAME ELEGIDO: %u\n", frame_libre);
-	frames_swap[frame_libre]->pagina = pagina_swap->numero_de_pagina;
+	frames_swap[frame_libre]->pagina = pagina->numero_de_pagina;
 	printf("PAGINA GUARDADA: %u\n", frames_swap[frame_libre]->pagina);
-
-
 	frames_swap[frame_libre]->estado = OCUPADO;
 	frames_swap[frame_libre]->espacio_libre = TAMANIO_PAGINA - espacio_ocupado;
 	printf("ESPACIO LIBRE FRAME SWAP: %u\n", frames_swap[frame_libre]->espacio_libre);
 
-	list_add(paginas_swap, pagina_swap);
+	list_add(paginas_swap, pagina);
 
 	if(msync(area_swap, TAMANIO_SWAP, MS_SYNC) < 0) {
 		log_error(logger,"[msync]Error al volcar los cambios a Swap.\n");
@@ -361,7 +355,7 @@ int guardar_pagina_en_swap(void* buffer, int32_t numero_pagina, int32_t espacio_
 
 	}else {
 
-		log_info(logger,"[msync]Se agregó la pagina en Swap exitosamente.\n");
+		log_info(logger,"[msync]Se agregó la pagina %u en el Frame %u de Swap exitosamente.\n", frames_swap[frame_libre]->pagina, frame_libre);
 	}
 
 	return 0;
@@ -370,10 +364,10 @@ int guardar_pagina_en_swap(void* buffer, int32_t numero_pagina, int32_t espacio_
 
 void* recuperar_en_swap(int32_t numero_pagina, int32_t *espacio_usado) {
 
-	int32_t numero_frame = buscar_por_pagina(numero_pagina);
+	int32_t numero_frame = buscar_frame_por_pagina(numero_pagina);
 
 	if(numero_frame == -1) {
-		log_error(logger, "La página no está cargada en ningún frame de la Memoria Swap.\n");
+		log_error(logger, "La página %u no está cargada en ningún frame de la Memoria Swap.\n", numero_pagina);
 		return 0;
 	}
 
@@ -395,7 +389,9 @@ void* leer_frame_en_swap(int32_t numero_frame, int32_t espacio_ocupado) {
 
 	memcpy(buffer, inicio_area_swap, espacio_ocupado);
 
-	log_info(logger, "Se recuperó los datos de Swap.\n");
+	log_info(logger, "Se recuperaron los datos del Frame %u de Swap.", numero_frame);
+
+	liberar_frame_swap(numero_frame);
 	return buffer;
 }
 

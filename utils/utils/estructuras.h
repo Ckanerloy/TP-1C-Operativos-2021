@@ -76,12 +76,16 @@ typedef enum
 	FIRST_FIT
 } criterio_seleccion;
 
-
+/*
 typedef struct {
-	char* tareas;
+	char** tareas;
 	uint32_t tamanio_tareas;
 } tareas_patota;
-
+*/
+typedef struct {
+	char* tarea;
+	uint32_t tamanio_tarea;
+} tarea;
 
 // Estructuras de Sockets
 typedef struct {

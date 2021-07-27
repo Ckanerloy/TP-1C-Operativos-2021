@@ -43,7 +43,6 @@ typedef struct {
 } t_tarea;
 
 
-t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas);
 char** obtener_tareas(char* tareas_patota);
 t_tarea* obtener_la_tarea(char* tarea_tripulante);
 void limpiar_parser(char** parser);
