@@ -13,6 +13,7 @@ int existe_file_system();
 void iniciar_superbloque();
 void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio);
 void crear_archivo_blocks();
+void escribir_archivo_blocks();
 
 
 

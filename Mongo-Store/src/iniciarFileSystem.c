@@ -140,12 +140,32 @@ void crear_archivo_blocks(){
 	//O_CREAT = si el fichero no existe, será creado. O_RDWR = lectura y escritura
 	archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
 
-	ftruncate(archivo_blocks, BLOCK_SIZE*BLOCKS);
-	/*fstat(archivo_blocks, &statbuf);
+	ftruncate(archivo_blocks, BLOCK_SIZE/**BLOCKS*/);
+	//fstat(archivo_blocks, &statbuf);
 
-	blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);*/
+	//blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
 
 
+}
+
+void escribir_archivo_blocks(){
+	struct stat statbuf;
+	int archivo_blocks;
+	void *blocks;
+	char *direccion_blocks = concatenar_path("/Blocks.ims");
+	archivo_blocks = open(direccion_blocks, O_RDWR, S_IRUSR|S_IWUSR);
+
+	ftruncate(archivo_blocks, BLOCK_SIZE/**BLOCKS*/);
+	fstat(archivo_blocks, &statbuf);
+
+	blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
+	//memcpy(blocks+3, "HOLAHOLA", 20);
+	memcpy(blocks+15, "1111", 20);
+	printf("PASE POR ACA");
+	//memcpy(blocks, "PRUEBA PRUEBA PRUEBA 1234", 5);
+
+
+	msync(blocks, BLOCK_SIZE/**BLOCKS*/, MS_SYNC);
 }
 
 

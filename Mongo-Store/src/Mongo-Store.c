@@ -31,6 +31,7 @@ int main(void)
 			iniciar_superbloque();//Inicio el FS existente
 			crear_archivo_metadata("/Files/PRUEBA111.IMS");
 			crear_archivo_bitacora("/Files/Bitacoras/PRUEBATRIPULANTE.ims");
+			escribir_archivo_blocks();
 
 	}
 
