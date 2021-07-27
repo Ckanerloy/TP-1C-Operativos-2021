@@ -101,7 +101,6 @@ t_list* obtener_las_tareas(char* tareas, uint32_t tamanio_tareas) {
 }
 
 
-
 void limpiar_parser(char** parser) {
 	int limpiador = 0;
 	while(parser[limpiador] != NULL) {
@@ -110,4 +109,3 @@ void limpiar_parser(char** parser) {
 	}
 	free(parser);
 }
-

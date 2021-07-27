@@ -861,32 +861,32 @@ void realizar_tarea(tripulante_plani* tripu){
 
 	switch(tripu->tarea_a_realizar->operacion) {
 
-		case GENERAR_OXIGENO:
+		case GENERAR_OXIGENO:	// @suppress("Symbol is not resolved")
 			// TODO aca indicar comienzo de la tarea
 			generar_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
-		case CONSUMIR_OXIGENO:
+		case CONSUMIR_OXIGENO:	// @suppress("Symbol is not resolved")
 			// TODO aca indicar comienzo de la tarea
 			consumir_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
-		case GENERAR_COMIDA:
+		case GENERAR_COMIDA: 	// @suppress("Symbol is not resolved")
 			// TODO aca indicar comienzo de la tarea
 			generar_insumo("Comida.ims", 'C', tripu);
 			break;
 
-		case CONSUMIR_COMIDA:
+		case CONSUMIR_COMIDA:	// @suppress("Symbol is not resolved")
 			// TODO aca indicar comienzo de la tarea
 			consumir_insumo("Comida.ims",'C', tripu);
 			break;
 
-		case GENERAR_BASURA:
+		case GENERAR_BASURA:	// @suppress("Symbol is not resolved")
 			// TODO aca indicar comienzo de la tarea
 			generar_insumo("Basura.ims", 'B', tripu);
 			break;
 
-		case DESCARTAR_BASURA:
+		case DESCARTAR_BASURA:	// @suppress("Symbol is not resolved")
 			// TODO aca indicar comienzo de la tarea
 			descartar_basura(tripu);
 			break;

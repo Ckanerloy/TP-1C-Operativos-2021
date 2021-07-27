@@ -70,7 +70,9 @@ sem_t* espera;
 sem_t* mutex_segmentos;
 sem_t* mutex_paginas;
 sem_t* mutex_direcciones_paginas;
+sem_t* mutex_tripulante_swap;
 sem_t* mutex_frames;
+sem_t* mutex_swap;
 
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_actualizar_estado;
