@@ -923,7 +923,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 
 		running_block(tripu);
 
-		enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
+		//enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
 
 	}
 
@@ -989,7 +989,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 		running_block(tripu);
 
 		//running_block(tripu);este no se usaria nunca
-		enviar_tarea_io(tripu, CONSUMIR_INSUMO, nombre_archivo, caracter_a_consumir);
+		//enviar_tarea_io(tripu, CONSUMIR_INSUMO, nombre_archivo, caracter_a_consumir);
 
 	}
 
@@ -1047,7 +1047,7 @@ void descartar_basura(tripulante_plani* tripu) {
 		//running_espera_io(tripu);
 
 		running_block(tripu);
-		enviar_tarea_io(tripu, TIRAR_BASURA, "", ' ');
+		//enviar_tarea_io(tripu, TIRAR_BASURA, "", ' ');
 	}
 
 

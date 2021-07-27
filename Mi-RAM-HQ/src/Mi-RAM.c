@@ -260,7 +260,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 
 					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
-					free(nueva_patota);
 				}
 
 //													   PAGINACION
@@ -368,7 +367,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 
 					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
-					free(nueva_patota);
 				}
 
 				cerrar_conexion(logger, conexion);

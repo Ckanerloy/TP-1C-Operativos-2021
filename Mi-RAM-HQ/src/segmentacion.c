@@ -138,11 +138,11 @@ void verificar_compactacion(void) {
 	if(esquema_elegido == 'S') {
 		t_list* seg_vacio = segmentos_libres();
 		if(seg_vacio > 0) {
-				free(seg_vacio);
+				//free(seg_vacio);
 				compactar();
 		}
 		else {
-			free(seg_vacio);
+			//free(seg_vacio);
 			log_warning(logger, "No hay segmentos libres para poder compactar.\n");
 		}
 	}
@@ -266,14 +266,14 @@ void compactar(void) {
 	}
 	t_list* seg_vacios = segmentos_libres();
 
-	for(int c=0; c<list_size(seg_vacios); c++) {
-		t_segmento* segmento_buscado = list_get(seg_vacios, c);
+	for(int c=0; c<list_size(segmentos); c++) {
+		t_segmento* segmento_buscado = list_get(segmentos, c);
 
 		printf("\n\nEstado del Segmento: %u\n\n", segmento_buscado->estado_segmento);
 
 		if(segmento_buscado->estado_segmento == LIBRE) {
-			list_remove(segmentos, c);
-			//free(segmento_buscado);
+			t_segmento* segmento_removido = list_remove(segmentos, c);
+			free(segmento_removido);
 			contador_segmento--;
 		}
 	}
