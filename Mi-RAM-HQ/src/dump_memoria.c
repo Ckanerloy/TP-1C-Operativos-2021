@@ -82,13 +82,13 @@ void registrar_dump_segmentacion(void) {
 		if(patota_encontrada != NULL) {
 			string_append_with_format(&buffer, "Proceso: %u     ", patota_encontrada->patota->pid);
 			string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);
-			string_append_with_format(&buffer, "Inicio: %u     ", segmento_a_mostrar->inicio);
+			string_append_with_format(&buffer, "Inicio: %ub     ", segmento_a_mostrar->inicio);
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
 		}
 		else {
 			string_append_with_format(&buffer, "Proceso: --     ");
 			string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);
-			string_append_with_format(&buffer, "Inicio: %u     ", segmento_a_mostrar->inicio);
+			string_append_with_format(&buffer, "Inicio: %ub     ", segmento_a_mostrar->inicio);
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
 		}
 		escribir_en_archivo(buffer);
