@@ -58,6 +58,10 @@ void registrar_dump_segmentacion(void) {
 	t_list* segmentos_totales = list_duplicate(segmentos);
 	list_sort(segmentos_totales, menor_a_mayor_por_segmento);
 
+	char* buffer_formato = string_new();
+	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+	escribir_en_archivo(buffer_formato);
+
 	for(int j=0; j<list_size(segmentos_totales); j++) {
 
 		t_segmento* segmento_a_mostrar = (t_segmento*) list_get(segmentos_totales, j);
@@ -73,30 +77,35 @@ void registrar_dump_segmentacion(void) {
 
 		t_tabla_segmentos_patota* patota_encontrada = list_find(patotas_dump, buscando_en_patota);
 
+		char* buffer = string_new();
+
 		if(patota_encontrada != NULL) {
-			char* buffer = string_new();
 			string_append_with_format(&buffer, "Proceso: %u     ", patota_encontrada->patota->pid);
 			string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);
-			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio);
+			string_append_with_format(&buffer, "Inicio: %u     ", segmento_a_mostrar->inicio);
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
-
-			escribir_en_archivo(buffer);
 		}
 		else {
-			char* buffer = string_new();
-			string_append_with_format(&buffer, "Proceso: -     ");
+			string_append_with_format(&buffer, "Proceso: --     ");
 			string_append_with_format(&buffer, "Segmento: %u     ", segmento_a_mostrar->numero_de_segmento);
-			string_append_with_format(&buffer, "Inicio: %06p     ", segmento_a_mostrar->inicio);
+			string_append_with_format(&buffer, "Inicio: %u     ", segmento_a_mostrar->inicio);
 			string_append_with_format(&buffer, "Tam: %ub\n", segmento_a_mostrar->tamanio_segmento);
-			escribir_en_archivo(buffer);
 		}
+		escribir_en_archivo(buffer);
 	}
+	buffer_formato = string_new();
+	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+	escribir_en_archivo(buffer_formato);
 }
 
 
 
 
 void registrar_dump_paginacion(void) {
+
+	char* buffer_formato = string_new();
+	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+	escribir_en_archivo(buffer_formato);
 
 	for(int i=0; i<cantidad_frames; i++) {
 
@@ -113,12 +122,11 @@ void registrar_dump_paginacion(void) {
 			string_append_with_format(&buffer, "Proceso: -     ");
 			string_append_with_format(&buffer, "Pagina: -\n");
 		}
-
 		escribir_en_archivo(buffer);
 	}
 
 	char* buffer_swap = string_new();
-	string_append_with_format(&buffer_swap, "------------ MARCOS EN SWAP---------------\n");
+	string_append_with_format(&buffer_swap, "\n- - - - - - - - - - - - - - - - - - - - - - - - - MARCOS EN SWAP - - - - - - - - - - - - - - - - - - - - - - - - -\n");
 	escribir_en_archivo(buffer_swap);
 
 	for(int c=0; c<cantidad_paginas_swap; c++) {
@@ -128,8 +136,12 @@ void registrar_dump_paginacion(void) {
 			string_append_with_format(&buffer, "Marco: %u     ", c);
 			string_append_with_format(&buffer, "Pagina: %u\n", frames_swap[c]->pagina);
 		}
+
 		escribir_en_archivo(buffer);
 	}
+	buffer_formato = string_new();
+	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+	escribir_en_archivo(buffer_formato);
 }
 
 
