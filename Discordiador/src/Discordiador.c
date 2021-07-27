@@ -2,8 +2,7 @@
 
 int main(void) {
 
-	logger = crear_log("discordiador.log", "Discordiador");
-	logger_sin_pantalla =  log_create("discordiador.log", "logger_sin_pantalla" , 0, LOG_LEVEL_INFO);;
+	logger = crear_log_sin_pantalla("discordiador.log", "Discordiador");
 
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
@@ -111,9 +110,9 @@ void iniciar_escucha_sabotaje(void){
 
 		int largo;
 
-		tripulante_plani* tripu_mas_cercano = malloc(sizeof(tripulante_plani));
+		tripulante_plani* tripu_mas_cercano;
 
-		tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
+		tripulante_plani* tripulante;
 
 		//Para parar los hilos de planificacion
 
@@ -188,8 +187,7 @@ void iniciar_escucha_sabotaje(void){
 		//cuidado sin la lista esta vacia
 		tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
-		printf("id asignado: %u",tripu_mas_cercano->id_tripulante);
-		fflush(stdout);
+		log_info("El tripulante con id %u, corre en panico hacia el sabotaje",tripu_mas_cercano->id_tripulante);
 
 		int indice=obtener_indice(bloqueado_suspendido, tripu_mas_cercano);
 		list_remove(bloqueado_suspendido, indice);
@@ -205,6 +203,7 @@ void iniciar_escucha_sabotaje(void){
 				}
 				list_add(bloqueado_suspendido,tripulante);
 				actualizar_estado(tripulante, 'S');
+				log_info(logger,"El tripulante con id %d de la patota %d paso de Block a Block Suspended",tripulante->id_tripulante,tripulante->numero_patota);
 			}
 		}
 
@@ -220,7 +219,7 @@ void iniciar_escucha_sabotaje(void){
 		tripu_mas_cercano->tarea_auxiliar=ayuda;
 
 		actualizar_estado(tripu_mas_cercano, 'E');
-
+		log_info(logger,"El tripulante con id %d de la patota %d paso de Block Suspended a Execute",tripu_mas_cercano->id_tripulante,tripu_mas_cercano->numero_patota);
 		// TODO aca seria corre a sabotaje
 		tripu_mas_cercano->elegido_sabotaje=1;
 
@@ -286,14 +285,11 @@ void iniciar_escucha_sabotaje(void){
 	//	tripu_mas_cercano->estado='E';
 
 		posicion_sabotaje=NULL;
-		tripu_mas_cercano=NULL;
-		tripulante=NULL;
 		respuesta=NULL;
 
 		free(respuesta);
 		free(posicion_sabotaje);
-		free(tripulante);
-		free(tripu_mas_cercano);
+
 		//FINAL
 	//	sem_wait(mutex_sabotaje);
 	//	valor_sabotaje=0;
@@ -649,12 +645,15 @@ void obtener_orden_input(){
 						list_add(lista_semaforos_tripulantes, tripulante->sem_tripu); //Creo que no se usan mas
 						list_add(lista_tripulantes,tripulante);
 
+						log_info(logger,"Se inicializo al tripulante con id: %d, correspondiente a la patota %d en el estado New \n",tripulante->id_tripulante,tripulante->numero_patota);
+
 						sem_wait(mutex_new);
 						queue_push(cola_new,tripulante);
 						sem_post(mutex_new);
 
 
 						sem_post(contador_tripulantes_en_new);
+
 					}
 
 				}
@@ -739,6 +738,9 @@ void obtener_orden_input(){
 			 * 					O
 			 * MONGO STORE IMPRIME LA BITACORA
 			 */
+
+			//TODO
+			//Guardar en el log la bitacora del tripulante que devuelve mongo
 
 			//cerrar_conexion(logger,conexion_mongo_store);
 			//free(id_tripulante_x_bitacora);

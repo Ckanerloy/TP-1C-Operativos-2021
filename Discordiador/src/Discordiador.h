@@ -60,7 +60,6 @@ pthread_t hilo_susp_block;
 pthread_t hilo_tripulante_sabo;
 
 t_log* logger;
-t_log* logger_sin_pantalla;
 t_config* config;
 
 posiciones* posicion_sabotaje;
