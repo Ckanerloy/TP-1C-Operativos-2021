@@ -94,13 +94,6 @@ typedef struct {
 	t_buffer* buffer;
 } t_paquete;
 
-
-typedef struct {
-	uint32_t posicion_x;
-	uint32_t posicion_y;
-} posicion_sabotaje;
-
-
 // Estructuras para Discordiador
 typedef struct {
 	uint32_t posicion_x;

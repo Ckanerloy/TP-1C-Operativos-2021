@@ -321,7 +321,7 @@ uint32_t serializar_paquete_estado_tripulante(t_paquete* paquete, t_tripulante_e
 }
 
 
-uint32_t serializar_paquete_sabotaje(t_paquete* paquete, posicion_sabotaje* mensaje) {
+uint32_t serializar_paquete_sabotaje(t_paquete* paquete, posiciones* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 

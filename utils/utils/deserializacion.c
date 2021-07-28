@@ -297,7 +297,7 @@ void deserializar_respuesta_nueva_tarea(t_respuesta_tarea_tripulante* mensaje, i
 }
 
 
-void deserializar_sabotaje(posicion_sabotaje* mensaje, int32_t conexion) {
+void deserializar_sabotaje(posiciones* mensaje, int32_t conexion) {
 	uint32_t tamanio;
 	uint32_t desplazamiento = 0;
 	void* buffer_deserializar;

@@ -439,10 +439,6 @@ void new_ready() {
 
 		sem_post(planificacion_on);
 
-
-
-
-
 	}
 }
 
@@ -492,17 +488,11 @@ void ready_running() {
 
 					running_block(tripulante_a_running);
 					break;
-
 			}
-
-
 		}
 
 		sem_post(planificacion_on_ready_running);
-
-
     }
-
 }
 
 
@@ -519,9 +509,6 @@ void running_ready(tripulante_plani* tripu){
 	sem_post(multitarea_disponible);
 
 }
-
-
-
 
 void running_block(tripulante_plani* tripu){
 
@@ -1144,6 +1131,7 @@ void otras_tareas(tripulante_plani* tripu){
 
 
 void realizar_tarea_sabotaje(tripulante_plani* tripu){
+	//TODO
 	//Avisar a I-mongo que estoy en la posicion de la tarea sabotaje
 	//Lo pasamos a la lista de bloqueados suspendidos
 	tripu->estado_anterior='R';

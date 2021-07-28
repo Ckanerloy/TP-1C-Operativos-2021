@@ -91,19 +91,17 @@ void iniciar_escucha_sabotaje(void){
 
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 
-	posicion_sabotaje* posicion_recibida;
-
 	switch(operacion){
 
 		case SABOTAJE:
-			posicion_recibida = malloc(sizeof(posicion_sabotaje));
+			posicion_recibida = malloc(sizeof(posiciones));
 			recibir_mensaje(posicion_recibida, operacion, conexion_cliente);
 
 			printf("POSICION X SABOTAJE: %u\n", posicion_recibida->posicion_x);
 			printf("POSICION Y SABOTAJE: %u\n", posicion_recibida->posicion_y);
 			//la señal te llega filesystem tiene ip y puerto de disc
 
-			/*int largo;
+			int largo;
 
 			tripulante_plani* tripu_mas_cercano;
 
@@ -144,39 +142,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 				}
 			}
 
-			list_add_all(bloqueado_suspendido, bloqueado_suspendido_ready);
-
-
-			//se supone q te viene la tarea de imongo, le buscas la poscion
-		//ESTO VA A IR
-
-
-
-			/*esto va
-			posicion_sabotaje=malloc(sizeof(posiciones));
-			posicion_sabotaje->posicion_x=respuesta->tarea_sabotaje->posicion_x;
-			posicion_sabotaje->posicion_y=respuesta->tarea_sabotaje->posicion_y;
-			*/
-
-			//posicion_sabotaje->posicion_x = respuesta->tarea_sabotaje->posicion_x;
-			//posicion_sabotaje->posicion_y = respuesta->tarea_sabotaje->posicion_y;
-
-
-		 //esto vas a pedir memoria cuando aceptas el mensaje no aca
-
-
-			//hardcodeado*/
-
-			//TODO RESPUESTA de imongo
-			/*posicion_sabotaje=malloc(sizeof(posiciones));
-			posicion_sabotaje->posicion_x=10;
-			posicion_sabotaje->posicion_y=10;
-
+			list_add_all(bloqueado_suspendido,bloqueado_suspendido_ready);
 
 			//cuidado sin la lista esta vacia
 			tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
-			log_info(logger, "El tripulante con id %u, corre en panico hacia el sabotaje", tripu_mas_cercano->id_tripulante);
+			log_info("El tripulante con id %u, corre en panico hacia el sabotaje",tripu_mas_cercano->id_tripulante);
 
 			int indice=obtener_indice(bloqueado_suspendido, tripu_mas_cercano);
 			list_remove(bloqueado_suspendido, indice);
@@ -196,23 +167,19 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 				}
 			}
 
+			t_tarea* tarea_sabotaje=malloc(sizeof(t_tarea));
+			tarea_sabotaje->posicion_x=posicion_recibida->posicion_x;
+			tarea_sabotaje->posicion_y=posicion_recibida->posicion_y;
+			tarea_sabotaje->operacion=REALIZAR_TAREA_SABOTAJE;
+			tarea_sabotaje->cantidad=0;
+			tarea_sabotaje->tiempo=0;
 
-
-			t_tarea* ayuda=malloc(sizeof(t_tarea));
-			ayuda->posicion_x=10;
-			ayuda->posicion_y=10;
-			ayuda->operacion=REALIZAR_TAREA_SABOTAJE;
-			ayuda->cantidad=0;
-			ayuda->tiempo=0;
-
-			tripu_mas_cercano->tarea_auxiliar=ayuda;
+			tripu_mas_cercano->tarea_auxiliar=tarea_sabotaje;
 
 			actualizar_estado(tripu_mas_cercano, 'E');
 			log_info(logger,"El tripulante con id %d de la patota %d paso de Block Suspended a Execute",tripu_mas_cercano->id_tripulante,tripu_mas_cercano->numero_patota);
 			// TODO aca seria corre a sabotaje
 			tripu_mas_cercano->elegido_sabotaje=1;
-
-
 
 			sem_wait(mutex_rafaga);
 			dar_pulsos_off=0;
@@ -242,10 +209,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 			}
 
 
-			list_clean(bloqueado_suspendido);*/
+			list_clean(bloqueado_suspendido);
+
+			list_clean(bloqueado_suspendido_ready);
 
 			//Vuelve a activar los hilos de planificacion
-		/*
+	/*
 			sem_wait(mutex_new_ready);
 			new_ready_off = 0;
 			sem_post(mutex_new_ready);
@@ -262,59 +231,24 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 			if(ready_running_off==0){
 				sem_post(planificacion_on_ready_running);
 			}
-		*/
-			/*sem_wait(mutex_rafaga);
+	*/
+			sem_wait(mutex_rafaga);
 			dar_pulsos_off = 1;
 			sem_post(mutex_rafaga);
 
-		//		if(dar_pulsos_off==0){
-		//			sem_post(planificion_rafaga);
-		//		}
+	//		if(dar_pulsos_off==0){
+	//			sem_post(planificion_rafaga);
+	//		}
 
 		//	tripu_mas_cercano->estado='E';
 
-			posicion_sabotaje=NULL;
-			respuesta=NULL;
+			free(tarea_sabotaje);
 
-			free(respuesta);
-			free(posicion_sabotaje);
-*/
 			//FINAL
 		//	sem_wait(mutex_sabotaje);
 		//	valor_sabotaje=0;
 		//	sem_post(mutex_sabotaje);
 		//}
-
-
-/*			tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
-			//tenemos variable global q dice la posicion del sabotaje
-
-			posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
-			obtener_posiciones(posicion_tripu1,tripulante1->id_tripulante, tripulante1->numero_patota);
-
-			posiciones* posicion_tripu2 = malloc(sizeof(posiciones));
-			obtener_posiciones(posicion_tripu2,tripulante2->id_tripulante, tripulante2->numero_patota);
-
-			int32_t distancia1 = obtener_distancia(posicion_tripu1, posicion_sabotaje);
-			int32_t distancia2 = obtener_distancia(posicion_tripu2, posicion_sabotaje);
-
-			posicion_tripu1=NULL;
-			posicion_tripu2=NULL;
-
-			free(posicion_tripu1);
-			free(posicion_tripu2);
-			if(distancia1 <= distancia2) {
-				return tripulante1;
-			}
-			else {
-				return tripulante2;
-			}
-
-			//obtener_distancia(posicion_tripu1, posicion_tripu2);
-
-			//aca esTA MAL
-
-		}*/
 		break;
 
 		default:
@@ -323,6 +257,27 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 	return;
 }
 
+tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
+    //tenemos variable global q dice la posicion del sabotaje
+
+    posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
+    obtener_posiciones(posicion_tripu1,tripulante1->id_tripulante, tripulante1->numero_patota);
+
+    posiciones* posicion_tripu2 = malloc(sizeof(posiciones));
+    obtener_posiciones(posicion_tripu2,tripulante2->id_tripulante, tripulante2->numero_patota);
+
+    int32_t distancia1 = obtener_distancia(posicion_tripu1, posicion_recibida);
+    int32_t distancia2 = obtener_distancia(posicion_tripu2, posicion_recibida);
+
+    free(posicion_tripu1);
+    free(posicion_tripu2);
+    if(distancia1 <= distancia2) {
+        return tripulante1;
+    }
+    else {
+        return tripulante2;
+    }
+}
 
 bool menorId(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
 	return tripulante1->id_tripulante<tripulante2->id_tripulante;

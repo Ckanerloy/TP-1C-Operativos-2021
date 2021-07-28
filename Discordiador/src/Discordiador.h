@@ -64,7 +64,7 @@ pthread_t hilo_tripulante_sabo;
 t_log* logger;
 t_config* config;
 
-//posiciones* posicion_sabotaje;
+posiciones* posicion_recibida;
 
 //void iniciar_escucha_sabotaje(void);
 void iniciar_escucha_por_consola();
