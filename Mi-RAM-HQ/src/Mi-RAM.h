@@ -59,9 +59,9 @@ int32_t memoria_virtual_total;
 int columnas, filas;
 
 // Tamanio de estructuras utilizadas
-uint32_t tamanio_tripulante;
+//uint32_t tamanio_tripulante;
 uint32_t tamanio_tripulantes;
-uint32_t tamanio_patota;
+//uint32_t tamanio_patota;
 uint32_t tamanio_tareas;
 
 

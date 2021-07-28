@@ -349,27 +349,6 @@ void actualizar_segmento(void* estructura_actualizar, tipo_estructura tipo_segme
 
 
 // FUNCIONES PARA OBTENER DE MEMORIA
-/*
-void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir, t_tabla_segmentos_patota* tabla_patota) {
-	void* contenido;
-
-	switch(segmento_a_traducir->tipo_segmento) {
-		case PATOTA:
-			contenido = encontrar_patota(segmento_a_traducir);
-			break;
-		case TAREAS:
-			//contenido = encontrar_tarea(segmento_a_traducir, tabla_patota);
-			break;
-		case TRIPULANTE:
-			contenido = encontrar_tripulante(segmento_a_traducir);
-			break;
-		default:
-			break;
-	}
-	return contenido;
-}*/
-
-
 t_pcb* encontrar_patota(t_segmento* segmento) {
 
 	t_pcb* patota = malloc(sizeof(t_pcb));

@@ -242,7 +242,9 @@ typedef struct {
 	uint32_t posicion_y;
 	uint32_t id_tarea_a_realizar;		// Indice de la tarea a realizar
 	uint32_t puntero_PCB;				// Dirección de memoria del PCB de la patota
-} t_tcb;
+} __attribute__((packed))
+t_tcb;
+
 // Tamaño del TCB = 24 bytes
 // Deberia ser 21 bytes
 
