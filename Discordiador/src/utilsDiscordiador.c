@@ -52,7 +52,7 @@ void mostrar_tripulante(t_tcb* tripulante) {
 	printf("Estado tripulante: %c \n", tripulante->estado_tripulante);
 	printf("Posicion X: %i \n", tripulante->posicion_x);
 	printf("Posicion Y: %i \n", tripulante->posicion_y);
-	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_proxima_instruccion);
+	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_tarea_a_realizar);
 }
 /*
 void liberar_tripulantes(uint32_t cantidad_tripulantes, t_tripulante** mensaje_tripulantes) {
@@ -60,17 +60,6 @@ void liberar_tripulantes(uint32_t cantidad_tripulantes, t_tripulante** mensaje_t
 		free(mensaje_tripulantes[c]);
 	}
 }*/
-
-// Funcion para LISTAR TRIPULANTES
-void listar_tripulantes() {
-
-	printf("-------------------------------------------------------------------------\n");
-	printf("Estado de la nave: %s \n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
-
-
-	printf("Tripulante: ID_TRIPULANTE      Patota: NUM_PATOTA      Status:  STATUS \n");
-	printf("--------------------------------------------------------------------------\n\n");
-}
 
 
 
@@ -84,7 +73,63 @@ uint32_t cantidad_argumentos_ingresados(char** parser_consola){  // la vamos a u
 	return cantidad;
 }
 
-void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
+void terminar_tripulante(tripulante_plani* tripu) {
+
+	t_tripulante* tripulante_terminado = malloc(sizeof(t_tripulante));
+
+	sem_wait(mutex_exit);
+	queue_push(cola_exit, tripu);
+	sem_post(mutex_exit);
+
+	tripu->estado = 'T';
+
+	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+
+	tripulante_terminado->id_patota = tripu->numero_patota;
+	tripulante_terminado->id_tripulante = tripu->id_tripulante;
+
+	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
+		abort();
+	}
+
+	enviar_mensaje(tripulante_terminado, EXPULSAR_TRIPULANTE, conexion_mi_ram);
+
+	close(conexion_mi_ram);
+}
+
+/*
+void jkasdhja{
+	sem_wait(LugarDisponiblePraBloqueado);
+	sem_wait(contador_Esperando)
+
+	da pulso al tripulante->sem_entrada_salida
+
+
+}
+*/
+void enviar_tarea_io(tripulante_plani* tripu, codigo_operacion op_code, char* nombre_archivo, char caracter) {
+
+	archivo_tarea* tarea_io = malloc(sizeof(archivo_tarea));
+
+	strcat(nombre_archivo, "\0");
+
+	tarea_io->cantidad = tripu->tarea_a_realizar->cantidad;
+	tarea_io->tamanio_nombre = strlen(nombre_archivo);
+	tarea_io->nombre_archivo = malloc(tarea_io->tamanio_nombre+1);
+	strcpy(tarea_io->nombre_archivo, nombre_archivo);
+	tarea_io->caracter_llenado = caracter;
+
+	conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+
+	if(resultado_conexion(conexion_mongo_store, logger, "i-Mongo Store") == -1){
+		log_error(logger, "No se pudo lograr la conexion con i-Mongo Store.\n");
+		abort();
+	}
+
+	enviar_mensaje(tarea_io, op_code, conexion_mongo_store);
+
+	close(conexion_mongo_store);
 }
 

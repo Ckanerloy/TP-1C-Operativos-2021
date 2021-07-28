@@ -23,12 +23,16 @@ char** parser_posiciones;
 uint32_t operacion;
 
 // Conexiones
+char* IP_DISCORDIADOR;
+char* PUERTO_DISCORDIADOR;
 char* IP_MI_RAM;
 char* PUERTO_MI_RAM;
 char* IP_MONGO_STORE;
 char* PUERTO_MONGO_STORE;
+
 int32_t conexion_mongo_store;
 int32_t conexion_mi_ram;
+int32_t conexion_sabotaje;
 
 // Data del Config
 //int GRADO_MULTITAREA;
@@ -37,13 +41,13 @@ int32_t conexion_mi_ram;
 int DURACION_SABOTAJE;
 int RETARDO_CICLO_CPU;
 
-//int32_t conexion_socket;
-int32_t conexion_sabotaje;
 
 // Semaforos
 sem_t* comando_para_ejecutar;
-sem_t* sabotaje;
+sem_t* mutex_sabotaje;
 sem_t* termino_operacion;
+sem_t* finalizar_programa;
+sem_t* termine_sabotaje;
 
 // Hilos
 pthread_t hilo_consola;
@@ -51,19 +55,38 @@ pthread_t hilo_sabotaje;
 pthread_t hilo_tripulante;
 pthread_t hilo_new_ready;
 pthread_t hilo_ready_running;
+pthread_t hilo_solucion;   //preguntar
+pthread_t hilo_creador_rafagas;
+pthread_t hilo_susp_block;
+
+pthread_t hilo_tripulante_sabo;
 
 t_log* logger;
 t_config* config;
+
+//posiciones* posicion_sabotaje;
 
 //void iniciar_escucha_sabotaje(void);
 void iniciar_escucha_por_consola();
 void obtener_datos_de_config(t_config* config);
 void obtener_orden_input();						// Leo lo que escriba por consola y ejecuta la operacion a realizar
 void crear_hilos();
+void iniciar_escucha_sabotaje();
+void inicializar_semaforos();
 
+
+// Sabotaje
+void iniciar_escucha_sabotaje(void);
+void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
+
+
+tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2);
+
+bool menorId(tripulante_plani* tripulante1, tripulante_plani* tripulante2);
 // POR AHORA SON UNA IDEA
-void obtener_orden_sabotaje(void);
-void arreglar_sabotaje(void);
+
+
+int obtener_indice(t_list* lista, void* valor);
 
 t_pcb* crear_pcb(void);
 
