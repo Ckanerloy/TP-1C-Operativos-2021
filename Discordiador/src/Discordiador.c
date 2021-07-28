@@ -856,7 +856,7 @@ void obtener_orden_input(){
 
 
 
-
+/*
 
 			largo = queue_size(cola_ready);
 
@@ -878,7 +878,7 @@ void obtener_orden_input(){
 				sem_getvalue(tripulante->sem_tripu,&a);
 				printf("Tripulante: %d, estado: %d, io: %d, CICLOS cpu %d \n", tripulante->id_tripulante, tripulante->estado, tripulante->puedo_ejecutar_io,a);
 			}
-
+*/
 			break;
 
 

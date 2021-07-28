@@ -982,25 +982,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						t_tabla_segmentos_patota* tabla_patota = list_remove(tablas_segmentos, i);
 
-						for(int j=0; j<list_size(tabla_patota->segmentos); j++){
+						/*for(int j=0; j<list_size(tabla_patota->segmentos); j++){
 							t_segmento* segmento = list_remove(tabla_patota->segmentos, j);
 							free(segmento);
 						}
-						free(tabla_patota->segmentos);
+						free(tabla_patota->segmentos);*/
+						list_destroy_and_destroy_elements(tabla_patota->segmentos, free);
 						free(tabla_patota);
 					}
 					free(tablas_segmentos);
 
-					/*for(int r=0; r<list_size(segmentos); r++) {
-						t_segmento* segmento = list_remove(segmentos, r);
-						free(segmento);
-					}
-					free(segmentos);*/
 					list_destroy_and_destroy_elements(segmentos, free);
 				}
 
 				if(esquema_elegido == 'P') {
-					free(area_swap);
+					// TODO: liberar lo que se genera para area swap
+					//free(area_swap);
 					printf("Memoria Virtual liberada...\n");
 
 					for(int i=0; i<list_size(tablas_paginas); i++) {

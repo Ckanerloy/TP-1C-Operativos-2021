@@ -188,6 +188,8 @@ int32_t aplicar_LRU(void) {
 
 	memcpy(buffer, memoria_principal + inicio_frame, espacio_ocupado);
 
+	mem_hexdump(buffer, espacio_ocupado);
+
 	uint32_t offset = TAMANIO_PAGINA - espacio_ocupado;
 
 	log_debug(logger,"Se reemplazó la página por LRU en el Frame donde comienza en: %u", offset);
@@ -338,6 +340,9 @@ int guardar_pagina_en_swap(void* buffer, t_pagina* pagina, int32_t espacio_ocupa
 
 	void* stream = (void*)area_swap + (frame_libre * TAMANIO_PAGINA);
 	memcpy(stream, buffer, espacio_ocupado);
+
+	mem_hexdump(stream, espacio_ocupado);
+
 	stream += espacio_ocupado;
 
 	printf("FRAME ELEGIDO: %u\n", frame_libre);
@@ -346,6 +351,8 @@ int guardar_pagina_en_swap(void* buffer, t_pagina* pagina, int32_t espacio_ocupa
 	frames_swap[frame_libre]->estado = OCUPADO;
 	frames_swap[frame_libre]->espacio_libre = TAMANIO_PAGINA - espacio_ocupado;
 	printf("ESPACIO LIBRE FRAME SWAP: %u\n", frames_swap[frame_libre]->espacio_libre);
+
+
 
 	list_add(paginas_swap, pagina);
 
@@ -388,6 +395,8 @@ void* leer_frame_en_swap(int32_t numero_frame, int32_t espacio_ocupado) {
 	void* inicio_area_swap = (void*) area_swap + (numero_frame * TAMANIO_PAGINA);
 
 	memcpy(buffer, inicio_area_swap, espacio_ocupado);
+
+	mem_hexdump(buffer, espacio_ocupado);
 
 	log_info(logger, "Se recuperaron los datos del Frame %u de Swap.", numero_frame);
 
