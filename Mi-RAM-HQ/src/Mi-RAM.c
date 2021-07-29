@@ -343,16 +343,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 							posicion += 2;
 						}
 
-						//printf("Dirección lógica del PCB: %u\n", tabla_patota->direccion_patota);
-						//printf("Dirección lógica de las Tareas: %u\n", tabla_patota->patota->tareas);
-
-						/*for(int c=0; c<patota_recibida->cantidad_tripulantes; c++) {
-							t_dl_tripulante* direccion_tripu = list_get(tabla_patota->direccion_tripulantes, c);
-							printf("Dirección lógica del Tripulante %d: %u\n", direccion_tripu->id_tripulante, direccion_tripu->direccion_logica);
-						}*/
-
-						//printf("Cantidad de páginas usadas: %u\n", list_size(tabla_patota->paginas));
-
 						t_pagina* ultima_pagina = list_get(tabla_patota->paginas, list_size(tabla_patota->paginas)-1);
 						//printf("Espacio del ultimo Frame usado por esta patota: %u\n", frames[ultima_pagina->numero_de_frame]->espacio_libre);
 
@@ -774,7 +764,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					sem_wait(mutex_paginas);
 					actualizar_tripulante_memoria(tripulante_con_tarea, direccion_fisica, tabla_patota_buscada);
-					//actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
+					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 					sem_post(mutex_paginas);
 				}
 
