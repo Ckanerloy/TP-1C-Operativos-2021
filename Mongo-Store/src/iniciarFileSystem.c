@@ -78,6 +78,7 @@ void iniciar_superbloque(){
 	char* un_bitarray = malloc(BLOCKS/8);
 	t_bitarray* bitArraySB = crear_bitarray(un_bitarray);
 	vaciarBitArray(bitArraySB);
+	llenarBitArray(bitArraySB);
 
 
 	bloque_t* superBloqueFile = malloc(sizeof(bloque_t));
@@ -120,7 +121,8 @@ void iniciar_superbloque(){
 			//validacion msync -1 marca error. Exit 1 si devuelve -1 el msync
 			//logger tipo trace para la sincro del blocks.ims
 
-
+			int BLOQUELIBRE = posicionBitLibre(bitArraySB);
+			printf("el bloque libre es %u \n", BLOQUELIBRE);
 
 
 	//free(direccion_superBloque);
@@ -135,9 +137,8 @@ void iniciar_superbloque(){
 void crear_archivo_blocks(){
 
 	struct stat statbuf;
-	int archivo_blocks;
-
 	char *direccion_blocks = concatenar_path("/Blocks.ims");
+
 	//O_CREAT = si el fichero no existe, será creado. O_RDWR = lectura y escritura
 	archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
 
@@ -151,21 +152,26 @@ void crear_archivo_blocks(){
 	memcpy(blocks+i, "0", 1);
 	}
 
-	msync(blocks, BLOCK_SIZE*BLOCKS, MS_SYNC);
+	if(msync(blocks, BLOCK_SIZE*BLOCKS, MS_SYNC) < 0) {
+			log_error(logger,"[msync] Error al sincronizar Blocks.ims en su creación.\n");
+
+		}else {
+
+			log_info(logger,"[msync] Se creó y sincronizó el archivo Blocks.ims correctamente.\n");
+		}
+
 
 }
 
-void escribir_archivo_blocks(uint32_t bloque, char* cadena_a_escribir, uint32_t tamanio_bloque){
+void escribir_archivo_blocks(/*uint32_t bloque, char* cadena_a_escribir, uint32_t tamanio_bloque*/){
+
 	struct stat statbuf;
-	int archivo_blocks;
 	char *direccion_blocks = concatenar_path("/Blocks.ims");
-	archivo_blocks = open(direccion_blocks, O_RDWR, S_IRUSR|S_IWUSR);
-
-
+	//archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
 	fstat(archivo_blocks, &statbuf);
-
-	blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
-	memcpy(blocks+bloque, cadena_a_escribir, tamanio_bloque);
+printf("pase por aca");
+	//blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
+	memcpy(blocks+1, "PRUEBA", strlen("PRUEBA"));
 }
 
 

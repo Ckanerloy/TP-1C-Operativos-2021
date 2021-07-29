@@ -30,22 +30,27 @@ int main(void) {
 		else{
 			printf("Hay un FileSystem existente\n");
 			iniciar_superbloque();//Inicio el FS existente
-			crear_archivo_metadata("/Files/PRUEBA111.IMS");
+			//int BLOQUELIBRE = posicionBitLibre (t_bitarray* bitarray);
+			/*crear_archivo_metadata("/Files/PRUEBA111.IMS");
 			crear_archivo_bitacora("/Files/Bitacoras/PRUEBATRIPULANTE.ims");
-			escribir_archivo_blocks();
+			char *direccion_blocks = concatenar_path("/Blocks.ims");
+			archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
+			struct stat statbuf;
+			blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
+			escribir_archivo_blocks();*/
 
 	}
 
 
 	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
 
-	while(1) {
+	/*while(1) {
 		int32_t conexion_cliente = esperar_conexion(conexion_servidor);
 
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
 		pthread_detach(hilo_recibir_mensajes);
-	}
-
+	}*/
+printf("TERMINO");
 	return EXIT_SUCCESS;
 }
 

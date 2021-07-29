@@ -14,6 +14,12 @@
 #include <sys/stat.h>
 
 
+#include <limits.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+
+
 #include "utils/sockets.h"
 #include "utils/loader.h"
 #include "utils/estructuras.h"
@@ -35,6 +41,7 @@ char** POSICIONES_SABOTAJE;
 int BLOCK_SIZE;
 int BLOCKS;
 void* blocks;
+int archivo_blocks;
 
 t_log* logger;
 t_config* config;
