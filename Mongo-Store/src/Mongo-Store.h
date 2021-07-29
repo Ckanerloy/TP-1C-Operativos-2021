@@ -34,6 +34,7 @@ int TIEMPO_SINCRONIZACION;
 char** POSICIONES_SABOTAJE;
 int BLOCK_SIZE;
 int BLOCKS;
+void* blocks;
 
 t_log* logger;
 t_config* config;

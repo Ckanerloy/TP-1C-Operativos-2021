@@ -90,7 +90,7 @@ void iniciar_superbloque(){
 
 	if( -1 == archivo)
 	  {
-	    perror("Error al abrir el archivo SuperBloque.ims \n");//Revisar print del error
+	    log_error(logger, "Error al abrir el archivo SuperBloque.ims \n");//Revisar print del error
 	    exit(1);
 	  }
 
@@ -117,7 +117,8 @@ void iniciar_superbloque(){
 			memcpy(super_bloque+sizeof(uint32_t)*2, un_bitarray, superBloqueFile->cantidadBloques/8);
 
 			msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
-
+			//validacion msync -1 marca error. Exit 1 si devuelve -1 el msync
+			//logger tipo trace para la sincro del blocks.ims
 
 
 
@@ -135,7 +136,7 @@ void crear_archivo_blocks(){
 
 	struct stat statbuf;
 	int archivo_blocks;
-	void *blocks;
+
 	char *direccion_blocks = concatenar_path("/Blocks.ims");
 	//O_CREAT = si el fichero no existe, será creado. O_RDWR = lectura y escritura
 	archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
@@ -157,7 +158,6 @@ void crear_archivo_blocks(){
 void escribir_archivo_blocks(uint32_t bloque, char* cadena_a_escribir, uint32_t tamanio_bloque){
 	struct stat statbuf;
 	int archivo_blocks;
-	void *blocks;
 	char *direccion_blocks = concatenar_path("/Blocks.ims");
 	archivo_blocks = open(direccion_blocks, O_RDWR, S_IRUSR|S_IWUSR);
 
