@@ -75,10 +75,10 @@ void iniciar_superbloque(){
 	int archivo;
 	void *super_bloque;
 	struct stat statbuf;
-	char* un_bitarray = malloc(BLOCKS/8);
+	/*char* un_bitarray = malloc(BLOCKS/8);
 	t_bitarray* bitArraySB = crear_bitarray(un_bitarray);
-	vaciarBitArray(bitArraySB);
-	llenarBitArray(bitArraySB);
+	vaciarBitArray(bitArraySB);*/
+
 
 
 	bloque_t* superBloqueFile = malloc(sizeof(bloque_t));
@@ -121,8 +121,8 @@ void iniciar_superbloque(){
 			//validacion msync -1 marca error. Exit 1 si devuelve -1 el msync
 			//logger tipo trace para la sincro del blocks.ims
 
-			int BLOQUELIBRE = posicionBitLibre(bitArraySB);
-			printf("el bloque libre es %u \n", BLOQUELIBRE);
+			/*int BLOQUELIBRE = posicionBitLibre(bitArraySB);
+			printf("el bloque libre es %u \n", BLOQUELIBRE);*/
 
 
 	//free(direccion_superBloque);
@@ -163,15 +163,18 @@ void crear_archivo_blocks(){
 
 }
 
-void escribir_archivo_blocks(/*uint32_t bloque, char* cadena_a_escribir, uint32_t tamanio_bloque*/){
+void escribir_archivo_blocks(uint32_t bloque, char* cadena_a_escribir, uint32_t longitud_cadena){
 
-	struct stat statbuf;
-	char *direccion_blocks = concatenar_path("/Blocks.ims");
+	//Multiplico por BLOCK_SIZE para ir al lugar en donde comienza el bloque
+	uint32_t ubicacion_bloque = bloque * BLOCK_SIZE;
+
+	memcpy(blocks+ubicacion_bloque, cadena_a_escribir, longitud_cadena);
+	//struct stat statbuf;
+	//char *direccion_blocks = concatenar_path("/Blocks.ims");
 	//archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
-	fstat(archivo_blocks, &statbuf);
-printf("pase por aca");
+	//fstat(archivo_blocks, &statbuf);
 	//blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
-	memcpy(blocks+1, "PRUEBA", strlen("PRUEBA"));
+
 }
 
 

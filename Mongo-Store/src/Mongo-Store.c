@@ -14,6 +14,8 @@ int main(void) {
 	// Recibe la señal para enviar sabotaje
 	signal(SIGUSR1, (void*)iniciar_sabotaje);
 
+	un_bitarray = malloc(BLOCKS/8);
+	bitArraySB = crear_bitarray(un_bitarray);
 
 	//int prueba = existe_file_system();
 
@@ -21,7 +23,10 @@ int main(void) {
 
 		printf("No se encontró el archivo Blocks.ims. Se inicializa un nuevo FileSystem \n");
 
+
+		vaciarBitArray(bitArraySB);
 		inicializar_file_system();
+
 
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
@@ -30,14 +35,20 @@ int main(void) {
 		else{
 			printf("Hay un FileSystem existente\n");
 			iniciar_superbloque();//Inicio el FS existente
+
 			//int BLOQUELIBRE = posicionBitLibre (t_bitarray* bitarray);
 			/*crear_archivo_metadata("/Files/PRUEBA111.IMS");
-			crear_archivo_bitacora("/Files/Bitacoras/PRUEBATRIPULANTE.ims");
+			crear_archivo_bitacora("/Files/Bitacoras/PRUEBATRIPULANTE.ims");*/
+
 			char *direccion_blocks = concatenar_path("/Blocks.ims");
 			archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
 			struct stat statbuf;
 			blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
-			escribir_archivo_blocks();*/
+			escribir_archivo_blocks(3, "BLOQUE 3", strlen("BLOQUE 3"));
+
+
+			bitarray_set_bit(bitArraySB, 3);
+			printf("PASE POR ACA");
 
 	}
 
