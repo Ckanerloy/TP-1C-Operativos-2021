@@ -433,7 +433,7 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 
 		int32_t inicio = pagina_buscada->numero_de_frame * TAMANIO_PAGINA;
 
-		printf("Direccion Física: %u\n\n", inicio+resto);
+		//printf("Direccion Física: %u\n\n", inicio+resto);
 
 		return inicio + resto;
 	}
@@ -446,12 +446,8 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 
 		int32_t espacio_ocupado;
 		void* buffer_recuperado = recuperar_en_swap(pagina_buscada->numero_de_pagina, &espacio_ocupado);
-
-		printf("ESPACIO OCUPADO: %u\n", espacio_ocupado);
-
 		int32_t frame_disponible = pagina_buscada->numero_de_frame;
-		printf("FRAME DISPONIBLE POR SWAP: %u\n", frame_disponible);
-		printf("PAGINA RECUPERADA POR SWAP: %u\n", pagina_buscada->numero_de_pagina);
+
 
 		frames[frame_disponible]->espacio_libre = TAMANIO_PAGINA - espacio_ocupado;
 		frames[frame_disponible]->estado = OCUPADO;
@@ -460,8 +456,6 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 
 		int32_t inicio_frame = frame_disponible * TAMANIO_PAGINA;
 		memcpy(memoria_principal + inicio_frame, buffer_recuperado, espacio_ocupado);
-		printf("INICIO FRAME SACADO DE SWAP: %u\n", inicio_frame);
-
 		memoria_libre_total -= espacio_ocupado;
 
 		log_info(logger, "Se recuperó la Página %u desde Memoria Virtual y se asignó al Frame %u.\n", pagina_buscada->numero_de_pagina, frame_disponible);
@@ -666,8 +660,6 @@ void* obtener_tareas_de_memoria(uint32_t direccion_fisica, uint32_t id_tarea_bus
 		}
 	}
 
-
-	mem_hexdump(buffer, dl_tarea->tamanio_tarea);
 	sem_post(mutex_tripulante_swap);
 
 	return buffer;
@@ -748,8 +740,6 @@ tarea* encontrar_tarea_en_memoria(uint32_t direccion_fisica, uint32_t id_tarea_b
 	tarea_recuperada->tarea = malloc(tarea_recuperada->tamanio_tarea);
 
 	memcpy(tarea_recuperada->tarea, buffer, tarea_recuperada->tamanio_tarea);
-
-	mem_hexdump(buffer, tarea_recuperada->tamanio_tarea);
 
 	//printf("TAREA %u RECUPERADA: %s\n", direccion_logica_tarea->id_tarea, tarea_recuperada->tarea);
 	//printf("TAMANIO TAREA RECUPERADA: %u\n", direccion_logica_tarea->tamanio_tarea);

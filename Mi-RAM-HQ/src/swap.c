@@ -148,7 +148,6 @@ int32_t aplicar_LRU(void) {
 
 	sem_wait(sem_lru);
 	for(int i=0; i<list_size(tablas_paginas); i++){
-		printf("CANTIDAD PATOTAS: %u\n", list_size(tablas_paginas));
 		tabla = list_get(tablas_paginas, i);
 
 		for(int j=0; j<list_size(tabla->paginas); j++){
@@ -159,9 +158,6 @@ int32_t aplicar_LRU(void) {
 					tiempo_mas_viejo = pagina_obtenida->tiempo_referencia;
 					tabla_a_devolver = tabla;
 					posicion = j;
-					printf("PAGINA: %u\n", pagina_obtenida->numero_de_pagina);
-					printf("FRAME DE LA PAGINA: %u\n", pagina_obtenida->numero_de_frame);
-					printf("PROCESO: %u\n", tabla->patota->pid);
 				}
 
 			}
@@ -174,27 +170,20 @@ int32_t aplicar_LRU(void) {
 		exit(EXIT_FAILURE);
 	}
 
-	printf("TAMAÑO DE LA LISTA DE PAGINAS DE LA TABLA: %u\n", list_size(tabla_a_devolver->paginas));
-
 	t_pagina* pagina_victima = list_get(tabla_a_devolver->paginas, posicion);
 	uint32_t frame_a_buscar = pagina_victima->numero_de_frame;
 
 	log_info(logger, "Se desalojará la Página %u del Frame %u.\n", pagina_victima->numero_de_pagina, frame_a_buscar);
 
 	uint32_t inicio_frame = frame_a_buscar * TAMANIO_PAGINA;
-	printf("INICIO FRAME A SWAPPEAR: %u\n", inicio_frame);
-
 
 	int32_t espacio_ocupado = frames[frame_a_buscar]->puntero_frame;
-	printf("ESPACIO OCUPADO DEL FRAME: %u\n", espacio_ocupado);
 
 	void* buffer = malloc(espacio_ocupado);
 	memcpy(buffer, memoria_principal + inicio_frame, espacio_ocupado);
 
-
 	// Guardo la Página Víctima en Memoria Virtual
 	guardar_pagina_en_swap(buffer, pagina_victima, espacio_ocupado);
-
 
 	memoria_libre_total += (TAMANIO_PAGINA - frames[frame_a_buscar]->espacio_libre);
 

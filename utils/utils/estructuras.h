@@ -191,6 +191,11 @@ typedef struct {
 } t_tripulante_estado;
 
 
+typedef struct {
+	int32_t id_tripulante;
+	int caracter_mapa;
+} tripulante_mapa;
+
 
 
 // Estructura para la Respuesta de Mi-RAM HQ
