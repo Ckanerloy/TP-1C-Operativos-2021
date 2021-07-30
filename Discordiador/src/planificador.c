@@ -547,6 +547,7 @@ void block_exit(tripulante_plani* tripu){
 	tripu->puedo_ejecutar_io=0;
 	actualizar_estado(tripu, 'T');
 	log_info(logger,"El tripulante con id %d de la patota %d paso de Block a Exit",tripu->id_tripulante,tripu->numero_patota);
+	sem_post(bloqueado_disponible);
 }
 
 // Creo que este ya no va
@@ -707,7 +708,7 @@ void tripulante_hilo(void* tripulante){
 			bitacora_posi->posicion_anterior->posicion_x=posicion_tripu->posicion_x;
 			bitacora_posi->posicion_anterior->posicion_y=posicion_tripu->posicion_y;
 
-			obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
+
 
 			bitacora_posi->posicion_nueva= malloc(sizeof(posiciones));
 			bitacora_posi->posicion_nueva->posicion_x=posicion_tripu->posicion_x;
@@ -719,19 +720,28 @@ void tripulante_hilo(void* tripulante){
 			free(bitacora_posi->posicion_anterior);
 			free(bitacora_posi);
 
-
-			tripu->cantidad_realizada= tripu->cantidad_realizada+1;
-
 			if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 				if(algoritmo_elegido == RR){ // @suppress("Symbol is not resolved")
 					if(tripu->cantidad_realizada == QUANTUM){
-					running_ready(tripu);
-					sem_wait(tripu->sem_planificacion);
+						running_ready(tripu);
+						sem_wait(tripu->sem_planificacion);
+					}else{
+						tripu->cantidad_realizada= tripu->cantidad_realizada+1;
+						distancia--;
+						obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
 					}
+				}else{
+					tripu->cantidad_realizada= tripu->cantidad_realizada+1;
+					distancia--;
+					obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
 				}
 			}
-
-			distancia--;
+			if(tripu->fui_elegido_antes){
+				tripu->cantidad_realizada= tripu->cantidad_realizada+1;
+				distancia--;
+				obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
+			}
+			//Hay que actualizar la ubicacion en Mi_Ram
 
 			sem_wait(tripu->mutex_expulsado);
 			if(tripu->expulsado){
