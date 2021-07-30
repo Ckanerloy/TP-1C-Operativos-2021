@@ -13,9 +13,7 @@ void iniciar_mapa(void) {
 
 	amongOs = nivel_crear("A-MongOs");
 
-	caracter_personaje = 65;
-
-	tripulantes_mapa = list_create();
+	caracter_personaje = 65;	// Comienza en la letra A
 }
 
 
@@ -35,3 +33,7 @@ void eliminar_tripulante(NIVEL* nivel, int caracter_personaje) {
 	nivel_gui_dibujar(nivel);
 }
 
+void finalizar_mapa(NIVEL* nivel) {
+	nivel_destruir(nivel);
+	nivel_gui_terminar();
+}

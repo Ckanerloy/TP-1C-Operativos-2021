@@ -96,7 +96,11 @@ void terminar_tripulante(tripulante_plani* tripu) {
 
 	enviar_mensaje(tripulante_terminado, EXPULSAR_TRIPULANTE, conexion_mi_ram);
 
-	close(conexion_mi_ram);
+	log_info(logger_on, "Se expulsó al Tripulante %u.\n", tripulante_terminado->id_tripulante);
+
+	cerrar_conexion(logger,conexion_mi_ram);
+
+	free(tripulante_terminado);
 }
 
 /*

@@ -68,7 +68,6 @@ int32_t obtener_frame_disponible(void) {
 	if(hay_frame_libre()) {
 		num_frame = obtener_frame_libre();
 
-		log_info(logger,"El frame a asignar en memoria es el: %d", num_frame);
 		return num_frame;
 	}
 
@@ -425,6 +424,7 @@ int32_t buscar_direccion_tarea_por_id(t_tabla_paginas_patota* tabla_patota_busca
 int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_tabla_paginas_patota* tabla_patota_buscada) {
 
 	int32_t numero_pag = direccion_logica / TAMANIO_PAGINA;
+
 	int32_t resto = direccion_logica % TAMANIO_PAGINA;
 
 	t_pagina* pagina_buscada = buscar_pagina(numero_pag, tabla_patota_buscada->paginas);
@@ -432,8 +432,6 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 	if(pagina_buscada->P == 1) {
 
 		int32_t inicio = pagina_buscada->numero_de_frame * TAMANIO_PAGINA;
-
-		//printf("Direccion Física: %u\n\n", inicio+resto);
 
 		return inicio + resto;
 	}
@@ -447,7 +445,6 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 		int32_t espacio_ocupado;
 		void* buffer_recuperado = recuperar_en_swap(pagina_buscada->numero_de_pagina, &espacio_ocupado);
 		int32_t frame_disponible = pagina_buscada->numero_de_frame;
-
 
 		frames[frame_disponible]->espacio_libre = TAMANIO_PAGINA - espacio_ocupado;
 		frames[frame_disponible]->estado = OCUPADO;
