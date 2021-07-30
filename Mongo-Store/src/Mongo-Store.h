@@ -44,6 +44,8 @@ void* blocks;
 int archivo_blocks;
 char* un_bitarray;
 t_bitarray* bitArraySB;
+int archivo;
+void *super_bloque;
 
 t_log* logger;
 t_config* config;
