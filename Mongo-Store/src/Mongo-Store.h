@@ -14,6 +14,12 @@
 #include <sys/stat.h>
 
 
+#include <limits.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+
+
 #include "utils/sockets.h"
 #include "utils/loader.h"
 #include "utils/estructuras.h"
@@ -34,6 +40,12 @@ int TIEMPO_SINCRONIZACION;
 char** POSICIONES_SABOTAJE;
 int BLOCK_SIZE;
 int BLOCKS;
+void* blocks;
+int archivo_blocks;
+char* un_bitarray;
+t_bitarray* bitArraySB;
+int archivo;
+void *super_bloque;
 
 t_log* logger;
 t_config* config;

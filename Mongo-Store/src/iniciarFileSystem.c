@@ -42,9 +42,8 @@ void inicializar_file_system(){
 		crear_archivo_blocks();
 
 
-		/*
-		log_info(logger_i_mongo_store, "FILESYSTEM INICIALIZADO DE 0 CON EXITO");
-		*/
+		log_info(logger, "Filesystem inicializado con éxito");
+
 }
 
 
@@ -72,36 +71,33 @@ void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio)
 void iniciar_superbloque(){
 
 	char *direccion_superBloque = concatenar_path("/SuperBloque.ims");
-	int archivo;
-	void *super_bloque;
 	struct stat statbuf;
 	char* un_bitarray = malloc(BLOCKS/8);
-	t_bitarray* bitArraySB = crear_bitarray(un_bitarray);
-	vaciarBitArray(bitArraySB);
 
-
+	//Metadata para el superbloque
 	bloque_t* superBloqueFile = malloc(sizeof(bloque_t));
 	superBloqueFile->tamanioBloque = BLOCK_SIZE;
 	superBloqueFile->cantidadBloques = BLOCKS;
 
+	//Creo bitmap y lo inicializo en 0
+	//bitArraySB = crear_bitarray(un_bitarray);
+	vaciarBitArray(bitArraySB);
 
 	//O_CREAT = si el fichero no existe, será creado. O_RDWR = lectura y escritura
 	archivo = open(direccion_superBloque, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
 
 	if( -1 == archivo)
 	  {
-	    perror("Error al abrir el archivo SuperBloque.ims \n");//Revisar print del error
+	    log_error(logger, "Error al abrir el archivo SuperBloque.ims \n");//Revisar print del error
 	    exit(1);
 	  }
 
-	//Trunco espacio al archivo
+	//Trunco espacio del archivo
 	ftruncate(archivo, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8);
 	fstat(archivo, &statbuf);
 
-
 	//Mediante PROT_READ Y PROT_WRITE permitimos leer y escribir. MAP_SHARED permite uqe las operaciones realizadas en el área de mapeo se reflejen en el disco
 	super_bloque = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
-
 
 	if(super_bloque == MAP_FAILED){
 		perror("Error mapping \n");
@@ -110,20 +106,27 @@ void iniciar_superbloque(){
 	}
 
 
-			msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
+			//Creo que este msync no hace falta
+			//msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
+
 
 			memcpy(super_bloque, &(superBloqueFile->tamanioBloque), sizeof(uint32_t));
 			memcpy(super_bloque+sizeof(uint32_t), &(superBloqueFile->cantidadBloques), sizeof(uint32_t));
 			memcpy(super_bloque+sizeof(uint32_t)*2, un_bitarray, superBloqueFile->cantidadBloques/8);
 
-			msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
+			if(msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC) < 0) {
+				log_error(logger, "[msync] Error al sincronizar SuperBloque.ims.\n");
 
 
+			}else{
 
 
+				log_info(logger,"[msync] SuperBloque.ims sincronizado correctamente.\n");
 
-	//free(direccion_superBloque);
+			}
 
+
+	//free(un_bitarray);
 
 
 }
@@ -134,42 +137,43 @@ void iniciar_superbloque(){
 void crear_archivo_blocks(){
 
 	struct stat statbuf;
-	int archivo_blocks;
-	void *blocks;
 	char *direccion_blocks = concatenar_path("/Blocks.ims");
+
 	//O_CREAT = si el fichero no existe, será creado. O_RDWR = lectura y escritura
 	archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
 
-	ftruncate(archivo_blocks, BLOCK_SIZE/**BLOCKS*/);
-	//fstat(archivo_blocks, &statbuf);
-
-	//blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
-
-
-}
-
-void escribir_archivo_blocks(){
-	struct stat statbuf;
-	int archivo_blocks;
-	void *blocks;
-	char *direccion_blocks = concatenar_path("/Blocks.ims");
-	archivo_blocks = open(direccion_blocks, O_RDWR, S_IRUSR|S_IWUSR);
-
-	ftruncate(archivo_blocks, BLOCK_SIZE/**BLOCKS*/);
+	ftruncate(archivo_blocks, BLOCK_SIZE*BLOCKS);
 	fstat(archivo_blocks, &statbuf);
 
 	blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
-	//memcpy(blocks+3, "HOLAHOLA", 20);
-	memcpy(blocks+15, "1111", 20);
-	printf("PASE POR ACA");
-	//memcpy(blocks, "PRUEBA PRUEBA PRUEBA 1234", 5);
+
+	//Se inicializa el archivo Blocks.ims en 0. Tomamos 0 como referencia para indicar que el bloque está vacío
+	for(uint32_t i=0; i<BLOCK_SIZE*BLOCKS; i++){
+	memcpy(blocks+i, "0", 1);
+	}
+
+	if(msync(blocks, BLOCK_SIZE*BLOCKS, MS_SYNC) < 0) {
+			log_error(logger,"[msync] Error al sincronizar Blocks.ims en su creación.\n");
+
+		}else {
+
+			log_info(logger,"[msync] Se creó y sincronizó el archivo Blocks.ims correctamente.\n");
+		}
 
 
-	msync(blocks, BLOCK_SIZE/**BLOCKS*/, MS_SYNC);
 }
 
+void escribir_archivo_blocks(uint32_t bloque, char* cadena_a_escribir, uint32_t longitud_cadena){
 
+	//Multiplico por BLOCK_SIZE para ir al lugar en donde comienza el bloque
+	uint32_t ubicacion_bloque = bloque * BLOCK_SIZE;
 
+	memcpy(blocks+ubicacion_bloque, cadena_a_escribir, longitud_cadena);
+	//struct stat statbuf;
+	//char *direccion_blocks = concatenar_path("/Blocks.ims");
+	//archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
+	//fstat(archivo_blocks, &statbuf);
+	//blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
 
-
+}
 

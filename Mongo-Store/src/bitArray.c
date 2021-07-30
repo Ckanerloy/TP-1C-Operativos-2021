@@ -15,3 +15,33 @@ void vaciarBitArray(t_bitarray* bitarray){
 		bitarray_clean_bit(bitarray, i);
 	}
 }
+
+int posicionBitLibre (t_bitarray* bitarray){
+
+	int bitLibre;
+
+	for (int i = 0; i < BLOCKS; i++){
+		int valorBit = bitarray_test_bit(bitarray, i);
+
+		if( 0 ==  valorBit){
+			bitLibre = i;
+			i = BLOCKS+1;
+
+		}
+
+	}
+	return bitLibre;
+
+}
+
+
+
+void llenarBitArray(t_bitarray* bitarray){
+
+	int i;
+
+	for (i = 0; i < 10; i++){
+		bitarray_set_bit(bitarray, i);
+	}
+}
+

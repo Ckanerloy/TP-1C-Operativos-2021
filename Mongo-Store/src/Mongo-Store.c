@@ -14,12 +14,12 @@ int main(void) {
 	// Recibe la señal para enviar sabotaje
 	signal(SIGUSR1, (void*)iniciar_sabotaje);
 
-
-	//int prueba = existe_file_system();
+	char* un_bitarray = malloc(BLOCKS/8);
+	//bitArraySB = crear_bitarray(un_bitarray);
 
 	if (existe_file_system() == -1) {
 
-		printf("No se encontró el archivo Blocks.ims. Se inicializa un nuevo FileSystem \n");
+		log_info(logger, "No se encontró el archivo Blocks.ims. Se inicializa un nuevo FileSystem \n");
 
 		inicializar_file_system();
 
@@ -28,26 +28,48 @@ int main(void) {
 
 	}
 		else{
-			printf("Hay un FileSystem existente\n");
-			iniciar_superbloque();//Inicio el FS existente
-			crear_archivo_metadata("/Files/PRUEBA111.IMS");
-			crear_archivo_bitacora("/Files/Bitacoras/PRUEBATRIPULANTE.ims");
-			escribir_archivo_blocks();
+			log_info(logger, "Hay un FileSystem existente, el mismo no debe ser inicializado\n");
 
-	}
+
+			//int BLOQUELIBRE = posicionBitLibre (t_bitarray* bitarray);
+			/*crear_archivo_metadata("/Files/PRUEBA111.IMS");
+			crear_archivo_bitacora("/Files/Bitacoras/PRUEBATRIPULANTE.ims");*/
+
+		}
+
+	char *direccion_blocks = concatenar_path("/Blocks.ims");
+	archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
+	struct stat statbuf;
+	fstat(archivo_blocks, &statbuf);
+	blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
+
+	escribir_archivo_blocks(2, "BLOQUE 2", strlen("BLOQUE 2"));
+
+
+	bitarray_set_bit(bitArraySB, 2);
+
+
+	printf("PASE POR ACA");
 
 
 	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
 
-	while(1) {
+	/*while(1) {
 		int32_t conexion_cliente = esperar_conexion(conexion_servidor);
 
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
 		pthread_detach(hilo_recibir_mensajes);
-	}
+	}*/
+printf("TERMINO");
+free(un_bitarray);
 
 	return EXIT_SUCCESS;
+
+
 }
+
+
+
 
 
 void obtener_datos_de_config(t_config* config) {
@@ -174,6 +196,10 @@ char* crear_archivo_metadata(char* path_archivo){
 
 	return path_completo;
 }
+
+//PARA GENERAR EL MD5 https://askubuntu.com/questions/53846/how-to-get-the-md5-hash-of-a-string-directly-in-the-terminal
+
+
 
 char* crear_archivo_bitacora(char* path_archivo){
 
