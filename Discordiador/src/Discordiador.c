@@ -437,7 +437,7 @@ void obtener_orden_input(){
 			// PRUEBAS PARA MI RAM
 			// 	- PRUEBAS PARA SEGMENTACION
 			// Ej: INICIAR_PATOTA 4 /home/utnso/tareas/SEG_PatotaA.txt
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/SEG_PatotaB.txt
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/SEG_PatotaB.txt
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/SEG_PatotaC.txt
 			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
 			// Ej: INICIAR_PATOTA 6 /home/utnso/tareas/persa.txt
@@ -546,7 +546,7 @@ void obtener_orden_input(){
 						tripulante->puedo_ejecutar_io = 0;
 
 
-						sem_t* sem_plani=malloc(sizeof(sem_t));
+						sem_t* sem_plani = malloc(sizeof(sem_t));
 						sem_init(sem_plani,0,0);
 						tripulante->sem_planificacion = sem_plani;
 
@@ -560,13 +560,15 @@ void obtener_orden_input(){
 						sem_init(mutex_estado_tripu, 0, 1);
 						tripulante->mutex_estado=mutex_estado_tripu;
 
+						sem_t* mutex_peticion_tripu = malloc(sizeof(sem_t));
+						sem_init(mutex_peticion_tripu, 0, 1);
+						tripulante->mutex_peticion = mutex_peticion_tripu;
 
 						sem_t* mutex_tripu_expulsado = malloc(sizeof(sem_t));
 						sem_init(mutex_tripu_expulsado, 0, 1);
+						tripulante->mutex_expulsado = mutex_tripu_expulsado;
 
 						tripulante->tarea_a_realizar = malloc(sizeof(t_tarea));
-
-						tripulante->mutex_expulsado = mutex_tripu_expulsado;
 
 						pthread_create(&hilo_tripulante,NULL,(void*)tripulante_hilo,tripulante);
 						pthread_detach(hilo_tripulante);

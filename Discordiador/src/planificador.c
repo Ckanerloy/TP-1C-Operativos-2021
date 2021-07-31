@@ -158,9 +158,12 @@ void iniciar_planificacion(void) {
 // FUNCIONES PARA PEDIR DATOS A MI RAM
 void actualizar_estado(tripulante_plani* tripu, char estado) {
 
+	sem_wait(tripu->mutex_peticion);
+
     uint32_t conexion_mi_ram;
 
     t_tripulante_estado* tripulante_estado = malloc(sizeof(t_tripulante_estado));
+    t_respuesta_tripulante* respuesta_estado = malloc(sizeof(t_respuesta_tripulante));
 
     tripu->estado = estado;
 
@@ -179,13 +182,35 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 	enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion_mi_ram);
 
+	if(validacion_envio(conexion_mi_ram) == 1) {
+		recibir_mensaje(respuesta_estado, RESPUESTA_OK_ESTADO, conexion_mi_ram);
+
+		if(respuesta_estado->respuesta != 1) {
+			log_error(logger_on, "La respuesta fue negativa.\n");
+			abort();
+		}
+		if(respuesta_estado->id_tripulante != tripu->id_tripulante) {
+			log_error(logger_on, "¡No es el tripulante que estoy buscando!\n");
+			abort();
+		}
+	}
+	else {
+		log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
+		abort();
+	}
+
+	sem_post(tripu->mutex_peticion);
+
 	close(conexion_mi_ram);
 
 	free(tripulante_estado);
+	free(respuesta_estado);
 }
 
 
-void obtener_siguiente_tarea(tripulante_plani* tripu,uint32_t id_tripulante, uint32_t numero_patota){
+void obtener_siguiente_tarea(tripulante_plani* tripu, uint32_t id_tripulante, uint32_t numero_patota){
+
+	sem_wait(tripu->mutex_peticion);
 
 	uint32_t conexion_mi_ram;
 	t_tripulante* tripulante_consulta = malloc(sizeof(t_tripulante));
@@ -235,6 +260,8 @@ void obtener_siguiente_tarea(tripulante_plani* tripu,uint32_t id_tripulante, uin
 
 	close(conexion_mi_ram);
 
+	sem_post(tripu->mutex_peticion);
+
 	free(tripulante_consulta);
 	free(respuesta_tarea->tarea);
 	free(respuesta_tarea);
@@ -243,7 +270,6 @@ void obtener_siguiente_tarea(tripulante_plani* tripu,uint32_t id_tripulante, uin
 		tripu->tarea_a_realizar = NULL;
 		return;
 	}
-
 }
 
 
@@ -295,7 +321,10 @@ void obtener_posiciones(posiciones* posiciones_buscadas,uint32_t id_tripulante, 
 
 void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_plani* tripu) {
 
+	sem_wait(tripu->mutex_peticion);
+
 	t_tripulante_ubicacion* ubicaciones_a_enviar = malloc(sizeof(t_tripulante_ubicacion));
+	t_respuesta_tripulante* respuesta_ubicacion_ok = malloc(sizeof(t_respuesta_tripulante));
 
 	ubicaciones_a_enviar->id_patota = tripu->numero_patota;
 	ubicaciones_a_enviar->id_tripulante = tripu->id_tripulante;
@@ -311,9 +340,12 @@ void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_p
 
 	enviar_mensaje(ubicaciones_a_enviar, ACTUALIZAR_UBICACION_TRIPULANTE, conexion_mi_ram);
 
+	sem_post(tripu->mutex_peticion);
+
 	close(conexion_mi_ram);
 
 	free(ubicaciones_a_enviar);
+	free(respuesta_ubicacion_ok);
 }
 
 

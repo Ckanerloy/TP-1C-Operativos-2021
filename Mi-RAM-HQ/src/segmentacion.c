@@ -118,9 +118,13 @@ void compactar(void) {
 
 		void* aux = malloc(segmento->tamanio_segmento);
 
+		sem_wait(mutex_copia);
 		memcpy(aux, memoria_principal + segmento->inicio, segmento->tamanio_segmento);
+		sem_post(mutex_copia);
 
+		sem_wait(mutex_copia);
 		memcpy(memoria_principal + inicio, aux, segmento->tamanio_segmento);
+		sem_post(mutex_copia);
 
 		segmento->inicio = inicio;
 		segmento->numero_de_segmento = i;
@@ -252,11 +256,15 @@ void actualizar_patota(t_pcb* patota, uint32_t inicio_segmento) {
 	void* inicio = (void*) memoria_principal + inicio_segmento;
 	uint32_t desplazamiento = 0;
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(patota->pid), sizeof(patota->pid));
 	desplazamiento += sizeof(patota->pid);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(patota->tareas), sizeof(patota->tareas));
 	desplazamiento += sizeof(patota->tareas);
+	sem_post(mutex_copia);
 }
 
 
@@ -272,8 +280,10 @@ void actualizar_tareas(t_list* tareas_de_la_patota, uint32_t inicio_segmento, t_
 		direccion_tarea->id_tarea = i;
 		direccion_tarea->direccion_logica = desplazamiento;
 
+		sem_wait(mutex_copia);
 		memcpy(inicio + desplazamiento, tarea_a_guardar->tarea, tarea_a_guardar->tamanio_tarea);
 		desplazamiento += tarea_a_guardar->tamanio_tarea;
+		sem_post(mutex_copia);
 
 		direccion_tarea->tamanio_tarea = tarea_a_guardar->tamanio_tarea;
 
@@ -296,23 +306,35 @@ void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento, t_tabla_
 
 	list_add(tabla_patota->direccion_tripulantes, direccion_tripulante);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
 	desplazamiento += sizeof(tripulante->id_tripulante);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->estado_tripulante), sizeof(tripulante->estado_tripulante));
 	desplazamiento += sizeof(tripulante->estado_tripulante);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->posicion_x), sizeof(tripulante->posicion_x));
 	desplazamiento += sizeof(tripulante->posicion_x);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->posicion_y), sizeof(tripulante->posicion_y));
 	desplazamiento += sizeof(tripulante->posicion_y);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->id_tarea_a_realizar), sizeof(tripulante->id_tarea_a_realizar));
 	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->puntero_PCB), sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);
+	sem_post(mutex_copia);
 }
 
 
@@ -352,11 +374,15 @@ t_pcb* encontrar_patota(t_segmento* segmento) {
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
 
+	sem_wait(mutex_copia);
 	memcpy(&(patota->pid), inicio + desplazamiento, sizeof(patota->pid));
 	desplazamiento += sizeof(patota->pid);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(patota->tareas), inicio + desplazamiento, sizeof(patota->tareas));
 	desplazamiento += sizeof(patota->tareas);
+	sem_post(mutex_copia);
 
 	return patota;
 }
@@ -379,7 +405,9 @@ tarea* encontrar_tarea(t_segmento* segmento, t_tabla_segmentos_patota* tabla_pat
 
 	int32_t inicio = segmento->inicio + direccion_logica_tarea->direccion_logica;
 
+	sem_wait(mutex_copia);
 	memcpy(tarea_recuperada->tarea, memoria_principal + inicio, tarea_recuperada->tamanio_tarea);
+	sem_post(mutex_copia);
 
 	return tarea_recuperada;
 }
@@ -392,23 +420,35 @@ t_tcb* encontrar_tripulante(t_segmento* segmento) {
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->id_tripulante), inicio + desplazamiento, sizeof(tripulante->id_tripulante));
 	desplazamiento += sizeof(tripulante->id_tripulante);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->estado_tripulante), inicio + desplazamiento, sizeof(tripulante->estado_tripulante));
 	desplazamiento += sizeof(tripulante->estado_tripulante);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->posicion_x), inicio + desplazamiento, sizeof(tripulante->posicion_x));
 	desplazamiento += sizeof(tripulante->posicion_x);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->posicion_y), inicio + desplazamiento, sizeof(tripulante->posicion_y));
 	desplazamiento += sizeof(tripulante->posicion_y);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->id_tarea_a_realizar), inicio + desplazamiento, sizeof(tripulante->id_tarea_a_realizar));
 	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->puntero_PCB), inicio + desplazamiento, sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);
+	sem_post(mutex_copia);
 
 	return tripulante;
 }

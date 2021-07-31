@@ -121,7 +121,7 @@ typedef struct {
 	sem_t* sem_planificacion;
 
 	sem_t* mutex_estado;
-
+	sem_t* mutex_peticion;
 	sem_t* mutex_expulsado;
 
 	uint cantidad_realizada;

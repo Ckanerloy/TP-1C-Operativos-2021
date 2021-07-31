@@ -184,7 +184,10 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 
 			if(frames[num_frame]->espacio_libre >= sobrante) {
 
+				sem_wait(mutex_copia);
 				memcpy(memoria_principal + inicio_frame, buffer + offset, sobrante);
+				sem_post(mutex_copia);
+
 				offset += sobrante;
 				puntero_inicio += sobrante;
 
@@ -198,7 +201,10 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 			}
 			else {
 
+				sem_wait(mutex_copia);
 				memcpy(memoria_principal + inicio_frame, buffer + offset, frames[num_frame]->espacio_libre);
+				sem_post(mutex_copia);
+
 				offset += frames[num_frame]->espacio_libre;
 				puntero_inicio += frames[num_frame]->espacio_libre;
 				frames[num_frame]->estado = OCUPADO;
@@ -219,7 +225,10 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 
 				inicio_frame = num_frame * TAMANIO_PAGINA + offset_frame;
 
+				sem_wait(mutex_copia);
 				memcpy(memoria_principal + inicio_frame, buffer + offset, resto);
+				sem_post(mutex_copia);
+
 				offset += resto;
 				puntero_inicio += resto;
 
@@ -238,7 +247,10 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 
 			if(frames[num_frame]->espacio_libre == TAMANIO_PAGINA) {
 
+				sem_wait(mutex_copia);
 				memcpy(memoria_principal + inicio_frame, buffer + offset, TAMANIO_PAGINA);
+				sem_post(mutex_copia);
+
 				offset += TAMANIO_PAGINA;
 				puntero_inicio += TAMANIO_PAGINA;
 				frames[num_frame]->espacio_libre = 0;
@@ -252,7 +264,10 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 				// tambien, si entro por aca, es porque voy a guardar tantos bytes como el TAMAÑO de una página
 			else {
 
+				sem_wait(mutex_copia);
 				memcpy(memoria_principal + inicio_frame, buffer + offset, frames[num_frame]->espacio_libre);
+				sem_post(mutex_copia);
+
 				offset += frames[num_frame]->espacio_libre;
 				puntero_inicio += frames[num_frame]->espacio_libre;
 				frames[num_frame]->estado = OCUPADO;
@@ -271,7 +286,10 @@ void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tab
 				offset_frame = TAMANIO_PAGINA - frames[num_frame]->espacio_libre;
 				inicio_frame = num_frame * TAMANIO_PAGINA + offset_frame;
 
+				sem_wait(mutex_copia);
 				memcpy(memoria_principal + inicio_frame, buffer + offset, resto);
+				sem_post(mutex_copia);
+
 				offset += resto;
 				puntero_inicio += resto;
 
@@ -377,14 +395,6 @@ int32_t obtener_direc_fisica_con_direccion_logica(int32_t direccion_logica, t_ta
 		void* buffer_recuperado = recuperar_en_swap(pagina_buscada->numero_de_pagina, &espacio_ocupado);
 		int32_t frame_disponible = pagina_buscada->numero_de_frame;
 
-		mem_hexdump(buffer_recuperado, espacio_ocupado);
-
-		printf("FRAME USADO: %u\n", frame_disponible);
-		printf("ESPACIO OCUPADO DEL FRAME: %u\n", espacio_ocupado);
-
-		printf("NUMERO DE PAGINA: %u\n", frames[frame_disponible]->pagina);
-		printf("PROCESO: %u\n", frames[frame_disponible]->proceso);
-
 		frames[frame_disponible]->espacio_libre = TAMANIO_PAGINA - espacio_ocupado;
 		frames[frame_disponible]->estado = OCUPADO;
 		frames[frame_disponible]->puntero_frame = espacio_ocupado;
@@ -425,11 +435,15 @@ void* serializar_patota(t_pcb* patota, uint32_t tamanio) {
 
 	int32_t desplazamiento = 0;
 
+	sem_wait(mutex_copia);
 	memcpy(buffer + desplazamiento, &(patota->pid), sizeof(patota->pid));
 	desplazamiento += sizeof(patota->pid);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(buffer + desplazamiento, &(patota->tareas), sizeof(patota->tareas));
 	desplazamiento += sizeof(patota->tareas);
+	sem_post(mutex_copia);
 
 	return buffer;
 }
@@ -448,8 +462,11 @@ void* serializar_tareas(t_list* tareas_de_la_patota, uint32_t tamanio, t_tabla_p
 		direccion_tarea->id_tarea = i;
 		direccion_tarea->direccion_logica = puntero_inicio + desplazamiento;
 
+		sem_wait(mutex_copia);
 		memcpy(buffer + desplazamiento, tarea_a_guardar->tarea, tarea_a_guardar->tamanio_tarea);
 		desplazamiento += tarea_a_guardar->tamanio_tarea;
+		sem_post(mutex_copia);
+
 		direccion_tarea->tamanio_tarea = tarea_a_guardar->tamanio_tarea;
 
 		list_add_in_index(tabla_patota->direccion_tareas, i, direccion_tarea);
@@ -465,23 +482,35 @@ void* serializar_tripulante(t_tcb* tripulante, uint32_t tamanio) {
 
 	int32_t desplazamiento = 0;
 
+	sem_wait(mutex_copia);
 	memcpy(buffer + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
 	desplazamiento += sizeof(tripulante->id_tripulante);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(buffer + desplazamiento, &(tripulante->estado_tripulante), sizeof(tripulante->estado_tripulante));
 	desplazamiento += sizeof(tripulante->estado_tripulante);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(buffer + desplazamiento, &(tripulante->posicion_x), sizeof(tripulante->posicion_x));
 	desplazamiento += sizeof(tripulante->posicion_x);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(buffer + desplazamiento, &(tripulante->posicion_y), sizeof(tripulante->posicion_y));
 	desplazamiento += sizeof(tripulante->posicion_y);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(buffer + desplazamiento, &(tripulante->id_tarea_a_realizar), sizeof(tripulante->id_tarea_a_realizar));
 	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(buffer + desplazamiento, &(tripulante->puntero_PCB), sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);
+	sem_post(mutex_copia);
 
 	return buffer;
 }
@@ -509,15 +538,23 @@ void* obtener_tripulante_de_memoria(uint32_t direccion_fisica, uint32_t direccio
 
 		if(lectura_tripulante >= faltante){
 			lectura_tripulante -= faltante;
+
+			sem_wait(mutex_copia);
 			memcpy(buffer + offset_buffer, inicio, faltante);
+			sem_post(mutex_copia);
+
 			direccion_logica_tripulante += faltante;
 			offset_buffer += faltante;
 			direccion_fisica_nueva = obtener_direc_fisica_con_direccion_logica(direccion_logica_tripulante, tabla_patota);
 			offset_frame = direccion_fisica_nueva % TAMANIO_PAGINA;
 		}
 		else{
+
+			sem_wait(mutex_copia);
 			memcpy(buffer + offset_buffer, inicio, lectura_tripulante);
 			direccion_logica_tripulante += lectura_tripulante;
+			sem_post(mutex_copia);
+
 			offset_buffer += lectura_tripulante;
 		}
 	}
@@ -548,34 +585,33 @@ void* obtener_tareas_de_memoria(uint32_t direccion_fisica, uint32_t id_tarea_bus
 	int32_t offset_buffer = 0;
 	int32_t direccion_fisica_nueva = direccion_fisica;
 
-	printf("DIRECCION FISICA ACTUAL: %u\n", direccion_fisica);
-	printf("DIRECCION LOGICA INICIO: %u   DIRECCION LOGICA FIN: %u\n", direccion_logica_tarea, direccion_logica_final);
-	printf("OFFSET FRAME: %u\n\n", offset_frame);
-
-
 	sem_wait(mutex_tripulante_swap);
 	while(direccion_logica_tarea != direccion_logica_final) {
 
 		faltante = TAMANIO_PAGINA - offset_frame;
 		inicio = (void*)memoria_principal + direccion_fisica_nueva;
 
-		printf("\nFALTANTE: %u\n", faltante);
-		printf("LECTURA TAREA: %u\n\n", lectura_tarea);
-
 		if(lectura_tarea >= faltante){
 			lectura_tarea -= faltante;
+
+			sem_wait(mutex_copia);
 			memcpy(buffer + offset_buffer, inicio, faltante);
+			sem_post(mutex_copia);
+
 			direccion_logica_tarea += faltante;
 			offset_buffer += faltante;
 			direccion_fisica_nueva = obtener_direc_fisica_con_direccion_logica(direccion_logica_tarea, tabla_patota);
 			offset_frame = direccion_fisica_nueva % TAMANIO_PAGINA;
+
 		}
 		else{
+
+			sem_wait(mutex_copia);
 			memcpy(buffer + offset_buffer, inicio, lectura_tarea);
+			sem_post(mutex_copia);
+
 			direccion_logica_tarea += lectura_tarea;
 			offset_buffer += lectura_tarea;
-			printf("DIRECCION LOGICA TAREA LEIDA: %u\n", direccion_logica_tarea);
-			printf("OFFSET BUFFER: %u\n", offset_buffer);
 		}
 	}
 
@@ -589,40 +625,38 @@ t_tcb* encontrar_tripulante_memoria(uint32_t direccion_fisica, uint32_t direccio
 
 	t_tcb* tripulante = malloc(sizeof(t_tcb));
 
-	printf("                             ENCONTRAR TRIPULANTE\n");
-
 	void* buffer = obtener_tripulante_de_memoria(direccion_fisica, direccion_logica, tabla_patota);
 	uint32_t desplazamiento = 0;
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->id_tripulante), buffer + desplazamiento, sizeof(tripulante->id_tripulante));
 	desplazamiento += sizeof(tripulante->id_tripulante);
+	sem_post(mutex_copia);
 
-	printf("ID TRIPULANTE: %u\n", tripulante->id_tripulante);
-
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->estado_tripulante), buffer + desplazamiento, sizeof(tripulante->estado_tripulante));
 	desplazamiento += sizeof(tripulante->estado_tripulante);
+	sem_post(mutex_copia);
 
-	printf("ESTADO TRIPULANTE: %c\n", tripulante->estado_tripulante);
-
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->posicion_x), buffer + desplazamiento, sizeof(tripulante->posicion_x));
 	desplazamiento += sizeof(tripulante->posicion_x);
+	sem_post(mutex_copia);
 
-	printf("POSICION X: %u\n", tripulante->posicion_x);
-
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->posicion_y), buffer + desplazamiento, sizeof(tripulante->posicion_y));
 	desplazamiento += sizeof(tripulante->posicion_y);
+	sem_post(mutex_copia);
 
-	printf("POSICION Y: %u\n", tripulante->posicion_y);
-
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->id_tarea_a_realizar), buffer + desplazamiento, sizeof(tripulante->id_tarea_a_realizar));
 	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+	sem_post(mutex_copia);
 
-	printf("ID TAREA A REALIZAR: %u\n", tripulante->id_tarea_a_realizar);
-
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->puntero_PCB), buffer + desplazamiento, sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);
-
-	printf("PUNTERO PCB: %u\n", tripulante->puntero_PCB);
+	sem_post(mutex_copia);
 
 	free(buffer);
 	return tripulante;
@@ -646,11 +680,9 @@ tarea* encontrar_tarea_en_memoria(uint32_t direccion_fisica, uint32_t id_tarea_b
 	tarea_recuperada->tamanio_tarea = direccion_logica_tarea->tamanio_tarea;
 	tarea_recuperada->tarea = malloc(tarea_recuperada->tamanio_tarea);
 
+	sem_wait(mutex_copia);
 	memcpy(tarea_recuperada->tarea, buffer, tarea_recuperada->tamanio_tarea);
-
-	mem_hexdump(buffer, tarea_recuperada->tamanio_tarea);
-
-	printf("TAREA RECUPERADA: %s\n", tarea_recuperada->tarea);
+	sem_post(mutex_copia);
 
 	free(buffer);
 	return tarea_recuperada;
@@ -678,14 +710,22 @@ void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica,
 
 		if(lectura_tripulante >= faltante){
 			lectura_tripulante -= faltante;
+
+			sem_wait(mutex_copia);
 			memcpy(inicio, buffer + offset_buffer, faltante);
+			sem_post(mutex_copia);
+
 			direccion_logica_tripulante += faltante;
 			offset_buffer += faltante;
 			direccion_fisica_nueva = obtener_direc_fisica_con_direccion_logica(direccion_logica_tripulante, tabla_patota);
 			offset_frame = direccion_fisica_nueva % TAMANIO_PAGINA;
 		}
 		else{
+
+			sem_wait(mutex_copia);
 			memcpy(inicio, buffer + offset_buffer, lectura_tripulante);
+			sem_post(mutex_copia);
+
 			direccion_logica_tripulante += lectura_tripulante;
 			offset_buffer += lectura_tripulante;
 		}
@@ -712,8 +752,6 @@ void actualizar_referencia(t_list* paginas, uint32_t direccion_logica) {
 t_tarea* buscar_proxima_tarea_del_tripulante_paginacion(uint32_t direccion_fisica, uint32_t id_tarea_buscada, t_tabla_paginas_patota* tabla_patota_buscada) {
 
 	tarea* tarea_encontrada = encontrar_tarea_en_memoria(direccion_fisica, id_tarea_buscada, tabla_patota_buscada);
-
-	printf("TAREA ENCONTRADA CON ID: %u Y ES: %s\n", id_tarea_buscada, tarea_encontrada->tarea);
 
 	t_tarea* tarea_a_retornar = obtener_la_tarea(tarea_encontrada->tarea);
 
