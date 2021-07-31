@@ -22,6 +22,9 @@ void inicializar_swap(void) {
 	sem_swap = malloc(sizeof(sem_t));
 	sem_init(sem_swap, 0, 1);
 
+	sem_backup = malloc(sizeof(sem_t));
+	sem_init(sem_backup, 0, 1);
+
 	sem_lru = malloc(sizeof(sem_t));
 	sem_init(sem_lru, 0, 1);
 
@@ -74,7 +77,7 @@ int32_t buscar_frame_por_pagina(int32_t numero_pagina) {
 }
 
 
-t_pagina* buscar_pagina_en_swap(int32_t numero_pagina) {
+void sacar_pagina_de_swap(int32_t numero_pagina) {
 
 	bool misma_pagina(void* pagina) {
 		return ((t_pagina*)pagina)->numero_de_pagina == numero_pagina;
@@ -85,8 +88,6 @@ t_pagina* buscar_pagina_en_swap(int32_t numero_pagina) {
 	int indice = obtener_indice(paginas_swap, pagina_buscada);
 
 	list_remove(paginas_swap, indice);
-
-	return pagina_buscada;
 }
 
 
@@ -339,14 +340,14 @@ int guardar_pagina_en_swap(void* buffer, t_pagina* pagina, int32_t espacio_ocupa
 		log_info(logger,"[msync]Se agregó la Pagina %u en el Frame %u de Swap exitosamente.\n", frames_swap[frame_libre]->pagina, frame_libre);
 	}
 
-	free(buffer);
+	//free(buffer);
 	return 0;
 }
 
 
 void* recuperar_en_swap(int32_t numero_pagina, int32_t *espacio_usado) {
 
-	t_pagina* pagina_recuperada = buscar_pagina_en_swap(numero_pagina);
+	sacar_pagina_de_swap(numero_pagina);
 
 	int32_t numero_frame = buscar_frame_por_pagina(numero_pagina);
 
@@ -357,7 +358,7 @@ void* recuperar_en_swap(int32_t numero_pagina, int32_t *espacio_usado) {
 
 	int32_t espacio_ocupado = TAMANIO_PAGINA - frames_swap[numero_frame]->espacio_libre;
 
-	void* buffer = leer_frame_en_swap(numero_frame, espacio_ocupado);
+	void* buffer = leer_frame_en_swap(numero_frame);
 
 	*espacio_usado = espacio_ocupado;
 
@@ -365,13 +366,13 @@ void* recuperar_en_swap(int32_t numero_pagina, int32_t *espacio_usado) {
 }
 
 
-void* leer_frame_en_swap(int32_t numero_frame, int32_t espacio_ocupado) {
+void* leer_frame_en_swap(int32_t numero_frame) {
 
-	void* buffer = malloc(espacio_ocupado);
-
+	sem_wait(sem_backup);
+	void* buffer = malloc(TAMANIO_PAGINA);
 	void* inicio_area_swap = (void*) area_swap + (numero_frame * TAMANIO_PAGINA);
-
-	memcpy(buffer, inicio_area_swap, espacio_ocupado);
+	memcpy(buffer, inicio_area_swap, TAMANIO_PAGINA);
+	sem_post(sem_backup);
 
 	liberar_frame_swap(numero_frame);
 

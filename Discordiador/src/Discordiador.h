@@ -65,7 +65,7 @@ t_log* logger;
 t_log* logger_on;
 t_config* config;
 
-//posiciones* posicion_sabotaje;
+posiciones* posicion_recibida;
 
 //void iniciar_escucha_sabotaje(void);
 void iniciar_escucha_por_consola();

@@ -23,7 +23,7 @@ void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion);
 void deserializar_tripulante(t_tripulante* mensaje, int32_t conexion);
 void deserializar_ubicacion_tripulante(t_tripulante_ubicacion* mensaje, int32_t conexion);
 void deserializar_estado_tripulante(t_tripulante_estado* mensaje, int32_t conexion);
-void deserializar_sabotaje(posicion_sabotaje* mensaje, int32_t conexion);
+void deserializar_sabotaje(posiciones* mensaje, int32_t conexion);
 
 // Respuestas
 void deserializar_respuesta_patota(t_respuesta_iniciar_patota* mensaje, int32_t conexion);

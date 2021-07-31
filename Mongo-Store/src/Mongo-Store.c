@@ -240,7 +240,7 @@ void iniciar_sabotaje(void){
 
 		int32_t conexion_discordiador = crear_conexion(IP, PUERTO_DISCORDIADOR);
 
-		posicion_sabotaje* posicion = malloc(sizeof(posicion_sabotaje));
+		posiciones* posicion = malloc(sizeof(posiciones));
 		posicion->posicion_x = atoi(posiciones_sabo[0]);
 		posicion->posicion_y = atoi(posiciones_sabo[1]);
 

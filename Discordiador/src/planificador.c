@@ -111,15 +111,15 @@ void elegir_algoritmo(void) {
 	switch(algoritmo_elegido){
 
 		case FIFO: // @suppress("Symbol is not resolved")
-			printf("Eligio el algoritmo FIFO.\n");
+			log_info(logger_on, "Se eligió el algoritmo FIFO.\n");
 			break;
 
 		case RR: // @suppress("Symbol is not resolved")
-			printf("Eligio el algoritmo Round Robin con un Quantum de %u. \n", QUANTUM);
+			log_info(logger_on, "Se eligió el algoritmo Round Robin con un Quantum de %u. \n", QUANTUM);
 			break;
 
 		default:
-			printf("No se eligio ningún algoritmo.\n");
+			log_error(logger_on, "No se eligió ningún algoritmo.\n");
 			break;
 	}
 }
@@ -173,7 +173,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
 	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
-		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
+		log_error(logger, "No se pudo lograr la conexión con Mi-RAM.\n");
 		abort();
 	}
 
@@ -311,6 +311,8 @@ void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_p
 
 	enviar_mensaje(ubicaciones_a_enviar, ACTUALIZAR_UBICACION_TRIPULANTE, conexion_mi_ram);
 
+	close(conexion_mi_ram);
+
 	free(ubicaciones_a_enviar);
 }
 
@@ -391,6 +393,7 @@ void new_ready() {
 		}
 
 		sem_post(planificacion_on);
+
 	}
 }
 
@@ -461,7 +464,6 @@ void running_ready(tripulante_plani* tripu){
 }
 
 
-
 void running_block(tripulante_plani* tripu){
 
 	actualizar_estado(tripu, 'B');
@@ -485,7 +487,7 @@ void block_ready(tripulante_plani* tripu){
 	log_info(logger,"El Tripulante con ID: %d de la Patota %d pasó de Block a Ready.\n", tripu->id_tripulante, tripu->numero_patota);
 
 	tripu->puedo_ejecutar_io = 0;
-	tripu->estado_anterior='R';
+	tripu->estado_anterior = 'R';
 	sem_wait(mutex_ready);
 	queue_push(cola_ready, tripu);
 	sem_post(mutex_ready);
@@ -504,6 +506,7 @@ void block_exit(tripulante_plani* tripu){
 	tripu->estado = 'T';
 	//actualizar_estado(tripu, 'T');
 	log_info(logger,"El Tripulante con ID: %d de la Patota %d pasó de Block a Exit.\n", tripu->id_tripulante, tripu->numero_patota);
+	sem_post(bloqueado_disponible);
 }
 
 
@@ -514,8 +517,8 @@ void new_exit(tripulante_plani* tripu){
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
 	sem_wait(contador_tripulantes_en_new);
-
-	actualizar_estado(tripu, 'T');
+	tripu->estado = 'T';
+	//actualizar_estado(tripu, 'T');
 	log_info(logger,"El Tripulante con ID: %d de la Patota %d pasó de New a Exit.\n", tripu->id_tripulante, tripu->numero_patota);
 }
 
@@ -647,14 +650,16 @@ void tripulante_hilo(void* tripulante){
 
 		while(distancia > 0 && !tripu->elegido_sabotaje){ //Cambiar condicion con variable goblal hay_sabotaje
 			sem_wait(tripu->sem_tripu);
+
 			//TODO: MANDAR A BITACORA POSICION ANTERIOR Y NUEVA
+
 			bitacora_posiciones* bitacora_posi = malloc(sizeof(bitacora_posiciones));
 			bitacora_posi->posicion_anterior = malloc(sizeof(posiciones));
 
 			bitacora_posi->posicion_anterior->posicion_x = posicion_tripu->posicion_x;
 			bitacora_posi->posicion_anterior->posicion_y = posicion_tripu->posicion_y;
 
-			obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);  //Hay que actualizar la ubicacion en Mi_Ram
+
 
 			bitacora_posi->posicion_nueva = malloc(sizeof(posiciones));
 			bitacora_posi->posicion_nueva->posicion_x = posicion_tripu->posicion_x;
@@ -671,13 +676,25 @@ void tripulante_hilo(void* tripulante){
 			if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 				if(algoritmo_elegido == RR){ // @suppress("Symbol is not resolved")
 					if(tripu->cantidad_realizada == QUANTUM){
-					running_ready(tripu);
-					sem_wait(tripu->sem_planificacion);
+						running_ready(tripu);
+						sem_wait(tripu->sem_planificacion);
+					}else{
+						tripu->cantidad_realizada= tripu->cantidad_realizada+1;
+						distancia--;
+						obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
 					}
+				}else{
+					tripu->cantidad_realizada= tripu->cantidad_realizada+1;
+					distancia--;
+					obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
 				}
 			}
-
-			distancia--;
+			if(tripu->fui_elegido_antes){
+				tripu->cantidad_realizada= tripu->cantidad_realizada+1;
+				distancia--;
+				obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
+			}
+			//Hay que actualizar la ubicacion en Mi_Ram
 
 			sem_wait(tripu->mutex_expulsado);
 			if(tripu->expulsado){
@@ -761,14 +778,14 @@ void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tar
 
 	while(posicion_tripu->posicion_x != posicion_tarea->posicion_x){
 		if(posicion_tripu->posicion_x > posicion_tarea->posicion_x){
-			//posicion_tripu->posicion_x = posicion_tripu->posicion_x - 1 ;
+			//Todo: Enviar a Mongo Store una actualización de la Posición
 			posicion_tripu->posicion_x--;
 			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
 			return;
 		}
 
 		if(posicion_tripu->posicion_x < posicion_tarea->posicion_x){
-			//posicion_tripu->posicion_x = posicion_tripu->posicion_x + 1 ;
+			//Todo: Enviar a Mongo Store una actualización de la Posición
 			posicion_tripu->posicion_x++;
 			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
 			return;
@@ -777,14 +794,14 @@ void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tar
 
 	while(posicion_tripu->posicion_y != posicion_tarea->posicion_y){
 			if(posicion_tripu->posicion_y > posicion_tarea->posicion_y){
-				//posicion_tripu->posicion_y = posicion_tripu->posicion_y - 1 ;
+				//Todo: Enviar a Mongo Store una actualización de la Posición
 				posicion_tripu->posicion_y--;
 				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
 				return;
 			}
 
 			if(posicion_tripu->posicion_y < posicion_tarea->posicion_y){
-				//posicion_tripu->posicion_y = posicion_tripu->posicion_y + 1 ;
+				//Todo: Enviar a Mongo Store una actualización de la Posición
 				posicion_tripu->posicion_y++;
 				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
 				return;
@@ -1065,6 +1082,7 @@ void otras_tareas(tripulante_plani* tripu){
 
 
 void realizar_tarea_sabotaje(tripulante_plani* tripu){
+	//TODO
 	//Avisar a I-mongo que estoy en la posicion de la tarea sabotaje
 	//Lo pasamos a la lista de bloqueados suspendidos
 	tripu->estado_anterior = 'R';

@@ -91,11 +91,9 @@ void verificar_compactacion(void) {
 	if(esquema_elegido == 'S') {
 		t_list* seg_vacio = segmentos_libres();
 		if(seg_vacio > 0) {
-				free(seg_vacio);
 				compactar();
 		}
 		else {
-			free(seg_vacio);
 			log_warning(logger, "No hay segmentos libres para poder compactar.\n");
 		}
 	}
@@ -128,10 +126,10 @@ void compactar(void) {
 		segmento->numero_de_segmento = i;
 
 		free(aux);
-		free(ocupados_ordenados);
 
 		inicio += segmento->tamanio_segmento;
 	}
+
 	t_list* seg_vacios = segmentos_libres();
 	int32_t cantidad_segmentos_libres = list_size(seg_vacios);
 
@@ -141,13 +139,12 @@ void compactar(void) {
 		int indice = obtener_indice(segmentos, segmento_obtenido);
 		list_remove(segmentos, indice);
 		contador_segmento--;
-
 	}
 
-	list_destroy_and_destroy_elements(seg_vacios, free);
+	list_clean_and_destroy_elements(seg_vacios, free);
 
 	crear_segmento_libre(inicio, memoria_libre_total);
-	free(seg_vacios);
+
 	log_info(logger, "Se compactaron %u segmentos libres de la memoria.\n", cantidad_segmentos_libres);
 }
 
@@ -211,9 +208,9 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
 
 			t_segmento* mejor_segmento = list_remove(segmentos_con_espacio_ordenados, 0);
 
-			free(segmentos_vacios);
-			free(segmentos_con_espacio);
-			free(segmentos_con_espacio_ordenados);
+			list_destroy(segmentos_vacios);
+			list_destroy(segmentos_con_espacio);
+			list_destroy(segmentos_con_espacio_ordenados);
 
 			return mejor_segmento;
 		}
@@ -222,11 +219,9 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
 	else if(criterio_elegido == FIRST_FIT){
 		if(list_size(segmentos_vacios) >= 1) {
 
-			// TODO probar con First Fit, sino hacer un list_sort
-
 			t_segmento* primer_segmento = list_find(segmentos_vacios, memoria_igual_o_mas_grande);
 
-			free(segmentos_vacios);
+			list_destroy(segmentos_vacios);
 			return primer_segmento;
 		}
 	}
@@ -243,10 +238,10 @@ bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado) {
 		return tamanio_buscado <= ((t_segmento*)segmento)->tamanio_segmento;
 	}
 
-
-
 	bool respuesta = list_any_satisfy(segmentos_vacios, (void*) _memoria_igual_o_mas_grande);
-	free(segmentos_vacios);
+
+	list_destroy(segmentos_vacios);
+
 	return respuesta;
 }
 
@@ -284,6 +279,7 @@ void actualizar_tareas(t_list* tareas_de_la_patota, uint32_t inicio_segmento, t_
 
 		list_add_in_index(tabla_patota->direccion_tareas, i, direccion_tarea);
 
+		free(tarea_a_guardar->tarea);
 		free(tarea_a_guardar);
 	}
 }
