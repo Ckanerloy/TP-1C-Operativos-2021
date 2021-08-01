@@ -57,6 +57,8 @@ int main(void) {
 
 			bitarray_set_bit(bitArraySB, 3);
 
+			hash_MD5();
+
 
 		}
 
@@ -219,6 +221,16 @@ char* crear_archivo_metadata(char* path_archivo){
  * Mantener actualizado MD5 por cada modificacion que se haga
  *
  */
+
+void hash_MD5(){
+
+
+	char* comando = "/home/utnso/Escritorio/Nuevo.txt > /home/utnso/Escritorio/pruebamd5.txt";
+	char* system_command = string_new();
+	string_append_with_format(&system_command, "md5sum %s ", comando);
+	system(system_command);
+
+}
 
 
 

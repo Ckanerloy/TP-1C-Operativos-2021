@@ -27,7 +27,10 @@
 #include "bitArray.h"
 #include "commons/bitarray.h"
 #include "iniciarFileSystem.h"
-
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define IP "127.0.0.1"
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mongo-Store/Mongo-Store.config"
@@ -65,6 +68,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 char* crear_archivo_metadata(char* nombre_archivo);
 char* crear_archivo_bitacora(char* nombre_archivo);
 void sincronizar();
+void hash_MD5();
 
 void iniciar_sabotaje(void);
 uint32_t cantidad_posiciones(char** parser);
