@@ -16,6 +16,7 @@
 #include "planificador.h"
 #include "utils/estructuras.h"
 
+
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Discordiador/Discordiador.config"
 
 char** parser_consola;

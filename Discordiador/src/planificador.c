@@ -69,7 +69,7 @@ void inicializar_semaforos_plani(void){
 
 	mutex_rafaga = malloc(sizeof(sem_t));
 	sem_init(mutex_rafaga, 0, 1);
-	//TODO mutex lista io
+
 	mutex_cola_io = malloc(sizeof(sem_t));
 	sem_init(mutex_cola_io, 0, 1);
 }
@@ -530,13 +530,11 @@ void block_ready(tripulante_plani* tripu){
 
 void block_exit(tripulante_plani* tripu){
 
-	//TODO ACA HAY Q SACARLO DE LA COLA DE BLOQ DEJANDO EL MISMO ORDEN
 	sem_wait(mutex_exit);
 	queue_push(cola_exit, tripu);
 	sem_post(mutex_exit);
 	tripu->puedo_ejecutar_io = 0;
 	tripu->estado = 'T';
-	//actualizar_estado(tripu, 'T');
 	log_info(logger,"El Tripulante con ID: %d de la Patota %d pasó de Block a Exit.\n", tripu->id_tripulante, tripu->numero_patota);
 	sem_post(bloqueado_disponible);
 }
@@ -656,7 +654,7 @@ void tripulante_hilo(void* tripulante){
 
 	posiciones* posicion_tripu = malloc(sizeof(posiciones));
 
-	obtener_posiciones(posicion_tripu,tripu->id_tripulante, tripu->numero_patota);
+	obtener_posiciones(posicion_tripu, tripu->id_tripulante, tripu->numero_patota);
 
 	posiciones* posicion_tarea = malloc(sizeof(posiciones));
 
@@ -668,7 +666,7 @@ void tripulante_hilo(void* tripulante){
 		posicion_tarea->posicion_x = tripu->tarea_a_realizar->posicion_x;
 		posicion_tarea->posicion_y = tripu->tarea_a_realizar->posicion_y;
 
-		uint32_t distancia = obtener_distancia(posicion_tripu,posicion_tarea);
+		uint32_t distancia = obtener_distancia(posicion_tripu, posicion_tarea);
 		tripu->cantidad_realizada = 0;
 
 		sem_wait(tripu->mutex_expulsado);
@@ -683,38 +681,22 @@ void tripulante_hilo(void* tripulante){
 		while(distancia > 0 && !tripu->elegido_sabotaje){ //Cambiar condicion con variable goblal hay_sabotaje
 			sem_wait(tripu->sem_tripu);
 
-			//TODO: MANDAR A BITACORA POSICION ANTERIOR Y NUEVA
-
-			bitacora_posiciones* bitacora_posi = malloc(sizeof(bitacora_posiciones));
-			bitacora_posi->posicion_anterior = malloc(sizeof(posiciones));
-
-			bitacora_posi->posicion_anterior->posicion_x = posicion_tripu->posicion_x;
-			bitacora_posi->posicion_anterior->posicion_y = posicion_tripu->posicion_y;
-
-
-
-			bitacora_posi->posicion_nueva = malloc(sizeof(posiciones));
-			bitacora_posi->posicion_nueva->posicion_x = posicion_tripu->posicion_x;
-			bitacora_posi->posicion_nueva->posicion_y = posicion_tripu->posicion_y;
-
-			//TODO: MANDAR A MONGO BITACORA_POSI
-
-			free(bitacora_posi->posicion_nueva);
-			free(bitacora_posi->posicion_anterior);
-			free(bitacora_posi);
-
 			tripu->cantidad_realizada= tripu->cantidad_realizada+1;
 
 			if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
+
 				if(algoritmo_elegido == RR){ // @suppress("Symbol is not resolved")
+
 					if(tripu->cantidad_realizada == QUANTUM){
 						running_ready(tripu);
 						sem_wait(tripu->sem_planificacion);
+
 					}else{
 						tripu->cantidad_realizada= tripu->cantidad_realizada+1;
 						distancia--;
 						obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
 					}
+
 				}else{
 					tripu->cantidad_realizada= tripu->cantidad_realizada+1;
 					distancia--;
@@ -726,7 +708,6 @@ void tripulante_hilo(void* tripulante){
 				distancia--;
 				obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
 			}
-			//Hay que actualizar la ubicacion en Mi_Ram
 
 			sem_wait(tripu->mutex_expulsado);
 			if(tripu->expulsado){
@@ -770,7 +751,7 @@ void rafaga_cpu(t_list* lista_todos_tripulantes){
 		sem_wait(planificion_rafaga);
 
 		bool esta_exec_o_block(void* tripulante){
-			//TODO posible mutex
+
 			sem_wait(((tripulante_plani*)tripulante)->mutex_estado);
 			int valor = ((tripulante_plani*)tripulante)->estado == 'E' ||( ((tripulante_plani*)tripulante)->estado == 'B' && ((tripulante_plani*)tripulante)->puedo_ejecutar_io == 1);
 			sem_post(((tripulante_plani*)tripulante)->mutex_estado);
@@ -779,8 +760,6 @@ void rafaga_cpu(t_list* lista_todos_tripulantes){
 		}
 
 		tripulantes_exec_block = list_filter(lista_todos_tripulantes,(void*) esta_exec_o_block);
-
-		//int largo=list_size(tripulantes_exec_block);
 
 		list_iterate(tripulantes_exec_block, (void*) poner_en_uno_semaforo);
 
@@ -808,34 +787,66 @@ void poner_en_uno_semaforo(tripulante_plani* tripulante){
 
 void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tarea, tripulante_plani* tripu){
 
+	posiciones* posiciones_viejas = malloc(sizeof(posiciones));
+	posiciones_viejas->posicion_x = posicion_tripu->posicion_x;
+	posiciones_viejas->posicion_y = posicion_tripu->posicion_y;
+
 	while(posicion_tripu->posicion_x != posicion_tarea->posicion_x){
 		if(posicion_tripu->posicion_x > posicion_tarea->posicion_x){
-			//Todo: Enviar a Mongo Store una actualización de la Posición
 			posicion_tripu->posicion_x--;
+
+			bitacora_posiciones* bitacora_posi = preparar_bitacora_posi(posiciones_viejas, posicion_tripu);
+			armar_bitacora(bitacora_posi, MOVIMIENTO, tripu->id_tripulante);
 			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
+
+			free(posiciones_viejas);
+			free(bitacora_posi->posicion_nueva);
+			free(bitacora_posi->posicion_anterior);
+			free(bitacora_posi);
 			return;
 		}
 
 		if(posicion_tripu->posicion_x < posicion_tarea->posicion_x){
-			//Todo: Enviar a Mongo Store una actualización de la Posición
 			posicion_tripu->posicion_x++;
+
+			bitacora_posiciones* bitacora_posi = preparar_bitacora_posi(posiciones_viejas, posicion_tripu);
+			armar_bitacora(bitacora_posi, MOVIMIENTO, tripu->id_tripulante);
 			actualizar_posiciones_en_memoria(posicion_tripu, tripu);
+
+			free(posiciones_viejas);
+			free(bitacora_posi->posicion_nueva);
+			free(bitacora_posi->posicion_anterior);
+			free(bitacora_posi);
 			return;
 		}
 	}
 
 	while(posicion_tripu->posicion_y != posicion_tarea->posicion_y){
 			if(posicion_tripu->posicion_y > posicion_tarea->posicion_y){
-				//Todo: Enviar a Mongo Store una actualización de la Posición
 				posicion_tripu->posicion_y--;
+
+				bitacora_posiciones* bitacora_posi = preparar_bitacora_posi(posiciones_viejas, posicion_tripu);
+				armar_bitacora(bitacora_posi, MOVIMIENTO, tripu->id_tripulante);
 				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
+
+				free(posiciones_viejas);
+				free(bitacora_posi->posicion_nueva);
+				free(bitacora_posi->posicion_anterior);
+				free(bitacora_posi);
 				return;
 			}
 
 			if(posicion_tripu->posicion_y < posicion_tarea->posicion_y){
-				//Todo: Enviar a Mongo Store una actualización de la Posición
 				posicion_tripu->posicion_y++;
+
+				bitacora_posiciones* bitacora_posi = preparar_bitacora_posi(posiciones_viejas, posicion_tripu);
+				armar_bitacora(bitacora_posi, MOVIMIENTO, tripu->id_tripulante);
 				actualizar_posiciones_en_memoria(posicion_tripu, tripu);
+
+				free(posiciones_viejas);
+				free(bitacora_posi->posicion_nueva);
+				free(bitacora_posi->posicion_anterior);
+				free(bitacora_posi);
 				return;
 			}
 	}
@@ -848,32 +859,32 @@ void realizar_tarea(tripulante_plani* tripu){
 	switch(tripu->tarea_a_realizar->operacion) {
 
 		case GENERAR_OXIGENO:	// @suppress("Symbol is not resolved")
-			// TODO aca indicar comienzo de la tarea
+			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			generar_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
 		case CONSUMIR_OXIGENO:	// @suppress("Symbol is not resolved")
-			// TODO aca indicar comienzo de la tarea
+			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			consumir_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
 		case GENERAR_COMIDA: 	// @suppress("Symbol is not resolved")
-			// TODO aca indicar comienzo de la tarea
+			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			generar_insumo("Comida.ims", 'C', tripu);
 			break;
 
 		case CONSUMIR_COMIDA:	// @suppress("Symbol is not resolved")
-			// TODO aca indicar comienzo de la tarea
+			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			consumir_insumo("Comida.ims",'C', tripu);
 			break;
 
 		case GENERAR_BASURA:	// @suppress("Symbol is not resolved")
-			// TODO aca indicar comienzo de la tarea
+			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			generar_insumo("Basura.ims", 'B', tripu);
 			break;
 
 		case DESCARTAR_BASURA:	// @suppress("Symbol is not resolved")
-			// TODO aca indicar comienzo de la tarea
+			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			descartar_basura(tripu);
 			break;
 
@@ -882,10 +893,11 @@ void realizar_tarea(tripulante_plani* tripu){
 			break;
 
 		default:
-			// TODO aca indicar comienzo de la tarea
+			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			otras_tareas(tripu);
 			break;
 		}
+	tripu->id_tarea_a_realizar++;
 
 }
 
@@ -931,12 +943,11 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 	if(!(tripu->elegido_sabotaje) &&! (tripu->fui_elegido_antes)){
 		sem_post(bloqueado_disponible);
 		tripu->puedo_ejecutar_io = 0;
-		// TODO termine de hacer la tarea
 	}
-	 //termino de hacer su io
-	//incrementas lugar libre de bloqueo
+
+	armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+
 	cambios_de_tarea(tripu);
-	//tripu->tarea_a_realizar=NULL;
 
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 		if(tripu->tarea_a_realizar!=NULL){
@@ -965,10 +976,10 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 		sem_post(tripu->mutex_expulsado);
 	}
 
-	if(!(tripu->elegido_sabotaje)&&!(tripu->fui_elegido_antes)){
+	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 
 		running_block(tripu);
-		//running_block(tripu);este no se usaria nunca
+
 		//enviar_tarea_io(tripu, CONSUMIR_INSUMO, nombre_archivo, caracter_a_consumir);
 	}
 
@@ -991,11 +1002,11 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 		sem_post(bloqueado_disponible);
 		tripu->puedo_ejecutar_io=0;
-		// TODO termine de hacer la tarea
 	}
 
+	armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+
 	cambios_de_tarea(tripu);
-	//tripu->tarea_a_realizar= NULL;
 
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 		if(tripu->tarea_a_realizar != NULL){
@@ -1021,9 +1032,9 @@ void descartar_basura(tripulante_plani* tripu) {
 		sem_post(tripu->mutex_expulsado);
 	}
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
-		//running_espera_io(tripu);
 
 		running_block(tripu);
+
 		//enviar_tarea_io(tripu, TIRAR_BASURA, "", ' ');
 	}
 
@@ -1046,16 +1057,16 @@ void descartar_basura(tripulante_plani* tripu) {
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 		sem_post(bloqueado_disponible);
 		tripu->puedo_ejecutar_io = 0;
-		// TODO termine de hacer la tarea
 	}
+
+	armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+
 	cambios_de_tarea(tripu);
-	//tripu->tarea_a_realizar= NULL;
 
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 		if(tripu->tarea_a_realizar != NULL){
 			block_ready(tripu);
 		}else{
-			//block_exit(tripu);
 			terminar_tripulante(tripu);
 		}
 	}
@@ -1098,9 +1109,9 @@ void otras_tareas(tripulante_plani* tripu){
 		// TODO termine de hacer la tarea
 	}
 
-	cambios_de_tarea(tripu);
+	armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
 
-	//tripu->tarea_a_realizar= NULL;
+	cambios_de_tarea(tripu);
 
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 			if(tripu->tarea_a_realizar != NULL){
@@ -1114,14 +1125,16 @@ void otras_tareas(tripulante_plani* tripu){
 
 
 void realizar_tarea_sabotaje(tripulante_plani* tripu){
-	//TODO
-	//Avisar a I-mongo que estoy en la posicion de la tarea sabotaje
+	//TODO: Avisar a I-mongo que estoy en la posicion de la tarea sabotaje
+
 	//Lo pasamos a la lista de bloqueados suspendidos
 	tripu->estado_anterior = 'R';
 	actualizar_estado(tripu, 'S');
 	list_add(bloqueado_suspendido,tripu);
 
 	sleep(DURACION_SABOTAJE);
+
+	armar_bitacora("", RESUELTO, tripu->id_tripulante);
 
 	cambios_de_tarea(tripu);
 }
@@ -1165,9 +1178,9 @@ void cambios_de_tarea(tripulante_plani* tripu) {
 			aux_intercambio = NULL;
 			free(aux_intercambio);
 
-		}else {
+		} else {
 			//tripu->tarea_a_realizar= NULL;
-			obtener_siguiente_tarea(tripu,tripu->id_tripulante, tripu->numero_patota);
+			obtener_siguiente_tarea(tripu, tripu->id_tripulante, tripu->numero_patota);
 		}
 	}
 }

@@ -29,7 +29,7 @@ codigo_tarea mapeo_tareas_tripulantes(char* tarea) {
 	}
 
 	else {
-		tarea_a_realizar = CUALQUIER_TAREA;				// Aca entraria cualquier tarea que no este arriba
+		tarea_a_realizar = OTRA_TAREA;				// Aca entraria cualquier tarea que no este arriba
 	}
 
 	return tarea_a_realizar;

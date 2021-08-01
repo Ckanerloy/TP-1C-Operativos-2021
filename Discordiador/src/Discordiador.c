@@ -170,6 +170,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 			tripu_mas_cercano->tarea_auxiliar=tarea_sabotaje;
 
 			actualizar_estado(tripu_mas_cercano, 'E');
+			armar_bitacora("", PANICO, tripu_mas_cercano->id_tripulante);
 			log_info(logger,"El Tripulante con ID: %d de la Patota %d pasó de Block Suspended a Execute.\n",tripu_mas_cercano->id_tripulante,tripu_mas_cercano->numero_patota);
 			// TODO aca seria corre a sabotaje
 			tripu_mas_cercano->elegido_sabotaje = 1;
@@ -544,6 +545,7 @@ void obtener_orden_input(){
 						tripulante->fui_elegido_antes = 0;
 						tripulante->cantidad_realizada = 0;
 						tripulante->puedo_ejecutar_io = 0;
+						tripulante->id_tarea_a_realizar = 0;
 
 
 						sem_t* sem_plani = malloc(sizeof(sem_t));

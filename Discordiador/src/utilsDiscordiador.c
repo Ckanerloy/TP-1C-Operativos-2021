@@ -54,13 +54,6 @@ void mostrar_tripulante(t_tcb* tripulante) {
 	printf("Posicion Y: %i \n", tripulante->posicion_y);
 	printf("Id proxima instruccion a realizar: %i \n\n", tripulante->id_tarea_a_realizar);
 }
-/*
-void liberar_tripulantes(uint32_t cantidad_tripulantes, t_tripulante** mensaje_tripulantes) {
-	for(uint32_t c=1; c<=cantidad_tripulantes; c++){
-		free(mensaje_tripulantes[c]);
-	}
-}*/
-
 
 
 // Obtener la cantidad de argumentos de parte del parser_consola
@@ -103,16 +96,7 @@ void terminar_tripulante(tripulante_plani* tripu) {
 	free(tripulante_terminado);
 }
 
-/*
-void jkasdhja{
-	sem_wait(LugarDisponiblePraBloqueado);
-	sem_wait(contador_Esperando)
 
-	da pulso al tripulante->sem_entrada_salida
-
-
-}
-*/
 void enviar_tarea_io(tripulante_plani* tripu, codigo_operacion op_code, char* nombre_archivo, char caracter) {
 
 	archivo_tarea* tarea_io = malloc(sizeof(archivo_tarea));
@@ -136,4 +120,21 @@ void enviar_tarea_io(tripulante_plani* tripu, codigo_operacion op_code, char* no
 
 	close(conexion_mongo_store);
 }
+
+
+bitacora_posiciones* preparar_bitacora_posi(posiciones* posicion_tripu, posiciones* posiciones_nuevas) {
+
+	bitacora_posiciones* bitacora_posi = malloc(sizeof(bitacora_posiciones));
+	bitacora_posi->posicion_anterior = malloc(sizeof(posiciones));
+	bitacora_posi->posicion_anterior->posicion_x = posicion_tripu->posicion_x;
+	bitacora_posi->posicion_anterior->posicion_y = posicion_tripu->posicion_y;
+
+	bitacora_posi->posicion_nueva = malloc(sizeof(posiciones));
+	bitacora_posi->posicion_nueva->posicion_x = posiciones_nuevas->posicion_x;
+	bitacora_posi->posicion_nueva->posicion_y = posiciones_nuevas->posicion_y;
+
+	return bitacora_posi;
+}
+
+
 

@@ -128,20 +128,15 @@ typedef struct {
 
 	uint puedo_ejecutar_io;
 
+	uint32_t id_tarea_a_realizar;
+
 } tripulante_plani;
 
 
 typedef struct {
 	uint32_t sabotaje_on;
 	t_tarea* tarea_sabotaje;             //    ---------------
-
 } t_respuesta_mongo;
-
-typedef struct {
-	posiciones* posicion_anterior;
-	posiciones* posicion_nueva;
-
-}bitacora_posiciones;
 
 typedef struct {
 	int32_t cantidad;
@@ -149,8 +144,6 @@ typedef struct {
  	char* nombre_archivo;
 	char caracter_llenado;
 } archivo_tarea;
-
-
 
 
 // Estructuras para Mi-RAM HQ
