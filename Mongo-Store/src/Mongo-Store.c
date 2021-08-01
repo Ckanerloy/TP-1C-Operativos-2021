@@ -14,54 +14,67 @@ int main(void) {
 	// Recibe la señal para enviar sabotaje
 	signal(SIGUSR1, (void*)iniciar_sabotaje);
 
-	char* un_bitarray = malloc(BLOCKS/8);
+
+
+	//char* un_bitarray = malloc(BLOCKS/8);
 	//bitArraySB = crear_bitarray(un_bitarray);
+
+
 
 	if (existe_file_system() == -1) {
 
 		log_info(logger, "No se encontró el archivo Blocks.ims. Se inicializa un nuevo FileSystem \n");
 
 		inicializar_file_system();
-
+		//levantar_archivo_blocks();
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
 
 	}
 		else{
 			log_info(logger, "Hay un FileSystem existente, el mismo no debe ser inicializado\n");
+			//en caso de que ya exista FS, se levanta el Blocks.ims y poner contenido en un char*, se levanta SuperBloque.ims
+
+			//Seccion Blocks
+			char *direccion_blocks = concatenar_path("/Blocks.ims");
+			archivo_blocks = open(direccion_blocks, O_RDWR, S_IRUSR|S_IWUSR);
+			struct stat statbuf;
+			ftruncate(archivo_blocks, BLOCK_SIZE*BLOCKS);
+			fstat(archivo_blocks, &statbuf);
+			blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
+			levantar_archivo_blocks();
+			escribir_archivo_blocks(3, "BLOQUE 3", strlen("BLOQUE 3"));
 
 
-			//int BLOQUELIBRE = posicionBitLibre (t_bitarray* bitarray);
-			/*crear_archivo_metadata("/Files/PRUEBA111.IMS");
-			crear_archivo_bitacora("/Files/Bitacoras/PRUEBATRIPULANTE.ims");*/
+			//Seccion SuperBloque
+			char *direccion_superBloque = concatenar_path("/SuperBloque.ims");
+			struct stat statbuf_2;
+			archivo = open(direccion_superBloque, O_RDWR, S_IRUSR|S_IWUSR);
+			ftruncate(archivo, 2*sizeof(uint32_t)+BLOCKS/8);
+			fstat(archivo, &statbuf_2);
+			super_bloque = mmap(NULL, statbuf_2.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
+			levantar_archivo_superBloque();
+
+			bitarray_set_bit(bitArraySB, 3);
+
 
 		}
 
-	char *direccion_blocks = concatenar_path("/Blocks.ims");
-	archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
-	struct stat statbuf;
-	fstat(archivo_blocks, &statbuf);
-	blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
 
-	escribir_archivo_blocks(2, "BLOQUE 2", strlen("BLOQUE 2"));
-
-
-	bitarray_set_bit(bitArraySB, 2);
-
-
-	printf("PASE POR ACA");
-
+	pthread_create(&hilo_sincronizador, NULL, (void*)sincronizar, NULL);
+	pthread_detach(hilo_sincronizador);
 
 	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
 
-	/*while(1) {
+	while(1) {
 		int32_t conexion_cliente = esperar_conexion(conexion_servidor);
 
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
 		pthread_detach(hilo_recibir_mensajes);
-	}*/
+	}
+
 printf("TERMINO");
-free(un_bitarray);
+free(bitmap);
 
 	return EXIT_SUCCESS;
 
@@ -198,6 +211,14 @@ char* crear_archivo_metadata(char* path_archivo){
 }
 
 //PARA GENERAR EL MD5 https://askubuntu.com/questions/53846/how-to-get-the-md5-hash-of-a-string-directly-in-the-terminal
+/* FUNCION PARA EL MD5
+ * crear "archivo" con contenido de los bloques de Oxigeno.ims/Comida.ims/etc concatenado
+ * usar system("md5sum Nuevo.txt > pruebamd5.txt"), en el segundo archivo se guarda el hash + espacio + nombre del primer archivo
+ * ejemplo: d0a4a9d5eae1444b3285be84e98afcf8  Nuevo.txt
+ * splintear para quedarse solamente con el hash y return char* para asignárselo al Oxigeno.ims/Comida.ims/etc
+ * Mantener actualizado MD5 por cada modificacion que se haga
+ *
+ */
 
 
 
@@ -269,3 +290,24 @@ uint32_t cantidad_posiciones(char** parser) {
 	}
 	return cantidad;
 }
+
+
+void sincronizar(){
+	while(1){
+		sleep(TIEMPO_SINCRONIZACION);
+		memcpy(blocks, informacion_blocks, BLOCK_SIZE*BLOCKS);
+		msync(blocks, BLOCK_SIZE*BLOCKS, MS_SYNC);
+
+		memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
+		msync(super_bloque, 2*sizeof(uint32_t)+BLOCKS/8, MS_SYNC);
+
+
+	}
+
+
+}
+
+
+
+
+

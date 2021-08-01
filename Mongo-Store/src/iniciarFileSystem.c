@@ -42,7 +42,7 @@ void inicializar_file_system(){
 		crear_archivo_blocks();
 
 
-		log_info(logger, "Filesystem inicializado con éxito");
+		log_info(logger, "FileSystem inicializado con éxito");
 
 }
 
@@ -72,7 +72,7 @@ void iniciar_superbloque(){
 
 	char *direccion_superBloque = concatenar_path("/SuperBloque.ims");
 	struct stat statbuf;
-	char* un_bitarray = malloc(BLOCKS/8);
+	bitmap = malloc(BLOCKS/8);
 
 	//Metadata para el superbloque
 	bloque_t* superBloqueFile = malloc(sizeof(bloque_t));
@@ -80,7 +80,8 @@ void iniciar_superbloque(){
 	superBloqueFile->cantidadBloques = BLOCKS;
 
 	//Creo bitmap y lo inicializo en 0
-	//bitArraySB = crear_bitarray(un_bitarray);
+	bitArraySB = malloc(sizeof(t_bitarray));
+	bitArraySB = crear_bitarray(bitmap);
 	vaciarBitArray(bitArraySB);
 
 	//O_CREAT = si el fichero no existe, será creado. O_RDWR = lectura y escritura
@@ -109,10 +110,11 @@ void iniciar_superbloque(){
 			//Creo que este msync no hace falta
 			//msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
 
-
+			//bitarray_set_bit(bitArraySB, 1);
 			memcpy(super_bloque, &(superBloqueFile->tamanioBloque), sizeof(uint32_t));
 			memcpy(super_bloque+sizeof(uint32_t), &(superBloqueFile->cantidadBloques), sizeof(uint32_t));
-			memcpy(super_bloque+sizeof(uint32_t)*2, un_bitarray, superBloqueFile->cantidadBloques/8);
+			memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, superBloqueFile->cantidadBloques/8);
+
 
 			if(msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC) < 0) {
 				log_error(logger, "[msync] Error al sincronizar SuperBloque.ims.\n");
@@ -131,14 +133,35 @@ void iniciar_superbloque(){
 
 }
 
+void levantar_archivo_blocks(){
 
+	informacion_blocks = malloc(BLOCKS*BLOCK_SIZE);
+	uint32_t desplazamiento = 0;
+
+	for(uint32_t i=0; i<BLOCKS; i++){
+
+		memcpy(informacion_blocks + desplazamiento, blocks + desplazamiento, BLOCK_SIZE);
+		desplazamiento += BLOCK_SIZE;
+
+	}
+
+}
+
+void levantar_archivo_superBloque(){
+
+	bitmap = malloc(BLOCKS/8);
+	bitArraySB = malloc(sizeof(t_bitarray));
+	bitArraySB = crear_bitarray(bitmap);
+	memcpy(bitmap, super_bloque+sizeof(uint32_t)*2, BLOCKS/8);
+
+}
 
 
 void crear_archivo_blocks(){
 
 	struct stat statbuf;
 	char *direccion_blocks = concatenar_path("/Blocks.ims");
-
+	int desplazamiento = 0;
 	//O_CREAT = si el fichero no existe, será creado. O_RDWR = lectura y escritura
 	archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
 
@@ -148,8 +171,11 @@ void crear_archivo_blocks(){
 	blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
 
 	//Se inicializa el archivo Blocks.ims en 0. Tomamos 0 como referencia para indicar que el bloque está vacío
+
+
 	for(uint32_t i=0; i<BLOCK_SIZE*BLOCKS; i++){
-	memcpy(blocks+i, "0", 1);
+		memcpy(blocks+desplazamiento, "0", 1);
+		desplazamiento += 1;
 	}
 
 	if(msync(blocks, BLOCK_SIZE*BLOCKS, MS_SYNC) < 0) {
@@ -168,12 +194,8 @@ void escribir_archivo_blocks(uint32_t bloque, char* cadena_a_escribir, uint32_t 
 	//Multiplico por BLOCK_SIZE para ir al lugar en donde comienza el bloque
 	uint32_t ubicacion_bloque = bloque * BLOCK_SIZE;
 
-	memcpy(blocks+ubicacion_bloque, cadena_a_escribir, longitud_cadena);
-	//struct stat statbuf;
-	//char *direccion_blocks = concatenar_path("/Blocks.ims");
-	//archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
-	//fstat(archivo_blocks, &statbuf);
-	//blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
+	memcpy(informacion_blocks+ubicacion_bloque, cadena_a_escribir, longitud_cadena);
+
 
 }
 
