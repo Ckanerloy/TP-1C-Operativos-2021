@@ -9,17 +9,12 @@ int main(void) {
 	logger = crear_log("mongo-store.log", "Mongo Store");
 	log_info(logger, "Servidor Mongo Store activo...");
 
-
 	num_sabotaje = 0;
 	// Recibe la señal para enviar sabotaje
 	signal(SIGUSR1, (void*)iniciar_sabotaje);
 
-
-
 	//char* un_bitarray = malloc(BLOCKS/8);
 	//bitArraySB = crear_bitarray(un_bitarray);
-
-
 
 	if (existe_file_system() == -1) {
 
@@ -45,7 +40,6 @@ int main(void) {
 			levantar_archivo_blocks();
 			escribir_archivo_blocks(3, "BLOQUE 3", strlen("BLOQUE 3"));
 
-
 			//Seccion SuperBloque
 			char *direccion_superBloque = concatenar_path("/SuperBloque.ims");
 			struct stat statbuf_2;
@@ -54,14 +48,9 @@ int main(void) {
 			fstat(archivo, &statbuf_2);
 			super_bloque = mmap(NULL, statbuf_2.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
 			levantar_archivo_superBloque();
-
-			bitarray_set_bit(bitArraySB, 3);
-
 			hash_MD5();
 
-
 		}
-
 
 	pthread_create(&hilo_sincronizador, NULL, (void*)sincronizar, NULL);
 	pthread_detach(hilo_sincronizador);
@@ -74,18 +63,10 @@ int main(void) {
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
 		pthread_detach(hilo_recibir_mensajes);
 	}
-
-printf("TERMINO");
-free(bitmap);
+	free(bitmap);
 
 	return EXIT_SUCCESS;
-
-
 }
-
-
-
-
 
 void obtener_datos_de_config(t_config* config) {
 
@@ -95,7 +76,7 @@ void obtener_datos_de_config(t_config* config) {
 	TIEMPO_SINCRONIZACION = config_get_int_value(config, "TIEMPO_SINCRONIZACION");
 	POSICIONES_SABOTAJE = config_get_array_value(config, "POSICIONES_SABOTAJE");
 	BLOCK_SIZE = config_get_int_value(config, "BLOCK_SIZE");
-	BLOCKS= config_get_int_value(config, "BLOCKS");
+	BLOCKS = config_get_int_value(config, "BLOCKS");
 
 }
 
@@ -106,6 +87,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 	// Tareas I/O
 	archivo_tarea* tarea_io;
+
+	// Actualizar Datos de Bitacora
+	bitacora* bitacora_tripu;
 
 	switch(operacion) {
 
@@ -155,8 +139,30 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				break;
 
 			case ACTUALIZACION_TRIPULANTE:
+				bitacora_tripu = malloc(sizeof(bitacora));
+				recibir_mensaje(bitacora_tripu, operacion, conexion);
 
-				// Crea el archivo para el tripulante o le agrega los datos actualizados del tripulante al final
+				printf("Tripu %u: %s\n", bitacora_tripu->id_tripulante, bitacora_tripu->accion);
+
+				/*
+				 * Buscar si existe la Bitacora del Tripulante #ID
+				 * 	- Si existe: actualizarla
+				 * 	- Si NO existe: crearla y agregarle los datos
+				 */
+
+				cerrar_conexion(logger, conexion);
+				free(bitacora_tripu->accion);
+				free(bitacora_tripu);
+				break;
+
+			case REALIZAR_SABOTAJE:
+				cerrar_conexion(logger, conexion);
+
+				printf("----------------------REALIZO EL SABOTAJE (FCSK)\n");
+
+				/*
+				 * Aca realizo todo lo necesario para resolver el sabotaje
+				 */
 
 				break;
 
@@ -181,7 +187,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 // Crear un nuevo archivo por defecto dentro de /Files
 char* crear_archivo_metadata(char* path_archivo){
-
 
 	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path_archivo) + 2);
 
@@ -214,8 +219,6 @@ char* crear_archivo_metadata(char* path_archivo){
 
 //PARA GENERAR EL MD5 https://askubuntu.com/questions/53846/how-to-get-the-md5-hash-of-a-string-directly-in-the-terminal
 /* FUNCION PARA EL MD5
- * crear "archivo" con contenido de los bloques de Oxigeno.ims/Comida.ims/etc concatenado
- * usar system("md5sum Nuevo.txt > pruebamd5.txt"), en el segundo archivo se guarda el hash + espacio + nombre del primer archivo
  * ejemplo: d0a4a9d5eae1444b3285be84e98afcf8  Nuevo.txt
  * splintear para quedarse solamente con el hash y return char* para asignárselo al Oxigeno.ims/Comida.ims/etc
  * Mantener actualizado MD5 por cada modificacion que se haga
@@ -223,16 +226,11 @@ char* crear_archivo_metadata(char* path_archivo){
  */
 
 void hash_MD5(){
-
-
 	char* comando = "/home/utnso/Escritorio/Nuevo.txt > /home/utnso/Escritorio/pruebamd5.txt";
 	char* system_command = string_new();
 	string_append_with_format(&system_command, "md5sum %s ", comando);
 	system(system_command);
-
 }
-
-
 
 char* crear_archivo_bitacora(char* path_archivo){
 
@@ -273,7 +271,7 @@ void iniciar_sabotaje(void){
 
 		int32_t conexion_discordiador = crear_conexion(IP, PUERTO_DISCORDIADOR);
 
-		posicion_sabotaje* posicion = malloc(sizeof(posicion_sabotaje));
+		posiciones* posicion = malloc(sizeof(posiciones));
 		posicion->posicion_x = atoi(posiciones_sabo[0]);
 		posicion->posicion_y = atoi(posiciones_sabo[1]);
 
@@ -293,7 +291,6 @@ void iniciar_sabotaje(void){
 	}
 }
 
-
 uint32_t cantidad_posiciones(char** parser) {
 
 	int cantidad = 0;
@@ -302,7 +299,6 @@ uint32_t cantidad_posiciones(char** parser) {
 	}
 	return cantidad;
 }
-
 
 void sincronizar(){
 	while(1){
@@ -313,13 +309,5 @@ void sincronizar(){
 		memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
 		msync(super_bloque, 2*sizeof(uint32_t)+BLOCKS/8, MS_SYNC);
 
-
 	}
-
-
 }
-
-
-
-
-

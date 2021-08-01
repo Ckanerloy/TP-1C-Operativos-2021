@@ -59,7 +59,7 @@ void registrar_dump_segmentacion(void) {
 	list_sort(segmentos_totales, menor_a_mayor_por_segmento);
 
 	char* buffer_formato = string_new();
-	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
 	escribir_en_archivo(buffer_formato);
 
 	for(int j=0; j<list_size(segmentos_totales); j++) {
@@ -94,7 +94,7 @@ void registrar_dump_segmentacion(void) {
 		escribir_en_archivo(buffer);
 	}
 	buffer_formato = string_new();
-	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
 	escribir_en_archivo(buffer_formato);
 }
 
@@ -104,7 +104,7 @@ void registrar_dump_segmentacion(void) {
 void registrar_dump_paginacion(void) {
 
 	char* buffer_formato = string_new();
-	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
 	escribir_en_archivo(buffer_formato);
 
 	for(int i=0; i<cantidad_frames; i++) {
@@ -126,7 +126,7 @@ void registrar_dump_paginacion(void) {
 	}
 
 	char* buffer_swap = string_new();
-	string_append_with_format(&buffer_swap, "\n- - - - - - - - - - - - - - - - - - - - - - - - - MARCOS EN SWAP - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+	string_append_with_format(&buffer_swap, "\n- - - - - - - - - - - - - - - - - - - MARCOS EN SWAP - - - - - - - - - - - - - - - - - - -\n");
 	escribir_en_archivo(buffer_swap);
 
 	for(int c=0; c<cantidad_paginas_swap; c++) {
@@ -140,7 +140,7 @@ void registrar_dump_paginacion(void) {
 		escribir_en_archivo(buffer);
 	}
 	buffer_formato = string_new();
-	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+	string_append_with_format(&buffer_formato, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
 	escribir_en_archivo(buffer_formato);
 }
 

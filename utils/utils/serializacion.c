@@ -57,6 +57,12 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			tamanio_preparado = serializar_paquete_sabotaje(paquete, mensaje);
 			break;
 
+		case REALIZAR_SABOTAJE:
+			paquete->buffer->size = 0;
+			paquete->buffer->stream = NULL;
+			tamanio_preparado = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+			break;
+
 
 		// Respuestas
 		case RESPUESTA_INICIAR_PATOTA:
@@ -102,6 +108,10 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			paquete->buffer->size = 0;
 			paquete->buffer->stream = NULL;
 			tamanio_preparado = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+			break;
+
+		case ACTUALIZACION_TRIPULANTE:
+			tamanio_preparado = serializar_paquete_bitacora(paquete, mensaje);
 			break;
 
 		default:
@@ -321,7 +331,7 @@ uint32_t serializar_paquete_estado_tripulante(t_paquete* paquete, t_tripulante_e
 }
 
 
-uint32_t serializar_paquete_sabotaje(t_paquete* paquete, posicion_sabotaje* mensaje) {
+uint32_t serializar_paquete_sabotaje(t_paquete* paquete, posiciones* mensaje) {
 	uint32_t tamanio = 0;
 	uint32_t desplazamiento = 0;
 
@@ -623,3 +633,52 @@ uint32_t serializar_paquete_tarea_io(t_paquete* paquete, archivo_tarea* mensaje)
 		return tamanio;
 	}
 }
+
+
+uint32_t serializar_paquete_bitacora(t_paquete* paquete, bitacora* mensaje) {
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
+
+	uint32_t tamanio_a_enviar = 0;
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->size = sizeof(mensaje->id_tripulante) + sizeof(mensaje->tamanio_accion) + strlen(mensaje->accion)+1;
+
+	void* stream_auxiliar = malloc(buffer->size);
+
+	// ID Tripulante
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->id_tripulante), sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
+
+	// Tamanio Accion
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tamanio_accion), sizeof(mensaje->tamanio_accion));
+	desplazamiento += sizeof(mensaje->tamanio_accion);
+
+	// Accion
+	memcpy(stream_auxiliar + desplazamiento, mensaje->accion, mensaje->tamanio_accion+1);
+	desplazamiento += mensaje->tamanio_accion+1;
+
+	tamanio_a_enviar = sizeof(mensaje->id_tripulante) + sizeof(mensaje->tamanio_accion) + mensaje->tamanio_accion+1;
+
+
+	if(desplazamiento != tamanio_a_enviar) {
+		puts("ERROR. Tamanio diferentes.\n");
+		//log_error(logger);
+		abort();
+	}
+
+	else
+	{
+
+		paquete->buffer = buffer;
+		paquete->buffer->size = desplazamiento;
+		paquete->buffer->stream = stream_auxiliar;
+
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+
+		return tamanio;
+	}
+}
+
+
+

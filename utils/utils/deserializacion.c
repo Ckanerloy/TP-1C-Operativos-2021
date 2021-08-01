@@ -36,6 +36,9 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 			deserializar_sabotaje(mensaje,conexion);
 			break;
 
+		case REALIZAR_SABOTAJE:
+			break;
+
 
 		// Respuestas
 		case RESPUESTA_INICIAR_PATOTA:
@@ -76,6 +79,10 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 			break;
 
 		case TIRAR_BASURA:
+			break;
+
+		case ACTUALIZACION_TRIPULANTE:
+			deserializar_bitacora(mensaje, conexion);
 			break;
 
 		default:
@@ -297,7 +304,7 @@ void deserializar_respuesta_nueva_tarea(t_respuesta_tarea_tripulante* mensaje, i
 }
 
 
-void deserializar_sabotaje(posicion_sabotaje* mensaje, int32_t conexion) {
+void deserializar_sabotaje(posiciones* mensaje, int32_t conexion) {
 	uint32_t tamanio;
 	uint32_t desplazamiento = 0;
 	void* buffer_deserializar;
@@ -342,3 +349,28 @@ void deserializar_tarea_io(archivo_tarea* mensaje, int32_t conexion) {
 
 	free(buffer_deserializar);
 }
+
+
+void deserializar_bitacora(bitacora* mensaje, int32_t conexion) {
+	uint32_t tamanio;
+	uint32_t desplazamiento = 0;
+	void* buffer_deserializar;
+	buffer_deserializar = recibir_buffer(&tamanio, conexion);
+
+	// Valor de Cantidad
+	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
+
+	// Tamaño Nombre de Archivo
+	memcpy(&(mensaje->tamanio_accion), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_accion));
+	desplazamiento += sizeof(mensaje->tamanio_accion);
+
+	mensaje->accion = malloc(mensaje->tamanio_accion+1);
+
+	// Nombre de Archivo
+	memcpy(mensaje->accion, buffer_deserializar + desplazamiento, mensaje->tamanio_accion +1);
+	desplazamiento += mensaje->tamanio_accion+1;
+
+	free(buffer_deserializar);
+}
+

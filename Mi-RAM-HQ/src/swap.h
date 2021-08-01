@@ -20,6 +20,7 @@ int32_t cantidad_paginas_swap;
 
 int archivo_swap;
 sem_t* sem_swap;
+sem_t* sem_backup;
 sem_t* sem_lru;
 sem_t* sem_clock;
 
@@ -36,5 +37,6 @@ int guardar_pagina_en_swap(void* buffer, t_pagina* pagina, int32_t espacio_ocupa
 void* recuperar_en_swap(int32_t numero_pagina, int32_t* espacio_usado);
 int32_t buscar_frame_por_pagina(int32_t numero_pagina);
 void* leer_frame_en_swap(int32_t numero_frame, int32_t espacio_ocupado);
+void sacar_pagina_de_swap(int32_t numero_pagina);
 
 #endif /* SWAP_H_ */

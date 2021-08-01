@@ -20,6 +20,7 @@
 #include "commons/config.h"
 
 #include "Discordiador.h"
+#include "bitacora.h"
 #include "utils/estructuras.h"
 #include "utils/tareas.h"
 

@@ -21,6 +21,7 @@ typedef enum
 	PEDIDO_TAREA,
 	PEDIR_UBICACION_TRIPULANTE,
 	ACTUALIZAR_ESTADO_TRIPULANTE,
+	REALIZAR_SABOTAJE,
 	SABOTAJE,
 	CERRAR_MODULO,
 
@@ -38,10 +39,16 @@ typedef enum
 } codigo_operacion;
 
 
+typedef enum {
+	MOVIMIENTO,
+	EJECUTA,
+	TERMINA,
+	PANICO,
+	RESUELTO
+} codigo_bitacora;
 
 
-typedef enum
-{
+typedef enum {
 	PAGINACION,
 	SEGMENTACION
 } codigo_memoria;
@@ -82,6 +89,7 @@ typedef struct {
 	uint32_t tamanio_tarea;
 } tarea;
 
+
 // Estructuras de Sockets
 typedef struct {
 	uint32_t size;
@@ -95,10 +103,6 @@ typedef struct {
 } t_paquete;
 
 
-typedef struct {
-	uint32_t posicion_x;
-	uint32_t posicion_y;
-} posicion_sabotaje;
 
 
 // Estructuras para Discordiador
@@ -128,27 +132,30 @@ typedef struct {
 	sem_t* sem_planificacion;
 
 	sem_t* mutex_estado;
-
+	sem_t* mutex_peticion;
 	sem_t* mutex_expulsado;
 
 	uint cantidad_realizada;
 
 	uint puedo_ejecutar_io;
 
+	uint32_t id_tarea_a_realizar;
+
 } tripulante_plani;
 
 
 typedef struct {
-	uint32_t sabotaje_on;
-	t_tarea* tarea_sabotaje;             //    ---------------
+	uint32_t id_tripulante;
+	char* accion;
+	uint32_t tamanio_accion;
+} bitacora;
 
-} t_respuesta_mongo;
 
 typedef struct {
 	posiciones* posicion_anterior;
 	posiciones* posicion_nueva;
+} bitacora_posiciones;
 
-}bitacora_posiciones;
 
 typedef struct {
 	int32_t cantidad;
@@ -190,6 +197,11 @@ typedef struct {
 	char estado;
 } t_tripulante_estado;
 
+
+typedef struct {
+	int32_t id_tripulante;
+	int caracter_mapa;
+} tripulante_mapa;
 
 
 
@@ -242,7 +254,9 @@ typedef struct {
 	uint32_t posicion_y;
 	uint32_t id_tarea_a_realizar;		// Indice de la tarea a realizar
 	uint32_t puntero_PCB;				// Dirección de memoria del PCB de la patota
-} t_tcb;
+} __attribute__((packed))
+t_tcb;
+
 // Tamaño del TCB = 24 bytes
 // Deberia ser 21 bytes
 

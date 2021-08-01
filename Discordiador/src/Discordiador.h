@@ -16,7 +16,8 @@
 #include "planificador.h"
 #include "utils/estructuras.h"
 
-#define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Discordiador/discordiador.config"
+
+#define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Discordiador/Discordiador.config"
 
 char** parser_consola;
 char** parser_posiciones;
@@ -62,9 +63,10 @@ pthread_t hilo_susp_block;
 pthread_t hilo_tripulante_sabo;
 
 t_log* logger;
+t_log* logger_on;
 t_config* config;
 
-//posiciones* posicion_sabotaje;
+posiciones* posicion_recibida;
 
 //void iniciar_escucha_sabotaje(void);
 void iniciar_escucha_por_consola();

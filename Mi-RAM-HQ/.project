@@ -5,6 +5,7 @@
 	<projects>
 		<project>commons</project>
 		<project>utils</project>
+		<project>LibMap</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

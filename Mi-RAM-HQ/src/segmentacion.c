@@ -91,18 +91,15 @@ void verificar_compactacion(void) {
 	if(esquema_elegido == 'S') {
 		t_list* seg_vacio = segmentos_libres();
 		if(seg_vacio > 0) {
-				//free(seg_vacio);
 				compactar();
 		}
 		else {
-			//free(seg_vacio);
 			log_warning(logger, "No hay segmentos libres para poder compactar.\n");
 		}
 	}
 	else{
 		log_error(logger, "Se ha elegido el esquema de Paginación. ¡Para Compactar hacelo en Segmentación!\n");
 	}
-
 
 }
 
@@ -121,9 +118,13 @@ void compactar(void) {
 
 		void* aux = malloc(segmento->tamanio_segmento);
 
+		sem_wait(mutex_copia);
 		memcpy(aux, memoria_principal + segmento->inicio, segmento->tamanio_segmento);
+		sem_post(mutex_copia);
 
+		sem_wait(mutex_copia);
 		memcpy(memoria_principal + inicio, aux, segmento->tamanio_segmento);
+		sem_post(mutex_copia);
 
 		segmento->inicio = inicio;
 		segmento->numero_de_segmento = i;
@@ -132,6 +133,7 @@ void compactar(void) {
 
 		inicio += segmento->tamanio_segmento;
 	}
+
 	t_list* seg_vacios = segmentos_libres();
 	int32_t cantidad_segmentos_libres = list_size(seg_vacios);
 
@@ -141,10 +143,9 @@ void compactar(void) {
 		int indice = obtener_indice(segmentos, segmento_obtenido);
 		list_remove(segmentos, indice);
 		contador_segmento--;
-
 	}
 
-	list_destroy_and_destroy_elements(seg_vacios, free);
+	list_clean_and_destroy_elements(seg_vacios, free);
 
 	crear_segmento_libre(inicio, memoria_libre_total);
 
@@ -211,9 +212,9 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
 
 			t_segmento* mejor_segmento = list_remove(segmentos_con_espacio_ordenados, 0);
 
-			free(segmentos_vacios);
-			free(segmentos_con_espacio);
-			free(segmentos_con_espacio_ordenados);
+			list_destroy(segmentos_vacios);
+			list_destroy(segmentos_con_espacio);
+			list_destroy(segmentos_con_espacio_ordenados);
 
 			return mejor_segmento;
 		}
@@ -222,11 +223,9 @@ t_segmento* obtener_segmento_libre(uint32_t tamanio_buscado) {
 	else if(criterio_elegido == FIRST_FIT){
 		if(list_size(segmentos_vacios) >= 1) {
 
-			// TODO probar con First Fit, sino hacer un list_sort
-
 			t_segmento* primer_segmento = list_find(segmentos_vacios, memoria_igual_o_mas_grande);
 
-			free(segmentos_vacios);
+			list_destroy(segmentos_vacios);
 			return primer_segmento;
 		}
 	}
@@ -243,10 +242,10 @@ bool validar_existencia_segmento_libre_suficiente(uint32_t tamanio_buscado) {
 		return tamanio_buscado <= ((t_segmento*)segmento)->tamanio_segmento;
 	}
 
-
-
 	bool respuesta = list_any_satisfy(segmentos_vacios, (void*) _memoria_igual_o_mas_grande);
-	free(segmentos_vacios);
+
+	list_destroy(segmentos_vacios);
+
 	return respuesta;
 }
 
@@ -257,11 +256,15 @@ void actualizar_patota(t_pcb* patota, uint32_t inicio_segmento) {
 	void* inicio = (void*) memoria_principal + inicio_segmento;
 	uint32_t desplazamiento = 0;
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(patota->pid), sizeof(patota->pid));
 	desplazamiento += sizeof(patota->pid);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(patota->tareas), sizeof(patota->tareas));
 	desplazamiento += sizeof(patota->tareas);
+	sem_post(mutex_copia);
 }
 
 
@@ -277,13 +280,16 @@ void actualizar_tareas(t_list* tareas_de_la_patota, uint32_t inicio_segmento, t_
 		direccion_tarea->id_tarea = i;
 		direccion_tarea->direccion_logica = desplazamiento;
 
+		sem_wait(mutex_copia);
 		memcpy(inicio + desplazamiento, tarea_a_guardar->tarea, tarea_a_guardar->tamanio_tarea);
 		desplazamiento += tarea_a_guardar->tamanio_tarea;
+		sem_post(mutex_copia);
 
 		direccion_tarea->tamanio_tarea = tarea_a_guardar->tamanio_tarea;
 
 		list_add_in_index(tabla_patota->direccion_tareas, i, direccion_tarea);
 
+		free(tarea_a_guardar->tarea);
 		free(tarea_a_guardar);
 	}
 }
@@ -300,23 +306,35 @@ void actualizar_tripulante(t_tcb* tripulante, uint32_t inicio_segmento, t_tabla_
 
 	list_add(tabla_patota->direccion_tripulantes, direccion_tripulante);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->id_tripulante), sizeof(tripulante->id_tripulante));
 	desplazamiento += sizeof(tripulante->id_tripulante);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->estado_tripulante), sizeof(tripulante->estado_tripulante));
 	desplazamiento += sizeof(tripulante->estado_tripulante);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->posicion_x), sizeof(tripulante->posicion_x));
 	desplazamiento += sizeof(tripulante->posicion_x);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->posicion_y), sizeof(tripulante->posicion_y));
 	desplazamiento += sizeof(tripulante->posicion_y);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->id_tarea_a_realizar), sizeof(tripulante->id_tarea_a_realizar));
 	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(inicio + desplazamiento, &(tripulante->puntero_PCB), sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);
+	sem_post(mutex_copia);
 }
 
 
@@ -349,27 +367,6 @@ void actualizar_segmento(void* estructura_actualizar, tipo_estructura tipo_segme
 
 
 // FUNCIONES PARA OBTENER DE MEMORIA
-/*
-void* obtener_contenido_de_segmento(t_segmento* segmento_a_traducir, t_tabla_segmentos_patota* tabla_patota) {
-	void* contenido;
-
-	switch(segmento_a_traducir->tipo_segmento) {
-		case PATOTA:
-			contenido = encontrar_patota(segmento_a_traducir);
-			break;
-		case TAREAS:
-			//contenido = encontrar_tarea(segmento_a_traducir, tabla_patota);
-			break;
-		case TRIPULANTE:
-			contenido = encontrar_tripulante(segmento_a_traducir);
-			break;
-		default:
-			break;
-	}
-	return contenido;
-}*/
-
-
 t_pcb* encontrar_patota(t_segmento* segmento) {
 
 	t_pcb* patota = malloc(sizeof(t_pcb));
@@ -377,11 +374,15 @@ t_pcb* encontrar_patota(t_segmento* segmento) {
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
 
+	sem_wait(mutex_copia);
 	memcpy(&(patota->pid), inicio + desplazamiento, sizeof(patota->pid));
 	desplazamiento += sizeof(patota->pid);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(patota->tareas), inicio + desplazamiento, sizeof(patota->tareas));
 	desplazamiento += sizeof(patota->tareas);
+	sem_post(mutex_copia);
 
 	return patota;
 }
@@ -404,7 +405,9 @@ tarea* encontrar_tarea(t_segmento* segmento, t_tabla_segmentos_patota* tabla_pat
 
 	int32_t inicio = segmento->inicio + direccion_logica_tarea->direccion_logica;
 
+	sem_wait(mutex_copia);
 	memcpy(tarea_recuperada->tarea, memoria_principal + inicio, tarea_recuperada->tamanio_tarea);
+	sem_post(mutex_copia);
 
 	return tarea_recuperada;
 }
@@ -417,23 +420,35 @@ t_tcb* encontrar_tripulante(t_segmento* segmento) {
 	void* inicio = (void*) memoria_principal + segmento->inicio;
 	uint32_t desplazamiento = 0;
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->id_tripulante), inicio + desplazamiento, sizeof(tripulante->id_tripulante));
 	desplazamiento += sizeof(tripulante->id_tripulante);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->estado_tripulante), inicio + desplazamiento, sizeof(tripulante->estado_tripulante));
 	desplazamiento += sizeof(tripulante->estado_tripulante);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->posicion_x), inicio + desplazamiento, sizeof(tripulante->posicion_x));
 	desplazamiento += sizeof(tripulante->posicion_x);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->posicion_y), inicio + desplazamiento, sizeof(tripulante->posicion_y));
 	desplazamiento += sizeof(tripulante->posicion_y);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->id_tarea_a_realizar), inicio + desplazamiento, sizeof(tripulante->id_tarea_a_realizar));
 	desplazamiento += sizeof(tripulante->id_tarea_a_realizar);
+	sem_post(mutex_copia);
 
+	sem_wait(mutex_copia);
 	memcpy(&(tripulante->puntero_PCB), inicio + desplazamiento, sizeof(tripulante->puntero_PCB));
 	desplazamiento += sizeof(tripulante->puntero_PCB);
+	sem_post(mutex_copia);
 
 	return tripulante;
 }
@@ -487,6 +502,9 @@ t_tarea* buscar_proxima_tarea_del_tripulante_segmentacion(t_list* segmentos, tip
 	tarea* tarea_pedida = encontrar_tarea(segmento_tareas, tabla_patota, id_proxima_tarea_del_tripu);
 
 	t_tarea* tarea_a_retornar = obtener_la_tarea(tarea_pedida->tarea);
+
+	free(tarea_pedida->tarea);
+	free(tarea_pedida);
 
 	return tarea_a_retornar;
 }

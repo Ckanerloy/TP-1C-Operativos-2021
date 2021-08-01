@@ -17,6 +17,7 @@
 #include "dump_memoria.h"
 #include "segmentacion.h"
 #include "paginacion.h"
+#include "mapa.h"
 
 #define IP "127.0.0.1"
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mi-RAM-HQ/Mi-RAM.config"
@@ -49,19 +50,11 @@ uint32_t contador_id_patota;
 
 // Indicadores de Memoria
 uint32_t base_segmento;
-//int32_t memoria_restante;
-//int32_t memoria_libre_por_segmento;
 int32_t memoria_libre_total;				// memoria_compactada = memoria_restante + memoria_libre_por_segmento;
 int32_t memoria_virtual_total;
 
-// Mapa
-//NIVEL* amongOs;
-int columnas, filas;
-
 // Tamanio de estructuras utilizadas
-uint32_t tamanio_tripulante;
 uint32_t tamanio_tripulantes;
-uint32_t tamanio_patota;
 uint32_t tamanio_tareas;
 
 
@@ -81,6 +74,7 @@ typedef struct {
 sem_t* crear_segmento_sem;
 sem_t* crear_pagina_sem;
 sem_t* espera;
+
 sem_t* mutex_segmentos;
 sem_t* mutex_paginas;
 sem_t* mutex_direcciones_paginas;
@@ -88,12 +82,12 @@ sem_t* mutex_tripulante_swap;
 sem_t* mutex_frames;
 sem_t* mutex_swap;
 sem_t* mutex_serializacion;
+sem_t* mutex_copia;
 
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_actualizar_estado;
 
 // Datos de tripulantes
-t_list* ids;
 char** parser_posiciones;
 
 // Eleccion de algoritmos para la memoria
@@ -105,7 +99,6 @@ algoritmo_reemplazo elegir_algoritmo_reemplazo(char* algoritmo);
 void obtener_datos_de_config(t_config* config);
 void iniciar_variables_y_semaforos(void);
 void inicializar_memoria(void);
-void iniciar_mapa(void);
 void iniciar_comunicacion(void);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
