@@ -13,29 +13,6 @@
 #include <string.h>
 #include "commons/string.h"
 #include "utils/estructuras.h"
-
-
-typedef enum {
-	MOVIMIENTO,
-	EJECUTA,
-	TERMINA,
-	PANICO,
-	RESUELTO
-} codigo_bitacora;
-
-
-typedef struct {
-	uint32_t id_tripulante;
-	char* accion;
-	uint32_t tamanio_accion;
-} bitacora;
-
-
-typedef struct {
-	posiciones* posicion_anterior;
-	posiciones* posicion_nueva;
-} bitacora_posiciones;
-
 #include "Discordiador.h"
 
 

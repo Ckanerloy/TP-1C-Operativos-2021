@@ -138,3 +138,17 @@ bitacora_posiciones* preparar_bitacora_posi(posiciones* posicion_tripu, posicion
 
 
 
+void sabotaje_resuelto(void) {
+
+	conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+
+	if(resultado_conexion(conexion_mongo_store, logger, "i-Mongo Store") == -1){
+		log_error(logger, "No se pudo lograr la conexion con i-Mongo Store.\n");
+		abort();
+	}
+
+	enviar_mensaje("", REALIZAR_SABOTAJE, conexion_mongo_store);
+
+	close(conexion_mongo_store);
+}
+

@@ -2,8 +2,6 @@
 
 void enviar_bitacora(bitacora* bitacora_tripu) {
 
-	uint32_t conexion_mongo_store;
-
 	conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 
 	if(resultado_conexion(conexion_mongo_store, logger, "Mongo Store") == -1){
@@ -11,7 +9,7 @@ void enviar_bitacora(bitacora* bitacora_tripu) {
 		abort();
 	}
 
-	enviar_mensaje(bitacora_tripu, PEDIDO_TAREA, conexion_mongo_store);
+	enviar_mensaje(bitacora_tripu, ACTUALIZACION_TRIPULANTE, conexion_mongo_store);
 
 	close(conexion_mongo_store);
 	free(bitacora_tripu);
@@ -49,9 +47,7 @@ void armar_bitacora(void* mensaje, codigo_bitacora codigo, uint32_t id_tripulant
 
 	bitacora_tripu->id_tripulante = id_tripulante;
 
-	printf("Tripu %u: %s", bitacora_tripu->id_tripulante, bitacora_tripu->accion);
-
-	//enviar_bitacora(bitacora_tripu);
+	enviar_bitacora(bitacora_tripu);
 }
 
 
@@ -61,11 +57,11 @@ bitacora* bitacora_movimiento(bitacora_posiciones* posiciones) {
 
 	char* mensaje = string_new();
 
-	string_append_with_format(&mensaje, "Se mueve de %u|%u a %u|%u.\n", posiciones->posicion_anterior->posicion_x, posiciones->posicion_anterior->posicion_y, posiciones->posicion_nueva->posicion_x, posiciones->posicion_nueva->posicion_y);
+	string_append_with_format(&mensaje, "Se mueve de %u|%u a %u|%u.", posiciones->posicion_anterior->posicion_x, posiciones->posicion_anterior->posicion_y, posiciones->posicion_nueva->posicion_x, posiciones->posicion_nueva->posicion_y);
 
-	bitacora_tripu->tamanio_accion = strlen(mensaje)+1;
+	bitacora_tripu->tamanio_accion = strlen(mensaje);
 	strcat(mensaje, "\0");
-	bitacora_tripu->accion = malloc(bitacora_tripu->tamanio_accion);
+	bitacora_tripu->accion = malloc(bitacora_tripu->tamanio_accion+1);
 	strcpy(bitacora_tripu->accion, mensaje);
 
 	free(mensaje);
@@ -79,11 +75,11 @@ bitacora* bitacora_ejecucion_tarea(tripulante_plani* tripu) {
 
 	char* mensaje = string_new();
 
-	string_append_with_format(&mensaje, "Comienza ejecución de tarea %u.\n", tripu->id_tarea_a_realizar);
+	string_append_with_format(&mensaje, "Comienza ejecución de tarea %u.", tripu->id_tarea_a_realizar);
 
-	bitacora_tripu->tamanio_accion = strlen(mensaje)+1;
+	bitacora_tripu->tamanio_accion = strlen(mensaje);
 	strcat(mensaje, "\0");
-	bitacora_tripu->accion = malloc(bitacora_tripu->tamanio_accion);
+	bitacora_tripu->accion = malloc(bitacora_tripu->tamanio_accion+1);
 	strcpy(bitacora_tripu->accion, mensaje);
 
 	free(mensaje);
@@ -97,11 +93,11 @@ bitacora* bitacora_termina_tarea(tripulante_plani* tripu) {
 
 	char* mensaje = string_new();
 
-	string_append_with_format(&mensaje, "Se finaliza la tarea %u.\n", tripu->id_tarea_a_realizar);
+	string_append_with_format(&mensaje, "Se finaliza la tarea %u.", tripu->id_tarea_a_realizar);
 
-	bitacora_tripu->tamanio_accion = strlen(mensaje)+1;
+	bitacora_tripu->tamanio_accion = strlen(mensaje);
 	strcat(mensaje, "\0");
-	bitacora_tripu->accion = malloc(bitacora_tripu->tamanio_accion);
+	bitacora_tripu->accion = malloc(bitacora_tripu->tamanio_accion+1);
 	strcpy(bitacora_tripu->accion, mensaje);
 
 	free(mensaje);
@@ -114,14 +110,13 @@ bitacora* bitacora_corre_sabotaje(char* valor) {
 
 	char* mensaje = string_new();
 
-	string_append_with_format(&mensaje, "Se corre en pánico hacia la ubicación del sabotaje.\n");
+	string_append_with_format(&mensaje, "Se corre en pánico hacia la ubicación del sabotaje.");
 
-	bitacora_tripu->tamanio_accion = strlen(mensaje)+1;
+	bitacora_tripu->tamanio_accion = strlen(mensaje);
 	strcat(mensaje, "\0");
-	bitacora_tripu->accion = malloc(bitacora_tripu->tamanio_accion);
+	bitacora_tripu->accion = malloc(bitacora_tripu->tamanio_accion+1);
 	strcpy(bitacora_tripu->accion, mensaje);
 
-	free(valor);
 	free(mensaje);
 	return bitacora_tripu;
 }
@@ -133,14 +128,13 @@ bitacora* bitacora_resuelve_sabotaje(char* valor) {
 
 	char* mensaje = string_new();
 
-	string_append_with_format(&mensaje, "Se resuelve el sabotaje.\n");
+	string_append_with_format(&mensaje, "Se resuelve el sabotaje.");
 
-	bitacora_tripu->tamanio_accion = strlen(mensaje)+1;
+	bitacora_tripu->tamanio_accion = strlen(mensaje);
 	strcat(mensaje, "\0");
-	bitacora_tripu->accion = malloc(bitacora_tripu->tamanio_accion);
+	bitacora_tripu->accion = malloc(bitacora_tripu->tamanio_accion+1);
 	strcpy(bitacora_tripu->accion, mensaje);
 
-	free(valor);
 	free(mensaje);
 	return bitacora_tripu;
 }

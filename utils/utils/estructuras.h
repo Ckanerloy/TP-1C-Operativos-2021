@@ -21,6 +21,7 @@ typedef enum
 	PEDIDO_TAREA,
 	PEDIR_UBICACION_TRIPULANTE,
 	ACTUALIZAR_ESTADO_TRIPULANTE,
+	REALIZAR_SABOTAJE,
 	SABOTAJE,
 	CERRAR_MODULO,
 
@@ -38,10 +39,16 @@ typedef enum
 } codigo_operacion;
 
 
+typedef enum {
+	MOVIMIENTO,
+	EJECUTA,
+	TERMINA,
+	PANICO,
+	RESUELTO
+} codigo_bitacora;
 
 
-typedef enum
-{
+typedef enum {
 	PAGINACION,
 	SEGMENTACION
 } codigo_memoria;
@@ -82,6 +89,7 @@ typedef struct {
 	uint32_t tamanio_tarea;
 } tarea;
 
+
 // Estructuras de Sockets
 typedef struct {
 	uint32_t size;
@@ -93,6 +101,9 @@ typedef struct {
 	codigo_operacion op_code;
 	t_buffer* buffer;
 } t_paquete;
+
+
+
 
 // Estructuras para Discordiador
 typedef struct {
@@ -134,9 +145,17 @@ typedef struct {
 
 
 typedef struct {
-	uint32_t sabotaje_on;
-	t_tarea* tarea_sabotaje;             //    ---------------
-} t_respuesta_mongo;
+	uint32_t id_tripulante;
+	char* accion;
+	uint32_t tamanio_accion;
+} bitacora;
+
+
+typedef struct {
+	posiciones* posicion_anterior;
+	posiciones* posicion_nueva;
+} bitacora_posiciones;
+
 
 typedef struct {
 	int32_t cantidad;
@@ -144,6 +163,8 @@ typedef struct {
  	char* nombre_archivo;
 	char caracter_llenado;
 } archivo_tarea;
+
+
 
 
 // Estructuras para Mi-RAM HQ

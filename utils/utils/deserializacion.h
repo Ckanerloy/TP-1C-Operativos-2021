@@ -34,5 +34,7 @@ void deserializar_respuesta_nueva_tarea(t_respuesta_tarea_tripulante* mensaje, i
 // Tareas I/O
 void deserializar_tarea_io(archivo_tarea* mensaje, int32_t conexion);
 
+// Bitacora
+void deserializar_bitacora(bitacora* mensaje, int32_t conexion);
 
 #endif /* UTILS_DESERIALIZACION_H_ */

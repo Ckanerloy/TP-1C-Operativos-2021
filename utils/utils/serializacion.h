@@ -35,4 +35,7 @@ uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_t
 //Tareas I/O
 uint32_t serializar_paquete_tarea_io(t_paquete* paquete, archivo_tarea* mensaje);
 
+// Bitacora
+uint32_t serializar_paquete_bitacora(t_paquete* paquete, bitacora* mensaje);
+
 #endif /* UTILS_SERIALIZACION_H_ */

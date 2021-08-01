@@ -856,35 +856,34 @@ void obtener_nueva_posicion(posiciones* posicion_tripu, posiciones* posicion_tar
 
 void realizar_tarea(tripulante_plani* tripu){
 
+
+	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)) {
+		armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
+	}
+
 	switch(tripu->tarea_a_realizar->operacion) {
 
 		case GENERAR_OXIGENO:	// @suppress("Symbol is not resolved")
-			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			generar_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
 		case CONSUMIR_OXIGENO:	// @suppress("Symbol is not resolved")
-			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			consumir_insumo("Oxigeno.ims", 'O', tripu);
 			break;
 
 		case GENERAR_COMIDA: 	// @suppress("Symbol is not resolved")
-			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			generar_insumo("Comida.ims", 'C', tripu);
 			break;
 
 		case CONSUMIR_COMIDA:	// @suppress("Symbol is not resolved")
-			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			consumir_insumo("Comida.ims",'C', tripu);
 			break;
 
 		case GENERAR_BASURA:	// @suppress("Symbol is not resolved")
-			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			generar_insumo("Basura.ims", 'B', tripu);
 			break;
 
 		case DESCARTAR_BASURA:	// @suppress("Symbol is not resolved")
-			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			descartar_basura(tripu);
 			break;
 
@@ -893,10 +892,10 @@ void realizar_tarea(tripulante_plani* tripu){
 			break;
 
 		default:
-			armar_bitacora(tripu, EJECUTA, tripu->id_tripulante);
 			otras_tareas(tripu);
 			break;
 		}
+
 	tripu->id_tarea_a_realizar++;
 
 }
@@ -918,7 +917,7 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 
 		running_block(tripu);
 
-		//enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
+		enviar_tarea_io(tripu, GENERAR_INSUMO, nombre_archivo, caracter_llenado);
 	}
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
@@ -940,12 +939,12 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 		}
 
 	}
-	if(!(tripu->elegido_sabotaje) &&! (tripu->fui_elegido_antes)){
+	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 		sem_post(bloqueado_disponible);
 		tripu->puedo_ejecutar_io = 0;
-	}
 
-	armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+		armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+	}
 
 	cambios_de_tarea(tripu);
 
@@ -980,7 +979,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 
 		running_block(tripu);
 
-		//enviar_tarea_io(tripu, CONSUMIR_INSUMO, nombre_archivo, caracter_a_consumir);
+		enviar_tarea_io(tripu, CONSUMIR_INSUMO, nombre_archivo, caracter_a_consumir);
 	}
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
@@ -1001,10 +1000,10 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 	}
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 		sem_post(bloqueado_disponible);
-		tripu->puedo_ejecutar_io=0;
-	}
+		tripu->puedo_ejecutar_io = 0;
 
-	armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+		armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+	}
 
 	cambios_de_tarea(tripu);
 
@@ -1035,7 +1034,7 @@ void descartar_basura(tripulante_plani* tripu) {
 
 		running_block(tripu);
 
-		//enviar_tarea_io(tripu, TIRAR_BASURA, "", ' ');
+		enviar_tarea_io(tripu, TIRAR_BASURA, "", ' ');
 	}
 
 	uint32_t tiempo_restante = tripu->tarea_a_realizar->tiempo;
@@ -1057,9 +1056,9 @@ void descartar_basura(tripulante_plani* tripu) {
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 		sem_post(bloqueado_disponible);
 		tripu->puedo_ejecutar_io = 0;
-	}
 
-	armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+		armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+	}
 
 	cambios_de_tarea(tripu);
 
@@ -1106,10 +1105,8 @@ void otras_tareas(tripulante_plani* tripu){
 
 	}
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
-		// TODO termine de hacer la tarea
+		armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
 	}
-
-	armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
 
 	cambios_de_tarea(tripu);
 
@@ -1130,7 +1127,8 @@ void realizar_tarea_sabotaje(tripulante_plani* tripu){
 	//Lo pasamos a la lista de bloqueados suspendidos
 	tripu->estado_anterior = 'R';
 	actualizar_estado(tripu, 'S');
-	list_add(bloqueado_suspendido,tripu);
+	list_add(bloqueado_suspendido, tripu);
+	sabotaje_resuelto();
 
 	sleep(DURACION_SABOTAJE);
 

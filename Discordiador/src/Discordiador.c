@@ -92,8 +92,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 			posicion_recibida = malloc(sizeof(posiciones));
 			recibir_mensaje(posicion_recibida, operacion, conexion_cliente);
 
-			//la señal te llega filesystem tiene ip y puerto de disc
-
 			int largo;
 
 			tripulante_plani* tripu_mas_cercano;
@@ -101,7 +99,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 			tripulante_plani* tripulante;
 
 			//Para parar los hilos de planificacion
-
 			sem_wait(mutex_new_ready);
 			new_ready_off = 1;
 			sem_post(mutex_new_ready);
@@ -167,12 +164,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 			tarea_sabotaje->cantidad = 0;
 			tarea_sabotaje->tiempo = 0;
 
-			tripu_mas_cercano->tarea_auxiliar=tarea_sabotaje;
+			tripu_mas_cercano->tarea_auxiliar = tarea_sabotaje;
 
 			actualizar_estado(tripu_mas_cercano, 'E');
+			log_info(logger,"El Tripulante con ID: %d de la Patota %d pasó de Block Suspended a Execute.\n", tripu_mas_cercano->id_tripulante, tripu_mas_cercano->numero_patota);
 			armar_bitacora("", PANICO, tripu_mas_cercano->id_tripulante);
-			log_info(logger,"El Tripulante con ID: %d de la Patota %d pasó de Block Suspended a Execute.\n",tripu_mas_cercano->id_tripulante,tripu_mas_cercano->numero_patota);
-			// TODO aca seria corre a sabotaje
 			tripu_mas_cercano->elegido_sabotaje = 1;
 
 			sem_wait(mutex_rafaga);
@@ -186,9 +182,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 				//sem_post(tripu_mas_cercano->sem_tripu);
 			}
 
-
 			sem_wait(termine_sabotaje);
-			// TODO aca mandar a mongo resolvi sabotaje
+
 			queue_clean(cola_ready);
 
 			tripu_mas_cercano->estado_anterior = 'R';
@@ -252,7 +247,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 }
 
 tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
-    //tenemos variable global q dice la posicion del sabotaje
 
     posiciones* posicion_tripu1 = malloc(sizeof(posiciones));
     obtener_posiciones(posicion_tripu1,tripulante1->id_tripulante, tripulante1->numero_patota);
@@ -272,6 +266,7 @@ tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* t
         return tripulante2;
     }
 }
+
 
 bool menorId(tripulante_plani* tripulante1, tripulante_plani* tripulante2){
 	return tripulante1->id_tripulante < tripulante2->id_tripulante;
@@ -333,29 +328,15 @@ void obtener_orden_input(){
 	 operacion = mapeo_valor_consola(comando_ingresado);
 	 free(comando_ingresado);
 
-	 //int32_t valor_semaforo;
-	// tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
-	 //tripulante_plani* tripulante_a_ready = malloc(sizeof(tripulante_plani));
-
-	 //int32_t valor_semaforo;
-
 	 tripulante_plani* tripulante_a_expulsar;
 	 t_tripulante* id_tripulante_a_expulsar;
 
-
-
-	// sem_t* saca = malloc(sizeof(sem_t));
-
-	 //int a;
 	 switch(operacion){
 
 		case INICIAR_PLANIFICACION:
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
-			//sem_getvalue(planificacion_on,&valor_semaforo);
 
-			//if(valor_semaforo == 0){
 			log_info(logger_on, "Iniciando Planificacion.......\n");
-			//}
 
 			sem_wait(mutex_new_ready);
 			new_ready_off = 0;
@@ -373,7 +354,6 @@ void obtener_orden_input(){
 			esperando_bloqueado = 0;
 			sem_post(mutex_io);
 
-
 			sem_post(planificacion_on);
 			sem_post(planificacion_on_ready_running);
 			sem_post(planificion_rafaga);
@@ -384,11 +364,6 @@ void obtener_orden_input(){
 		case PAUSAR_PLANIFICACION:
 
 			log_info(logger_on, "Pausando Planificacion........\n");
-			//list_map(lista_semaforos_tripulantes, (void*) poner_en_cero_semaforos);
-
-			//sem_wait(planificacion_on);
-			//sem_wait(planificacion_on_ready_running);
-			//sem_wait(planificion_rafaga);
 
 			sem_wait(mutex_new_ready);
 			new_ready_off = 1;
@@ -755,12 +730,13 @@ void obtener_orden_input(){
 				enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
 				cerrar_conexion(logger, conexion_mi_ram);
 			}
-			/*conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+
+			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 	  		if(resultado_conexion(conexion_mongo_store, logger, "Mongo Store") != -1) {
 	  			enviar_mensaje("", CERRAR_MODULO, conexion_mongo_store);
 	 			cerrar_conexion(logger, conexion_mongo_store);
-	 			}
-*/
+	 		}
+
 			printf("Terminando programa... \n");
 			sleep(1);
 			printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");

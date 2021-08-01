@@ -25,4 +25,6 @@ void terminar_tripulante(tripulante_plani* tripu);
 void enviar_tarea_io(tripulante_plani* tripu, codigo_operacion op_code, char* nombre_archivo, char caracter);
 bitacora_posiciones* preparar_bitacora_posi(posiciones* posicion_tripu, posiciones* posiciones_nuevas);
 
+void sabotaje_resuelto(void);
+
 #endif /* UTILSDISCORDIADOR_H_ */

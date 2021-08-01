@@ -37,7 +37,7 @@ int main(void) {
 
 		}
 
-	char *direccion_blocks = concatenar_path("/Blocks.ims");
+	/*char *direccion_blocks = concatenar_path("/Blocks.ims");
 	archivo_blocks = open(direccion_blocks, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
 	struct stat statbuf;
 	fstat(archivo_blocks, &statbuf);
@@ -46,22 +46,22 @@ int main(void) {
 	escribir_archivo_blocks(2, "BLOQUE 2", strlen("BLOQUE 2"));
 
 
-	bitarray_set_bit(bitArraySB, 2);
+	bitarray_set_bit(bitArraySB, 2);*/
 
 
-	printf("PASE POR ACA");
+	//printf("PASE POR ACA");
 
 
 	int32_t conexion_servidor = iniciar_servidor(IP, PUERTO);
 
-	/*while(1) {
+	while(1) {
 		int32_t conexion_cliente = esperar_conexion(conexion_servidor);
 
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
 		pthread_detach(hilo_recibir_mensajes);
-	}*/
-printf("TERMINO");
-free(un_bitarray);
+	}
+//printf("TERMINO");
+//free(un_bitarray);
 
 	return EXIT_SUCCESS;
 
@@ -80,7 +80,7 @@ void obtener_datos_de_config(t_config* config) {
 	TIEMPO_SINCRONIZACION = config_get_int_value(config, "TIEMPO_SINCRONIZACION");
 	POSICIONES_SABOTAJE = config_get_array_value(config, "POSICIONES_SABOTAJE");
 	BLOCK_SIZE = config_get_int_value(config, "BLOCK_SIZE");
-	BLOCKS= config_get_int_value(config, "BLOCKS");
+	BLOCKS = config_get_int_value(config, "BLOCKS");
 
 }
 
@@ -91,6 +91,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 	// Tareas I/O
 	archivo_tarea* tarea_io;
+
+	// Actualizar Datos de Bitacora
+	bitacora* bitacora_tripu;
 
 	switch(operacion) {
 
@@ -140,8 +143,32 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				break;
 
 			case ACTUALIZACION_TRIPULANTE:
+				bitacora_tripu = malloc(sizeof(bitacora));
+				recibir_mensaje(bitacora_tripu, operacion, conexion);
 
-				// Crea el archivo para el tripulante o le agrega los datos actualizados del tripulante al final
+				printf("Tripu %u: %s\n", bitacora_tripu->id_tripulante, bitacora_tripu->accion);
+
+				/*
+				 * Buscar si existe la Bitacora del Tripulante #ID
+				 * 	- Si existe: actualizarla
+				 * 	- Si NO existe: crearla y agregarle los datos
+				 */
+
+
+				cerrar_conexion(logger, conexion);
+				free(bitacora_tripu->accion);
+				free(bitacora_tripu);
+				break;
+
+			case REALIZAR_SABOTAJE:
+				cerrar_conexion(logger, conexion);
+
+				printf("----------------------REALIZO EL SABOTAJE (FCSK)\n");
+
+				/*
+				 * Aca realizo todo lo necesario para resolver el sabotaje
+				 */
+
 
 				break;
 
@@ -166,7 +193,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 // Crear un nuevo archivo por defecto dentro de /Files
 char* crear_archivo_metadata(char* path_archivo){
-
 
 	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path_archivo) + 2);
 
