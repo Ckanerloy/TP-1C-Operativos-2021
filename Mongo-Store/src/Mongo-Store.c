@@ -24,7 +24,7 @@ int main(void) {
 		log_info(logger, "No se encontró el archivo Blocks.ims. Se inicializa un nuevo FileSystem \n");
 
 		inicializar_file_system();
-		//levantar_archivo_blocks();
+		levantar_archivo_blocks();
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
 
