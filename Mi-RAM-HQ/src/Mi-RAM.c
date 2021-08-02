@@ -244,9 +244,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 							log_info(logger, "Se inició al Tripulante %u en el estado %c, con una posición en X: %u y una posición en Y: %u.\n", nuevo_tripulante->id_tripulante, nuevo_tripulante->estado_tripulante, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
 
 							//iniciar_tripulante(amongOs, caracter_personaje, (int)nuevo_tripulante->posicion_x, (int)nuevo_tripulante->posicion_y);
-							/*tripu_map->id_tripulante = nuevo_tripulante->id_tripulante;
-							tripu_map->caracter_mapa = caracter_personaje;
-							list_add(tripulantes_mapa, tripu_map);*/
+
+						//	tripu_map->id_tripulante = nuevo_tripulante->id_tripulante;
+							//tripu_map->caracter_mapa = caracter_personaje;
+					//		list_add(tripulantes_mapa, tripu_map);
 
 							sem_wait(crear_segmento_sem);
 
@@ -254,7 +255,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 							contador_id_tripu++;
 							free(nuevo_tripulante);
 							posicion += 2;
-							//caracter_personaje++;
+
+						//	caracter_personaje++;
 						}
 
 						list_add(tablas_segmentos, tabla_patota);
@@ -315,7 +317,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						for(int i=0;i<patota_recibida->cantidad_tripulantes;i++){
 
 							t_tcb* nuevo_tripulante = crear_tcb(direccion_pcb, atoi(parser_posiciones[posicion]), atoi(parser_posiciones[posicion+1]));
-							//tripulante_mapa* tripu_map = malloc(sizeof(tripulante_mapa));
+
+						//	tripulante_mapa* tripu_map = malloc(sizeof(tripulante_mapa));
 
 							sem_wait(mutex_paginas);
 							guardar_estructura_en_memoria(nuevo_tripulante, TRIPULANTE, tabla_patota, sizeof(t_tcb));
@@ -323,10 +326,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 							log_info(logger, "Se inició al Tripulante %u en el estado %c, con una posición en X: %u y una posición en Y: %u.\n", nuevo_tripulante->id_tripulante, nuevo_tripulante->estado_tripulante, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
 
-							/*iniciar_tripulante(amongOs, caracter_personaje, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
-							tripu_map->id_tripulante = nuevo_tripulante->id_tripulante;
-							tripu_map->caracter_mapa = caracter_personaje;
-							list_add(tripulantes_mapa, tripu_map);*/
+
+						//	iniciar_tripulante(amongOs, caracter_personaje, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
+						//	tripu_map->id_tripulante = nuevo_tripulante->id_tripulante;
+						//	tripu_map->caracter_mapa = caracter_personaje;
+						//	list_add(tripulantes_mapa, tripu_map);
 
 							sem_wait(crear_pagina_sem);
 
@@ -405,13 +409,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					tripulante_buscado_por_ubicacion->posicion_x = tripulante_por_ubicacion->posicion_x;
 					tripulante_buscado_por_ubicacion->posicion_y = tripulante_por_ubicacion->posicion_y;
 
-					bool _mismo_id(void* tripulante) {
-						return ((tripulante_mapa*)tripulante)->id_tripulante == tripulante_buscado_por_ubicacion->id_tripulante;
-					}
+					//bool _mismo_id(void* tripulante) {
+					//	return ((tripulante_mapa*)tripulante)->id_tripulante == tripulante_buscado_por_ubicacion->id_tripulante;
+					//}
 
-					/*tripu_map_actualizado = list_find(tripulantes_mapa, _mismo_id);
-					actualizar_posicion_tripulante(amongOs, tripu_map_actualizado->caracter_mapa, tripulante_buscado_por_ubicacion->posicion_x, tripulante_buscado_por_ubicacion->posicion_y);
-*/
+				//	tripu_map_actualizado = list_find(tripulantes_mapa, _mismo_id);
+					//actualizar_posicion_tripulante(amongOs, tripu_map_actualizado->caracter_mapa, tripulante_buscado_por_ubicacion->posicion_x, tripulante_buscado_por_ubicacion->posicion_y);
+
 					sem_wait(mutex_segmentos);
 					actualizar_segmento(tripulante_buscado_por_ubicacion, TRIPULANTE, segmento_buscado, patota_buscada);
 					list_replace(patota_buscada->segmentos, indice, segmento_buscado);
@@ -435,13 +439,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					tripulante_buscado_por_ubicacion->posicion_x = tripulante_por_ubicacion->posicion_x;
 					tripulante_buscado_por_ubicacion->posicion_y = tripulante_por_ubicacion->posicion_y;
 
-					/*bool _mismo_id(void* tripulante) {
-						return ((tripulante_mapa*)tripulante)->id_tripulante == tripulante_buscado_por_ubicacion->id_tripulante;
-					}
+					//bool _mismo_id(void* tripulante) {
+					//	return ((tripulante_mapa*)tripulante)->id_tripulante == tripulante_buscado_por_ubicacion->id_tripulante;
+					//}
 
-					tripu_map_actualizado = list_find(tripulantes_mapa, _mismo_id);
-					actualizar_posicion_tripulante(amongOs, tripu_map_actualizado->caracter_mapa, tripulante_buscado_por_ubicacion->posicion_x, tripulante_buscado_por_ubicacion->posicion_y);
-*/
+				//	tripu_map_actualizado = list_find(tripulantes_mapa, _mismo_id);
+					//actualizar_posicion_tripulante(amongOs, tripu_map_actualizado->caracter_mapa, tripulante_buscado_por_ubicacion->posicion_x, tripulante_buscado_por_ubicacion->posicion_y);
+
 					sem_wait(mutex_paginas);
 					actualizar_tripulante_memoria(tripulante_buscado_por_ubicacion, direccion_fisica, tabla_patota_buscada);
 					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
@@ -754,12 +758,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					sem_post(mutex_segmentos);
 
 					sem_wait(mutex_segmentos);
-					bool _mismo_id(void* tripulante) {
-						return ((tripulante_mapa*)tripulante)->id_tripulante == tripulante_a_eliminar->id_tripulante;
-					}
+					//bool _mismo_id(void* tripulante) {
+					//	return ((tripulante_mapa*)tripulante)->id_tripulante == tripulante_a_eliminar->id_tripulante;
+					//}
 
-					/*tripu_map_expulsado = list_find(tripulantes_mapa, _mismo_id);
-					eliminar_tripulante(amongOs, tripu_map_expulsado->caracter_mapa);*/
+					//tripu_map_expulsado = list_find(tripulantes_mapa, _mismo_id);
+					//eliminar_tripulante(amongOs, tripu_map_expulsado->caracter_mapa);
+
 					sem_post(mutex_segmentos);
 
 					liberar_segmento(segmento_buscado);
@@ -839,12 +844,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 
 					sem_wait(mutex_frames);
-					/*bool _mismo_id(void* tripulante) {
-						return ((tripulante_mapa*)tripulante)->id_tripulante == tripulante_a_eliminar->id_tripulante;
-					}
+					//bool _mismo_id(void* tripulante) {
+					//	return ((tripulante_mapa*)tripulante)->id_tripulante == tripulante_a_eliminar->id_tripulante;
+					//}
 
-					tripu_map_expulsado = list_find(tripulantes_mapa, _mismo_id);
-					eliminar_tripulante(amongOs, tripu_map_expulsado->caracter_mapa);*/
+					//tripu_map_expulsado = list_find(tripulantes_mapa, _mismo_id);
+					//eliminar_tripulante(amongOs, tripu_map_expulsado->caracter_mapa);
+
 					sem_post(mutex_frames);
 
 					patota_buscada->cantidad_tripulantes--;

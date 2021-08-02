@@ -1,4 +1,5 @@
 /*#include "mapa.h"
+#include "mapa.h"
 
 #include <stdlib.h>
 #include <curses.h>
