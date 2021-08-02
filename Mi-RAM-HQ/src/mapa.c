@@ -1,4 +1,4 @@
-#include "mapa.h"
+/*#include "mapa.h"
 
 #include <stdlib.h>
 #include <curses.h>
@@ -37,3 +37,4 @@ void finalizar_mapa(NIVEL* nivel) {
 	nivel_destruir(nivel);
 	nivel_gui_terminar();
 }
+*/
