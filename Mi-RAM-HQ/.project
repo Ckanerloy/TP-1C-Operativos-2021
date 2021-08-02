@@ -3,9 +3,8 @@
 	<name>Mi-RAM</name>
 	<comment></comment>
 	<projects>
-		<project>commons</project>
 		<project>utils</project>
-		<project>LibMap</project>
+		<project>commons</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

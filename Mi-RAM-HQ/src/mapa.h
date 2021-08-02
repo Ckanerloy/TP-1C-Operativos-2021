@@ -1,3 +1,4 @@
+/*
 #ifndef MAPA_H_
 #define MAPA_H_
 
@@ -15,5 +16,5 @@ void iniciar_tripulante(NIVEL* nivel, int caracter_personaje, int posicion_x, in
 void actualizar_posicion_tripulante(NIVEL* nivel, int caracter_personaje, int posicion_x, int posicion_y);
 void eliminar_tripulante(NIVEL* nivel, int caracter_personaje);
 void finalizar_mapa(NIVEL* nivel);
-
-#endif /* MAPA_H_ */
+*/
+//#endif /* MAPA_H_ */
