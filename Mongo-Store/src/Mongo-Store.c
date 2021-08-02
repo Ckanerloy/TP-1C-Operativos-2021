@@ -9,6 +9,9 @@ int main(void) {
 	logger = crear_log("mongo-store.log", "Mongo Store");
 	log_info(logger, "Servidor Mongo Store activo...");
 
+	mutex_bitacora = malloc(sizeof(sem_t));
+	sem_init(mutex_bitacora, 0, 1);
+
 	num_sabotaje = 0;
 	// Recibe la señal para enviar sabotaje
 	signal(SIGUSR1, (void*)iniciar_sabotaje);
@@ -49,7 +52,6 @@ int main(void) {
 			super_bloque = mmap(NULL, statbuf_2.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
 			levantar_archivo_superBloque();
 			hash_MD5();
-
 		}
 
 	pthread_create(&hilo_sincronizador, NULL, (void*)sincronizar, NULL);
@@ -144,10 +146,36 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				printf("Tripu %u: %s\n", bitacora_tripu->id_tripulante, bitacora_tripu->accion);
 
+				printf("Tamanio accion: %u \n", bitacora_tripu->tamanio_accion);
+				char* path = string_new();
+				string_append_with_format(&path, "/Files/Bitacoras/Tripulante%u.ims", bitacora_tripu->id_tripulante);
+
+				char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
+
+				path_completo = concatenar_path(path);
+
+
+
+				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
+					log_info(logger, "No existe la bitacora del tripulante %u , se procede a crearla.\n",bitacora_tripu->id_tripulante);
+
+					crear_archivo_metadata_bitacora(path_completo);
+
+				//	t_list* lista_posiciones = obtener_array_bloques_a_usar(bitacora_tripu->tamanio_accion);
+					t_list* lista_posiciones = obtener_array_bloques_a_usar(128);
+					actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion, lista_posiciones);
+
+				}
+				else {
+					//actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion, lista_posiciones);
+
+				}
+
+
 				/*
 				 * Buscar si existe la Bitacora del Tripulante #ID
 				 * 	- Si existe: actualizarla
-				 * 	- Si NO existe: crearla y agregarle los datos
+				 * 	- Si NO existe: crearla y agregarle los datos en blocks.ims
 				 */
 
 				cerrar_conexion(logger, conexion);
@@ -184,9 +212,31 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			}
 }
 
+int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar){
+
+	int32_t cantidad_bloques = tamanio_a_guardar / BLOCK_SIZE;
+
+	if (tamanio_a_guardar % BLOCK_SIZE != 0){
+		cantidad_bloques++;
+	}
+	return cantidad_bloques;
+}
+
+t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar){
+	int32_t cantidad_bloques = cantidad_bloques_a_usar(tamanio_a_guardar);
+
+	t_list* posiciones = list_create();
+
+	for(int i=0; i<cantidad_bloques; i++){
+		int posicion_bit_libre = posicionBitLibre();
+		list_add(posiciones, posicion_bit_libre);
+		bitarray_set_bit(bitArraySB, posicion_bit_libre);
+	}
+	return posiciones;
+}
 
 // Crear un nuevo archivo por defecto dentro de /Files
-char* crear_archivo_metadata(char* path_archivo){
+void crear_archivo_metadata_recurso(char* path_archivo){
 
 	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path_archivo) + 2);
 
@@ -214,7 +264,6 @@ char* crear_archivo_metadata(char* path_archivo){
 
 	config_destroy(contenido_archivo);
 
-	return path_completo;
 }
 
 //PARA GENERAR EL MD5 https://askubuntu.com/questions/53846/how-to-get-the-md5-hash-of-a-string-directly-in-the-terminal
@@ -232,17 +281,12 @@ void hash_MD5(){
 	system(system_command);
 }
 
-char* crear_archivo_bitacora(char* path_archivo){
-
-	//PUNTO_MONTAJE/Files/Bitacoras/Tripulante1.ims
-	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path_archivo) + 2);
-
-	path_completo = concatenar_path(path_archivo);
+void crear_archivo_metadata_bitacora(char* path_completo){
 
 	FILE* archivo = fopen( path_completo , "w" );
 
 	if (archivo == NULL){
-		printf("****************ERROR | No se pudo crear el archivo %s ****************\n", path_completo);
+		log_error(logger, "No se pudo crear el archivo %s \n", path_completo);
 		exit(-1);
 	}
 
@@ -252,13 +296,58 @@ char* crear_archivo_bitacora(char* path_archivo){
 
 	// Valores default del archivo
 	config_set_value(contenido_archivo, "SIZE", "0");
-	config_set_value(contenido_archivo, "BLOCKS", "0");
+	config_set_value(contenido_archivo, "BLOCKS", "[]");
 
 	config_save(contenido_archivo);
 
 	config_destroy(contenido_archivo);
 
-	return path_completo;
+}
+
+void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion, t_list* lista_blocks){ //pasarle por paremetro los blocks
+	FILE* archivo = fopen( path , "r+" );
+
+	if (archivo == NULL){
+		log_error(logger, "No se pudo escribir en el archivo %s \n", path);
+		exit(-1);
+	}
+
+	t_config* contenido_archivo = config_create(path);
+
+	// Valores default del archivo
+
+	printf("ENTRE EN EL ELSE DE ACTUALIZAR \n");
+
+	int valor = config_get_int_value(contenido_archivo, "SIZE");
+	valor+=tamanio_accion;
+
+	char* string_a_guardar = string_new();
+	string_append_with_format(&string_a_guardar,"%u", valor);
+
+	config_set_value(contenido_archivo, "SIZE", string_a_guardar);
+	free(string_a_guardar);
+
+	char* bloques = string_new();
+	string_append_with_format(&bloques,"[");
+	for(int i=0; i<list_size(lista_blocks); i++){
+		int posicion = list_get(lista_blocks, i);
+
+		if(i == list_size(lista_blocks)-1)
+			string_append_with_format(&bloques,"%u", posicion);
+		else{
+			string_append_with_format(&bloques,"%u,", posicion);
+		}
+	}
+	string_append_with_format(&bloques,"]");
+
+	config_set_value(contenido_archivo, "BLOCKS", bloques);
+
+	config_save(contenido_archivo);
+
+	config_destroy(contenido_archivo);
+
+	fclose(archivo);
+
 }
 
 
@@ -303,11 +392,17 @@ uint32_t cantidad_posiciones(char** parser) {
 void sincronizar(){
 	while(1){
 		sleep(TIEMPO_SINCRONIZACION);
+
 		memcpy(blocks, informacion_blocks, BLOCK_SIZE*BLOCKS);
-		msync(blocks, BLOCK_SIZE*BLOCKS, MS_SYNC);
+		if(msync(blocks, BLOCK_SIZE*BLOCKS, MS_SYNC)<0){
+			log_error(logger, "No se pudo sincronizar blocks.");
+			return;
+		}
 
 		memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
-		msync(super_bloque, 2*sizeof(uint32_t)+BLOCKS/8, MS_SYNC);
-
+		if(msync(super_bloque, 2*sizeof(uint32_t)+BLOCKS/8, MS_SYNC)<0){
+			log_error(logger, "No se pudo sincronizar el super bloque.");
+			return;
+		}
 	}
 }

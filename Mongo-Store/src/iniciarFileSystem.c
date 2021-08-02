@@ -27,30 +27,20 @@ int existe_file_system(){
 	//Si retorna -1 quiere decir que no lo pudo abrir
 	existeArchivo = open(nombreArchivoValidacion, O_RDONLY, S_IRUSR);
 
-
 	return existeArchivo;
-
 }
 
 void inicializar_file_system(){
-
-
 		creacion_directorio(PUNTO_MONTAJE, "");//Se crea el path /home/utnso/polus TODO cambiar los parámetros que recibe para no poner ""
 		creacion_directorio(PUNTO_MONTAJE, "Files");//Se crea el path /home/utnso/polus/Files
 		creacion_directorio(PUNTO_MONTAJE, "Files/Bitacoras");//Se crea el path /home/utnso/polus/Files/Bitacoras
 		iniciar_superbloque();
 		crear_archivo_blocks();
 
-
 		log_info(logger, "FileSystem inicializado con éxito");
-
 }
 
-
-
-
 void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio){
-
 
 	char* direccion_carpeta = malloc(strlen(direccion_punto_montaje) + strlen(nombre_directorio) + 2); //Asigno espacio de memoria para el nombre total del directorio
 
@@ -60,13 +50,8 @@ void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio)
 
 	//Hago uso de la función mkdir para crear el directorio en el modo predeterminado 0777 (acceso más amplio posible)
 	mkdir(direccion_carpeta, 0777);
-
 	//return direccion_carpeta; //TODO No olvidarme de liberar memoria en MongoStore
 }
-
-
-
-
 
 void iniciar_superbloque(){
 
@@ -92,7 +77,6 @@ void iniciar_superbloque(){
 	    log_error(logger, "Error al abrir el archivo SuperBloque.ims \n");//Revisar print del error
 	    exit(1);
 	  }
-
 	//Trunco espacio del archivo
 	ftruncate(archivo, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8);
 	fstat(archivo, &statbuf);
@@ -103,10 +87,7 @@ void iniciar_superbloque(){
 	if(super_bloque == MAP_FAILED){
 		perror("Error mapping \n");
 		exit(1);
-
 	}
-
-
 			//Creo que este msync no hace falta
 			//msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
 
@@ -153,9 +134,7 @@ void levantar_archivo_superBloque(){
 	bitArraySB = malloc(sizeof(t_bitarray));
 	bitArraySB = crear_bitarray(bitmap);
 	memcpy(bitmap, super_bloque+sizeof(uint32_t)*2, BLOCKS/8);
-
 }
-
 
 void crear_archivo_blocks(){
 
@@ -185,8 +164,6 @@ void crear_archivo_blocks(){
 
 			log_info(logger,"[msync] Se creó y sincronizó el archivo Blocks.ims correctamente.\n");
 		}
-
-
 }
 
 void escribir_archivo_blocks(uint32_t bloque, char* cadena_a_escribir, uint32_t longitud_cadena){
@@ -195,7 +172,5 @@ void escribir_archivo_blocks(uint32_t bloque, char* cadena_a_escribir, uint32_t 
 	uint32_t ubicacion_bloque = bloque * BLOCK_SIZE;
 
 	memcpy(informacion_blocks+ubicacion_bloque, cadena_a_escribir, longitud_cadena);
-
-
 }
 

@@ -57,16 +57,21 @@ uint32_t cantidad_bloques_en_SB;
 t_log* logger;
 t_config* config;
 
+//semaforos
+sem_t* mutex_bitacora;
+
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_sincronizador;
 
 int32_t num_sabotaje;
 
-
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
-char* crear_archivo_metadata(char* nombre_archivo);
-char* crear_archivo_bitacora(char* nombre_archivo);
+void crear_archivo_metadata_recurso(char* nombre_archivo);
+void crear_archivo_metadata_bitacora(char* nombre_archivo);
+void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion, t_list* lista_blocks);
+t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar);
+int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar);
 void sincronizar();
 void hash_MD5();
 

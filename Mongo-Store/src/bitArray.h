@@ -8,7 +8,7 @@
 
 t_bitarray* crearBitArray(char*);
 void vaciarBitArray(t_bitarray* bitarray);
-int posicionBitLibre (t_bitarray* bitarray);
+int posicionBitLibre ();
 void llenarBitArray(t_bitarray* bitarray);
 
 #endif /* SRC_BITARRAY_H_ */
