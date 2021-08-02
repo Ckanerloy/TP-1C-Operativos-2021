@@ -69,12 +69,12 @@ void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 void crear_archivo_metadata_recurso(char* nombre_archivo);
 void crear_archivo_metadata_bitacora(char* nombre_archivo);
-void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion, t_list* lista_blocks);
+void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion);
 t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar);
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar);
 void sincronizar();
 void hash_MD5();
-
+uint32_t contador_elementos_array_char_asterisco(char** bloques_usados);
 void iniciar_sabotaje(void);
 uint32_t cantidad_posiciones(char** parser);
 #endif /* MONGO_STORE_H_ */

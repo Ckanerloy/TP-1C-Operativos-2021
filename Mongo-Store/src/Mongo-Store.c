@@ -51,7 +51,7 @@ int main(void) {
 			fstat(archivo, &statbuf_2);
 			super_bloque = mmap(NULL, statbuf_2.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
 			levantar_archivo_superBloque();
-			hash_MD5();
+			//hash_MD5();
 		}
 
 	pthread_create(&hilo_sincronizador, NULL, (void*)sincronizar, NULL);
@@ -162,12 +162,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					crear_archivo_metadata_bitacora(path_completo);
 
 				//	t_list* lista_posiciones = obtener_array_bloques_a_usar(bitacora_tripu->tamanio_accion);
-					t_list* lista_posiciones = obtener_array_bloques_a_usar(128);
-					actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion, lista_posiciones);
-
+				//	t_list* lista_posiciones = obtener_array_bloques_a_usar(128);
+					actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
+//PARA MI ESTA MAL DESDE ACA MANDAR LA LISTA DE POSICIONES Q VAS A USAR, SI ESO FORMA PARTE DE ACTUALZIAR EL ARCHIVO.
 				}
 				else {
-					//actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion, lista_posiciones);
+					actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
 
 				}
 
@@ -304,7 +304,7 @@ void crear_archivo_metadata_bitacora(char* path_completo){
 
 }
 
-void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion, t_list* lista_blocks){ //pasarle por paremetro los blocks
+void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion){
 	FILE* archivo = fopen( path , "r+" );
 
 	if (archivo == NULL){
@@ -314,34 +314,80 @@ void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion, t
 
 	t_config* contenido_archivo = config_create(path);
 
-	// Valores default del archivo
 
-	printf("ENTRE EN EL ELSE DE ACTUALIZAR \n");
-
-	int valor = config_get_int_value(contenido_archivo, "SIZE");
-	valor+=tamanio_accion;
+	// actualizamos el size
+	int valor_size = config_get_int_value(contenido_archivo, "SIZE");
+	int nuevo_valor= valor_size +tamanio_accion;
 
 	char* string_a_guardar = string_new();
-	string_append_with_format(&string_a_guardar,"%u", valor);
+	string_append_with_format(&string_a_guardar,"%u", nuevo_valor);
 
 	config_set_value(contenido_archivo, "SIZE", string_a_guardar);
 	free(string_a_guardar);
 
-	char* bloques = string_new();
-	string_append_with_format(&bloques,"[");
-	for(int i=0; i<list_size(lista_blocks); i++){
-		int posicion = list_get(lista_blocks, i);
+	//algo q haria yo
 
-		if(i == list_size(lista_blocks)-1)
-			string_append_with_format(&bloques,"%u", posicion);
-		else{
-			string_append_with_format(&bloques,"%u,", posicion);
+	char** bloques_usados=config_get_array_value(contenido_archivo,"BLOCKS");
+
+	uint32_t cantidad_bloques_usados=contador_elementos_array_char_asterisco(bloques_usados);
+	//printf("cantidad de bloques %d",cantidad_bloques_usados);
+	fflush(stdout);
+	if(cantidad_bloques_usados==0){
+
+		t_list* lista_posiciones = obtener_array_bloques_a_usar(tamanio_accion);
+		char* bloques = string_new();
+		string_append_with_format(&bloques,"[");
+
+		for(int i=0; i<list_size(lista_posiciones); i++){
+			int posicion = list_get(lista_posiciones, i);
+		//	printf("posicion a agregar en la lista %d \n",posicion);
+			if(i == list_size(lista_posiciones)-1)
+				string_append_with_format(&bloques,"%u", posicion);
+			else{
+				string_append_with_format(&bloques,"%u,", posicion);
+			}
 		}
+		string_append_with_format(&bloques,"]");
+
+		config_set_value(contenido_archivo, "BLOCKS", bloques);
+	}else{
+		uint32_t fragmentacion_interna=cantidad_bloques_usados*BLOCK_SIZE - valor_size;
+	//	printf("restante del bloque %d \n",fragmentacion_interna);
+
+		t_list* lista_posiciones;
+		if(tamanio_accion>fragmentacion_interna){
+			lista_posiciones = obtener_array_bloques_a_usar(tamanio_accion-fragmentacion_interna);
+		}else{
+			lista_posiciones = obtener_array_bloques_a_usar(0);
+		}
+
+		char* bloques = string_new();
+		string_append_with_format(&bloques,"[");
+		int recorrido=0;
+		while(bloques_usados[recorrido]!=NULL){
+			if(recorrido == cantidad_bloques_usados-1 && list_size(lista_posiciones)==0){
+				string_append_with_format(&bloques,bloques_usados[recorrido]);
+
+			}else{
+				string_append_with_format(&bloques,bloques_usados[recorrido]);
+				string_append_with_format(&bloques,",");
+			}
+			recorrido++;
+		}
+		for(int i=0; i<list_size(lista_posiciones); i++){
+			int posicion = list_get(lista_posiciones, i);
+			if(i == list_size(lista_posiciones)-1)
+				string_append_with_format(&bloques,"%u", posicion);
+			else{
+				string_append_with_format(&bloques,"%u,", posicion);
+			}
+		}
+		string_append_with_format(&bloques,"]");
+		config_set_value(contenido_archivo, "BLOCKS", bloques);
+
+		//ya tenia algo adentro, verificar fragmentacion interna;
 	}
-	string_append_with_format(&bloques,"]");
-
-	config_set_value(contenido_archivo, "BLOCKS", bloques);
-
+	//
 	config_save(contenido_archivo);
 
 	config_destroy(contenido_archivo);
@@ -405,4 +451,14 @@ void sincronizar(){
 			return;
 		}
 	}
+}
+uint32_t contador_elementos_array_char_asterisco(char** bloques_usados){
+	uint32_t cantidad=0;
+	uint32_t recorrido=0;
+	while(bloques_usados[recorrido] != NULL) {
+		cantidad++;
+		recorrido++;
+	}
+
+	return cantidad;
 }
