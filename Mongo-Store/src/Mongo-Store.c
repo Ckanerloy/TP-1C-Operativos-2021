@@ -41,7 +41,7 @@ int main(void) {
 			fstat(archivo_blocks, &statbuf);
 			blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
 			levantar_archivo_blocks();
-			escribir_archivo_blocks(3, "BLOQUE 3", strlen("BLOQUE 3"));
+		//	escribir_archivo_blocks(3, "BLOQUE 3", strlen("BLOQUE 3"));
 
 			//Seccion SuperBloque
 			char *direccion_superBloque = concatenar_path("/SuperBloque.ims");
@@ -283,32 +283,32 @@ void guardar_en_blocks(char* path_completo, bitacora* bitacora_tripu, t_metadata
 
 		if(libre_ultimo_bloque >= bitacora_tripu->tamanio_accion){
 			uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
-			memcpy(informacion_blocks+ubicacion_bloque, bitacora_tripu->accion, bitacora_tripu->tamanio_accion);
+			memcpy(informacion_blocks + ubicacion_bloque + usado_ultimo_bloque, bitacora_tripu->accion, bitacora_tripu->tamanio_accion);
 		}else{
 
 			uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
-			memcpy(informacion_blocks+ubicacion_bloque, bitacora_tripu->accion, libre_ultimo_bloque);
+			memcpy(informacion_blocks + ubicacion_bloque + usado_ultimo_bloque, bitacora_tripu->accion, libre_ultimo_bloque);
 			desplazamiento += libre_ultimo_bloque;
 
 			for(int i=0; i< (cant_bloq_asig_nuevos - cant_bloq_asig_anterior) - 1; i++) { //accion mas grande que el bloque
 
-				uint32_t nro_bloque = atoi(bloques_asignados_nuevo[i]);
+				uint32_t nro_bloque = atoi(bloques_asignados_nuevo[i+cant_bloq_asig_anterior]);
 				uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
 
 				memcpy(informacion_blocks+ubicacion_bloque, bitacora_tripu->accion + desplazamiento, BLOCK_SIZE);
 				desplazamiento += BLOCK_SIZE;
 			}
+			uint32_t nro_ultimo_bloque = atoi(bloques_asignados_nuevo[cant_bloq_asig_nuevos-1]);
+
+			uint32_t espacio_libre_ultimo_bloque = (cant_bloq_asig_nuevos*BLOCK_SIZE - valor_size_nuevo);
+			uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+
+			ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+
+			memcpy(informacion_blocks+ubicacion_bloque, bitacora_tripu->accion+desplazamiento, cant_necesaria_ultimo_bloque);
 
 		}
 	}
-
-	/*[2,5,8] usa mitad de 8  [2,5,8,9,10] agrega la mitad de 8 y un bloque entero mas
-
-	3   4  = diferencia de 1
-
-	buscas cuanto le sobro a 8
-	escribir en 8
-	y dsp lo que te falta en 9*/
 
 }
 
