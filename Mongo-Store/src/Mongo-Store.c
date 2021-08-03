@@ -102,13 +102,46 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				tripulante_por_bitacora = malloc(sizeof(t_tripulante));
 				recibir_mensaje(tripulante_por_bitacora, operacion, conexion);
 
-				// Recibe un id tripulante
-				// Busca la bitacora (archivo) del tripulante
-				// Envia la bitacora
-				// Cuando envia, es un CHAR* enorme para que Discordiador y asi lo guarda en el logger
+                char* path_string = string_new();
+				string_append_with_format(&path_string, "/Files/Bitacoras/Tripulante%u.ims", tripulante_por_bitacora->id_tripulante);
 
-				// char* bitacora_tripulante;
-				// uint32_t tamanio_bitacora_tripu;
+				char* path_archivo = malloc(strlen(PUNTO_MONTAJE) + strlen(path_string) + 2);
+
+				path_archivo = concatenar_path(path_string);
+
+				if(open(path_archivo, O_RDWR, S_IRUSR|S_IWUSR) < 0) {
+					log_error(logger, "No existe la bitacora del tripulante %u", tripulante_por_bitacora->id_tripulante);
+					break;
+				}
+
+				else {
+					int size_bitacora = leer_size_archivo(path_archivo, "SIZE");
+					char** bloques = leer_blocks_archivo(path_archivo, "BLOCKS");
+
+					char* bitacora = malloc(size_bitacora +1);
+					printf("size_bitacora: %d \n", size_bitacora);
+
+					uint32_t cant_bloques = cantidad_elementos(bloques);
+					uint32_t desplazamiento = 0;
+
+					for(int i=0; i<cant_bloques-1; i++) {
+
+						uint32_t nro_bloque = atoi(bloques[i]);
+						uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+
+						memcpy(bitacora + desplazamiento, informacion_blocks + ubicacion_bloque, BLOCK_SIZE);
+						desplazamiento += BLOCK_SIZE;
+					}
+
+					uint32_t nro_ultimo_bloque = atoi(bloques[cant_bloques-1]);
+					uint32_t espacio_libre_ultimo_bloque = (cant_bloques*BLOCK_SIZE - size_bitacora);
+					uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+					uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+
+					memcpy(bitacora + desplazamiento, informacion_blocks + ubicacion_bloque, cant_necesaria_ultimo_bloque);
+					strcat(bitacora, "\0");
+					printf("La bitacora es: %s \n", bitacora);
+				}
 
 				cerrar_conexion(logger, conexion);
 				free(tripulante_por_bitacora);
