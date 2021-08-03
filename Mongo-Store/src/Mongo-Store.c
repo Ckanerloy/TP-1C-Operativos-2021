@@ -118,7 +118,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					int size_bitacora = leer_size_archivo(path_archivo, "SIZE");
 					char** bloques = leer_blocks_archivo(path_archivo, "BLOCKS");
 
-					char* bitacora = malloc(size_bitacora +1);
+					void* buffer = malloc(size_bitacora +1);
 					printf("size_bitacora: %d \n", size_bitacora);
 
 					uint32_t cant_bloques = cantidad_elementos(bloques);
@@ -129,7 +129,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						uint32_t nro_bloque = atoi(bloques[i]);
 						uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
 
-						memcpy(bitacora + desplazamiento, informacion_blocks + ubicacion_bloque, BLOCK_SIZE);
+						memcpy(buffer + desplazamiento, informacion_blocks + ubicacion_bloque, BLOCK_SIZE);
 						desplazamiento += BLOCK_SIZE;
 					}
 
@@ -138,7 +138,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
 					uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
 
-					memcpy(bitacora + desplazamiento, informacion_blocks + ubicacion_bloque, cant_necesaria_ultimo_bloque);
+					memcpy(buffer + desplazamiento, informacion_blocks + ubicacion_bloque, cant_necesaria_ultimo_bloque);
+
+
 					strcat(bitacora, "\0");
 					printf("La bitacora es: %s \n", bitacora);
 				}
@@ -158,7 +160,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
 				path_completo = concatenar_path(path);
 				printf("Llego la tarea de GENERAR_INSUMO\n");
-
 
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
 					log_info(logger, "No existe el recurso %s , se procede a crearlo.\n", tarea_io->nombre_archivo);

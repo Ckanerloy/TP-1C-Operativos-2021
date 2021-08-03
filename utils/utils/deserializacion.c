@@ -29,7 +29,7 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 			break;
 
 		case OBTENER_BITACORA:
-			deserializar_tripulante(mensaje, conexion);
+			deserializar_bitacora_tripulante(mensaje, conexion);
 			break;
 
 		case SABOTAJE:
@@ -122,6 +122,20 @@ void deserializar_iniciar_patota(t_iniciar_patota* mensaje, int32_t conexion) {
 	// Posiciones de los tripulantes
 	memcpy(mensaje->posiciones, buffer_deserializar + desplazamiento, mensaje->tamanio_posiciones+1);
 	desplazamiento += mensaje->tamanio_posiciones+1;
+
+	free(buffer_deserializar);
+}
+
+
+void deserializar_bitacora_tripulante(t_tripulante* mensaje, int32_t conexion) {
+	uint32_t tamanio;
+	uint32_t desplazamiento = 0;
+	void* buffer_deserializar;
+	buffer_deserializar = recibir_buffer(&tamanio, conexion);
+
+	// ID de Tripulante
+	memcpy(&(mensaje->id_tripulante), buffer_deserializar + desplazamiento, sizeof(mensaje->id_tripulante));
+	desplazamiento += sizeof(mensaje->id_tripulante);
 
 	free(buffer_deserializar);
 }
