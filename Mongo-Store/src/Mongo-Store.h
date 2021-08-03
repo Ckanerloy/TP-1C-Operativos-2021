@@ -59,10 +59,10 @@ t_config* config;
 typedef struct{
 	char** bloques_asignados_anterior;
 	int size;
-}t_metadata_bitacora;
+}t_metadata;
 
 //semaforos
-sem_t* mutex_bitacora;
+sem_t* mutex_recursos;
 
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_sincronizador;
@@ -72,7 +72,11 @@ void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 void crear_archivo_metadata_recurso(char* nombre_archivo);
 void crear_archivo_metadata_bitacora(char* nombre_archivo);
-t_metadata_bitacora* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion);
+
+t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion);
+
+t_metadata* actualizar_archivo_metadata_recurso(char* path, archivo_tarea* tarea_io);
+
 t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar);
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar);
 void sincronizar();
@@ -82,7 +86,7 @@ uint32_t cantidad_elementos(char** parser);
 
 
 // Funciones sobre Bloques
-void guardar_en_blocks(char* path_completo, bitacora* bitacora_tripu, t_metadata_bitacora* metadata_bitacora);
+void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
 
 
 
@@ -90,7 +94,11 @@ void guardar_en_blocks(char* path_completo, bitacora* bitacora_tripu, t_metadata
 int leer_size_archivo(char* path_archivo, char* clave);
 char** leer_blocks_archivo(char* path_archivo, char* clave);
 void guardar_nuevo_size_archivo(char* path_archivo, int valor, char* clave);
-void guardar_nuevos_blocks_archivo(char* path_archivo, char* valor, char* clave);
+//void guardar_nuevos_blocks_archivo(char* path_archivo, char* valor, char* clave);
+void guardar_nuevos_datos_en_archivo(char* path_archivo, void* valor, char* clave);
 
+
+
+char* armar_recurso(archivo_tarea* tarea_io);
 
 #endif /* MONGO_STORE_H_ */
