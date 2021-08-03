@@ -160,13 +160,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					crear_archivo_metadata_bitacora(path_completo);
 
 					t_metadata_bitacora* metadata_bitacora = actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
-					guardar_en_blocks(path_completo, bitacora_tripu->accion);
+					guardar_en_blocks(path_completo, bitacora_tripu, metadata_bitacora);
 
 
 				}
 				else {
 					t_metadata_bitacora* metadata_bitacora = actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
-					guardar_en_blocks(path_completo, bitacora_tripu->accion, metadata_bitacora);
+					guardar_en_blocks(path_completo, bitacora_tripu, metadata_bitacora);
 
 				}
 
@@ -234,7 +234,7 @@ t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar){
 	return posiciones;
 }
 
-void guardar_en_blocks(char* path_completo, char* accion, t_metadata_bitacora* metadata_bitacora){
+void guardar_en_blocks(char* path_completo, bitacora* bitacora_tripu, t_metadata_bitacora* metadata_bitacora){
 	FILE* archivo = fopen( path_completo , "r+" );
 
 	if (archivo == NULL){
@@ -261,7 +261,7 @@ void guardar_en_blocks(char* path_completo, char* accion, t_metadata_bitacora* m
 			uint32_t nro_bloque = atoi(bloques_asignados_nuevo[i]);
 			uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
 
-			memcpy(informacion_blocks+ubicacion_bloque, accion + desplazamiento, BLOCK_SIZE);
+			memcpy(informacion_blocks+ubicacion_bloque, bitacora_tripu->accion + desplazamiento, BLOCK_SIZE);
 			desplazamiento += BLOCK_SIZE;
 		}
 
@@ -271,11 +271,38 @@ void guardar_en_blocks(char* path_completo, char* accion, t_metadata_bitacora* m
 
 		uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
 
-		memcpy(informacion_blocks+ubicacion_bloque, accion+desplazamiento, cant_necesaria_ultimo_bloque);
+		memcpy(informacion_blocks+ubicacion_bloque, bitacora_tripu->accion+desplazamiento, cant_necesaria_ultimo_bloque);
 
+	}else{
+		uint32_t nro_ultimo_bloque = atoi(metadata_bitacora->bloques_asignados_anterior[cant_bloq_asig_anterior-1]);
+		printf("nro del ultimo bloque: %d \n",nro_ultimo_bloque);
+		int32_t libre_ultimo_bloque = BLOCK_SIZE*cant_bloq_asig_anterior - metadata_bitacora->size;
+		int32_t usado_ultimo_bloque = BLOCK_SIZE - libre_ultimo_bloque;
+
+		int32_t desplazamiento = 0;
+
+		if(libre_ultimo_bloque >= bitacora_tripu->tamanio_accion){
+			uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+			memcpy(informacion_blocks+ubicacion_bloque, bitacora_tripu->accion, bitacora_tripu->tamanio_accion);
+		}else{
+
+			uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+			memcpy(informacion_blocks+ubicacion_bloque, bitacora_tripu->accion, libre_ultimo_bloque);
+			desplazamiento += libre_ultimo_bloque;
+
+			for(int i=0; i< (cant_bloq_asig_nuevos - cant_bloq_asig_anterior) - 1; i++) { //accion mas grande que el bloque
+
+				uint32_t nro_bloque = atoi(bloques_asignados_nuevo[i]);
+				uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+
+				memcpy(informacion_blocks+ubicacion_bloque, bitacora_tripu->accion + desplazamiento, BLOCK_SIZE);
+				desplazamiento += BLOCK_SIZE;
+			}
+
+		}
 	}
 
-	/*[2,5,8] usa mitad de 8  [2,5,8,9] agrega la mitad de 8 y un bloque entero mas
+	/*[2,5,8] usa mitad de 8  [2,5,8,9,10] agrega la mitad de 8 y un bloque entero mas
 
 	3   4  = diferencia de 1
 
@@ -284,6 +311,8 @@ void guardar_en_blocks(char* path_completo, char* accion, t_metadata_bitacora* m
 	y dsp lo que te falta en 9*/
 
 }
+
+
 
 // Crear un nuevo archivo por defecto dentro de /Files
 void crear_archivo_metadata_recurso(char* path_archivo){
