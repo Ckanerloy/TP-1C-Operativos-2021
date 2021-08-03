@@ -154,20 +154,19 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				path_completo = concatenar_path(path);
 
-
-
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
 					log_info(logger, "No existe la bitacora del tripulante %u , se procede a crearla.\n",bitacora_tripu->id_tripulante);
 
 					crear_archivo_metadata_bitacora(path_completo);
 
-				//	t_list* lista_posiciones = obtener_array_bloques_a_usar(bitacora_tripu->tamanio_accion);
-				//	t_list* lista_posiciones = obtener_array_bloques_a_usar(128);
-					actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
-//PARA MI ESTA MAL DESDE ACA MANDAR LA LISTA DE POSICIONES Q VAS A USAR, SI ESO FORMA PARTE DE ACTUALZIAR EL ARCHIVO.
+					t_metadata_bitacora* metadata_bitacora = actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
+					guardar_en_blocks(path_completo, bitacora_tripu->accion);
+
+
 				}
 				else {
-					actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
+					t_metadata_bitacora* metadata_bitacora = actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
+					guardar_en_blocks(path_completo, bitacora_tripu->accion, metadata_bitacora);
 
 				}
 
@@ -233,6 +232,57 @@ t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar){
 		bitarray_set_bit(bitArraySB, posicion_bit_libre);
 	}
 	return posiciones;
+}
+
+void guardar_en_blocks(char* path_completo, char* accion, t_metadata_bitacora* metadata_bitacora){
+	FILE* archivo = fopen( path_completo , "r+" );
+
+	if (archivo == NULL){
+		log_error(logger, "No se pudo escribir en el archivo %s \n", path_completo);
+		exit(-1);
+	}
+
+	t_config* contenido_archivo = config_create(path_completo);
+
+	int valor_size_nuevo = config_get_int_value(contenido_archivo, "SIZE");
+
+	char** bloques_asignados_nuevo = config_get_array_value(contenido_archivo,"BLOCKS");
+
+	uint32_t cant_bloq_asig_nuevos = contador_elementos_array_char_asterisco(bloques_asignados_nuevo);
+
+	uint32_t cant_bloq_asig_anterior = contador_elementos_array_char_asterisco(metadata_bitacora->bloques_asignados_anterior);
+
+	if (cant_bloq_asig_anterior == 0){
+
+		int32_t desplazamiento = 0;
+
+		for(int i=0; i<cant_bloq_asig_nuevos-1; i++) { //accion mas grande que el bloque
+
+			uint32_t nro_bloque = atoi(bloques_asignados_nuevo[i]);
+			uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+
+			memcpy(informacion_blocks+ubicacion_bloque, accion + desplazamiento, BLOCK_SIZE);
+			desplazamiento += BLOCK_SIZE;
+		}
+
+		uint32_t nro_ultimo_bloque = atoi(bloques_asignados_nuevo[cant_bloq_asig_nuevos-1]);
+		uint32_t espacio_libre_ultimo_bloque = (cant_bloq_asig_nuevos*BLOCK_SIZE - valor_size_nuevo);
+		uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+
+		uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+
+		memcpy(informacion_blocks+ubicacion_bloque, accion+desplazamiento, cant_necesaria_ultimo_bloque);
+
+	}
+
+	/*[2,5,8] usa mitad de 8  [2,5,8,9] agrega la mitad de 8 y un bloque entero mas
+
+	3   4  = diferencia de 1
+
+	buscas cuanto le sobro a 8
+	escribir en 8
+	y dsp lo que te falta en 9*/
+
 }
 
 // Crear un nuevo archivo por defecto dentro de /Files
@@ -304,7 +354,7 @@ void crear_archivo_metadata_bitacora(char* path_completo){
 
 }
 
-void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion){
+t_metadata_bitacora* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion){
 	FILE* archivo = fopen( path , "r+" );
 
 	if (archivo == NULL){
@@ -314,25 +364,24 @@ void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion){
 
 	t_config* contenido_archivo = config_create(path);
 
-
 	// actualizamos el size
-	int valor_size = config_get_int_value(contenido_archivo, "SIZE");
-	int nuevo_valor= valor_size +tamanio_accion;
+
+	t_metadata_bitacora* metadata_bitacora = malloc(sizeof(t_metadata_bitacora));
+
+	metadata_bitacora->size = config_get_int_value(contenido_archivo, "SIZE");
+	int nuevo_valor_size= metadata_bitacora->size +tamanio_accion;
 
 	char* string_a_guardar = string_new();
-	string_append_with_format(&string_a_guardar,"%u", nuevo_valor);
+	string_append_with_format(&string_a_guardar,"%u", nuevo_valor_size);
 
 	config_set_value(contenido_archivo, "SIZE", string_a_guardar);
 	free(string_a_guardar);
 
-	//algo q haria yo
+	metadata_bitacora->bloques_asignados_anterior = config_get_array_value(contenido_archivo,"BLOCKS");
 
-	char** bloques_usados=config_get_array_value(contenido_archivo,"BLOCKS");
+	uint32_t cantidad_bloques_usados = contador_elementos_array_char_asterisco(metadata_bitacora->bloques_asignados_anterior);
 
-	uint32_t cantidad_bloques_usados=contador_elementos_array_char_asterisco(bloques_usados);
-	//printf("cantidad de bloques %d",cantidad_bloques_usados);
-	fflush(stdout);
-	if(cantidad_bloques_usados==0){
+	if(cantidad_bloques_usados == 0){
 
 		t_list* lista_posiciones = obtener_array_bloques_a_usar(tamanio_accion);
 		char* bloques = string_new();
@@ -350,13 +399,15 @@ void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion){
 		string_append_with_format(&bloques,"]");
 
 		config_set_value(contenido_archivo, "BLOCKS", bloques);
-	}else{
-		uint32_t fragmentacion_interna=cantidad_bloques_usados*BLOCK_SIZE - valor_size;
-	//	printf("restante del bloque %d \n",fragmentacion_interna);
+
+	}
+	else{
+
+		uint32_t fragmentacion_interna=cantidad_bloques_usados*BLOCK_SIZE - metadata_bitacora->size;
 
 		t_list* lista_posiciones;
 		if(tamanio_accion>fragmentacion_interna){
-			lista_posiciones = obtener_array_bloques_a_usar(tamanio_accion-fragmentacion_interna);
+			lista_posiciones = obtener_array_bloques_a_usar(tamanio_accion-fragmentacion_interna);// 10 frag de 4  entocnes falta guardar 6
 		}else{
 			lista_posiciones = obtener_array_bloques_a_usar(0);
 		}
@@ -364,12 +415,12 @@ void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion){
 		char* bloques = string_new();
 		string_append_with_format(&bloques,"[");
 		int recorrido=0;
-		while(bloques_usados[recorrido]!=NULL){
+		while(metadata_bitacora->bloques_asignados_anterior[recorrido]!=NULL){
 			if(recorrido == cantidad_bloques_usados-1 && list_size(lista_posiciones)==0){
-				string_append_with_format(&bloques,bloques_usados[recorrido]);
+				string_append_with_format(&bloques,metadata_bitacora->bloques_asignados_anterior[recorrido]);
 
 			}else{
-				string_append_with_format(&bloques,bloques_usados[recorrido]);
+				string_append_with_format(&bloques,metadata_bitacora->bloques_asignados_anterior[recorrido]);
 				string_append_with_format(&bloques,",");
 			}
 			recorrido++;
@@ -384,15 +435,15 @@ void actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion){
 		}
 		string_append_with_format(&bloques,"]");
 		config_set_value(contenido_archivo, "BLOCKS", bloques);
-
-		//ya tenia algo adentro, verificar fragmentacion interna;
 	}
-	//
+
 	config_save(contenido_archivo);
 
 	config_destroy(contenido_archivo);
 
 	fclose(archivo);
+
+	return metadata_bitacora;
 
 }
 
@@ -453,12 +504,10 @@ void sincronizar(){
 	}
 }
 uint32_t contador_elementos_array_char_asterisco(char** bloques_usados){
-	uint32_t cantidad=0;
-	uint32_t recorrido=0;
+	uint32_t recorrido = 0;
 	while(bloques_usados[recorrido] != NULL) {
-		cantidad++;
 		recorrido++;
 	}
 
-	return cantidad;
+	return recorrido;
 }
