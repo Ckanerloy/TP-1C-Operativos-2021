@@ -144,6 +144,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				bitacora_tripu = malloc(sizeof(bitacora));
 				recibir_mensaje(bitacora_tripu, operacion, conexion);
 
+				string_trim(&bitacora_tripu->accion);
 				printf("Tripu %u: %s\n", bitacora_tripu->id_tripulante, bitacora_tripu->accion);
 
 				printf("Tamanio accion: %u \n", bitacora_tripu->tamanio_accion);
@@ -157,19 +158,17 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
 					log_info(logger, "No existe la bitacora del tripulante %u , se procede a crearla.\n",bitacora_tripu->id_tripulante);
 
+					sem_wait(mutex_bitacora);
 					crear_archivo_metadata_bitacora(path_completo);
-
 					t_metadata_bitacora* metadata_bitacora = actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
 					guardar_en_blocks(path_completo, bitacora_tripu, metadata_bitacora);
-
 
 				}
 				else {
+					sem_wait(mutex_bitacora);
 					t_metadata_bitacora* metadata_bitacora = actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
 					guardar_en_blocks(path_completo, bitacora_tripu, metadata_bitacora);
-
 				}
-
 
 				/*
 				 * Buscar si existe la Bitacora del Tripulante #ID
@@ -211,6 +210,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			}
 }
 
+
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar){
 
 	int32_t cantidad_bloques = tamanio_a_guardar / BLOCK_SIZE;
@@ -221,6 +221,7 @@ int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar){
 	return cantidad_bloques;
 }
 
+
 t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar){
 	int32_t cantidad_bloques = cantidad_bloques_a_usar(tamanio_a_guardar);
 
@@ -228,17 +229,18 @@ t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar){
 
 	for(int i=0; i<cantidad_bloques; i++){
 		int posicion_bit_libre = posicionBitLibre();
-		list_add(posiciones, posicion_bit_libre);
+		list_add(posiciones, (int) posicion_bit_libre);
 		bitarray_set_bit(bitArraySB, posicion_bit_libre);
 	}
 	return posiciones;
 }
 
+
 void guardar_en_blocks(char* path_completo, bitacora* bitacora_tripu, t_metadata_bitacora* metadata_bitacora){
 	FILE* archivo = fopen( path_completo , "r+" );
 
 	if (archivo == NULL){
-		log_error(logger, "No se pudo escribir en el archivo %s \n", path_completo);
+		log_error(logger, "No se pudo escribir en el archivo %s .\n", path_completo);
 		exit(-1);
 	}
 
@@ -248,9 +250,9 @@ void guardar_en_blocks(char* path_completo, bitacora* bitacora_tripu, t_metadata
 
 	char** bloques_asignados_nuevo = config_get_array_value(contenido_archivo,"BLOCKS");
 
-	uint32_t cant_bloq_asig_nuevos = contador_elementos_array_char_asterisco(bloques_asignados_nuevo);
+	uint32_t cant_bloq_asig_nuevos = cantidad_elementos(bloques_asignados_nuevo);
 
-	uint32_t cant_bloq_asig_anterior = contador_elementos_array_char_asterisco(metadata_bitacora->bloques_asignados_anterior);
+	uint32_t cant_bloq_asig_anterior = cantidad_elementos(metadata_bitacora->bloques_asignados_anterior);
 
 	if (cant_bloq_asig_anterior == 0){
 
@@ -275,7 +277,6 @@ void guardar_en_blocks(char* path_completo, bitacora* bitacora_tripu, t_metadata
 
 	}else{
 		uint32_t nro_ultimo_bloque = atoi(metadata_bitacora->bloques_asignados_anterior[cant_bloq_asig_anterior-1]);
-		printf("nro del ultimo bloque: %d \n",nro_ultimo_bloque);
 		int32_t libre_ultimo_bloque = BLOCK_SIZE*cant_bloq_asig_anterior - metadata_bitacora->size;
 		int32_t usado_ultimo_bloque = BLOCK_SIZE - libre_ultimo_bloque;
 
@@ -309,7 +310,7 @@ void guardar_en_blocks(char* path_completo, bitacora* bitacora_tripu, t_metadata
 
 		}
 	}
-
+	sem_post(mutex_bitacora);
 }
 
 
@@ -360,6 +361,7 @@ void hash_MD5(){
 	system(system_command);
 }
 
+
 void crear_archivo_metadata_bitacora(char* path_completo){
 
 	FILE* archivo = fopen( path_completo , "w" );
@@ -380,35 +382,20 @@ void crear_archivo_metadata_bitacora(char* path_completo){
 	config_save(contenido_archivo);
 
 	config_destroy(contenido_archivo);
-
 }
 
+
 t_metadata_bitacora* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion){
-	FILE* archivo = fopen( path , "r+" );
-
-	if (archivo == NULL){
-		log_error(logger, "No se pudo escribir en el archivo %s \n", path);
-		exit(-1);
-	}
-
-	t_config* contenido_archivo = config_create(path);
-
-	// actualizamos el size
 
 	t_metadata_bitacora* metadata_bitacora = malloc(sizeof(t_metadata_bitacora));
+	metadata_bitacora->size = leer_size_archivo(path, "SIZE");
 
-	metadata_bitacora->size = config_get_int_value(contenido_archivo, "SIZE");
-	int nuevo_valor_size= metadata_bitacora->size +tamanio_accion;
+	int nuevo_valor_size = metadata_bitacora->size + tamanio_accion;
+	guardar_nuevo_size_archivo(path, nuevo_valor_size, "SIZE");
 
-	char* string_a_guardar = string_new();
-	string_append_with_format(&string_a_guardar,"%u", nuevo_valor_size);
+	metadata_bitacora->bloques_asignados_anterior = leer_blocks_archivo(path, "BLOCKS");
 
-	config_set_value(contenido_archivo, "SIZE", string_a_guardar);
-	free(string_a_guardar);
-
-	metadata_bitacora->bloques_asignados_anterior = config_get_array_value(contenido_archivo,"BLOCKS");
-
-	uint32_t cantidad_bloques_usados = contador_elementos_array_char_asterisco(metadata_bitacora->bloques_asignados_anterior);
+	uint32_t cantidad_bloques_usados = cantidad_elementos(metadata_bitacora->bloques_asignados_anterior);
 
 	if(cantidad_bloques_usados == 0){
 
@@ -417,7 +404,7 @@ t_metadata_bitacora* actualizar_archivo_metadata_bitacora(char* path, uint32_t t
 		string_append_with_format(&bloques,"[");
 
 		for(int i=0; i<list_size(lista_posiciones); i++){
-			int posicion = list_get(lista_posiciones, i);
+			int posicion = (int) list_get(lista_posiciones, i);
 		//	printf("posicion a agregar en la lista %d \n",posicion);
 			if(i == list_size(lista_posiciones)-1)
 				string_append_with_format(&bloques,"%u", posicion);
@@ -427,8 +414,7 @@ t_metadata_bitacora* actualizar_archivo_metadata_bitacora(char* path, uint32_t t
 		}
 		string_append_with_format(&bloques,"]");
 
-		config_set_value(contenido_archivo, "BLOCKS", bloques);
-
+		guardar_nuevos_blocks_archivo(path, bloques, "BLOCKS");
 	}
 	else{
 
@@ -455,7 +441,7 @@ t_metadata_bitacora* actualizar_archivo_metadata_bitacora(char* path, uint32_t t
 			recorrido++;
 		}
 		for(int i=0; i<list_size(lista_posiciones); i++){
-			int posicion = list_get(lista_posiciones, i);
+			int posicion = (int) list_get(lista_posiciones, i);
 			if(i == list_size(lista_posiciones)-1)
 				string_append_with_format(&bloques,"%u", posicion);
 			else{
@@ -463,50 +449,15 @@ t_metadata_bitacora* actualizar_archivo_metadata_bitacora(char* path, uint32_t t
 			}
 		}
 		string_append_with_format(&bloques,"]");
-		config_set_value(contenido_archivo, "BLOCKS", bloques);
+		guardar_nuevos_blocks_archivo(path, bloques, "BLOCKS");
 	}
-
-	config_save(contenido_archivo);
-
-	config_destroy(contenido_archivo);
-
-	fclose(archivo);
 
 	return metadata_bitacora;
-
 }
 
 
-void iniciar_sabotaje(void){
 
-	int32_t cantidad_sabotajes = cantidad_posiciones(POSICIONES_SABOTAJE);
-
-	if(num_sabotaje != cantidad_sabotajes) {
-		char** posiciones_sabo = string_split(POSICIONES_SABOTAJE[num_sabotaje], "|");
-
-		int32_t conexion_discordiador = crear_conexion(IP, PUERTO_DISCORDIADOR);
-
-		posiciones* posicion = malloc(sizeof(posiciones));
-		posicion->posicion_x = atoi(posiciones_sabo[0]);
-		posicion->posicion_y = atoi(posiciones_sabo[1]);
-
-  		if(resultado_conexion(conexion_discordiador, logger, "Discordiador") != -1) {
-  			enviar_mensaje(posicion, SABOTAJE, conexion_discordiador);
- 			cerrar_conexion(logger, conexion_discordiador);
- 		}
-
-  		log_info(logger, "Se enviaron las posiciones X: %u e Y: %u del Sabotaje.\n", posicion->posicion_x, posicion->posicion_y);
-
-		num_sabotaje++;
-		free(posicion);
-		limpiar_parser(posiciones_sabo);
-	}
-	else {
-		log_warning(logger, "No hay más sabotajes para realizar.\n");
-	}
-}
-
-uint32_t cantidad_posiciones(char** parser) {
+uint32_t cantidad_elementos(char** parser) {
 
 	int cantidad = 0;
 	while(parser[cantidad] != NULL){
@@ -514,6 +465,8 @@ uint32_t cantidad_posiciones(char** parser) {
 	}
 	return cantidad;
 }
+
+
 
 void sincronizar(){
 	while(1){
@@ -532,11 +485,66 @@ void sincronizar(){
 		}
 	}
 }
-uint32_t contador_elementos_array_char_asterisco(char** bloques_usados){
-	uint32_t recorrido = 0;
-	while(bloques_usados[recorrido] != NULL) {
-		recorrido++;
-	}
 
-	return recorrido;
+
+
+
+// Tratamiento sobre Files (con Blocks y Size)
+int leer_size_archivo(char* path_archivo, char* clave){
+
+	t_config* datos_archivo = config_create(path_archivo);
+
+	int size = config_get_int_value(datos_archivo, clave);
+
+	config_destroy(datos_archivo);
+
+	return size;
 }
+
+
+void guardar_nuevo_size_archivo(char* path_archivo, int valor, char* clave){
+
+	t_config* datos_metadata = config_create(path_archivo);
+
+	char* valor_a_string;
+
+	asprintf(&valor_a_string, "%d", valor);
+
+	config_set_value(datos_metadata, clave, valor_a_string);
+
+	config_save(datos_metadata);
+
+	config_destroy(datos_metadata);
+
+	free(valor_a_string);
+}
+
+
+char** leer_blocks_archivo(char* path_archivo, char* clave) {
+
+	t_config* datos_archivo = config_create(path_archivo);
+
+	char** blocks = config_get_array_value(datos_archivo, clave);
+
+	config_destroy(datos_archivo);
+
+	return blocks;
+}
+
+
+void guardar_nuevos_blocks_archivo(char* path_archivo, char* valor, char* clave){
+
+	t_config* datos_metadata = config_create(path_archivo);
+
+	config_set_value(datos_metadata, clave, valor);
+
+	config_save(datos_metadata);
+
+	config_destroy(datos_metadata);
+
+	free(valor);
+}
+
+
+
+

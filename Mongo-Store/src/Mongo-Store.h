@@ -12,7 +12,10 @@
 #include <semaphore.h>
 #include <stdbool.h>
 #include <sys/stat.h>
-
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <limits.h>
 #include <unistd.h>
@@ -27,10 +30,7 @@
 #include "bitArray.h"
 #include "commons/bitarray.h"
 #include "iniciarFileSystem.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "sabotajes.h"
 
 #define IP "127.0.0.1"
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mongo-Store/Mongo-Store.config"
@@ -40,7 +40,6 @@ char* PUERTO;
 char* PUERTO_DISCORDIADOR;
 char* PUNTO_MONTAJE;
 int TIEMPO_SINCRONIZACION;
-char** POSICIONES_SABOTAJE;
 int BLOCK_SIZE;
 int BLOCKS;
 void* blocks;
@@ -68,7 +67,6 @@ sem_t* mutex_bitacora;
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_sincronizador;
 
-int32_t num_sabotaje;
 
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
@@ -79,7 +77,20 @@ t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar);
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar);
 void sincronizar();
 void hash_MD5();
-uint32_t contador_elementos_array_char_asterisco(char** bloques_usados);
-void iniciar_sabotaje(void);
-uint32_t cantidad_posiciones(char** parser);
+uint32_t cantidad_elementos(char** parser);
+
+
+
+// Funciones sobre Bloques
+void guardar_en_blocks(char* path_completo, bitacora* bitacora_tripu, t_metadata_bitacora* metadata_bitacora);
+
+
+
+// Funciones sobre Archivos
+int leer_size_archivo(char* path_archivo, char* clave);
+char** leer_blocks_archivo(char* path_archivo, char* clave);
+void guardar_nuevo_size_archivo(char* path_archivo, int valor, char* clave);
+void guardar_nuevos_blocks_archivo(char* path_archivo, char* valor, char* clave);
+
+
 #endif /* MONGO_STORE_H_ */

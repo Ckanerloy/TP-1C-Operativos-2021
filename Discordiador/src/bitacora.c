@@ -75,7 +75,7 @@ bitacora* bitacora_ejecucion_tarea(tripulante_plani* tripu) {
 
 	char* mensaje = string_new();
 
-	string_append_with_format(&mensaje, "Comienza ejecución de tarea %u.", tripu->id_tarea_a_realizar);
+	string_append_with_format(&mensaje, "Comienza ejecucion de tarea %u.", tripu->id_tarea_a_realizar);
 
 	bitacora_tripu->tamanio_accion = strlen(mensaje);
 	strcat(mensaje, "\0");
@@ -110,7 +110,7 @@ bitacora* bitacora_corre_sabotaje(char* valor) {
 
 	char* mensaje = string_new();
 
-	string_append_with_format(&mensaje, "Se corre en pánico hacia la ubicación del sabotaje.");
+	string_append_with_format(&mensaje, "Se corre en panico hacia la ubicacion del sabotaje.");
 
 	bitacora_tripu->tamanio_accion = strlen(mensaje);
 	strcat(mensaje, "\0");
