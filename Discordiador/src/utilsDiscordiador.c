@@ -77,6 +77,12 @@ void terminar_tripulante(tripulante_plani* tripu) {
 
 	tripu->estado = 'T';
 
+	free(tripu->tarea_a_realizar);
+	free(tripu->sem_tripu);
+	free(tripu->mutex_peticion);
+	free(tripu->sem_planificacion);
+	free(tripu->mutex_expulsado);
+
 	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
 	tripulante_terminado->id_patota = tripu->numero_patota;
@@ -118,6 +124,8 @@ void enviar_tarea_io(tripulante_plani* tripu, codigo_operacion op_code, char* no
 
 	enviar_mensaje(tarea_io, op_code, conexion_mongo_store);
 
+	free(tarea_io->nombre_archivo);
+	free(tarea_io);
 	close(conexion_mongo_store);
 }
 

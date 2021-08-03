@@ -41,7 +41,7 @@ int32_t conexion_sabotaje;
 //int QUANTUM;
 int DURACION_SABOTAJE;
 int RETARDO_CICLO_CPU;
-
+int SALIR;
 
 // Semaforos
 sem_t* comando_para_ejecutar;

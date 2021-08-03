@@ -470,6 +470,8 @@ void* serializar_tareas(t_list* tareas_de_la_patota, uint32_t tamanio, t_tabla_p
 		direccion_tarea->tamanio_tarea = tarea_a_guardar->tamanio_tarea;
 
 		list_add_in_index(tabla_patota->direccion_tareas, i, direccion_tarea);
+
+		free(tarea_a_guardar->tarea);
 		free(tarea_a_guardar);
 	}
 	return buffer;
@@ -730,6 +732,8 @@ void actualizar_tripulante_memoria(t_tcb* tripulante, uint32_t direccion_fisica,
 			offset_buffer += lectura_tripulante;
 		}
 	}
+
+	free(buffer);
 	sem_post(mutex_tripulante_swap);
 }
 
@@ -755,6 +759,8 @@ t_tarea* buscar_proxima_tarea_del_tripulante_paginacion(uint32_t direccion_fisic
 
 	t_tarea* tarea_a_retornar = obtener_la_tarea(tarea_encontrada->tarea);
 
+	free(tarea_encontrada->tarea);
+	free(tarea_encontrada);
 	return tarea_a_retornar;
 }
 

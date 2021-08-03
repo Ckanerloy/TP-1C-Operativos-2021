@@ -4,8 +4,8 @@ int main(void) {
 
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
-	//logger = crear_log("Mi-RAM-HQ.log", "Mi-RAM HQ");
-	logger = crear_log_sin_pantalla("Mi-RAM-HQ.log", "Mi-RAM HQ");
+	logger = crear_log("Mi-RAM-HQ.log", "Mi-RAM HQ");
+	//logger = crear_log_sin_pantalla("Mi-RAM-HQ.log", "Mi-RAM HQ");
 
 	// Recibe la señal para hacer el Dump de Memoria
 	signal(SIGUSR1, (void*)iniciar_dump_memoria);
@@ -22,7 +22,7 @@ int main(void) {
 	criterio_elegido = elegir_criterio_seleccion(CRITERIO_SELECCION);
 	algoritmo_elegido = elegir_algoritmo_reemplazo(ALGORITMO_REEMPLAZO);
 
-	iniciar_mapa();
+	//iniciar_mapa();
 	iniciar_archivo_dump();
 	iniciar_comunicacion();
 
@@ -243,7 +243,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 							log_info(logger, "Se inició al Tripulante %u en el estado %c, con una posición en X: %u y una posición en Y: %u.\n", nuevo_tripulante->id_tripulante, nuevo_tripulante->estado_tripulante, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
 
-							iniciar_tripulante(amongOs, caracter_personaje, (int)nuevo_tripulante->posicion_x, (int)nuevo_tripulante->posicion_y);
+							//iniciar_tripulante(amongOs, caracter_personaje, (int)nuevo_tripulante->posicion_x, (int)nuevo_tripulante->posicion_y);
 							tripu_map->id_tripulante = nuevo_tripulante->id_tripulante;
 							tripu_map->caracter_mapa = caracter_personaje;
 							list_add(tripulantes_mapa, tripu_map);
@@ -323,7 +323,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 							log_info(logger, "Se inició al Tripulante %u en el estado %c, con una posición en X: %u y una posición en Y: %u.\n", nuevo_tripulante->id_tripulante, nuevo_tripulante->estado_tripulante, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
 
-							iniciar_tripulante(amongOs, caracter_personaje, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
+							//iniciar_tripulante(amongOs, caracter_personaje, nuevo_tripulante->posicion_x, nuevo_tripulante->posicion_y);
 							tripu_map->id_tripulante = nuevo_tripulante->id_tripulante;
 							tripu_map->caracter_mapa = caracter_personaje;
 							list_add(tripulantes_mapa, tripu_map);
@@ -396,23 +396,23 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_segmento* segmento_buscado = buscar_por_id(patota_buscada->segmentos, TRIPULANTE, tripulante_por_ubicacion->id_tripulante);
 					sem_post(mutex_segmentos);
 
-					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
-
 					sem_wait(mutex_segmentos);
 					tripulante_buscado_por_ubicacion = encontrar_tripulante(segmento_buscado);
-					sem_post(mutex_segmentos);
-
 					tripulante_buscado_por_ubicacion->posicion_x = tripulante_por_ubicacion->posicion_x;
 					tripulante_buscado_por_ubicacion->posicion_y = tripulante_por_ubicacion->posicion_y;
+					sem_post(mutex_segmentos);
 
 					bool _mismo_id(void* tripulante) {
 						return ((tripulante_mapa*)tripulante)->id_tripulante == tripulante_buscado_por_ubicacion->id_tripulante;
 					}
 
+					sem_wait(mutex_segmentos);
 					tripu_map_actualizado = list_find(tripulantes_mapa, _mismo_id);
-					actualizar_posicion_tripulante(amongOs, tripu_map_actualizado->caracter_mapa, tripulante_buscado_por_ubicacion->posicion_x, tripulante_buscado_por_ubicacion->posicion_y);
+					//actualizar_posicion_tripulante(amongOs, tripu_map_actualizado->caracter_mapa, tripulante_buscado_por_ubicacion->posicion_x, tripulante_buscado_por_ubicacion->posicion_y);
+					sem_post(mutex_segmentos);
 
 					sem_wait(mutex_segmentos);
+					indice = obtener_indice(patota_buscada->segmentos, segmento_buscado);
 					actualizar_segmento(tripulante_buscado_por_ubicacion, TRIPULANTE, segmento_buscado, patota_buscada);
 					list_replace(patota_buscada->segmentos, indice, segmento_buscado);
 					sem_post(mutex_segmentos);
@@ -431,16 +431,18 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					sem_wait(mutex_paginas);
 					tripulante_buscado_por_ubicacion = encontrar_tripulante_memoria(direccion_fisica, direccion_logica, tabla_patota_buscada);
-					sem_post(mutex_paginas);
 					tripulante_buscado_por_ubicacion->posicion_x = tripulante_por_ubicacion->posicion_x;
 					tripulante_buscado_por_ubicacion->posicion_y = tripulante_por_ubicacion->posicion_y;
+					sem_post(mutex_paginas);
 
 					bool _mismo_id(void* tripulante) {
 						return ((tripulante_mapa*)tripulante)->id_tripulante == tripulante_buscado_por_ubicacion->id_tripulante;
 					}
 
+					sem_wait(mutex_paginas);
 					tripu_map_actualizado = list_find(tripulantes_mapa, _mismo_id);
-					actualizar_posicion_tripulante(amongOs, tripu_map_actualizado->caracter_mapa, tripulante_buscado_por_ubicacion->posicion_x, tripulante_buscado_por_ubicacion->posicion_y);
+					//actualizar_posicion_tripulante(amongOs, tripu_map_actualizado->caracter_mapa, tripulante_buscado_por_ubicacion->posicion_x, tripulante_buscado_por_ubicacion->posicion_y);
+					sem_post(mutex_paginas);
 
 					sem_wait(mutex_paginas);
 					actualizar_tripulante_memoria(tripulante_buscado_por_ubicacion, direccion_fisica, tabla_patota_buscada);
@@ -759,7 +761,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 
 					tripu_map_expulsado = list_find(tripulantes_mapa, _mismo_id);
-					eliminar_tripulante(amongOs, tripu_map_expulsado->caracter_mapa);
+					//eliminar_tripulante(amongOs, tripu_map_expulsado->caracter_mapa);
 					sem_post(mutex_segmentos);
 
 					liberar_segmento(segmento_buscado);
@@ -844,7 +846,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 
 					tripu_map_expulsado = list_find(tripulantes_mapa, _mismo_id);
-					eliminar_tripulante(amongOs, tripu_map_expulsado->caracter_mapa);
+					//eliminar_tripulante(amongOs, tripu_map_expulsado->caracter_mapa);
 					sem_post(mutex_frames);
 
 					patota_buscada->cantidad_tripulantes--;
@@ -891,7 +893,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				log_info(logger, "Terminando programa... \n");
 
-				finalizar_mapa(amongOs);
+				//finalizar_mapa(amongOs);
 
 				sleep(1);
 				printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
@@ -924,6 +926,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					for(int i=0; i<list_size(tablas_paginas); i++) {
 						t_tabla_paginas_patota* tabla_patota = list_remove(tablas_paginas, i);
 
+						list_destroy_and_destroy_elements(tabla_patota->direccion_tareas, free);
 						list_destroy_and_destroy_elements(tabla_patota->direccion_tripulantes, free);
 						list_destroy_and_destroy_elements(tabla_patota->paginas, free);
 						free(tabla_patota->patota);
