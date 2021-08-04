@@ -64,6 +64,8 @@ typedef struct{
 
 //semaforos
 sem_t* mutex_recursos;
+sem_t* mutex_generar;
+sem_t* mutex_consumir;
 
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_sincronizador;
@@ -76,7 +78,7 @@ void crear_archivo_metadata_bitacora(char* nombre_archivo);
 
 t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion);
 
-t_metadata* actualizar_archivo_metadata_recurso(char* path, archivo_tarea* tarea_io);
+t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenado, int32_t tamanio_recurso);
 
 t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar);
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar);
@@ -88,7 +90,7 @@ uint32_t cantidad_elementos(char** parser);
 
 // Funciones sobre Bloques
 void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
-
+void eliminar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
 
 
 // Funciones sobre Archivos
