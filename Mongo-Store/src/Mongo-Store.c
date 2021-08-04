@@ -31,6 +31,7 @@ int main(void) {
 
 		inicializar_file_system();
 		levantar_archivo_blocks();
+		hash_MD5("Welcome", 'B');
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
 
@@ -189,7 +190,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					log_info(logger, "No existe el recurso %s , se procede a crearlo.\n", tarea_io->nombre_archivo);
 
 					sem_wait(mutex_generar);
-					printf("VOY A CREAR EL ARCHIVO %s\n", tarea_io->nombre_archivo);
 					crear_archivo_metadata_recurso(path_completo);
 					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io->caracter_llenado, tarea_io->cantidad);
 					guardar_en_blocks(path_completo, recurso, metadata_recurso);
@@ -235,6 +235,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io->caracter_llenado, -(tarea_io->cantidad));
 					eliminar_en_blocks(path_completo, recurso, metadata_recurso);
 
+
 					/*
 					 * Remover tantos caracteres como menciona la tarea
 					 * - Si se quieren borrar mas caracteres de los que hay: log_info(logger, "Se quisieron eliminar más caracteres de los que hay.\n");
@@ -254,7 +255,31 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				printf("Llego la tarea de DESCARTAR_BASURA\n");
 
 
+				path = string_new();
+				string_append_with_format(&path, "/Files/%s", "Basura.ims");
+			    path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
+				path_completo = concatenar_path(path);
 
+				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
+					log_info(logger, "No existe el recurso %s.\n", "Basura.ims");
+					break;
+				}
+				else {
+					printf("Antes del semaforo \n");
+					sem_wait(mutex_recursos);
+
+					int size_recurso = leer_size_archivo(path_completo, "SIZE");
+					char** bloques = leer_blocks_archivo(path_completo, "BLOCKS");
+
+					t_metadata*	metadata_recurso = malloc(sizeof(t_metadata));
+					metadata_recurso->bloques_asignados_anterior = bloques;
+					metadata_recurso->size = size_recurso;
+					printf("Entra a eliminar recurso \n");
+					eliminar_recurso_blocks(path_completo,  metadata_recurso); //pisa toda la data de los blocks con 0 y setea los bits vacios
+					sem_post(mutex_recursos);
+					remove(path_completo);
+				}
+				printf("Fuera del if \n");
 				break;
 
 			case ACTUALIZACION_TRIPULANTE:
@@ -326,6 +351,33 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			}
 }
 
+
+void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
+
+	uint32_t cant_bloques = cantidad_elementos(metadata_recurso->bloques_asignados_anterior);
+
+	int32_t desplazamiento = 0;
+	char* valor = "0";
+
+	for(int i=0; i<cant_bloques-1; i++) {
+		bitarray_clean_bit(bitArraySB, metadata_recurso->bloques_asignados_anterior[i]);
+
+		uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[i]);
+		uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+
+		memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
+		desplazamiento += BLOCK_SIZE;
+	}
+	bitarray_clean_bit(bitArraySB, metadata_recurso->bloques_asignados_anterior[cant_bloques-1]);
+	uint32_t nro_ultimo_bloque = atoi((metadata_recurso->bloques_asignados_anterior[cant_bloques-1]));
+	uint32_t espacio_libre_ultimo_bloque = (cant_bloques*BLOCK_SIZE - (metadata_recurso->size));
+	uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+
+	uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+
+	memcpy(informacion_blocks+ubicacion_bloque, valor + desplazamiento, cant_necesaria_ultimo_bloque);
+
+}
 
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar){
 
@@ -472,11 +524,45 @@ void eliminar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_b
  *
  */
 
-void hash_MD5(){
-	char* comando = "/home/utnso/Escritorio/Nuevo.txt > /home/utnso/Escritorio/pruebamd5.txt";
-	char* system_command = string_new();
-	string_append_with_format(&system_command, "md5sum %s ", comando);
-	system(system_command);
+void hash_MD5(char* cadena_a_hashear, char caracter_llenado){
+	char* path_archivo_hash_inicial;
+	char* path_archivo_hash_final;
+
+	if(caracter_llenado == 'C'){
+		path_archivo_hash_inicial = "/Files/ArchivosHash/ArchivoAHashearComida.txt";
+		path_archivo_hash_final = "/Files/ArchivosHash/ArchivoHasheadoComida.txt";
+	}
+	else if(caracter_llenado == 'B'){
+		path_archivo_hash_inicial = "/Files/ArchivosHash/ArchivoAHashearBasura.txt";
+		path_archivo_hash_final = "/Files/ArchivosHash/ArchivoHasheadoBasura.txt";
+		}
+		 else if(caracter_llenado == 'O'){
+			path_archivo_hash_inicial = "/Files/ArchivosHash/ArchivoAHashearOxigeno.txt";
+			path_archivo_hash_final = "/Files/ArchivosHash/ArchivoHasheadoOxigeno.txt";
+		 	}
+
+
+	char* path_inicial = malloc(strlen(PUNTO_MONTAJE) + strlen(path_archivo_hash_inicial) + 1);
+	path_inicial = concatenar_path(path_archivo_hash_inicial);
+
+	char* path_final = malloc(strlen(PUNTO_MONTAJE) + strlen(path_archivo_hash_final) + 1);
+	path_final = concatenar_path(path_archivo_hash_final);
+
+	FILE* archivo_inicial = fopen(path_inicial, "w" );
+		if (archivo_inicial == NULL){
+			log_error(logger, "No se pudo crear el archivo origen a hashear %s.\n", path_inicial);
+			exit(EXIT_FAILURE);
+		}
+
+	fwrite(cadena_a_hashear, strlen(cadena_a_hashear), 1, archivo_inicial);
+	fclose(archivo_inicial);
+
+	char* comando = string_new();
+	string_append_with_format(&comando, "md5sum %s >", path_inicial);
+	string_append_with_format(&comando, "%s", path_final);
+
+	system(comando);
+
 }
 
 

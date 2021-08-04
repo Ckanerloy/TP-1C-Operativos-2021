@@ -83,7 +83,7 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar);
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar);
 void sincronizar();
-void hash_MD5();
+void hash_MD5(char* cadena_a_hashear, char caracter_llenado);
 uint32_t cantidad_elementos(char** parser);
 
 
@@ -91,6 +91,8 @@ uint32_t cantidad_elementos(char** parser);
 // Funciones sobre Bloques
 void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
 void eliminar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
+void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso);
+
 
 
 // Funciones sobre Archivos
