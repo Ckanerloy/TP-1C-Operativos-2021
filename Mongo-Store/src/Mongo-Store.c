@@ -202,6 +202,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io->caracter_llenado, tarea_io->cantidad, tarea_io->nombre_archivo);
 					sem_wait(mutex_copia);
 					guardar_en_blocks(path_completo, recurso, metadata_recurso);
+					concatenar_contenido_blocks(metadata_recurso->bloques_asignados_anterior);
 					sem_post(mutex_generar);
 					log_info(logger, "Se generó %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
 				}
@@ -210,6 +211,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io->caracter_llenado, tarea_io->cantidad, tarea_io->nombre_archivo);
 					sem_wait(mutex_copia);
 					guardar_en_blocks(path_completo, recurso, metadata_recurso);
+					concatenar_contenido_blocks(metadata_recurso->bloques_asignados_anterior);
 					sem_post(mutex_generar);
 					log_info(logger, "Se generó %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
 				}
@@ -344,11 +346,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			case REALIZAR_SABOTAJE:
 				cerrar_conexion(logger, conexion);
 
-				printf("----------------------REALIZO EL SABOTAJE (FCSK)\n");
+				printf("----------------------REALIZO EL SABOTAJE (FSCK)\n");
 
-				/*
-				 * Aca realizo todo lo necesario para resolver el sabotaje
-				 */
+				//inicio_rutina_fsck();
+
 
 				break;
 
@@ -397,6 +398,7 @@ void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
 	memcpy(informacion_blocks+ubicacion_bloque, valor + desplazamiento, cant_necesaria_ultimo_bloque);
 }
 
+
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar){
 
 	int32_t cantidad_bloques = tamanio_a_guardar / BLOCK_SIZE;
@@ -444,11 +446,8 @@ void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bi
 
 			uint32_t nro_bloque = atoi(bloques_asignados_nuevo[i]);
 			uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
-
-
 			memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
 			desplazamiento += BLOCK_SIZE;
-
 		}
 
 		uint32_t nro_ultimo_bloque = atoi(bloques_asignados_nuevo[cant_bloq_asig_nuevos - 1]);
@@ -456,8 +455,6 @@ void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bi
 		uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
 
 		uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
-
-
 		memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, cant_necesaria_ultimo_bloque);
 
 	}
@@ -465,7 +462,6 @@ void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bi
 		uint32_t nro_ultimo_bloque = atoi(metadata_bitacora->bloques_asignados_anterior[cant_bloq_asig_anterior - 1]);
 		int32_t libre_ultimo_bloque = BLOCK_SIZE * cant_bloq_asig_anterior - metadata_bitacora->size;
 		int32_t usado_ultimo_bloque = BLOCK_SIZE - libre_ultimo_bloque;
-
 		int32_t desplazamiento = 0;
 
 		if(libre_ultimo_bloque >= tamanio_valor){
@@ -481,24 +477,19 @@ void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bi
 			desplazamiento += libre_ultimo_bloque;
 
 			for(int i=0; i< (cant_bloq_asig_nuevos - cant_bloq_asig_anterior) - 1; i++) { //accion mas grande que el bloque
-
 				uint32_t nro_bloque = atoi(bloques_asignados_nuevo[cant_bloq_asig_anterior + i]);
 				uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
 				memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
 				desplazamiento += BLOCK_SIZE;
 			}
 			uint32_t nro_ultimo_bloque = atoi(bloques_asignados_nuevo[cant_bloq_asig_nuevos-1]);
-
 			uint32_t espacio_libre_ultimo_bloque = (cant_bloq_asig_nuevos * BLOCK_SIZE - valor_size_nuevo);
 			uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
-
 			ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
-
 			memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, cant_necesaria_ultimo_bloque);
 		}
 	}
 	sem_post(mutex_copia);
-
 }
 
 
@@ -681,8 +672,8 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 		uint32_t fragmentacion_interna = cantidad_bloques_usados*BLOCK_SIZE - metadata_recurso->size;
 
 		t_list* lista_posiciones;
-		if(tamanio_recurso>fragmentacion_interna){
-			lista_posiciones = obtener_array_bloques_a_usar(tamanio_recurso-fragmentacion_interna);// 10 frag de 4  entocnes falta guardar 6
+		if(tamanio_recurso > fragmentacion_interna){
+			lista_posiciones = obtener_array_bloques_a_usar(tamanio_recurso - fragmentacion_interna);// 10 frag de 4  entocnes falta guardar 6
 		}else{
 			lista_posiciones = obtener_array_bloques_a_usar(0);
 		}
@@ -709,14 +700,13 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 			}
 		}
 		string_append_with_format(&bloques,"]");
+		log_info(logger, "Se ocuparon los bloques %s\n", bloques);
 		guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
 	}
-
 
 	char* cantidad_bloques_total = string_new();
 	metadata_recurso->bloques_asignados_anterior = leer_blocks_archivo(path, "BLOCKS");
 	asprintf(&cantidad_bloques_total, "%d", cantidad_elementos(metadata_recurso->bloques_asignados_anterior));
-
 	guardar_nuevos_datos_en_archivo(path, cantidad_bloques_total, "BLOCK_COUNT");
 
 	return metadata_recurso;
@@ -811,6 +801,7 @@ t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_ac
 			}
 		}
 		string_append_with_format(&bloques,"]");
+		log_info(logger, "Se ocuparon los bloques %s\n", bloques);
 		guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
 	}
 
@@ -828,6 +819,29 @@ uint32_t cantidad_elementos(char** parser) {
 	return cantidad;
 }
 
+
+char* concatenar_contenido_blocks(char** lista_bloques){
+    int ubicacion;
+    int posicion = 0;
+    int cantidad_bloques = cantidad_elementos(lista_bloques);
+    int tamanio_contenido = cantidad_bloques * BLOCK_SIZE;
+    char* contenido_concatenado = malloc(tamanio_contenido+1);
+    int desplazamiento = 0;
+
+
+    while(lista_bloques[posicion] != NULL){
+        ubicacion = atoi(lista_bloques[posicion]) * BLOCK_SIZE;
+        memcpy(contenido_concatenado + desplazamiento, informacion_blocks + ubicacion, BLOCK_SIZE);
+        desplazamiento += BLOCK_SIZE;
+        posicion++;
+    }
+
+	char* contenido_final = string_substring_until(contenido_concatenado, tamanio_contenido);
+	strcat(contenido_final, "\0");
+
+    printf("HASH A METER: %s \n", contenido_final);
+    return contenido_concatenado;
+}
 
 
 void sincronizar(){
@@ -896,5 +910,15 @@ char* armar_recurso(char caracter_llenado, uint32_t cantidad) {
 		string_append_with_format(&recurso, "%c", caracter_llenado);
 	}
 	return recurso;
+}
+
+
+void loggear_asignacion_bloques(char* valor, char** bloques) {
+
+
+}
+
+void loggear_liberacion_archivo(char* nombre, int nro_bloque){
+	log_info(logger, "Se libera el bloque %i de %s.\n", nro_bloque, nombre);
 }
 
