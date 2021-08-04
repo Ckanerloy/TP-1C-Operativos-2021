@@ -220,6 +220,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					sem_wait(mutex_recursos);
 					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io);
 					//quitar_blocks
+					sem_post(mutex_recursos);
 					/*
 					 * Remover tantos caracteres como menciona la tarea
 					 * - Si se quieren borrar mas caracteres de los que hay: log_info(logger, "Se quisieron eliminar más caracteres de los que hay.\n");
@@ -239,21 +240,30 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				printf("Llego la tarea de DESCARTAR_BASURA\n");
 
 				path = string_new();
-				string_append_with_format(&path, "/Files/%s", tarea_io->nombre_archivo);
+				string_append_with_format(&path, "/Files/%s", "Basura.ims");
 			    path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
 				path_completo = concatenar_path(path);
 
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
-					log_info(logger, "No existe el recurso %s.\n", tarea_io->nombre_archivo);
+					log_info(logger, "No existe el recurso %s.\n", "Basura.ims");
 					break;
 				}
 				else {
+					printf("Antes del semaforo \n");
 					sem_wait(mutex_recursos);
-					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io);
-					//quitar_blocks
-					// En este caso, hay que eliminar todo el contenido del archivo Basura.ims, y eliminar dicho archivo
-				}
 
+					int size_recurso = leer_size_archivo(path_completo, "SIZE");
+					char** bloques = leer_blocks_archivo(path_completo, "BLOCKS");
+
+					t_metadata*	metadata_recurso = malloc(sizeof(t_metadata));
+					metadata_recurso->bloques_asignados_anterior = bloques;
+					metadata_recurso->size = size_recurso;
+					printf("Entra a eliminar recurso \n");
+					eliminar_recurso_blocks(path_completo,  metadata_recurso); //pisa toda la data de los blocks con 0 y setea los bits vacios
+					sem_post(mutex_recursos);
+					remove(path_completo);
+				}
+				printf("Fuera del if \n");
 				break;
 
 			case ACTUALIZACION_TRIPULANTE:
@@ -325,6 +335,33 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			}
 }
 
+
+void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
+
+	uint32_t cant_bloques = cantidad_elementos(metadata_recurso->bloques_asignados_anterior);
+
+	int32_t desplazamiento = 0;
+	char* valor = "0";
+
+	for(int i=0; i<cant_bloques-1; i++) {
+		bitarray_clean_bit(bitArraySB, metadata_recurso->bloques_asignados_anterior[i]);
+
+		uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[i]);
+		uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+
+		memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
+		desplazamiento += BLOCK_SIZE;
+	}
+	bitarray_clean_bit(bitArraySB, metadata_recurso->bloques_asignados_anterior[cant_bloques-1]);
+	uint32_t nro_ultimo_bloque = atoi((metadata_recurso->bloques_asignados_anterior[cant_bloques-1]));
+	uint32_t espacio_libre_ultimo_bloque = (cant_bloques*BLOCK_SIZE - (metadata_recurso->size));
+	uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+
+	uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+
+	memcpy(informacion_blocks+ubicacion_bloque, valor + desplazamiento, cant_necesaria_ultimo_bloque);
+
+}
 
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar){
 

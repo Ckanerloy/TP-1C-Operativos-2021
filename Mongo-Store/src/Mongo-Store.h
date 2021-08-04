@@ -88,7 +88,7 @@ uint32_t cantidad_elementos(char** parser);
 
 // Funciones sobre Bloques
 void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
-
+void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso);
 
 
 // Funciones sobre Archivos
