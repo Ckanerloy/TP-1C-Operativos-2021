@@ -31,6 +31,7 @@ void deserializar_respuesta_patota(t_respuesta_iniciar_patota* mensaje, int32_t 
 void deserializar_respuesta_tripulante(t_respuesta_tripulante* mensaje, int32_t conexion);
 void deserializar_respuesta_nueva_ubicacion(t_respuesta_tripulante_ubicacion* mensaje, int32_t conexion);
 void deserializar_respuesta_nueva_tarea(t_respuesta_tarea_tripulante* mensaje, int32_t conexion);
+void deserializar_respuesta_bitacora(mensaje_bitacora* mensaje, int32_t conexion);
 
 // Tareas I/O
 void deserializar_tarea_io(archivo_tarea* mensaje, int32_t conexion);

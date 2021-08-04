@@ -115,11 +115,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				}
 
 				else {
+					mensaje_bitacora* mensaje = malloc(sizeof(mensaje_bitacora));
+
 					int size_bitacora = leer_size_archivo(path_archivo, "SIZE");
 					char** bloques = leer_blocks_archivo(path_archivo, "BLOCKS");
-
-					void* buffer = malloc(size_bitacora +1);
-					printf("size_bitacora: %d \n", size_bitacora);
+					void* buffer = malloc(size_bitacora);
+					char* bitacora = string_new();
 
 					uint32_t cant_bloques = cantidad_elementos(bloques);
 					uint32_t desplazamiento = 0;
@@ -139,12 +140,28 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
 
 					memcpy(buffer + desplazamiento, informacion_blocks + ubicacion_bloque, cant_necesaria_ultimo_bloque);
+					desplazamiento += cant_necesaria_ultimo_bloque;
 
+					bitacora = malloc(desplazamiento);
+					memcpy(bitacora, buffer, desplazamiento);
 
-					strcat(bitacora, "\0");
-					printf("La bitacora es: %s \n", bitacora);
+					mensaje->tamanio_bitacora = desplazamiento;
+					mensaje->bitacora = malloc(size_bitacora);
+					printf("TAMAÑO DE LA BITACORA: %u\n", strlen(bitacora));
+					strcpy(mensaje->bitacora, bitacora);
+					printf("BITACORA: \n%s\n", bitacora);
+
+					//enviar_mensaje(mensaje, RESPUESTA_BITACORA, conexion);
+
+					limpiar_parser(bloques);
+					free(bitacora);
+					free(buffer);
+					free(mensaje->bitacora);
+					free(mensaje);
 				}
 
+				free(path_string);
+				free(path_archivo);
 				cerrar_conexion(logger, conexion);
 				free(tripulante_por_bitacora);
 				break;
@@ -192,6 +209,24 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			    path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
 				path_completo = concatenar_path(path);
 
+				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
+					log_info(logger, "No existe el recurso %s.\n", tarea_io->nombre_archivo);
+					cerrar_conexion(logger, conexion);
+					free(tarea_io->nombre_archivo);
+					free(tarea_io);
+					break;
+				}
+				else {
+					sem_wait(mutex_recursos);
+					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io);
+					//quitar_blocks
+					/*
+					 * Remover tantos caracteres como menciona la tarea
+					 * - Si se quieren borrar mas caracteres de los que hay: log_info(logger, "Se quisieron eliminar más caracteres de los que hay.\n");
+					 * 	 	y dejar el archivo vacío.
+					 * - Si se pueden borrar caracteres, se borran y listo.
+					 */
+				}
 
 
 				cerrar_conexion(logger, conexion);
@@ -202,6 +237,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			case TIRAR_BASURA:
 				cerrar_conexion(logger, conexion);
 				printf("Llego la tarea de DESCARTAR_BASURA\n");
+
+				path = string_new();
+				string_append_with_format(&path, "/Files/%s", tarea_io->nombre_archivo);
+			    path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
+				path_completo = concatenar_path(path);
+
+				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
+					log_info(logger, "No existe el recurso %s.\n", tarea_io->nombre_archivo);
+					break;
+				}
+				else {
+					sem_wait(mutex_recursos);
+					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io);
+					//quitar_blocks
+					// En este caso, hay que eliminar todo el contenido del archivo Basura.ims, y eliminar dicho archivo
+				}
 
 				break;
 
@@ -636,8 +687,6 @@ void sincronizar(){
 }
 
 
-
-
 // Tratamiento sobre Files (con Blocks y Size)
 int leer_size_archivo(char* path_archivo, char* clave){
 
@@ -649,24 +698,6 @@ int leer_size_archivo(char* path_archivo, char* clave){
 
 	return size;
 }
-
-/*
-void guardar_nuevo_size_archivo(char* path_archivo, int valor, char* clave){
-
-	t_config* datos_metadata = config_create(path_archivo);
-
-	char* valor_a_string;
-
-	asprintf(&valor_a_string, "%d", valor);
-
-	config_set_value(datos_metadata, clave, valor_a_string);
-
-	config_save(datos_metadata);
-
-	config_destroy(datos_metadata);
-
-	free(valor_a_string);
-}*/
 
 
 char** leer_blocks_archivo(char* path_archivo, char* clave) {
@@ -680,20 +711,6 @@ char** leer_blocks_archivo(char* path_archivo, char* clave) {
 	return blocks;
 }
 
-/*
-void guardar_nuevos_blocks_archivo(char* path_archivo, char* valor, char* clave){
-
-	t_config* datos_metadata = config_create(path_archivo);
-
-	config_set_value(datos_metadata, clave, valor);
-
-	config_save(datos_metadata);
-
-	config_destroy(datos_metadata);
-
-	free(valor);
-}*/
-
 
 void guardar_nuevos_datos_en_archivo(char* path_archivo, void* valor, char* clave) {
 
@@ -706,9 +723,7 @@ void guardar_nuevos_datos_en_archivo(char* path_archivo, void* valor, char* clav
 	config_destroy(datos_metadata);
 
 	free(valor);
-
 }
-
 
 
 char* armar_recurso(archivo_tarea* tarea_io) {
@@ -720,5 +735,4 @@ char* armar_recurso(archivo_tarea* tarea_io) {
 	}
 	return recurso;
 }
-
 

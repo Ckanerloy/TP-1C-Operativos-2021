@@ -619,6 +619,7 @@ void obtener_orden_input(){
 			strcat(parser_consola[1], "\0");
 
 			t_tripulante* id_tripulante_x_bitacora = malloc(sizeof(t_tripulante));
+			mensaje_bitacora* respuesta_bitacora = malloc(sizeof(mensaje_bitacora));
 			id_tripulante_x_bitacora->id_tripulante = atoi(parser_consola[1]);
 
 			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
@@ -630,11 +631,16 @@ void obtener_orden_input(){
 
 			enviar_mensaje(id_tripulante_x_bitacora, OBTENER_BITACORA, conexion_mongo_store);
 
-		 /*
-		 * ACA TIENE QUE RECIBIR UN MENSAJE DE MONGO STORE PARA MOSTRAR LA BITACORA
-		 * 					O
-		 * MONGO STORE IMPRIME LA BITACORA
-		 */
+			/*if(validacion_envio(conexion_mongo_store) == 1) {
+				recibir_mensaje(respuesta_bitacora, RESPUESTA_BITACORA, conexion_mongo_store);
+
+				printf("%s\n", respuesta_bitacora->bitacora);
+			}
+			else {
+				log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
+				abort();
+			}*/
+
 
 			//TODO
 			//Guardar en el log la bitacora del tripulante que devuelve mongo

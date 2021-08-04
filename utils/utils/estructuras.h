@@ -31,6 +31,7 @@ typedef enum
 	RESPUESTA_OK_ESTADO,
 	RESPUESTA_NUEVA_TAREA,
 	RESPUESTA_TRIPULANTE_ELIMINADO,
+	RESPUESTA_BITACORA,
 
 	GENERAR_INSUMO,
 	CONSUMIR_INSUMO,
@@ -235,7 +236,10 @@ typedef struct {
 } t_respuesta_tripulante;
 
 
-
+typedef struct {
+	char* bitacora;
+	uint32_t tamanio_bitacora;
+} mensaje_bitacora;
 
 
 // Patota Control Block (PCB)

@@ -32,6 +32,7 @@ uint32_t serializar_respuesta_iniciar_patota(t_paquete* paquete, t_respuesta_ini
 uint32_t serializar_respuesta_tripulante(t_paquete* paquete, t_respuesta_tripulante* mensaje);
 uint32_t serializar_respuesta_nueva_ubicacion(t_paquete* paquete, t_respuesta_tripulante_ubicacion* mensaje);
 uint32_t serializar_respuesta_tarea_tripulante(t_paquete* paquete, t_respuesta_tarea_tripulante* mensaje);
+uint32_t serializar_respuesta_bitacora(t_paquete* paquete, mensaje_bitacora* mensaje);
 
 //Tareas I/O
 uint32_t serializar_paquete_tarea_io(t_paquete* paquete, archivo_tarea* mensaje);

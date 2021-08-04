@@ -61,6 +61,7 @@ typedef struct{
 	int size;
 }t_metadata;
 
+
 //semaforos
 sem_t* mutex_recursos;
 

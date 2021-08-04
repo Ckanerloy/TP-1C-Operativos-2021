@@ -65,6 +65,10 @@ void recibir_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion
 			deserializar_respuesta_tripulante(mensaje, conexion);
 			break;
 
+		case RESPUESTA_BITACORA:
+			deserializar_respuesta_bitacora(mensaje, conexion);
+			break;
+
 		case CERRAR_MODULO:
 			break;
 
@@ -253,6 +257,25 @@ void deserializar_respuesta_tripulante(t_respuesta_tripulante* mensaje, int32_t 
 	free(buffer_deserializar);
 }
 
+
+void deserializar_respuesta_bitacora(mensaje_bitacora* mensaje, int32_t conexion) {
+	uint32_t tamanio;
+	uint32_t desplazamiento = 0;
+	void* buffer_deserializar;
+	buffer_deserializar = recibir_buffer(&tamanio, conexion);
+
+	// Tamaño Bitacora
+	memcpy(&(mensaje->tamanio_bitacora), buffer_deserializar + desplazamiento, sizeof(mensaje->tamanio_bitacora));
+	desplazamiento += sizeof(mensaje->tamanio_bitacora);
+
+	mensaje->bitacora = malloc(mensaje->tamanio_bitacora+1);
+
+	// Bitacora
+	memcpy(mensaje->bitacora, buffer_deserializar + desplazamiento, mensaje->bitacora+1);
+	desplazamiento += mensaje->bitacora+1;
+
+	free(buffer_deserializar);
+}
 
 void deserializar_respuesta_nueva_ubicacion(t_respuesta_tripulante_ubicacion* mensaje, int32_t conexion) {
 	uint32_t tamanio;

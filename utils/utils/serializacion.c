@@ -89,6 +89,10 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			tamanio_preparado = serializar_respuesta_tripulante(paquete, mensaje);
 			break;
 
+		case RESPUESTA_BITACORA:
+			tamanio_preparado = serializar_respuesta_bitacora(paquete, mensaje);
+			break;
+
 		case CERRAR_MODULO:
 			paquete->buffer->size = 0;
 			paquete->buffer->stream = NULL;
@@ -486,6 +490,48 @@ uint32_t serializar_respuesta_tripulante(t_paquete* paquete, t_respuesta_tripula
 	desplazamiento += sizeof(mensaje->id_tripulante);
 
 	tamanio_a_enviar = sizeof(mensaje->respuesta) + sizeof(mensaje->id_tripulante);
+
+	if(desplazamiento != tamanio_a_enviar)
+	{
+		puts("ERROR. Tamanio diferentes.\n");
+		//log_error(logger);
+		abort();
+	}
+
+	else
+	{
+
+		paquete->buffer = buffer;
+		paquete->buffer->size = desplazamiento;
+		paquete->buffer->stream = stream_auxiliar;
+
+		tamanio = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
+
+		return tamanio;
+	}
+}
+
+
+uint32_t serializar_respuesta_bitacora(t_paquete* paquete, mensaje_bitacora* mensaje) {
+	uint32_t tamanio = 0;
+	uint32_t desplazamiento = 0;
+
+	uint32_t tamanio_a_enviar = 0;
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->size = sizeof(mensaje->tamanio_bitacora) + strlen(mensaje->bitacora)+1;
+
+	void* stream_auxiliar = malloc(buffer->size);
+
+	// Tamaño Bitacora
+	memcpy(stream_auxiliar + desplazamiento, &(mensaje->tamanio_bitacora), sizeof(mensaje->tamanio_bitacora));
+	desplazamiento += sizeof(mensaje->tamanio_bitacora);
+
+	// Bitacora
+	memcpy(stream_auxiliar + desplazamiento, mensaje->bitacora, mensaje->tamanio_bitacora+1);
+	desplazamiento += mensaje->tamanio_bitacora+1;
+
+	tamanio_a_enviar = sizeof(mensaje->tamanio_bitacora) + mensaje->tamanio_bitacora+1;
 
 	if(desplazamiento != tamanio_a_enviar)
 	{
