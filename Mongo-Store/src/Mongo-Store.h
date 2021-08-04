@@ -66,6 +66,8 @@ typedef struct{
 sem_t* mutex_recursos;
 sem_t* mutex_generar;
 sem_t* mutex_consumir;
+sem_t* mutex_copia;
+sem_t* mutex_bitacora;
 
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_sincronizador;
@@ -78,12 +80,12 @@ void crear_archivo_metadata_bitacora(char* nombre_archivo);
 
 t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion);
 
-t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenado, int32_t tamanio_recurso);
+t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenado, int32_t tamanio_recurso, char* nombre_recurso);
 
 t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar);
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar);
 void sincronizar();
-void hash_MD5(char* cadena_a_hashear, char caracter_llenado);
+char* hash_MD5(char* cadena_a_hashear, char* nombre_archivo);
 uint32_t cantidad_elementos(char** parser);
 
 
@@ -104,6 +106,6 @@ void guardar_nuevos_datos_en_archivo(char* path_archivo, void* valor, char* clav
 
 
 
-char* armar_recurso(archivo_tarea* tarea_io);
+char* armar_recurso(char caracter_llenado, uint32_t cantidad);
 
 #endif /* MONGO_STORE_H_ */
