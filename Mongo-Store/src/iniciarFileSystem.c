@@ -33,6 +33,7 @@ int existe_file_system(){
 void inicializar_file_system(){
 		creacion_directorio(PUNTO_MONTAJE, "");//Se crea el path /home/utnso/polus TODO cambiar los parámetros que recibe para no poner ""
 		creacion_directorio(PUNTO_MONTAJE, "Files");//Se crea el path /home/utnso/polus/Files
+		creacion_directorio(PUNTO_MONTAJE, "Files/ArchivosHash");//Se crea el path /home/utnso/polus/Files/ArchivosHash
 		creacion_directorio(PUNTO_MONTAJE, "Files/Bitacoras");//Se crea el path /home/utnso/polus/Files/Bitacoras
 		iniciar_superbloque();
 		crear_archivo_blocks();

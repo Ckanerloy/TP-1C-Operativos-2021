@@ -81,7 +81,7 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, archivo_tarea* tarea
 t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar);
 int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar);
 void sincronizar();
-void hash_MD5();
+void hash_MD5(char* cadena_a_hashear, char caracter_llenado);
 uint32_t cantidad_elementos(char** parser);
 
 

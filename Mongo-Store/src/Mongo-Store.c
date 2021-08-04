@@ -25,6 +25,7 @@ int main(void) {
 
 		inicializar_file_system();
 		levantar_archivo_blocks();
+		hash_MD5("Welcome", 'B');
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
 
@@ -433,11 +434,45 @@ void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bi
  *
  */
 
-void hash_MD5(){
-	char* comando = "/home/utnso/Escritorio/Nuevo.txt > /home/utnso/Escritorio/pruebamd5.txt";
-	char* system_command = string_new();
-	string_append_with_format(&system_command, "md5sum %s ", comando);
-	system(system_command);
+void hash_MD5(char* cadena_a_hashear, char caracter_llenado){
+	char* path_archivo_hash_inicial;
+	char* path_archivo_hash_final;
+
+	if(caracter_llenado == 'C'){
+		path_archivo_hash_inicial = "/Files/ArchivosHash/ArchivoAHashearComida.txt";
+		path_archivo_hash_final = "/Files/ArchivosHash/ArchivoHasheadoComida.txt";
+	}
+	else if(caracter_llenado == 'B'){
+		path_archivo_hash_inicial = "/Files/ArchivosHash/ArchivoAHashearBasura.txt";
+		path_archivo_hash_final = "/Files/ArchivosHash/ArchivoHasheadoBasura.txt";
+		}
+		 else if(caracter_llenado == 'O'){
+			path_archivo_hash_inicial = "/Files/ArchivosHash/ArchivoAHashearOxigeno.txt";
+			path_archivo_hash_final = "/Files/ArchivosHash/ArchivoHasheadoOxigeno.txt";
+		 	}
+
+
+	char* path_inicial = malloc(strlen(PUNTO_MONTAJE) + strlen(path_archivo_hash_inicial) + 1);
+	path_inicial = concatenar_path(path_archivo_hash_inicial);
+
+	char* path_final = malloc(strlen(PUNTO_MONTAJE) + strlen(path_archivo_hash_final) + 1);
+	path_final = concatenar_path(path_archivo_hash_final);
+
+	FILE* archivo_inicial = fopen(path_inicial, "w" );
+		if (archivo_inicial == NULL){
+			log_error(logger, "No se pudo crear el archivo origen a hashear %s.\n", path_inicial);
+			exit(EXIT_FAILURE);
+		}
+
+	fwrite(cadena_a_hashear, strlen(cadena_a_hashear), 1, archivo_inicial);
+	fclose(archivo_inicial);
+
+	char* comando = string_new();
+	string_append_with_format(&comando, "md5sum %s >", path_inicial);
+	string_append_with_format(&comando, "%s", path_final);
+
+	system(comando);
+
 }
 
 
