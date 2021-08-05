@@ -18,7 +18,7 @@ void inicio_protocolo_fsck(void);
 
 
 t_list* recursos_activos(void);
-char* mapeo_recurso_a_string(recursos_archivos* recurso);
+char* mapeo_recurso_a_string(recursos_archivos recurso);
 bool esta_presente_en_lista(t_list* lista, int valor);
 
 

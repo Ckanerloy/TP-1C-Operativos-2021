@@ -145,11 +145,11 @@ t_list* recursos_activos(void){
 }
 
 
-char* mapeo_recurso_a_string(recursos_archivos* recurso) {
+char* mapeo_recurso_a_string(recursos_archivos recurso) {
 
 	char* recurso_string = string_new();
 
-	switch(*recurso) {
+	switch(recurso) {
 		case OXIGENO:
 			string_append_with_format(&recurso_string, "%s", "Oxigeno");
 			break;
@@ -222,8 +222,9 @@ t_list* obtener_blocks_ocupados(){
 
 	for(int i=0; i<list_size(lista_recursos); i++){
 
-		recursos_archivos* recurso = list_get(lista_recursos, i);
-		char* path_archivo_recurso = crear_ruta_recurso(mapeo_recurso_a_string(recurso));
+		recursos_archivos recurso = (recursos_archivos) list_get(lista_recursos, i);
+		char* path_recurso = mapeo_recurso_a_string(recurso);
+		char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
 		char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
 
 		posicion = 0;
@@ -288,7 +289,7 @@ bool esta_presente_en_lista(t_list* lista, int valor) {
 
 
 	for(int i = 0; i<list_size(lista); i++) {
-		if(list_get(lista, i) == valor) {
+		if((int) list_get(lista, i) == valor) {
 			return true;
 		}
 	}
