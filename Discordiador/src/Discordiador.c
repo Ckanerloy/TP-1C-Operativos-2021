@@ -642,6 +642,7 @@ void obtener_orden_input(){
 
 			t_tripulante* id_tripulante_x_bitacora = malloc(sizeof(t_tripulante));
 			id_tripulante_x_bitacora->id_tripulante = atoi(parser_consola[1]);
+			id_tripulante_x_bitacora->id_patota = 0;
 
 			bool mismo_id_bitacora(tripulante_plani* tripu) {
 				return tripu->id_tripulante == id_tripulante_x_bitacora->id_tripulante;

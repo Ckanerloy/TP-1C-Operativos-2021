@@ -269,6 +269,7 @@ void obtener_siguiente_tarea(tripulante_plani* tripu, uint32_t id_tripulante, ui
 	free(respuesta_tarea);
 
 	if(tripu->tarea_a_realizar->operacion == TAREA_VACIA) {
+		free(tripu->tarea_a_realizar);
 		tripu->tarea_a_realizar = NULL;
 		return;
 	}
