@@ -63,9 +63,9 @@ typedef struct{
 }t_metadata;
 
 //semaforos
-sem_t* mutex_recursos;
-sem_t* mutex_generar;
-sem_t* mutex_consumir;
+sem_t* mutex_blocks;
+sem_t* mutex_map;
+sem_t* mutex_config;
 sem_t* mutex_copia;
 sem_t* mutex_bitacora;
 sem_t* mutex_config;
