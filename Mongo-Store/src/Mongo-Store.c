@@ -36,6 +36,7 @@ int main(void) {
 
 		inicializar_file_system();
 		levantar_archivo_blocks();
+		inicio_protocolo_fsck();
 
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
@@ -53,7 +54,6 @@ int main(void) {
 			fstat(archivo_blocks, &statbuf);
 			blocks = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo_blocks, 0);
 			levantar_archivo_blocks();
-		//	escribir_archivo_blocks(3, "BLOQUE 3", strlen("BLOQUE 3"));
 
 			//Seccion SuperBloque
 			char *direccion_superBloque = concatenar_path("/SuperBloque.ims");
@@ -63,7 +63,7 @@ int main(void) {
 			fstat(archivo, &statbuf_2);
 			super_bloque = mmap(NULL, statbuf_2.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
 			levantar_archivo_superBloque();
-			//hash_MD5();
+			inicio_protocolo_fsck();
 		}
 
 	pthread_create(&hilo_sincronizador, NULL, (void*)sincronizar, NULL);

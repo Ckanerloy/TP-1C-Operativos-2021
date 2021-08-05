@@ -65,10 +65,15 @@ void inicio_protocolo_fsck(void) {
 	if(sabotaje_superbloque_cantidad_bloques()){
 		log_info(logger, "Se realizó un Sabotaje en la Cantidad de Bloques del SuperBloque.\n");
 		sabotaje = true;
-		reparacion_superbloque_cantidad_bloques();
+		reparacion_superBloque_cantidad_bloques();
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó la Cantidad de Bloques del SuperBloque.\n");
 	}
 
+
+/*
+ *
+ *
+ *
 	// Sabotaje en SUPERBLOQUE: Modifica el Bitmap
 	if(sabotaje_superbloque_bitmap()){
 		log_info(logger, "Se realizó un Sabotaje en el Bitmap del SuperBloque.\n");
@@ -78,6 +83,10 @@ void inicio_protocolo_fsck(void) {
 	}
 
 
+	// Sabotaje en directorio FILES
+	 *
+	 *
+	 *
 	for(int i=0; i<list_size(recursos_disponibles); i++) {
 		recursos_archivos recurso = (recursos_archivos)list_get(recursos_disponibles, i);
 
@@ -105,7 +114,7 @@ void inicio_protocolo_fsck(void) {
 			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el ORden de los Bloques del Archivo %s.\n", mapeo_recurso_a_string(recurso));
 		}
 	}
-
+*/
 
 	if(sabotaje == false) {
 		log_info(logger, "¡Falsa Alarma! No hubo sabotaje.\n");
@@ -160,36 +169,20 @@ char* mapeo_recurso_a_string(recursos_archivos recurso) {
 	return recurso_string;
 }
 
-/*
- * SABOTAJE EN SUPERBLOQUE:
-- CANTIDAD DE BLOQUES:
-	. Cambiar el valor del campo Blocks del SuperBloque.ims
-	. Como se resuelve? Constatar contra el tamaño de Blocks.ims y corregir el valor en caso que no concuerde
- *
- */
 
-/*bool cantidadBloquesModificadaEnSuperbloque(){
-	int lengthOfFile = tamanioFile(rutaBlocks());
-	uint32_t cantidadBloquesMetadata;
-	memcpy(&cantidadBloquesMetadata, superbloqueMapeadoAMemoria + sizeof(uint32_t), sizeof(uint32_t));
-	int cantidadBloquesCalculada = lengthOfFile/tamanioBloques;
-
-	return cantidadBloquesCalculada != cantidadBloquesMetadata;
-
-	BLOCK_SIZE | BLOCK | BITMAP
-}*/
 
 bool sabotaje_superbloque_cantidad_bloques(void) {
 
 	char* path_blocks = concatenar_path("/Blocks.ims");
 	int tamanio_archivo = calcular_tamanio_archivo(path_blocks);
+	int cantidad_blocks_real;
 	uint32_t cantidad_blocks_metadata;
 
 	memcpy(&cantidad_blocks_metadata, super_bloque + sizeof(uint32_t), sizeof(uint32_t));
+	cantidad_blocks_real = tamanio_archivo/BLOCK_SIZE;
 
-	int cantidadBloquesCalculada = tamanio_archivo/tamanioBloques;
-
-	return cantidadBloquesCalculada != cantidadBloquesMetadata;
+	//Retorna true si las cantidades son distintas. Sabotaje hecho.
+	return cantidad_blocks_real != cantidad_blocks_metadata;
 }
 
 
@@ -214,9 +207,17 @@ bool mismo_size_archivo(recurso){
 
 }
 
-void reparacion_superbloque_cantidad_bloques(void) {
+void reparacion_superBloque_cantidad_bloques(void) {
+
+	int cantidad_blocks_real;
+	char* path_blocks = concatenar_path("/Blocks.ims");
+	int tamanio_archivo = calcular_tamanio_archivo(path_blocks);
+	cantidad_blocks_real = tamanio_archivo/BLOCK_SIZE;
+
+	memcpy(super_bloque + sizeof(uint32_t), &cantidad_blocks_real, sizeof(uint32_t));
 
 }
+
 
 
 bool sabotaje_superbloque_bitmap(void) {
@@ -228,4 +229,109 @@ void reparacion_superbloque_bitmap(void) {
 }
 
 
+
+/*
+ * LOGICA SABOTAJE ROMPE
+ *
+ * void block_archivo(recursos* recurso, t_metadata_recurso* metadataAnterior, int nuevoBlockCount){
+	char* ruta = rutaMetadataDeRecurso(recurso);
+	char* texto = string_new();
+	char* blocks = bloquesAChar(obtenerListaBloquesAsignados(metadataAnterior));
+	char* size = get_string_metadataRecurso(metadataAnterior,"SIZE");
+	char* caracter = get_string_metadataRecurso(metadataAnterior,"CARACTER_LLENADO");
+	char* md5 = get_string_metadataRecurso(metadataAnterior,"MD5_ARCHIVO");
+	char* nuevoBlockCountChar = string_itoa(nuevoBlockCount);
+
+
+
+	FILE* archivoRecurso = fopen(ruta,"wb");
+	if (archivoRecurso == NULL){
+		log_info(logger_imongo,"No se pudo abrir el archivo %s",ruta);
+	} else {
+
+
+		string_append(&texto,"SIZE=");
+		string_append(&texto,size);
+		string_append(&texto,"\nBLOCK_COUNT=");
+		string_append(&texto,nuevoBlockCountChar);
+		string_append(&texto,"\nBLOCKS=");
+		string_append(&texto,blocks);
+		string_append(&texto,"\nCARACTER_LLENADO=");
+		string_append(&texto,caracter);
+		string_append(&texto,"\nMD5_ARCHIVO=");
+		string_append(&texto,md5);
+		string_append(&texto,"\n");
+
+
+
+
+		fwrite(texto, string_length(texto), 1, archivoRecurso);
+		fclose(archivoRecurso);
+	}
+	free(texto);
+	free(blocks);
+	free(nuevoBlockCountChar);
+	free(ruta);
+}
+
+bool bloquesAsignadosEnRecursosDifierenConBitmap(){
+	char* bitMap_mmap = malloc(cantidadDeBytesParaBits(cantidadBloques));
+	memcpy(bitMap_mmap, superbloqueMapeadoAMemoria + 2*sizeof(uint32_t), cantidadDeBytesParaBits(cantidadBloques));
+	t_bitarray* bitmapSuperbloque = bitarray_create_with_mode(bitMap_mmap, cantidadDeBytesParaBits(cantidadBloques), LSB_FIRST);
+	t_list* bloquesUsados = obtenerBloquesUsados();
+	for(int i=0; i<cantidadBloques; i++){
+		bool noEstaEnLaListaYSiEnElBitmap = !list_contain(i,bloquesUsados) && bitarray_test_bit(bitmapSuperbloque, i);
+		bool estaEnLaListaYNoEnElBitmap = list_contain(i,bloquesUsados) && !bitarray_test_bit(bitmapSuperbloque, i);
+		if(noEstaEnLaListaYSiEnElBitmap || estaEnLaListaYNoEnElBitmap){
+			bitarray_destroy(bitmapSuperbloque);
+			free(bitMap_mmap);
+			list_destroy(bloquesUsados);
+			return true;
+		}
+	}
+	bitarray_destroy(bitmapSuperbloque);
+	free(bitMap_mmap);
+	list_destroy(bloquesUsados);
+	return false;
+}
+
+t_list* obtenerBloquesUsados(){
+	t_list* lista_recursos = recursosActivos();
+	t_list* bloquesUsados = list_create();
+
+	for(int i=0; i<list_size(lista_recursos); i++){
+		recursos* recurso = list_get(lista_recursos, i);
+		char* ruta = rutaMetadataDeRecurso(recurso);
+		t_metadata_recurso* metadataRecurso = metadata_recurso_create(ruta);
+		t_list* bloquesAsignados = obtenerListaBloquesAsignados(metadataRecurso);
+		list_add_all(bloquesUsados, bloquesAsignados);
+		metadataRecurso_destroy(metadataRecurso);
+		free(ruta);
+		list_destroy(bloquesAsignados);
+	}
+
+	list_add_all(bloquesUsados, bloquesAsignadosABitacora);
+	list_destroy(lista_recursos);
+	return bloquesUsados;
+}
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
