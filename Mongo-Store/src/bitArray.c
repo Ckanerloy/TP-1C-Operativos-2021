@@ -16,21 +16,16 @@ void vaciarBitArray(t_bitarray* bitarray){
 	}
 }
 
-int posicionBitLibre (t_bitarray* bitarray){
-
-	int bitLibre;
+int posicionBitLibre (){
 
 	for (int i = 0; i < BLOCKS; i++){
-		int valorBit = bitarray_test_bit(bitarray, i);
+		int valorBit = bitarray_test_bit(bitArraySB, i);
 
-		if( 0 ==  valorBit){
-			bitLibre = i;
-			i = BLOCKS+1;
-
+		if( valorBit == 0){
+			return i;
 		}
-
 	}
-	return bitLibre;
+	return -1;
 
 }
 

@@ -12,7 +12,10 @@
 #include <semaphore.h>
 #include <stdbool.h>
 #include <sys/stat.h>
-
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <limits.h>
 #include <unistd.h>
@@ -27,7 +30,7 @@
 #include "bitArray.h"
 #include "commons/bitarray.h"
 #include "iniciarFileSystem.h"
-
+#include "sabotajes.h"
 
 #define IP "127.0.0.1"
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mongo-Store/Mongo-Store.config"
@@ -37,29 +40,72 @@ char* PUERTO;
 char* PUERTO_DISCORDIADOR;
 char* PUNTO_MONTAJE;
 int TIEMPO_SINCRONIZACION;
-char** POSICIONES_SABOTAJE;
 int BLOCK_SIZE;
 int BLOCKS;
 void* blocks;
 int archivo_blocks;
-char* un_bitarray;
+char* bitmap;
 t_bitarray* bitArraySB;
 int archivo;
 void *super_bloque;
+void* informacion_blocks;
+void* informacion_superBloque;
+uint32_t tamanio_bloque_en_SB;
+uint32_t cantidad_bloques_en_SB;
 
 t_log* logger;
 t_config* config;
 
-pthread_t hilo_recibir_mensajes;
+typedef struct{
+	char** bloques_asignados_anterior;
+	int size;
+}t_metadata;
 
-int32_t num_sabotaje;
+//semaforos
+sem_t* mutex_recursos;
+sem_t* mutex_generar;
+sem_t* mutex_consumir;
+sem_t* mutex_copia;
+sem_t* mutex_bitacora;
+
+pthread_t hilo_recibir_mensajes;
+pthread_t hilo_sincronizador;
 
 
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
-char* crear_archivo_metadata(char* nombre_archivo);
-char* crear_archivo_bitacora(char* nombre_archivo);
+void crear_archivo_metadata_recurso(char* nombre_archivo);
+void crear_archivo_metadata_bitacora(char* nombre_archivo);
 
-void iniciar_sabotaje(void);
-uint32_t cantidad_posiciones(char** parser);
+t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion);
+
+t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenado, int32_t tamanio_recurso, char* nombre_recurso);
+
+t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar);
+int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar);
+void sincronizar();
+char* hash_MD5(char* cadena_a_hashear, char* nombre_archivo);
+uint32_t cantidad_elementos(char** parser);
+
+
+// Funciones sobre Bloques
+void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
+void eliminar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
+void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso);
+char* concatenar_contenido_blocks(char** lista_bloques);
+
+
+// Funciones sobre Archivos
+int leer_size_archivo(char* path_archivo, char* clave);
+char** leer_blocks_archivo(char* path_archivo, char* clave);
+void guardar_nuevo_size_archivo(char* path_archivo, int valor, char* clave);
+//void guardar_nuevos_blocks_archivo(char* path_archivo, char* valor, char* clave);
+void guardar_nuevos_datos_en_archivo(char* path_archivo, void* valor, char* clave);
+
+
+char* armar_recurso(char caracter_llenado, uint32_t cantidad);
+void loggear_liberacion_archivo(char* nombre, int nro_bloque);
+char* crear_ruta_recurso(char* nombre_recurso);
+bool existe_archivo(char* path);
+
 #endif /* MONGO_STORE_H_ */

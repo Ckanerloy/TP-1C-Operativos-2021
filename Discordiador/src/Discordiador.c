@@ -395,6 +395,7 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 1|1
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota4.txt 1|1
 			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 5|5 5|5
 			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
@@ -631,6 +632,7 @@ void obtener_orden_input(){
 			strcat(parser_consola[1], "\0");
 
 			t_tripulante* id_tripulante_x_bitacora = malloc(sizeof(t_tripulante));
+			mensaje_bitacora* respuesta_bitacora = malloc(sizeof(mensaje_bitacora));
 			id_tripulante_x_bitacora->id_tripulante = atoi(parser_consola[1]);
 
 			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
@@ -642,11 +644,16 @@ void obtener_orden_input(){
 
 			enviar_mensaje(id_tripulante_x_bitacora, OBTENER_BITACORA, conexion_mongo_store);
 
-		 /*
-		 * ACA TIENE QUE RECIBIR UN MENSAJE DE MONGO STORE PARA MOSTRAR LA BITACORA
-		 * 					O
-		 * MONGO STORE IMPRIME LA BITACORA
-		 */
+			/*if(validacion_envio(conexion_mongo_store) == 1) {
+				recibir_mensaje(respuesta_bitacora, RESPUESTA_BITACORA, conexion_mongo_store);
+
+				printf("%s\n", respuesta_bitacora->bitacora);
+			}
+			else {
+				log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
+				abort();
+			}*/
+
 
 			//TODO
 			//Guardar en el log la bitacora del tripulante que devuelve mongo

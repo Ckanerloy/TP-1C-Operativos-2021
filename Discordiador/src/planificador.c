@@ -886,23 +886,23 @@ void realizar_tarea(tripulante_plani* tripu){
 	switch(tripu->tarea_a_realizar->operacion) {
 
 		case GENERAR_OXIGENO:	// @suppress("Symbol is not resolved")
-			generar_insumo("Oxigeno.ims", 'O', tripu);
+			generar_insumo("Oxigeno", 'O', tripu);
 			break;
 
 		case CONSUMIR_OXIGENO:	// @suppress("Symbol is not resolved")
-			consumir_insumo("Oxigeno.ims", 'O', tripu);
+			consumir_insumo("Oxigeno", 'O', tripu);
 			break;
 
 		case GENERAR_COMIDA: 	// @suppress("Symbol is not resolved")
-			generar_insumo("Comida.ims", 'C', tripu);
+			generar_insumo("Comida", 'C', tripu);
 			break;
 
 		case CONSUMIR_COMIDA:	// @suppress("Symbol is not resolved")
-			consumir_insumo("Comida.ims",'C', tripu);
+			consumir_insumo("Comida",'C', tripu);
 			break;
 
 		case GENERAR_BASURA:	// @suppress("Symbol is not resolved")
-			generar_insumo("Basura.ims", 'B', tripu);
+			generar_insumo("Basura", 'B', tripu);
 			break;
 
 		case DESCARTAR_BASURA:	// @suppress("Symbol is not resolved")
