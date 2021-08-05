@@ -723,8 +723,8 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 
 
 	char* cantidad_bloques_total = string_new();
-	metadata_recurso->bloques_asignados_anterior = leer_blocks_archivo(path, "BLOCKS");
-	asprintf(&cantidad_bloques_total, "%d", cantidad_elementos(metadata_recurso->bloques_asignados_anterior));
+	char** bloques_asignados = leer_blocks_archivo(path, "BLOCKS");
+	asprintf(&cantidad_bloques_total, "%d", cantidad_elementos(bloques_asignados));
 	guardar_nuevos_datos_en_archivo(path, cantidad_bloques_total, "BLOCK_COUNT");
 
 	char* string_hash = string_new();
