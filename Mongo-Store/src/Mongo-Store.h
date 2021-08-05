@@ -61,7 +61,6 @@ typedef struct{
 	int size;
 }t_metadata;
 
-
 //semaforos
 sem_t* mutex_recursos;
 sem_t* mutex_generar;
@@ -89,7 +88,6 @@ char* hash_MD5(char* cadena_a_hashear, char* nombre_archivo);
 uint32_t cantidad_elementos(char** parser);
 
 
-
 // Funciones sobre Bloques
 void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
 void eliminar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
@@ -107,5 +105,7 @@ void guardar_nuevos_datos_en_archivo(char* path_archivo, void* valor, char* clav
 
 char* armar_recurso(char caracter_llenado, uint32_t cantidad);
 void loggear_liberacion_archivo(char* nombre, int nro_bloque);
+char* crear_ruta_recurso(char* nombre_recurso);
+bool existe_archivo(char* path);
 
 #endif /* MONGO_STORE_H_ */

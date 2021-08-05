@@ -189,10 +189,11 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				recurso = armar_recurso(tarea_io->caracter_llenado, tarea_io->cantidad);
 
-				path = string_new();
+				path_completo = crear_ruta_recurso(tarea_io->nombre_archivo);
+				/*path = string_new();
 				string_append_with_format(&path, "/Files/%s.ims", tarea_io->nombre_archivo);
 				path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
-				path_completo = concatenar_path(path);
+				path_completo = concatenar_path(path);*/
 				printf("	Llego la tarea de Generar %s\n", tarea_io->nombre_archivo);
 
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
@@ -219,7 +220,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				cerrar_conexion(logger, conexion);
 
-				free(path);
 				free(path_completo);
 				free(tarea_io->nombre_archivo);
 				free(tarea_io);
@@ -229,15 +229,15 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			case CONSUMIR_INSUMO:
 				tarea_io = malloc(sizeof(archivo_tarea));
 				recibir_mensaje(tarea_io, operacion, conexion);
-
 				printf("	Llego la tarea de Consumir %s.\n", tarea_io->nombre_archivo);
 
+				path_completo = crear_ruta_recurso(tarea_io->nombre_archivo);
 				recurso = armar_recurso(tarea_io->caracter_llenado, tarea_io->cantidad);
 
-				path = string_new();
+				/*path = string_new();
 				string_append_with_format(&path, "/Files/%s.ims", tarea_io->nombre_archivo);
 			    path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
-				path_completo = concatenar_path(path);
+				path_completo = concatenar_path(path);*/
 
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
 					log_info(logger, "No existe el recurso %s.\n", tarea_io->nombre_archivo);
@@ -273,11 +273,13 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				cerrar_conexion(logger, conexion);
 				printf("Llego la tarea de DESCARTAR_BASURA\n");
 
+				path_completo = crear_ruta_recurso("Basura");
 
+				/*
 				path = string_new();
 				string_append_with_format(&path, "/Files/%s", "Basura.ims");
 			    path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
-				path_completo = concatenar_path(path);
+				path_completo = concatenar_path(path);*/
 
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
 					log_info(logger, "No existe el recurso %s.\n", "Basura.ims");
@@ -350,7 +352,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				printf("----------------------REALIZO EL SABOTAJE (FSCK)\n");
 
-				//inicio_rutina_fsck();
+				inicio_protocolo_fsck();
 
 
 				break;
@@ -372,6 +374,20 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				break;
 			}
 }
+
+
+bool existe_archivo(char* path){
+	FILE* archivo = fopen(path, "r");
+
+	if(archivo != NULL){
+		fclose(archivo);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 
 
 void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
@@ -647,16 +663,11 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 
 	metadata_recurso->bloques_asignados_anterior = leer_blocks_archivo(path, "BLOCKS");
 
-	char* recurso = armar_recurso(caracter_llenado, nuevo_valor_size);
-
-	char* hash = hash_MD5(recurso, nombre_recurso);
-	guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
-
 	uint32_t cantidad_bloques_usados = cantidad_elementos(metadata_recurso->bloques_asignados_anterior);
 
 	if(cantidad_bloques_usados == 0){
 
-		t_list* lista_posiciones = obtener_array_bloques_a_usar(tamanio_recurso);
+		t_list* lista_posiciones = obtener_array_bloques_a_usar(nuevo_valor_size);
 		char* bloques = string_new();
 		string_append_with_format(&bloques,"[");
 
@@ -678,8 +689,8 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 		uint32_t fragmentacion_interna = cantidad_bloques_usados*BLOCK_SIZE - metadata_recurso->size;
 
 		t_list* lista_posiciones;
-		if(tamanio_recurso > fragmentacion_interna){
-			lista_posiciones = obtener_array_bloques_a_usar(tamanio_recurso - fragmentacion_interna);// 10 frag de 4  entocnes falta guardar 6
+		if(nuevo_valor_size>fragmentacion_interna){
+			lista_posiciones = obtener_array_bloques_a_usar(nuevo_valor_size-fragmentacion_interna);// 10 frag de 4  entocnes falta guardar 6
 		}else{
 			lista_posiciones = obtener_array_bloques_a_usar(0);
 		}
@@ -689,10 +700,10 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 		int recorrido=0;
 		while(metadata_recurso->bloques_asignados_anterior[recorrido] != NULL){
 			if(recorrido == cantidad_bloques_usados-1 && list_size(lista_posiciones)==0){
-				string_append_with_format(&bloques,metadata_recurso->bloques_asignados_anterior[recorrido]);
+				string_append_with_format(&bloques, metadata_recurso->bloques_asignados_anterior[recorrido]);
 
 			}else{
-				string_append_with_format(&bloques,metadata_recurso->bloques_asignados_anterior[recorrido]);
+				string_append_with_format(&bloques, metadata_recurso->bloques_asignados_anterior[recorrido]);
 				string_append_with_format(&bloques,",");
 			}
 			recorrido++;
@@ -710,10 +721,21 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 		guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
 	}
 
+
 	char* cantidad_bloques_total = string_new();
 	metadata_recurso->bloques_asignados_anterior = leer_blocks_archivo(path, "BLOCKS");
 	asprintf(&cantidad_bloques_total, "%d", cantidad_elementos(metadata_recurso->bloques_asignados_anterior));
 	guardar_nuevos_datos_en_archivo(path, cantidad_bloques_total, "BLOCK_COUNT");
+
+	char* string_hash = string_new();
+
+	asprintf(&string_hash, "%s", concatenar_contenido_blocks(metadata_recurso->bloques_asignados_anterior));
+
+	printf("HASH A METER: %s\n", string_hash);
+	printf("TAMAÑO HASH: %u\n", strlen(string_hash));
+
+	char* hash = hash_MD5(string_hash, nombre_recurso);
+	guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
 
 	return metadata_recurso;
 }
@@ -845,7 +867,9 @@ char* concatenar_contenido_blocks(char** lista_bloques){
 	char* contenido_final = string_substring_until(contenido_concatenado, tamanio_contenido);
 	strcat(contenido_final, "\0");
 
-    printf("HASH A METER: %s \n", contenido_final);
+	printf("HASH A METER: %s\n", contenido_final);
+	printf("TAMAÑO HASH: %u\n", strlen(contenido_final));
+
     return contenido_concatenado;
 }
 
@@ -924,7 +948,19 @@ void loggear_asignacion_bloques(char* valor, char** bloques) {
 
 }
 
+
 void loggear_liberacion_archivo(char* nombre, int nro_bloque){
 	log_info(logger, "Se libera el bloque %i de %s.\n", nro_bloque, nombre);
+}
+
+
+char* crear_ruta_recurso(char* nombre_recurso) {
+
+	char* path = string_new();
+	string_append_with_format(&path, "/Files/%s.ims", nombre_recurso);
+	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
+	path_completo = concatenar_path(path);
+
+	return path_completo;
 }
 
