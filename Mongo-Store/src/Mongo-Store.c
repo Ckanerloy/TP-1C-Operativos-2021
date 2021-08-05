@@ -378,16 +378,13 @@ void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
 
 	uint32_t cant_bloques = cantidad_elementos(metadata_recurso->bloques_asignados_anterior);
 
-	printf("Cantidad de bloques: %u \n", cant_bloques);
-
 	int32_t desplazamiento = 0;
 
 	for(int i=0; i<cant_bloques-1; i++) {
-		bitarray_clean_bit(bitArraySB, metadata_recurso->bloques_asignados_anterior[i]);
-		char* valor = armar_recurso('0', BLOCK_SIZE);
-		printf("Id de los bloques: %u \n", (int) metadata_recurso->bloques_asignados_anterior[i]);
-
 		uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[i]);
+		bitarray_clean_bit(bitArraySB, nro_bloque);
+		char* valor = armar_recurso('0', BLOCK_SIZE);
+
 		uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
 
 		memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
@@ -396,7 +393,6 @@ void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
 
 	uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[cant_bloques-1]);
 	bitarray_clean_bit(bitArraySB, nro_bloque);
-	printf("Posicion del bit que hay que cambiar: %d \n",nro_bloque);
 	uint32_t nro_ultimo_bloque = atoi((metadata_recurso->bloques_asignados_anterior[cant_bloques-1]));
 	uint32_t espacio_libre_ultimo_bloque = (cant_bloques*BLOCK_SIZE - (metadata_recurso->size));
 	uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
@@ -666,7 +662,7 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 
 		for(int i=0; i<list_size(lista_posiciones); i++){
 			int posicion = (int) list_get(lista_posiciones, i);
-		//	printf("posicion a agregar en la lista %d \n",posicion);
+
 			if(i == list_size(lista_posiciones)-1)
 				string_append_with_format(&bloques,"%u", posicion);
 			else{
@@ -767,7 +763,7 @@ t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_ac
 
 		for(int i=0; i<list_size(lista_posiciones); i++){
 			int posicion = (int) list_get(lista_posiciones, i);
-		//	printf("posicion a agregar en la lista %d \n",posicion);
+
 			if(i == list_size(lista_posiciones)-1)
 				string_append_with_format(&bloques,"%u", posicion);
 			else{
