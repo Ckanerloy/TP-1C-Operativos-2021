@@ -52,6 +52,7 @@ void* informacion_blocks;
 void* informacion_superBloque;
 uint32_t tamanio_bloque_en_SB;
 uint32_t cantidad_bloques_en_SB;
+int32_t contador_tripulantes;
 
 t_log* logger;
 t_config* config;
@@ -67,6 +68,7 @@ sem_t* mutex_generar;
 sem_t* mutex_consumir;
 sem_t* mutex_copia;
 sem_t* mutex_bitacora;
+sem_t* mutex_config;
 
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_sincronizador;
@@ -106,6 +108,7 @@ void guardar_nuevos_datos_en_archivo(char* path_archivo, void* valor, char* clav
 char* armar_recurso(char caracter_llenado, uint32_t cantidad);
 void loggear_liberacion_archivo(char* nombre, int nro_bloque);
 char* crear_ruta_recurso(char* nombre_recurso);
+char* crear_ruta_bitacora(int32_t id_tripulante);
 bool existe_archivo(char* path);
 
 #endif /* MONGO_STORE_H_ */

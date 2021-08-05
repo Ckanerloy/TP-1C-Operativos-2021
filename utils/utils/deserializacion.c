@@ -271,8 +271,8 @@ void deserializar_respuesta_bitacora(mensaje_bitacora* mensaje, int32_t conexion
 	mensaje->bitacora = malloc(mensaje->tamanio_bitacora+1);
 
 	// Bitacora
-	memcpy(mensaje->bitacora, buffer_deserializar + desplazamiento, mensaje->bitacora+1);
-	desplazamiento += mensaje->bitacora+1;
+	memcpy(mensaje->bitacora, buffer_deserializar + desplazamiento, mensaje->tamanio_bitacora+1);
+	desplazamiento += mensaje->tamanio_bitacora+1;
 
 	free(buffer_deserializar);
 }

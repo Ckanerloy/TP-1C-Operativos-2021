@@ -4,8 +4,8 @@ int main(void) {
 
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
-	logger = crear_log("Mi-RAM-HQ.log", "Mi-RAM HQ");
-	//logger = crear_log_sin_pantalla("Mi-RAM-HQ.log", "Mi-RAM HQ");
+	//logger = crear_log("Mi-RAM-HQ.log", "Mi-RAM HQ");
+	logger = crear_log_sin_pantalla("Mi-RAM-HQ.log", "Mi-RAM HQ");
 
 	// Recibe la señal para hacer el Dump de Memoria
 	signal(SIGUSR1, (void*)iniciar_dump_memoria);

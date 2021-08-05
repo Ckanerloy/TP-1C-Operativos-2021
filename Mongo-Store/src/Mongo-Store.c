@@ -23,6 +23,9 @@ int main(void) {
 	mutex_bitacora = malloc(sizeof(sem_t));
 	sem_init(mutex_bitacora, 0, 1);
 
+	mutex_config = malloc(sizeof(sem_t));
+	sem_init(mutex_config, 0, 1);
+
 	num_sabotaje = 0;
 	// Recibe la señal para enviar sabotaje
 	signal(SIGUSR1, (void*)iniciar_sabotaje);
@@ -115,14 +118,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				tripulante_por_bitacora = malloc(sizeof(t_tripulante));
 				recibir_mensaje(tripulante_por_bitacora, operacion, conexion);
 
-                char* path_string = string_new();
-				string_append_with_format(&path_string, "/Files/Bitacoras/Tripulante%u.ims", tripulante_por_bitacora->id_tripulante);
+				path_completo = crear_ruta_bitacora(tripulante_por_bitacora->id_tripulante);
 
-				char* path_archivo = malloc(strlen(PUNTO_MONTAJE) + strlen(path_string) + 2);
-
-				path_archivo = concatenar_path(path_string);
-
-				if(open(path_archivo, O_RDWR, S_IRUSR|S_IWUSR) < 0) {
+				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) {
 					log_error(logger, "No existe la bitacora del tripulante %u", tripulante_por_bitacora->id_tripulante);
 					break;
 				}
@@ -130,10 +128,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				else {
 					mensaje_bitacora* mensaje = malloc(sizeof(mensaje_bitacora));
 
-					int size_bitacora = leer_size_archivo(path_archivo, "SIZE");
-					char** bloques = leer_blocks_archivo(path_archivo, "BLOCKS");
-					void* buffer = malloc(size_bitacora);
-					char* bitacora = string_new();
+					int size_bitacora = leer_size_archivo(path_completo, "SIZE");
+					char** bloques = leer_blocks_archivo(path_completo, "BLOCKS");
+					char* bitacora = malloc(size_bitacora);
 
 					uint32_t cant_bloques = cantidad_elementos(bloques);
 					uint32_t desplazamiento = 0;
@@ -144,7 +141,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
 
 						sem_wait(mutex_copia);
-						memcpy(buffer + desplazamiento, informacion_blocks + ubicacion_bloque, BLOCK_SIZE);
+						memcpy(bitacora + desplazamiento, informacion_blocks + ubicacion_bloque, BLOCK_SIZE);
 						desplazamiento += BLOCK_SIZE;
 						sem_post(mutex_copia);
 					}
@@ -155,30 +152,21 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
 
 					sem_wait(mutex_copia);
-					memcpy(buffer + desplazamiento, informacion_blocks + ubicacion_bloque, cant_necesaria_ultimo_bloque);
-					desplazamiento += cant_necesaria_ultimo_bloque;
+					memcpy(bitacora + desplazamiento, informacion_blocks + ubicacion_bloque, cant_necesaria_ultimo_bloque);
 					sem_post(mutex_copia);
 
-					bitacora = malloc(desplazamiento);
-					memcpy(bitacora, buffer, desplazamiento);
+					mensaje->tamanio_bitacora = size_bitacora;
+					mensaje->bitacora = string_substring(bitacora, 0, size_bitacora);
 
-					mensaje->tamanio_bitacora = desplazamiento;
-					mensaje->bitacora = malloc(size_bitacora);
-					printf("TAMAÑO DE LA BITACORA: %u\n", strlen(bitacora));
-					strcpy(mensaje->bitacora, bitacora);
-					printf("BITACORA: \n%s\n", bitacora);
-
-					//enviar_mensaje(mensaje, RESPUESTA_BITACORA, conexion);
+					enviar_mensaje(mensaje, RESPUESTA_BITACORA, conexion);
 
 					limpiar_parser(bloques);
 					free(bitacora);
-					free(buffer);
 					free(mensaje->bitacora);
 					free(mensaje);
 				}
 
-				free(path_string);
-				free(path_archivo);
+				free(path_completo);
 				cerrar_conexion(logger, conexion);
 				free(tripulante_por_bitacora);
 				break;
@@ -312,10 +300,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				//strcat(bitacora_tripu->accion, "\0");
 				printf("Tripu %u: %s\n", bitacora_tripu->id_tripulante, bitacora_tripu->accion);
 
-				path = string_new();
-				string_append_with_format(&path, "/Files/Bitacoras/Tripulante%u.ims", bitacora_tripu->id_tripulante);
-				path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
-				path_completo = concatenar_path(path);
+				path_completo = crear_ruta_bitacora(bitacora_tripu->id_tripulante);
 
 				sem_wait(mutex_bitacora);
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
@@ -655,11 +640,15 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 
 	char* valor_string = string_new();
 	asprintf(&valor_string, "%d", nuevo_valor_size);
+	sem_wait(mutex_config);
 	guardar_nuevos_datos_en_archivo(path, valor_string, "SIZE");
+	sem_post(mutex_config);
 
 	char* caracter_string = string_new();
 	string_append_with_format(&caracter_string, "%c", caracter_llenado);
+	sem_wait(mutex_config);
 	guardar_nuevos_datos_en_archivo(path, caracter_string, "CARACTER_LLENADO");
+	sem_post(mutex_config);
 
 	metadata_recurso->bloques_asignados_anterior = leer_blocks_archivo(path, "BLOCKS");
 
@@ -682,7 +671,9 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 		}
 		string_append_with_format(&bloques,"]");
 
+		sem_wait(mutex_config);
 		guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
+		sem_post(mutex_config);
 	}
 	else{
 
@@ -718,14 +709,18 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 		}
 		string_append_with_format(&bloques,"]");
 		log_info(logger, "Se ocuparon los bloques %s\n", bloques);
+		sem_wait(mutex_config);
 		guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
+		sem_post(mutex_config);
 	}
 
 
 	char* cantidad_bloques_total = string_new();
 	char** bloques_asignados = leer_blocks_archivo(path, "BLOCKS");
 	asprintf(&cantidad_bloques_total, "%d", cantidad_elementos(bloques_asignados));
+	sem_wait(mutex_config);
 	guardar_nuevos_datos_en_archivo(path, cantidad_bloques_total, "BLOCK_COUNT");
+	sem_post(mutex_config);
 
 	char* string_hash = string_new();
 
@@ -735,7 +730,9 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 	printf("TAMAÑO HASH: %u\n", strlen(string_hash));
 
 	char* hash = hash_MD5(string_hash, nombre_recurso);
+	sem_wait(mutex_config);
 	guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
+	sem_post(mutex_config);
 
 	return metadata_recurso;
 }
@@ -761,6 +758,8 @@ void crear_archivo_metadata_bitacora(char* path_completo){
 	config_save(contenido_archivo);
 
 	config_destroy(contenido_archivo);
+
+	contador_tripulantes++;
 }
 
 
@@ -772,7 +771,9 @@ t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_ac
 	int nuevo_valor_size = metadata_bitacora->size + tamanio_accion;
 	char* valor_string;
 	asprintf(&valor_string, "%d", nuevo_valor_size);
+	sem_wait(mutex_config);
 	guardar_nuevos_datos_en_archivo(path, valor_string, "SIZE");
+	sem_post(mutex_config);
 
 	metadata_bitacora->bloques_asignados_anterior = leer_blocks_archivo(path, "BLOCKS");
 	uint32_t cantidad_bloques_usados = cantidad_elementos(metadata_bitacora->bloques_asignados_anterior);
@@ -794,7 +795,9 @@ t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_ac
 		}
 		string_append_with_format(&bloques,"]");
 
+		sem_wait(mutex_config);
 		guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
+		sem_post(mutex_config);
 	}
 	else{
 
@@ -830,7 +833,9 @@ t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_ac
 		}
 		string_append_with_format(&bloques,"]");
 		log_info(logger, "Se ocuparon los bloques %s\n", bloques);
+		sem_wait(mutex_config);
 		guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
+		sem_post(mutex_config);
 	}
 
 	return metadata_bitacora;
@@ -943,12 +948,6 @@ char* armar_recurso(char caracter_llenado, uint32_t cantidad) {
 }
 
 
-void loggear_asignacion_bloques(char* valor, char** bloques) {
-
-
-}
-
-
 void loggear_liberacion_archivo(char* nombre, int nro_bloque){
 	log_info(logger, "Se libera el bloque %i de %s.\n", nro_bloque, nombre);
 }
@@ -961,6 +960,19 @@ char* crear_ruta_recurso(char* nombre_recurso) {
 	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
 	path_completo = concatenar_path(path);
 
+	free(path);
+	return path_completo;
+}
+
+
+char* crear_ruta_bitacora(int32_t id_tripulante) {
+
+    char* path_string = string_new();
+	string_append_with_format(&path_string, "/Files/Bitacoras/Tripulante%u.ims", id_tripulante);
+	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path_string) + 2);
+	path_completo = concatenar_path(path_string);
+
+	free(path_string);
 	return path_completo;
 }
 

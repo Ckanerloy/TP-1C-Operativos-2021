@@ -433,6 +433,7 @@ void obtener_orden_input(){
 
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger_on, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
+				sem_post(termino_operacion);
 				break;
 			}
 
@@ -444,6 +445,7 @@ void obtener_orden_input(){
 
 			if(posiciones_faltantes < 0) {
 				log_error(logger_on, "Se ingresaron posiciones demás. Solo puede como máximo haber tantas posiciones como cantidad de tripulantes.\n");
+				sem_post(termino_operacion);
 				break;
 			}
 
@@ -469,6 +471,7 @@ void obtener_orden_input(){
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
 				log_error(logger_on, "¡Error! No se ha podido conectar a %s. \n", "Mi-RAM HQ");
+				sem_post(termino_operacion);
 				break;
 			}
 
@@ -481,6 +484,7 @@ void obtener_orden_input(){
 				}
 				else {
 					log_error(logger_on, "El archivo %s no existe. \n", parser_consola[2]);
+					sem_post(termino_operacion);
 					break;
 				}
 
@@ -576,6 +580,7 @@ void obtener_orden_input(){
 				}
 				else {
 					log_error(logger_on, "No hay espacio para almacenar la patota con sus tripulantes. \n");			// Salgo del Switch, ya que no pudo crearse la Patota en Mi-RAM HQ
+					sem_post(termino_operacion);
 					break;
 				}
 			}
@@ -603,6 +608,7 @@ void obtener_orden_input(){
 
 			if(parser_consola[1] != NULL) {
 				log_warning(logger_on, "Sobran argumentos. Debe iniciarse de la forma LISTAR_TRIPULANTES.\n");
+				sem_post(termino_operacion);
 				break;
 
 			}
@@ -625,42 +631,64 @@ void obtener_orden_input(){
 
 		case OBTENER_BITACORA:
 
+
 			if(parser_consola[1] == NULL) {
 				log_error(logger_on, "Faltan argumentos. Debe inciarse de la forma OBTENER_BITACORA <Id_Tripulante>.\n");
+				sem_post(termino_operacion);
 				break;
 			}
 			strcat(parser_consola[1], "\0");
 
+
 			t_tripulante* id_tripulante_x_bitacora = malloc(sizeof(t_tripulante));
-			mensaje_bitacora* respuesta_bitacora = malloc(sizeof(mensaje_bitacora));
 			id_tripulante_x_bitacora->id_tripulante = atoi(parser_consola[1]);
+
+			bool mismo_id_bitacora(tripulante_plani* tripu) {
+				return tripu->id_tripulante == id_tripulante_x_bitacora->id_tripulante;
+			}
+
+			tripulante_plani* tripu = list_find(lista_tripulantes, (void*)mismo_id_bitacora);
+
+			if(tripu == NULL) {
+				log_error(logger_on, "No se puede pedir la Bitacora de un Tripulante que no existe.\n");
+				sem_post(termino_operacion);
+				break;
+			}
+
+			mensaje_bitacora* respuesta_bitacora = malloc(sizeof(mensaje_bitacora));
 
 			conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 
 			if(conexion_mongo_store < 0) {
 				log_error(logger, "No se pudo conectar. \n");
+				sem_post(termino_operacion);
 				break;
 			}
 
 			enviar_mensaje(id_tripulante_x_bitacora, OBTENER_BITACORA, conexion_mongo_store);
 
-			/*if(validacion_envio(conexion_mongo_store) == 1) {
+			if(validacion_envio(conexion_mongo_store) == 1) {
 				recibir_mensaje(respuesta_bitacora, RESPUESTA_BITACORA, conexion_mongo_store);
-
-				printf("%s\n", respuesta_bitacora->bitacora);
 			}
 			else {
 				log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
 				abort();
-			}*/
+			}
 
+			char** parser_bitacora = string_split(respuesta_bitacora->bitacora, ".");
 
-			//TODO
-			//Guardar en el log la bitacora del tripulante que devuelve mongo
+			int32_t cantidad = cantidad_elementos(parser_bitacora);
 
-			//cerrar_conexion(logger,conexion_mongo_store);
-			//free(id_tripulante_x_bitacora);
-			//cerrar_conexion(logger,conexion_mongo_store);
+			log_info(logger, "Se obtuvo la Bitacora del Tripulante %u:", id_tripulante_x_bitacora->id_tripulante);
+			for(int c=0; c<cantidad-1; c++) {
+				log_info(logger, "	• %s.", parser_bitacora[c]);
+			}
+
+			cerrar_conexion(logger,conexion_mongo_store);
+			free(id_tripulante_x_bitacora);
+			limpiar_parser(parser_bitacora);
+			free(respuesta_bitacora->bitacora);
+			free(respuesta_bitacora);
 			sem_post(termino_operacion);
 			break;
 
@@ -668,6 +696,7 @@ void obtener_orden_input(){
 
 			if(parser_consola[1] == NULL) {
 				log_error(logger_on, "Faltan argumentos. Debe inciarse de la forma EXPULSAR_TRIPULANTE <Id_Tripulante>.\n");
+				sem_post(termino_operacion);
 				break;
 			}
 			strcat(parser_consola[1], "\0");
@@ -719,6 +748,7 @@ void obtener_orden_input(){
 					free(tripulante_a_expulsar->mutex_expulsado);
 
 					if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+						sem_post(termino_operacion);
 						break;
 					}
 
@@ -741,10 +771,10 @@ void obtener_orden_input(){
 					log_error(logger_on, "No existe el tripulante que se desea eliminar.\n");
 				}
 
-		       sem_post(termino_operacion);
 
 			   free(id_tripulante_a_expulsar);
 			   free(respuesta_al_expulsar_tripulante);
+		       sem_post(termino_operacion);
 			   break;
 
 
@@ -805,5 +835,15 @@ int obtener_indice(t_list* lista, void* valor) {
 		}
 	}
 	return indice;
+}
+
+
+int32_t cantidad_elementos(char** parser) {
+
+	int cantidad = 0;
+	while(parser[cantidad] != NULL){
+		cantidad++;
+	}
+	return cantidad;
 }
 
