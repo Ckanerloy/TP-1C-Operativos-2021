@@ -160,7 +160,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 	sem_wait(tripu->mutex_peticion);
 
-    uint32_t conexion_mi_ram;
+    uint32_t conexion;
 
     t_tripulante_estado* tripulante_estado = malloc(sizeof(t_tripulante_estado));
     t_respuesta_tripulante* respuesta_estado = malloc(sizeof(t_respuesta_tripulante));
@@ -173,17 +173,17 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
     tripulante_estado->estado = tripu->estado;
     sem_post(tripu->mutex_estado);
 
-	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+    conexion = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
-	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+	if(resultado_conexion(conexion, logger, "Mi-RAM HQ") == -1){
 		log_error(logger, "No se pudo lograr la conexión con Mi-RAM.\n");
 		abort();
 	}
 
-	enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion_mi_ram);
+	enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion);
 
-	if(validacion_envio(conexion_mi_ram) == 1) {
-		recibir_mensaje(respuesta_estado, RESPUESTA_OK_ESTADO, conexion_mi_ram);
+	if(validacion_envio(conexion) == 1) {
+		recibir_mensaje(respuesta_estado, RESPUESTA_OK_ESTADO, conexion);
 
 		if(respuesta_estado->respuesta != 1) {
 			log_error(logger_on, "La respuesta fue negativa.\n");
@@ -201,7 +201,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 	sem_post(tripu->mutex_peticion);
 
-	close(conexion_mi_ram);
+	close(conexion);
 
 	free(tripulante_estado);
 	free(respuesta_estado);
@@ -212,7 +212,8 @@ void obtener_siguiente_tarea(tripulante_plani* tripu, uint32_t id_tripulante, ui
 
 	sem_wait(tripu->mutex_peticion);
 
-	uint32_t conexion_mi_ram;
+	uint32_t conexion;
+
 	t_tripulante* tripulante_consulta = malloc(sizeof(t_tripulante));
 
 	t_respuesta_tarea_tripulante* respuesta_tarea = malloc(sizeof(t_respuesta_tarea_tripulante));
@@ -221,17 +222,17 @@ void obtener_siguiente_tarea(tripulante_plani* tripu, uint32_t id_tripulante, ui
 	tripulante_consulta->id_patota = numero_patota;
 	tripulante_consulta->id_tripulante = id_tripulante;
 
-	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+	conexion = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
-	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+	if(resultado_conexion(conexion, logger, "Mi-RAM HQ") == -1){
 		log_error(logger_on, "No se pudo lograr la conexion con Mi-RAM.\n");
 		abort();
 	}
 
-	enviar_mensaje(tripulante_consulta, PEDIDO_TAREA, conexion_mi_ram);
+	enviar_mensaje(tripulante_consulta, PEDIDO_TAREA, conexion);
 
-	if(validacion_envio(conexion_mi_ram) == 1) {
-		recibir_mensaje(respuesta_tarea, RESPUESTA_NUEVA_TAREA, conexion_mi_ram);
+	if(validacion_envio(conexion) == 1) {
+		recibir_mensaje(respuesta_tarea, RESPUESTA_NUEVA_TAREA, conexion);
 
 		if(respuesta_tarea->respuesta != 1) {
 			log_error(logger_on, "La respuesta fue negativa.\n");
@@ -243,7 +244,8 @@ void obtener_siguiente_tarea(tripulante_plani* tripu, uint32_t id_tripulante, ui
 		}
 		if(respuesta_tarea->tarea == NULL) {
 			log_warning(logger, "No hay mas tareas para realizar.\n");
-			tripu->tarea_a_realizar=NULL;
+			free(tripu->tarea_a_realizar);
+			tripu->tarea_a_realizar = NULL;
 			return;
 		}
 	}
@@ -258,7 +260,7 @@ void obtener_siguiente_tarea(tripulante_plani* tripu, uint32_t id_tripulante, ui
 	tripu->tarea_a_realizar->posicion_y = respuesta_tarea->tarea->posicion_y;
 	tripu->tarea_a_realizar->tiempo = respuesta_tarea->tarea->tiempo;
 
-	close(conexion_mi_ram);
+	close(conexion);
 
 	sem_post(tripu->mutex_peticion);
 
@@ -275,7 +277,7 @@ void obtener_siguiente_tarea(tripulante_plani* tripu, uint32_t id_tripulante, ui
 
 void obtener_posiciones(posiciones* posiciones_buscadas,uint32_t id_tripulante, uint32_t numero_patota){
 
-	uint32_t conexion_mi_ram;
+	uint32_t conexion;
 
 	t_tripulante* posiciones_tripulante = malloc(sizeof(t_tripulante));
 	t_respuesta_tripulante_ubicacion* respuesta_posiciones_tripu = malloc(sizeof(t_respuesta_tripulante_ubicacion));
@@ -283,17 +285,17 @@ void obtener_posiciones(posiciones* posiciones_buscadas,uint32_t id_tripulante, 
 	posiciones_tripulante->id_patota = numero_patota;
 	posiciones_tripulante->id_tripulante = id_tripulante;
 
-	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+	conexion = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
-	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+	if(resultado_conexion(conexion, logger, "Mi-RAM HQ") == -1){
 		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
 		abort();
 	}
 
-	enviar_mensaje(posiciones_tripulante, PEDIR_UBICACION_TRIPULANTE, conexion_mi_ram);
+	enviar_mensaje(posiciones_tripulante, PEDIR_UBICACION_TRIPULANTE, conexion);
 
-	if(validacion_envio(conexion_mi_ram) == 1) {
-		recibir_mensaje(respuesta_posiciones_tripu, RESPUESTA_NUEVA_UBICACION, conexion_mi_ram);
+	if(validacion_envio(conexion) == 1) {
+		recibir_mensaje(respuesta_posiciones_tripu, RESPUESTA_NUEVA_UBICACION, conexion);
 
 		if(respuesta_posiciones_tripu->respuesta != 1) {
 			log_error(logger, "La respuesta fue negativa.\n");
@@ -312,7 +314,7 @@ void obtener_posiciones(posiciones* posiciones_buscadas,uint32_t id_tripulante, 
 	posiciones_buscadas->posicion_x = respuesta_posiciones_tripu->posicion_x;
 	posiciones_buscadas->posicion_y = respuesta_posiciones_tripu->posicion_y;
 
-	close(conexion_mi_ram);
+	close(conexion);
 
 	free(posiciones_tripulante);
 	free(respuesta_posiciones_tripu);
@@ -323,6 +325,7 @@ void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_p
 
 	sem_wait(tripu->mutex_peticion);
 
+	uint32_t conexion;
 	t_tripulante_ubicacion* ubicaciones_a_enviar = malloc(sizeof(t_tripulante_ubicacion));
 	t_respuesta_tripulante* respuesta_ubicacion_ok = malloc(sizeof(t_respuesta_tripulante));
 
@@ -331,18 +334,18 @@ void actualizar_posiciones_en_memoria(posiciones* posiciones_tripu, tripulante_p
 	ubicaciones_a_enviar->posicion_x = posiciones_tripu->posicion_x;
 	ubicaciones_a_enviar->posicion_y = posiciones_tripu->posicion_y;
 
-	conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
+	conexion = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
-	if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
+	if(resultado_conexion(conexion, logger, "Mi-RAM HQ") == -1){
 		log_error(logger, "No se pudo lograr la conexion con Mi-RAM.\n");
 		abort();
 	}
 
-	enviar_mensaje(ubicaciones_a_enviar, ACTUALIZAR_UBICACION_TRIPULANTE, conexion_mi_ram);
+	enviar_mensaje(ubicaciones_a_enviar, ACTUALIZAR_UBICACION_TRIPULANTE, conexion);
 
 	sem_post(tripu->mutex_peticion);
 
-	close(conexion_mi_ram);
+	close(conexion);
 
 	free(ubicaciones_a_enviar);
 	free(respuesta_ubicacion_ok);
@@ -388,6 +391,10 @@ void esperandoIo_bloqueado(void){
 		}
 
 		sem_post(planificacion_on_io);
+
+		if(SALIR == 1){
+			break;
+		}
 	}
 }
 
@@ -426,6 +433,9 @@ void new_ready() {
 
 		sem_post(planificacion_on);
 
+		if(SALIR == 1){
+			break;
+		}
 	}
 }
 
@@ -478,6 +488,9 @@ void ready_running() {
 			}
 		}
 		sem_post(planificacion_on_ready_running);
+		if(SALIR == 1){
+			break;
+		}
     }
 }
 
@@ -487,6 +500,8 @@ void running_ready(tripulante_plani* tripu){
 	sem_wait(mutex_ready);
 	queue_push(cola_ready, tripu);
 	sem_post(mutex_ready);
+
+	tripu->cantidad_realizada = 0;
 
 	actualizar_estado(tripu, 'R');
 	log_info(logger,"El Tripulante con ID: %d de la Patota %d pasó de Execute a Ready.\n", tripu->id_tripulante, tripu->numero_patota);
@@ -681,8 +696,6 @@ void tripulante_hilo(void* tripulante){
 		while(distancia > 0 && !tripu->elegido_sabotaje){ //Cambiar condicion con variable goblal hay_sabotaje
 			sem_wait(tripu->sem_tripu);
 
-			tripu->cantidad_realizada= tripu->cantidad_realizada+1;
-
 			if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 
 				if(algoritmo_elegido == RR){ // @suppress("Symbol is not resolved")
@@ -690,21 +703,19 @@ void tripulante_hilo(void* tripulante){
 					if(tripu->cantidad_realizada == QUANTUM){
 						running_ready(tripu);
 						sem_wait(tripu->sem_planificacion);
-
-					}else{
-						tripu->cantidad_realizada= tripu->cantidad_realizada+1;
+					}
+					else{
+						tripu->cantidad_realizada++;
 						distancia--;
 						obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
 					}
-
-				}else{
-					tripu->cantidad_realizada= tripu->cantidad_realizada+1;
+				}
+				else{
 					distancia--;
 					obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
 				}
 			}
 			if(tripu->fui_elegido_antes){
-				tripu->cantidad_realizada= tripu->cantidad_realizada+1;
 				distancia--;
 				obtener_nueva_posicion(posicion_tripu, posicion_tarea, tripu);
 			}
@@ -730,6 +741,7 @@ void tripulante_hilo(void* tripulante){
 
 
 		if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
+
 			if(algoritmo_elegido == RR){ // @suppress("Symbol is not resolved")
 				if(tripu->cantidad_realizada == QUANTUM){
 					running_ready(tripu);
@@ -741,6 +753,8 @@ void tripulante_hilo(void* tripulante){
 
 		realizar_tarea(tripu);
 	}
+	free(posicion_tripu);
+	free(posicion_tarea);
 }
 
 
@@ -759,7 +773,11 @@ void rafaga_cpu(t_list* lista_todos_tripulantes){
 			return valor;
 		}
 
+		list_destroy(tripulantes_exec_block);
 		tripulantes_exec_block = list_filter(lista_todos_tripulantes,(void*) esta_exec_o_block);
+		// TODO
+		// LO QUE PASA ACA ES QUE, CADA VEZ QUE ENTRE A ESTA FUNCION CREA UNA NUEVA LISTA FILTRADA
+		// SI ENTRARA 5 VECES, ME CREA 5 LISTAS FILTRADAS QUE METO EN tripulantes_exec_block SINH HABER LIBERADO LA ANTERIOR
 
 		list_iterate(tripulantes_exec_block, (void*) poner_en_uno_semaforo);
 
@@ -776,6 +794,10 @@ void rafaga_cpu(t_list* lista_todos_tripulantes){
 		}
 
 		sem_post(planificion_rafaga);
+
+		if(SALIR == 1){
+			break;
+		}
 	}
 }
 
@@ -895,9 +917,6 @@ void realizar_tarea(tripulante_plani* tripu){
 			otras_tareas(tripu);
 			break;
 		}
-
-	tripu->id_tarea_a_realizar++;
-
 }
 
 
@@ -944,12 +963,13 @@ void generar_insumo(char* nombre_archivo, char caracter_llenado, tripulante_plan
 		tripu->puedo_ejecutar_io = 0;
 
 		armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+		tripu->id_tarea_a_realizar++;
 	}
 
 	cambios_de_tarea(tripu);
 
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
-		if(tripu->tarea_a_realizar!=NULL){
+		if(tripu->tarea_a_realizar != NULL){
 			block_ready(tripu);
 		}else{
 			//block_exit(tripu);
@@ -1003,6 +1023,7 @@ void consumir_insumo(char* nombre_archivo, char caracter_a_consumir, tripulante_
 		tripu->puedo_ejecutar_io = 0;
 
 		armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+		tripu->id_tarea_a_realizar++;
 	}
 
 	cambios_de_tarea(tripu);
@@ -1058,6 +1079,7 @@ void descartar_basura(tripulante_plani* tripu) {
 		tripu->puedo_ejecutar_io = 0;
 
 		armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+		tripu->id_tarea_a_realizar++;
 	}
 
 	cambios_de_tarea(tripu);
@@ -1106,6 +1128,7 @@ void otras_tareas(tripulante_plani* tripu){
 	}
 	if(!(tripu->elegido_sabotaje) && !(tripu->fui_elegido_antes)){
 		armar_bitacora(tripu, TERMINA, tripu->id_tripulante);
+		tripu->id_tarea_a_realizar++;
 	}
 
 	cambios_de_tarea(tripu);
@@ -1173,7 +1196,7 @@ void cambios_de_tarea(tripulante_plani* tripu) {
 			tripu->tarea_auxiliar->posicion_y = aux_intercambio->posicion_y;
 
 			sem_post(tripu->sem_planificacion);
-			aux_intercambio = NULL;
+			//aux_intercambio = NULL;
 			free(aux_intercambio);
 
 		} else {

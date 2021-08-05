@@ -3,7 +3,7 @@
 
 void enviar_mensaje(void* mensaje, codigo_operacion operacion, int32_t conexion) {
 	t_paquete* paquete_a_armar = malloc(sizeof(t_paquete));
-	crear_buffer(paquete_a_armar);
+	//crear_buffer(paquete_a_armar);
 	uint32_t tamanio_paquete = 0;
 
 	void* paquete_serializado = serializar_paquete(paquete_a_armar, mensaje, operacion, &tamanio_paquete);
@@ -21,7 +21,7 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 	uint32_t tamanio_preparado = 0;
 	paquete->op_code = operacion;
 
-	void* buffer_serializar = malloc(sizeof(tamanio_paquete));
+	//void* buffer_serializar; //= malloc(sizeof(tamanio_paquete));
 
 	switch(operacion) {
 
@@ -58,6 +58,7 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			break;
 
 		case REALIZAR_SABOTAJE:
+			paquete->buffer = malloc(sizeof(t_buffer));
 			paquete->buffer->size = 0;
 			paquete->buffer->stream = NULL;
 			tamanio_preparado = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
@@ -94,6 +95,7 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			break;
 
 		case CERRAR_MODULO:
+			paquete->buffer = malloc(sizeof(t_buffer));
 			paquete->buffer->size = 0;
 			paquete->buffer->stream = NULL;
 			tamanio_preparado = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
@@ -109,6 +111,7 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			break;
 
 		case TIRAR_BASURA:
+			paquete->buffer = malloc(sizeof(t_buffer));
 			paquete->buffer->size = 0;
 			paquete->buffer->stream = NULL;
 			tamanio_preparado = sizeof(codigo_operacion) + sizeof(paquete->buffer->size) + paquete->buffer->size;
@@ -123,7 +126,7 @@ void* serializar_paquete(t_paquete* paquete, void* mensaje, codigo_operacion ope
 			break;
 	}
 
-	buffer_serializar = malloc(tamanio_preparado);
+	void* buffer_serializar = malloc(tamanio_preparado);
 	uint32_t desplazamiento = 0;
 
 	memcpy(buffer_serializar + desplazamiento, &(paquete->op_code), sizeof(paquete->op_code));

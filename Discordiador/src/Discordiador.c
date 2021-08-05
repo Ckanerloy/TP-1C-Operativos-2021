@@ -4,6 +4,7 @@ int main(void) {
 
 	logger = crear_log_sin_pantalla("Discordiador.log", "Discordiador");
 	logger_on = crear_log("DiscordiadorOn.log", "Discordiador");
+	SALIR = 0;
 
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
@@ -81,6 +82,10 @@ void iniciar_escucha_sabotaje(void){
 		int32_t conexion_cliente = esperar_conexion(conexion_sabotaje);
 		pthread_create(&hilo_tripulante_sabo, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
 		pthread_detach(hilo_tripulante_sabo);
+
+		if(SALIR == 1){
+			break;
+		}
 	}
 }
 
@@ -232,7 +237,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 		//	tripu_mas_cercano->estado='E';
 
 			free(tarea_sabotaje);
-
+			free(posicion_recibida);
 			//FINAL
 		//	sem_wait(mutex_sabotaje);
 		//	valor_sabotaje=0;
@@ -278,6 +283,10 @@ void iniciar_escucha_por_consola(){
 	while(1){
 		sem_wait(comando_para_ejecutar);
 		obtener_orden_input();
+
+		if(SALIR == 1) {
+			break;
+		}
 	}
 
 }
@@ -302,36 +311,33 @@ void obtener_orden_input(){
 
 	t_respuesta_iniciar_patota* respuesta_iniciar_patota;
 	t_respuesta_tripulante* respuesta_al_expulsar_tripulante;
+	tripulante_plani* tripulante_listar;
 
-	tripulante_plani* tripulante = malloc(sizeof(tripulante_plani));
-	int largo;
-	int recorrido;
+	char* cadena_ingresada = NULL;
+	size_t longitud = 0;
 
-	 char* cadena_ingresada = NULL;
-	 size_t longitud = 0;
+	sem_wait(termino_operacion);
 
-	 sem_wait(termino_operacion);
+	printf("Inserte orden:\n");
 
-	 printf("Inserte orden:\n");
+	getline(&cadena_ingresada, &longitud, stdin);  //Bloqueante por eso no consume el 100%
 
-	 getline(&cadena_ingresada, &longitud, stdin);  //Bloqueante por eso no consume el 100%
+	string_trim(&cadena_ingresada);
 
-	 string_trim(&cadena_ingresada);
+	parser_consola = string_split(cadena_ingresada, " ");
 
-	 parser_consola = string_split(cadena_ingresada, " ");
+	char* comando_ingresado = malloc(strlen(parser_consola[0])+1);
 
-	 char* comando_ingresado = malloc(strlen(parser_consola[0])+1);
+	strcpy(comando_ingresado, parser_consola[0]);
 
-	 strcpy(comando_ingresado, parser_consola[0]);
+	sem_post(comando_para_ejecutar);
+	operacion = mapeo_valor_consola(comando_ingresado);
+	free(comando_ingresado);
 
-	 sem_post(comando_para_ejecutar);
-	 operacion = mapeo_valor_consola(comando_ingresado);
-	 free(comando_ingresado);
+	tripulante_plani* tripulante_a_expulsar;
+	t_tripulante* id_tripulante_a_expulsar;
 
-	 tripulante_plani* tripulante_a_expulsar;
-	 t_tripulante* id_tripulante_a_expulsar;
-
-	 switch(operacion){
+	switch(operacion){
 
 		case INICIAR_PLANIFICACION:
 			// ARRANCA LA PLANIFICACION DE LOS TRIPULANTES (BUSCANDO EL ALGORITMO QUE ESTA EN CONFIG)
@@ -485,22 +491,25 @@ void obtener_orden_input(){
 			char* tareas_totales = malloc(sizeof(char)*tamanio_archivo);
 
 			fread(tareas_totales, tamanio_archivo+1, 1, archivo_tareas);
-			tareas_totales = string_substring_until(tareas_totales, tamanio_archivo);
-			strcat(tareas_totales, "\0");
+			char* tareas_a_pasar = string_substring_until(tareas_totales, tamanio_archivo);
+			strcat(tareas_a_pasar, "\0");
 
 			// Creo la estructura de datos de la Patota
 			t_iniciar_patota* mensaje_patota = malloc(sizeof(t_iniciar_patota));
 			mensaje_patota->cantidad_tripulantes = atoi(parser_consola[1]);
 
-			mensaje_patota->tamanio_tareas = strlen(tareas_totales);
+			mensaje_patota->tamanio_tareas = strlen(tareas_a_pasar);
 			mensaje_patota->tareas_de_patota = malloc(mensaje_patota->tamanio_tareas+1);
-			strcpy(mensaje_patota->tareas_de_patota, tareas_totales);
+			strcpy(mensaje_patota->tareas_de_patota, tareas_a_pasar);
 
 			mensaje_patota->tamanio_posiciones = strlen(posiciones);
 			mensaje_patota->posiciones = malloc(mensaje_patota->tamanio_posiciones+1);
 			strcpy(mensaje_patota->posiciones, posiciones);
 
 			enviar_mensaje(mensaje_patota, INICIAR_PATOTA, conexion_mi_ram);
+
+			free(tareas_a_pasar);
+			free(tareas_totales);
 
 			if(validacion_envio(conexion_mi_ram) == 1) {
 				recibir_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion_mi_ram);
@@ -552,7 +561,7 @@ void obtener_orden_input(){
 						pthread_detach(hilo_tripulante);
 
 						list_add(lista_semaforos_tripulantes, tripulante->sem_tripu); //Creo que no se usan mas
-						list_add(lista_tripulantes,tripulante);
+						list_add(lista_tripulantes, tripulante);
 
 						log_info(logger,"Se inicializó al Tripulante con ID: %d, correspondiente a la Patota %d en el estado New.", tripulante->id_tripulante, tripulante->numero_patota);
 
@@ -563,6 +572,7 @@ void obtener_orden_input(){
 						sem_post(contador_tripulantes_en_new);
 					}
 
+					limpiar_parser(parser_ids);
 				}
 				else {
 					log_error(logger_on, "No hay espacio para almacenar la patota con sus tripulantes. \n");			// Salgo del Switch, ya que no pudo crearse la Patota en Mi-RAM HQ
@@ -577,7 +587,6 @@ void obtener_orden_input(){
 
 			// Libero la memoria usada
 			fclose(archivo_tareas);
-			free(tareas_totales);
 			free(respuesta_iniciar_patota);
 
 			free(posiciones);
@@ -598,16 +607,19 @@ void obtener_orden_input(){
 
 			}
 
-			largo = list_size(lista_tripulantes);
+			int largo = list_size(lista_tripulantes);
+			char* tiempo = temporal_get_string_time("%d/%m/%y %H:%M:%S");
 
 			printf("-------------------------------------------------------------------------\n");
-			printf("Estado de la Nave: %s \n", (char*)temporal_get_string_time("%d/%m/%y %H:%M:%S"));
+			printf("Estado de la Nave: %s \n", tiempo);
 
-			for(recorrido=0; recorrido<largo; recorrido++){
-				tripulante = list_get(lista_tripulantes, recorrido);
-				printf("Tripulante: %u          Patota: %u          Status: %c \n", tripulante->id_tripulante, tripulante->numero_patota, tripulante->estado);
+			for(int recorrido = 0; recorrido<largo; recorrido++){
+				tripulante_listar = list_get(lista_tripulantes, recorrido);
+				printf("Tripulante: %u          Patota: %u          Status: %c \n", tripulante_listar->id_tripulante, tripulante_listar->numero_patota, tripulante_listar->estado);
 			}
 			printf( "--------------------------------------------------------------------------\n\n");
+
+			free(tiempo);
 			sem_post(termino_operacion);
 			break;
 
@@ -700,6 +712,12 @@ void obtener_orden_input(){
 				if(estado_anterior != 'T' && estado_anterior != 'N'){
 					conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 
+					free(tripulante_a_expulsar->tarea_a_realizar);
+					free(tripulante_a_expulsar->sem_tripu);
+					free(tripulante_a_expulsar->mutex_peticion);
+					free(tripulante_a_expulsar->sem_planificacion);
+					free(tripulante_a_expulsar->mutex_expulsado);
+
 					if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") == -1){
 						break;
 					}
@@ -748,15 +766,22 @@ void obtener_orden_input(){
 			sleep(1);
 			printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
 			// Libero memoria
-			free(parser_consola);
+			queue_destroy_and_destroy_elements(cola_new, free);
+			queue_destroy_and_destroy_elements(cola_io, free);
+			queue_destroy_and_destroy_elements(cola_ready, free);
+			//queue_destroy_and_destroy_elements(cola_exit, free);
+			queue_destroy_and_destroy_elements(cola_auxiliar_sabotaje, free);
+			list_destroy_and_destroy_elements(tripulantes_exec_block, free);
+			list_destroy_and_destroy_elements(bloqueado_suspendido, free);
+			list_destroy_and_destroy_elements(bloqueado_suspendido_ready, free);
+			SALIR = 1;
+			limpiar_parser(parser_consola);
 			free(cadena_ingresada);
 			finalizar_semaforos();
-			finalizar_semaforos_plani();
+			//finalizar_semaforos_plani();
 			terminar_programa_discordiador(config, logger, logger_on);
 			sem_post(finalizar_programa);
-
 			break;
-
 
 		default:
 			printf("No se reconoce ese comando. Por favor, ingrese un comando válido.\n");
@@ -764,7 +789,7 @@ void obtener_orden_input(){
 			break;
 		}
 
-	free(parser_consola);
+	limpiar_parser(parser_consola);
 	free(cadena_ingresada);
 
 }

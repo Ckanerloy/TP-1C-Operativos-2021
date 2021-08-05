@@ -2,16 +2,17 @@
 
 void enviar_bitacora(bitacora* bitacora_tripu) {
 
-	conexion_mongo_store = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
+	uint32_t conexion = crear_conexion(IP_MONGO_STORE, PUERTO_MONGO_STORE);
 
-	if(resultado_conexion(conexion_mongo_store, logger, "Mongo Store") == -1){
+	if(resultado_conexion(conexion, logger, "Mongo Store") == -1){
 		log_error(logger_on, "No se pudo lograr la conexion con Mongo Store.\n");
 		abort();
 	}
 
-	enviar_mensaje(bitacora_tripu, ACTUALIZACION_TRIPULANTE, conexion_mongo_store);
+	enviar_mensaje(bitacora_tripu, ACTUALIZACION_TRIPULANTE, conexion);
 
-	close(conexion_mongo_store);
+	close(conexion);
+	free(bitacora_tripu->accion);
 	free(bitacora_tripu);
 }
 

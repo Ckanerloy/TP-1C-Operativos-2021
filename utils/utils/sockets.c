@@ -1,25 +1,31 @@
 #include "sockets.h"
 
-
+// Crear conexion como Cliente
 int32_t crear_conexion(char *ip, char* puerto) {
 	struct addrinfo hints;
-	struct addrinfo *server_info = malloc(sizeof(struct addrinfo));
+	//struct addrinfo *client_info = malloc(sizeof(struct addrinfo));
+	struct addrinfo *client_info;
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	getaddrinfo(ip, puerto, &hints, &server_info);
+	if(getaddrinfo(ip, puerto, &hints, &client_info) < 0) {
+		log_error(logger, "Error en getaddrinfo.\n");
+		freeaddrinfo(client_info);
+		return -1;
+	}
 
-	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
+	int socket_cliente = socket(client_info->ai_family, client_info->ai_socktype, client_info->ai_protocol);
 
-	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
-		socket_cliente = -1;
+	if(connect(socket_cliente, client_info->ai_addr, client_info->ai_addrlen)) {
+		log_error(logger, "No se pudo conectar al servidor.\n");
+		freeaddrinfo(client_info);
+		return -1;
+	}
 
-	// crear un hilo por cada conexion que realizara
-
-	freeaddrinfo(server_info);
+	freeaddrinfo(client_info);
 
 	return socket_cliente;
 }
@@ -57,29 +63,40 @@ void cerrar_conexion(t_log* logger, int32_t socket) {
 		log_error(logger, "No existe tal conexion.\n");
 	}
 	else {
-		//log_info(logger, "Cerrando conexion...\n");
 		close(socket);
 	}
 }
 
 
+// Crear conexión como Servidor
 int32_t iniciar_servidor(char* IP, char* PUERTO) {
 	int32_t socket_servidor;
-	int32_t activo = 1;
 
-    struct addrinfo hints, *servinfo, *p;
+
+    struct addrinfo hints, *p;
+    struct addrinfo *servidor_info;
 
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    getaddrinfo(IP, PUERTO, &hints, &servinfo);
+    getaddrinfo(IP, PUERTO, &hints, &servidor_info);
 
-    for (p=servinfo; p != NULL; p = p->ai_next)
-    {
-        if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
-            continue;
+    socket_servidor = socket(servidor_info->ai_family, servidor_info->ai_socktype, servidor_info->ai_protocol);
+
+    int32_t activo = 1;
+    setsockopt(socket_servidor, SOL_SOCKET, SO_REUSEADDR, &activo, sizeof(activo));
+
+    if (bind(socket_servidor, servidor_info->ai_addr, servidor_info->ai_addrlen)) {
+		log_error(logger, "Error en Bind.\n");
+		exit(-1);
+	}
+
+    /*for (p=servidor_info; p != NULL; p = p->ai_next) {
+        if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
+        	continue;
+        }
 
         setsockopt(socket_servidor, SOL_SOCKET, SO_REUSEADDR, &activo,sizeof(activo));
 
@@ -88,17 +105,19 @@ int32_t iniciar_servidor(char* IP, char* PUERTO) {
             continue;
         }
         break;
-    }
+    }*/
 
-	listen(socket_servidor, SOMAXCONN);
+    freeaddrinfo(servidor_info);
 
-    freeaddrinfo(servinfo);
+	if(listen(socket_servidor, SOMAXCONN) == -1){
+		log_error(logger, "Fallo al escuchar una conexión.\n");
+		exit(-1);
+	}
 
     return socket_servidor;
 }
 
 
-// Crearia el hilo en esta parte??
 int32_t esperar_conexion(int32_t socket_servidor) {
 	struct sockaddr_in dir_cliente;
 	socklen_t tam_direccion = sizeof(struct sockaddr_in);
