@@ -81,18 +81,10 @@ void inicializar_semaforos();
 void iniciar_escucha_sabotaje(void);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
 
-
 tripulante_plani* mas_cercano(tripulante_plani* tripulante1, tripulante_plani* tripulante2);
-
 bool menorId(tripulante_plani* tripulante1, tripulante_plani* tripulante2);
-// POR AHORA SON UNA IDEA
-
 
 int obtener_indice(t_list* lista, void* valor);
-
-t_pcb* crear_pcb(void);
-
-// Colas de planificacion
-//t_queue* colaNew;
+int32_t cantidad_elementos(char** parser);
 
 #endif /* DISCORDIADOR_H_ */

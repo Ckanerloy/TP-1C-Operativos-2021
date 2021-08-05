@@ -60,7 +60,7 @@ void inicio_protocolo_fsck(void) {
 	t_list* recursos_disponibles = recursos_activos();
 	bool sabotaje = false;
 
-
+/*
 	// Sabotaje en SUPERBLOQUE: Modifica Cantidad de Bloques
 	if(sabotaje_superbloque_cantidad_bloques()){
 		log_info(logger, "Se realizó un Sabotaje en la Cantidad de Bloques del SuperBloque.\n");
@@ -68,11 +68,11 @@ void inicio_protocolo_fsck(void) {
 		reparacion_superBloque_cantidad_bloques();
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó la Cantidad de Bloques del SuperBloque.\n");
 	}
-
+*/
 
 
 	// Sabotaje en SUPERBLOQUE: Modifica el Bitmap
-	if(sabotaje_superbloque_bitmap()){
+	if(sabotaje_superBloque_bitmap()){
 		log_info(logger, "Se realizó un Sabotaje en el Bitmap del SuperBloque.\n");
 		sabotaje = true;
 		reparacion_superBloque_bitmap();
@@ -145,11 +145,11 @@ t_list* recursos_activos(void){
 }
 
 
-char* mapeo_recurso_a_string(recursos_archivos recurso) {
+char* mapeo_recurso_a_string(recursos_archivos* recurso) {
 
 	char* recurso_string = string_new();
 
-	switch(recurso) {
+	switch(*recurso) {
 		case OXIGENO:
 			string_append_with_format(&recurso_string, "%s", "Oxigeno");
 			break;
@@ -275,18 +275,16 @@ bool sabotaje_superBloque_bitmap(void) {
 			//Si cumple cualquiera de las dos condiciones, bitmap saboteado.
 			if(bitmapSaboteadoDe0a1 || bitmapSaboteadoDe1a0){
 				bitarray_destroy(bitmap_SB);
-				free(bitmap_SB);
 				list_destroy(lista_bloques_en_uso);
 				return true;
 			}
 		}
 		bitarray_destroy(bitmap_SB);
-		free(bitmap_SB);
 		list_destroy(lista_bloques_en_uso);
 		return false;
 }
 
-bool esta_presente_en_lista(t_list* lista, void* valor) {
+bool esta_presente_en_lista(t_list* lista, int valor) {
 
 
 	for(int i = 0; i<list_size(lista); i++) {
