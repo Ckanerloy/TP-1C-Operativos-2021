@@ -36,6 +36,7 @@ int main(void) {
 
 		inicializar_file_system();
 		levantar_archivo_blocks();
+
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
 
@@ -293,6 +294,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					metadata_recurso->bloques_asignados_anterior = bloques;
 					metadata_recurso->size = size_recurso;
 					printf("Entra a eliminar recurso \n");
+					sem_wait(mutex_copia);
 					eliminar_recurso_blocks(path_completo,  metadata_recurso); //pisa toda la data de los blocks con 0 y setea los bits vacios
 					sem_post(mutex_recursos);
 					remove(path_completo);
@@ -376,11 +378,14 @@ void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
 
 	uint32_t cant_bloques = cantidad_elementos(metadata_recurso->bloques_asignados_anterior);
 
+	printf("Cantidad de bloques: %u \n", cant_bloques);
+
 	int32_t desplazamiento = 0;
-	char* valor = "0";
 
 	for(int i=0; i<cant_bloques-1; i++) {
-		bitarray_clean_bit(bitArraySB, (int) metadata_recurso->bloques_asignados_anterior[i]);
+		bitarray_clean_bit(bitArraySB, metadata_recurso->bloques_asignados_anterior[i]);
+		char* valor = armar_recurso('0', BLOCK_SIZE);
+		printf("Id de los bloques: %u \n", (int) metadata_recurso->bloques_asignados_anterior[i]);
 
 		uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[i]);
 		uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
@@ -388,14 +393,19 @@ void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
 		memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
 		desplazamiento += BLOCK_SIZE;
 	}
-	bitarray_clean_bit(bitArraySB, (int) metadata_recurso->bloques_asignados_anterior[cant_bloques-1]);
+
+	uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[cant_bloques-1]);
+	bitarray_clean_bit(bitArraySB, nro_bloque);
+	printf("Posicion del bit que hay que cambiar: %d \n",nro_bloque);
 	uint32_t nro_ultimo_bloque = atoi((metadata_recurso->bloques_asignados_anterior[cant_bloques-1]));
 	uint32_t espacio_libre_ultimo_bloque = (cant_bloques*BLOCK_SIZE - (metadata_recurso->size));
 	uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+	char* valor_restante = armar_recurso('0', cant_necesaria_ultimo_bloque);
 
 	uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
 
-	memcpy(informacion_blocks+ubicacion_bloque, valor + desplazamiento, cant_necesaria_ultimo_bloque);
+	memcpy(informacion_blocks+ubicacion_bloque, valor_restante + desplazamiento, cant_necesaria_ultimo_bloque);
+	sem_post(mutex_copia);
 }
 
 
