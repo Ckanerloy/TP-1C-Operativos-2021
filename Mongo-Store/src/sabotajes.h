@@ -26,4 +26,7 @@ void reparacion_superbloque_cantidad_bloques(void);
 bool sabotaje_superbloque_bitmap(void);
 void reparacion_superbloque_bitmap(void);
 
+//Funciones auxiliares
+int calcular_tamanio_archivo(char* path_archivo);
+
 #endif /* SABOTAJES_H_ */

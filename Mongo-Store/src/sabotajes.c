@@ -60,7 +60,7 @@ void inicio_protocolo_fsck(void) {
 	t_list* recursos_disponibles = recursos_activos();
 	bool sabotaje = false;
 
-/*
+
 	// Sabotaje en SUPERBLOQUE: Modifica Cantidad de Bloques
 	if(sabotaje_superbloque_cantidad_bloques()){
 		log_info(logger, "Se realizó un Sabotaje en la Cantidad de Bloques del SuperBloque.\n");
@@ -76,7 +76,35 @@ void inicio_protocolo_fsck(void) {
 		reparacion_superbloque_bitmap();
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Bitmap del SuperBloque.\n");
 	}
-*/
+
+
+	for(int i=0; i<list_size(recursos_disponibles); i++) {
+		recursos_archivos recurso = (recursos_archivos)list_get(recursos_disponibles, i);
+
+		// Sabotaje en FILES: Modifica el Size
+		if(!mismo_size_archivo(recurso)){
+			log_info(logger, "Se realizó un Sabotaje en el Size del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+			sabotaje = true;
+			reparar_size(recurso);
+			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Size del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+		}
+
+		// Sabotaje en FILES: Modifica el Block_Count
+		if(!mismo_block_count_archivo(recurso)){
+			log_info(logger, "Se realizó un Sabotaje en el Block_Count del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+			sabotaje = true;
+			reparar_block_count(recurso);
+			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Block_Count del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+		}
+
+		// Sabotaje en FILES: Modifica el Orden de los Bloques
+		if(!bloques_ordenados_archivo(recurso)) {
+			log_info(logger, "Se realizó un Sabotaje en el Orden de los Bloques del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+			sabotaje = true;
+			reparar_orden_bloques(recurso);
+			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el ORden de los Bloques del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+		}
+	}
 
 
 	if(sabotaje == false) {
@@ -132,19 +160,59 @@ char* mapeo_recurso_a_string(recursos_archivos recurso) {
 	return recurso_string;
 }
 
-
 /*
-bool sabotaje_superbloque_cantidad_bloques(void) {
+ * SABOTAJE EN SUPERBLOQUE:
+- CANTIDAD DE BLOQUES:
+	. Cambiar el valor del campo Blocks del SuperBloque.ims
+	. Como se resuelve? Constatar contra el tamaño de Blocks.ims y corregir el valor en caso que no concuerde
+ *
+ */
 
-	int BLOCK_SIZE * BLOCKS;
-
+/*bool cantidadBloquesModificadaEnSuperbloque(){
 	int lengthOfFile = tamanioFile(rutaBlocks());
 	uint32_t cantidadBloquesMetadata;
 	memcpy(&cantidadBloquesMetadata, superbloqueMapeadoAMemoria + sizeof(uint32_t), sizeof(uint32_t));
 	int cantidadBloquesCalculada = lengthOfFile/tamanioBloques;
 
 	return cantidadBloquesCalculada != cantidadBloquesMetadata;
+
+	BLOCK_SIZE | BLOCK | BITMAP
 }*/
+
+bool sabotaje_superbloque_cantidad_bloques(void) {
+
+	char* path_blocks = concatenar_path("/Blocks.ims");
+	int tamanio_archivo = calcular_tamanio_archivo(path_blocks);
+	uint32_t cantidad_blocks_metadata;
+
+	memcpy(&cantidad_blocks_metadata, super_bloque + sizeof(uint32_t), sizeof(uint32_t));
+
+	int cantidadBloquesCalculada = tamanio_archivo/tamanioBloques;
+
+	return cantidadBloquesCalculada != cantidadBloquesMetadata;
+}
+
+
+int calcular_tamanio_archivo(char* path_archivo){
+
+	int tamanio_archivo;
+	FILE* archivo = fopen(path_archivo, "rb");
+	fseek(archivo, 0, SEEK_END);
+	tamanio_archivo = (int)ftell(archivo);
+	fclose(archivo);
+	return tamanio_archivo;
+
+}
+
+
+
+
+bool mismo_size_archivo(recurso){
+
+
+
+
+}
 
 void reparacion_superbloque_cantidad_bloques(void) {
 
@@ -158,3 +226,6 @@ bool sabotaje_superbloque_bitmap(void) {
 void reparacion_superbloque_bitmap(void) {
 
 }
+
+
+
