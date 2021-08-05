@@ -100,8 +100,7 @@ char* concatenar_contenido_blocks(char** lista_bloques);
 // Funciones sobre Archivos
 int leer_size_archivo(char* path_archivo, char* clave);
 char** leer_blocks_archivo(char* path_archivo, char* clave);
-void guardar_nuevo_size_archivo(char* path_archivo, int valor, char* clave);
-//void guardar_nuevos_blocks_archivo(char* path_archivo, char* valor, char* clave);
+char* leer_caracter_archivo(char* path_archivo, char* clave);
 void guardar_nuevos_datos_en_archivo(char* path_archivo, void* valor, char* clave);
 
 

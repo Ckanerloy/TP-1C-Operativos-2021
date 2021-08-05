@@ -30,7 +30,7 @@ int main(void) {
 
 		inicializar_file_system();
 		levantar_archivo_blocks();
-		//inicio_protocolo_fsck();
+		inicio_protocolo_fsck();
 
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
@@ -57,7 +57,7 @@ int main(void) {
 			fstat(archivo, &statbuf_2);
 			super_bloque = mmap(NULL, statbuf_2.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
 			levantar_archivo_superBloque();
-			//inicio_protocolo_fsck();
+			inicio_protocolo_fsck();
 		}
 
 	pthread_create(&hilo_sincronizador, NULL, (void*)sincronizar, NULL);
@@ -858,6 +858,17 @@ int leer_size_archivo(char* path_archivo, char* clave){
 	return size;
 }
 
+char* leer_caracter_archivo(char* path_archivo, char* clave) {
+
+    t_config* datos_archivo = config_create(path_archivo);
+
+    char* caracter = config_get_string_value(datos_archivo, clave);
+
+    config_destroy(datos_archivo);
+
+    return caracter;
+}
+
 
 char** leer_blocks_archivo(char* path_archivo, char* clave) {
 
@@ -925,4 +936,5 @@ char* crear_ruta_bitacora(int32_t id_tripulante) {
 	free(path_string);
 	return path_completo;
 }
+
 
