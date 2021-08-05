@@ -70,19 +70,16 @@ void inicio_protocolo_fsck(void) {
 	}
 
 
-/*
- *
- *
- *
+
 	// Sabotaje en SUPERBLOQUE: Modifica el Bitmap
 	if(sabotaje_superbloque_bitmap()){
 		log_info(logger, "Se realizó un Sabotaje en el Bitmap del SuperBloque.\n");
 		sabotaje = true;
-		reparacion_superbloque_bitmap();
+		reparacion_superBloque_bitmap();
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Bitmap del SuperBloque.\n");
 	}
 
-
+/*
 	// Sabotaje en directorio FILES
 	 *
 	 *
@@ -92,26 +89,26 @@ void inicio_protocolo_fsck(void) {
 
 		// Sabotaje en FILES: Modifica el Size
 		if(!mismo_size_archivo(recurso)){
-			log_info(logger, "Se realizó un Sabotaje en el Size del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+			log_info(logger, "Se realizó un Sabotaje en el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 			sabotaje = true;
 			reparar_size(recurso);
-			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Size del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
 
 		// Sabotaje en FILES: Modifica el Block_Count
 		if(!mismo_block_count_archivo(recurso)){
-			log_info(logger, "Se realizó un Sabotaje en el Block_Count del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+			log_info(logger, "Se realizó un Sabotaje en el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 			sabotaje = true;
 			reparar_block_count(recurso);
-			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Block_Count del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
 
 		// Sabotaje en FILES: Modifica el Orden de los Bloques
 		if(!bloques_ordenados_archivo(recurso)) {
-			log_info(logger, "Se realizó un Sabotaje en el Orden de los Bloques del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+			log_info(logger, "Se realizó un Sabotaje en el Orden de los Bloques del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 			sabotaje = true;
 			reparar_orden_bloques(recurso);
-			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el ORden de los Bloques del Archivo %s.\n", mapeo_recurso_a_string(recurso));
+			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el ORden de los Bloques del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
 	}
 */
@@ -154,13 +151,13 @@ char* mapeo_recurso_a_string(recursos_archivos recurso) {
 
 	switch(recurso) {
 		case OXIGENO:
-			string_append_with_format(&recurso_string, "%s", "Oxigeno.ims");
+			string_append_with_format(&recurso_string, "%s", "Oxigeno");
 			break;
 		case COMIDA:
-			string_append_with_format(&recurso_string, "%s", "Comida.ims");
+			string_append_with_format(&recurso_string, "%s", "Comida");
 			break;
 		case BASURA:
-			string_append_with_format(&recurso_string, "%s", "Basura.ims");
+			string_append_with_format(&recurso_string, "%s", "Basura");
 			break;
 		default:
 			break;
@@ -218,120 +215,102 @@ void reparacion_superBloque_cantidad_bloques(void) {
 
 }
 
+t_list* obtener_blocks_ocupados(){
+	int posicion;
+	t_list* lista_recursos = recursos_activos();
+	t_list* lista_bloques_ocupados = list_create();
 
+	for(int i=0; i<list_size(lista_recursos); i++){
 
-bool sabotaje_superbloque_bitmap(void) {
+		recursos_archivos* recurso = list_get(lista_recursos, i);
+		char* path_archivo_recurso = crear_ruta_recurso(mapeo_recurso_a_string(recurso));
+		char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
 
-}
+		posicion = 0;
+		while(bloques_usados[posicion] != NULL){
+			list_add(lista_bloques_ocupados, atoi(bloques_usados[posicion]));
+			posicion++;
+		}
+		free(path_archivo_recurso);
+		limpiar_parser(bloques_usados);
 
-void reparacion_superbloque_bitmap(void) {
-
-}
-
-
-
-/*
- * LOGICA SABOTAJE ROMPE
- *
- * void block_archivo(recursos* recurso, t_metadata_recurso* metadataAnterior, int nuevoBlockCount){
-	char* ruta = rutaMetadataDeRecurso(recurso);
-	char* texto = string_new();
-	char* blocks = bloquesAChar(obtenerListaBloquesAsignados(metadataAnterior));
-	char* size = get_string_metadataRecurso(metadataAnterior,"SIZE");
-	char* caracter = get_string_metadataRecurso(metadataAnterior,"CARACTER_LLENADO");
-	char* md5 = get_string_metadataRecurso(metadataAnterior,"MD5_ARCHIVO");
-	char* nuevoBlockCountChar = string_itoa(nuevoBlockCount);
-
-
-
-	FILE* archivoRecurso = fopen(ruta,"wb");
-	if (archivoRecurso == NULL){
-		log_info(logger_imongo,"No se pudo abrir el archivo %s",ruta);
-	} else {
-
-
-		string_append(&texto,"SIZE=");
-		string_append(&texto,size);
-		string_append(&texto,"\nBLOCK_COUNT=");
-		string_append(&texto,nuevoBlockCountChar);
-		string_append(&texto,"\nBLOCKS=");
-		string_append(&texto,blocks);
-		string_append(&texto,"\nCARACTER_LLENADO=");
-		string_append(&texto,caracter);
-		string_append(&texto,"\nMD5_ARCHIVO=");
-		string_append(&texto,md5);
-		string_append(&texto,"\n");
-
-
-
-
-		fwrite(texto, string_length(texto), 1, archivoRecurso);
-		fclose(archivoRecurso);
 	}
-	free(texto);
-	free(blocks);
-	free(nuevoBlockCountChar);
-	free(ruta);
+
+	for(int c=1; c<=contador_tripulantes; c++){
+		char* path_archivo_bitacora = crear_ruta_bitacora(c);
+		char** bloques_usados_bitacora = leer_blocks_archivo(path_archivo_bitacora, "BLOCKS");
+
+		posicion = 0;
+		while(bloques_usados_bitacora[posicion] != NULL){
+			list_add(lista_bloques_ocupados, atoi(bloques_usados_bitacora[posicion]));
+			posicion++;
+		}
+	free(path_archivo_bitacora);
+	limpiar_parser(bloques_usados_bitacora);
+
+	}
+
+	return lista_bloques_ocupados;
+}
+ /*
+ *
+ * - BITMAP:
+	. Cambiar el valor de algun bit del campo Bitmap (0 por 1 o 1 por 0)
+	. Como se resuelve? Recorrer todos los archivos dentro de Files y Files/Bitacoras y obtener de todos los archivos los bloques usados
+ */
+
+bool sabotaje_superBloque_bitmap(void) {
+
+	char* bitmap_aux = malloc(BLOCKS/8);
+	memcpy(bitmap_aux, super_bloque + 2*sizeof(uint32_t), BLOCKS/8);
+	t_bitarray* bitmap_SB = bitarray_create_with_mode(bitmap_aux, BLOCKS/8, LSB_FIRST);
+	t_list* lista_bloques_en_uso = obtener_blocks_ocupados();
+
+	for(int i=0; i<BLOCKS; i++){
+
+			//Valida si se cambió el bitmap de 1 a 0
+			bool bitmapSaboteadoDe1a0= esta_presente_en_lista(lista_bloques_en_uso, i) && !bitarray_test_bit(bitmap_SB, i);
+			//Valida si se cambió el bitmap de 0 a 1
+			bool bitmapSaboteadoDe0a1 = !esta_presente_en_lista(lista_bloques_en_uso, i) && bitarray_test_bit(bitmap_SB, i);
+			//Si cumple cualquiera de las dos condiciones, bitmap saboteado.
+			if(bitmapSaboteadoDe0a1 || bitmapSaboteadoDe1a0){
+				bitarray_destroy(bitmap_SB);
+				free(bitmap_SB);
+				list_destroy(lista_bloques_en_uso);
+				return true;
+			}
+		}
+		bitarray_destroy(bitmap_SB);
+		free(bitmap_SB);
+		list_destroy(lista_bloques_en_uso);
+		return false;
 }
 
-bool bloquesAsignadosEnRecursosDifierenConBitmap(){
-	char* bitMap_mmap = malloc(cantidadDeBytesParaBits(cantidadBloques));
-	memcpy(bitMap_mmap, superbloqueMapeadoAMemoria + 2*sizeof(uint32_t), cantidadDeBytesParaBits(cantidadBloques));
-	t_bitarray* bitmapSuperbloque = bitarray_create_with_mode(bitMap_mmap, cantidadDeBytesParaBits(cantidadBloques), LSB_FIRST);
-	t_list* bloquesUsados = obtenerBloquesUsados();
-	for(int i=0; i<cantidadBloques; i++){
-		bool noEstaEnLaListaYSiEnElBitmap = !list_contain(i,bloquesUsados) && bitarray_test_bit(bitmapSuperbloque, i);
-		bool estaEnLaListaYNoEnElBitmap = list_contain(i,bloquesUsados) && !bitarray_test_bit(bitmapSuperbloque, i);
-		if(noEstaEnLaListaYSiEnElBitmap || estaEnLaListaYNoEnElBitmap){
-			bitarray_destroy(bitmapSuperbloque);
-			free(bitMap_mmap);
-			list_destroy(bloquesUsados);
+bool esta_presente_en_lista(t_list* lista, void* valor) {
+
+
+	for(int i = 0; i<list_size(lista); i++) {
+		if(list_get(lista, i) == valor) {
 			return true;
 		}
 	}
-	bitarray_destroy(bitmapSuperbloque);
-	free(bitMap_mmap);
-	list_destroy(bloquesUsados);
 	return false;
 }
 
-t_list* obtenerBloquesUsados(){
-	t_list* lista_recursos = recursosActivos();
-	t_list* bloquesUsados = list_create();
 
-	for(int i=0; i<list_size(lista_recursos); i++){
-		recursos* recurso = list_get(lista_recursos, i);
-		char* ruta = rutaMetadataDeRecurso(recurso);
-		t_metadata_recurso* metadataRecurso = metadata_recurso_create(ruta);
-		t_list* bloquesAsignados = obtenerListaBloquesAsignados(metadataRecurso);
-		list_add_all(bloquesUsados, bloquesAsignados);
-		metadataRecurso_destroy(metadataRecurso);
-		free(ruta);
-		list_destroy(bloquesAsignados);
+
+
+void reparacion_superBloque_bitmap(void) {
+
+	vaciarBitArray(bitArraySB);
+	t_list* lista_bloques_usados = obtener_blocks_ocupados();
+
+	for(int i=0; i<BLOCKS; i++){
+		bitarray_set_bit(bitArraySB, list_get(lista_bloques_usados, i));
 	}
 
-	list_add_all(bloquesUsados, bloquesAsignadosABitacora);
-	list_destroy(lista_recursos);
-	return bloquesUsados;
+	memcpy(super_bloque+sizeof(uint32_t)*2, bitArraySB, BLOCKS/8);
+
 }
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
+
 

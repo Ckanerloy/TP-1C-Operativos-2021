@@ -761,6 +761,8 @@ void crear_archivo_metadata_bitacora(char* path_completo){
 	config_save(contenido_archivo);
 
 	config_destroy(contenido_archivo);
+
+
 }
 
 
