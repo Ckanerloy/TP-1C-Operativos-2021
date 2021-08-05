@@ -8,14 +8,14 @@
 #include <unistd.h>
 
 char *concatenar_path(char*);
-void inicializar_file_system();
-int existe_file_system();
-void iniciar_superbloque();
+void inicializar_file_system(void);
+int existe_file_system(void);
+void iniciar_superbloque(void);
 void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio);
-void crear_archivo_blocks();
+void crear_archivo_blocks(void);
 void escribir_archivo_blocks(uint32_t , char* , uint32_t );
-void levantar_archivo_blocks();
-void levantar_archivo_superBloque();
+void levantar_archivo_blocks(void);
+void levantar_archivo_superBloque(void);
 
 
 typedef struct {

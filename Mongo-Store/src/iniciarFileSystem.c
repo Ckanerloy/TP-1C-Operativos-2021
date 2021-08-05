@@ -6,31 +6,34 @@
 #include <sys/mman.h>
 
 
-char *concatenar_path(char* path){
+char* concatenar_path(char* path){
 
-	char* path_completo= malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 1);
+	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 1);
 
 	strcpy(path_completo, PUNTO_MONTAJE);
 	strcat(path_completo, path);
 
 	return path_completo;
-
 }
 
-//Se valida la existencia del FileSystem mediante la comprobación de /Blocks.ims
-int existe_file_system(){
 
-	int existeArchivo;
-	char *nombreArchivoValidacion = concatenar_path("/Blocks.ims");
+//Se valida la existencia del FileSystem mediante la comprobación de /Blocks.ims
+int existe_file_system(void){
+
+	int existe_archivo;
+	char* archivo_validacion = concatenar_path("/Blocks.ims");
 
 	//Intento abrir el archivo Blocks.ims
 	//Si retorna -1 quiere decir que no lo pudo abrir
-	existeArchivo = open(nombreArchivoValidacion, O_RDONLY, S_IRUSR);
+	existe_archivo = open(archivo_validacion, O_RDONLY, S_IRUSR);
 
-	return existeArchivo;
+	free(archivo_validacion);
+	return existe_archivo;
 }
 
-void inicializar_file_system(){
+
+void inicializar_file_system(void){
+
 		creacion_directorio(PUNTO_MONTAJE, "");//Se crea el path /home/utnso/polus TODO cambiar los parámetros que recibe para no poner ""
 		creacion_directorio(PUNTO_MONTAJE, "Files");//Se crea el path /home/utnso/polus/Files
 		creacion_directorio(PUNTO_MONTAJE, "Files/ArchivosHash");//Se crea el path /home/utnso/polus/Files/ArchivosHash
@@ -40,6 +43,7 @@ void inicializar_file_system(){
 
 		log_info(logger, "FileSystem inicializado con éxito");
 }
+
 
 void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio){
 
@@ -54,7 +58,8 @@ void creacion_directorio(char* direccion_punto_montaje, char* nombre_directorio)
 	//return direccion_carpeta; //TODO No olvidarme de liberar memoria en MongoStore
 }
 
-void iniciar_superbloque(){
+
+void iniciar_superbloque(void){
 
 	char *direccion_superBloque = concatenar_path("/SuperBloque.ims");
 	struct stat statbuf;
@@ -97,25 +102,17 @@ void iniciar_superbloque(){
 			memcpy(super_bloque+sizeof(uint32_t), &(superBloqueFile->cantidadBloques), sizeof(uint32_t));
 			memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, superBloqueFile->cantidadBloques/8);
 
-
 			if(msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC) < 0) {
 				log_error(logger, "[msync] Error al sincronizar SuperBloque.ims.\n");
-
-
 			}else{
 
-
 				log_info(logger,"[msync] SuperBloque.ims sincronizado correctamente.\n");
-
 			}
-
-
 	//free(un_bitarray);
-
-
 }
 
-void levantar_archivo_blocks(){
+
+void levantar_archivo_blocks(void){
 
 	informacion_blocks = malloc(BLOCKS*BLOCK_SIZE);
 	uint32_t desplazamiento = 0;
@@ -124,12 +121,11 @@ void levantar_archivo_blocks(){
 
 		memcpy(informacion_blocks + desplazamiento, blocks + desplazamiento, BLOCK_SIZE);
 		desplazamiento += BLOCK_SIZE;
-
 	}
-
 }
 
-void levantar_archivo_superBloque(){
+
+void levantar_archivo_superBloque(void){
 
 	bitmap = malloc(BLOCKS/8);
 	bitArraySB = malloc(sizeof(t_bitarray));
@@ -137,7 +133,8 @@ void levantar_archivo_superBloque(){
 	memcpy(bitmap, super_bloque+sizeof(uint32_t)*2, BLOCKS/8);
 }
 
-void crear_archivo_blocks(){
+
+void crear_archivo_blocks(void){
 
 	struct stat statbuf;
 	char *direccion_blocks = concatenar_path("/Blocks.ims");
@@ -166,6 +163,7 @@ void crear_archivo_blocks(){
 			log_info(logger,"[msync] Se creó y sincronizó el archivo Blocks.ims correctamente.\n");
 		}
 }
+
 
 void escribir_archivo_blocks(uint32_t bloque, char* cadena_a_escribir, uint32_t longitud_cadena){
 

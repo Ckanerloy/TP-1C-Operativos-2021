@@ -232,9 +232,9 @@ t_list* obtener_blocks_ocupados(){
 			list_add(lista_bloques_ocupados, atoi(bloques_usados[posicion]));
 			posicion++;
 		}
+		free(path_recurso);
 		free(path_archivo_recurso);
 		limpiar_parser(bloques_usados);
-
 	}
 
 	for(int c=1; c<=contador_tripulantes; c++){
@@ -277,11 +277,13 @@ bool sabotaje_superBloque_bitmap(void) {
 			if(bitmapSaboteadoDe0a1 || bitmapSaboteadoDe1a0){
 				bitarray_destroy(bitmap_SB);
 				list_destroy(lista_bloques_en_uso);
+				free(bitmap_aux);
 				return true;
 			}
 		}
 		bitarray_destroy(bitmap_SB);
 		list_destroy(lista_bloques_en_uso);
+		free(bitmap_aux);
 		return false;
 }
 
@@ -305,10 +307,10 @@ void reparacion_superBloque_bitmap(void) {
 	t_list* lista_bloques_usados = obtener_blocks_ocupados();
 
 	for(int i=0; i<BLOCKS; i++){
-		bitarray_set_bit(bitArraySB, list_get(lista_bloques_usados, i));
+		//bitarray_set_bit(bitArraySB, list_get(lista_bloques_usados, i));
 	}
 
-	memcpy(super_bloque+sizeof(uint32_t)*2, bitArraySB, BLOCKS/8);
+	//memcpy(super_bloque+sizeof(uint32_t)*2, bitArraySB, BLOCKS/8);
 
 }
 

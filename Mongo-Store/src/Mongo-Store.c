@@ -39,7 +39,7 @@ int main(void) {
 
 		inicializar_file_system();
 		levantar_archivo_blocks();
-		inicio_protocolo_fsck();
+		//inicio_protocolo_fsck();
 
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
@@ -66,7 +66,7 @@ int main(void) {
 			fstat(archivo, &statbuf_2);
 			super_bloque = mmap(NULL, statbuf_2.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
 			levantar_archivo_superBloque();
-			inicio_protocolo_fsck();
+			//inicio_protocolo_fsck();
 		}
 
 	pthread_create(&hilo_sincronizador, NULL, (void*)sincronizar, NULL);
@@ -176,12 +176,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				recibir_mensaje(tarea_io, operacion, conexion);
 
 				recurso = armar_recurso(tarea_io->caracter_llenado, tarea_io->cantidad);
-
 				path_completo = crear_ruta_recurso(tarea_io->nombre_archivo);
-				/*path = string_new();
-				string_append_with_format(&path, "/Files/%s.ims", tarea_io->nombre_archivo);
-				path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
-				path_completo = concatenar_path(path);*/
+
 				printf("	Llego la tarea de Generar %s\n", tarea_io->nombre_archivo);
 
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
@@ -222,11 +218,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				path_completo = crear_ruta_recurso(tarea_io->nombre_archivo);
 				recurso = armar_recurso(tarea_io->caracter_llenado, tarea_io->cantidad);
 
-				/*path = string_new();
-				string_append_with_format(&path, "/Files/%s.ims", tarea_io->nombre_archivo);
-			    path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
-				path_completo = concatenar_path(path);*/
-
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
 					log_info(logger, "No existe el recurso %s.\n", tarea_io->nombre_archivo);
 					cerrar_conexion(logger, conexion);
@@ -242,16 +233,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					eliminar_en_blocks(path_completo, recurso, metadata_recurso);
 					sem_post(mutex_consumir);
 					log_info(logger, "Se consumió %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
-
-					/*
-					 * Remover tantos caracteres como menciona la tarea
-					 * - Si se quieren borrar mas caracteres de los que hay: log_info(logger, "Se quisieron eliminar más caracteres de los que hay.\n");
-					 * 	 	y dejar el archivo vacío.
-					 * - Si se pueden borrar caracteres, se borran y listo.
-					 */
 				}
 
 				cerrar_conexion(logger, conexion);
+				free(path_completo);
 				free(tarea_io->nombre_archivo);
 				free(tarea_io);
 				free(recurso);
@@ -290,6 +275,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					remove(path_completo);
 				}
 				printf("Fuera del if \n");
+				free(path_completo);
 				break;
 
 			case ACTUALIZACION_TRIPULANTE:

@@ -70,6 +70,10 @@ sem_t* mutex_copia;
 sem_t* mutex_bitacora;
 sem_t* mutex_config;
 
+sem_t* sem_oxigeno;
+sem_t* sem_comida;
+sem_t* sem_basura;
+
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_sincronizador;
 
