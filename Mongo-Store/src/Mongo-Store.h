@@ -69,9 +69,7 @@ sem_t* mutex_bitacora;
 sem_t* mutex_copia;
 sem_t* mutex_recursos;
 sem_t* mutex_metadata;
-sem_t* sem_oxigeno;
-sem_t* sem_comida;
-sem_t* sem_basura;
+sem_t* mutex_bitarray;
 
 sem_t* sem_oxigeno;
 sem_t* sem_comida;
@@ -91,7 +89,8 @@ t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_ac
 t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenado, int32_t tamanio_recurso, char* nombre_recurso);
 
 t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar);
-int32_t cantidad_bloques_a_usar(uint32_t tamanio_a_guardar);
+int obtener_bloque_libre(void);
+int32_t cantidad_bloques_a_usar(int32_t tamanio_a_guardar);
 void sincronizar();
 char* hash_MD5(char* cadena_a_hashear, char* nombre_archivo);
 uint32_t cantidad_elementos(char** parser);
