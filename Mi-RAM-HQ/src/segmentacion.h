@@ -29,7 +29,7 @@ t_list* segmentos;
 
 
 // Inicio en Segmentación
-t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota);
+t_tabla_segmentos_patota* crear_tabla_segmentos(void);
 t_segmento* crear_segmento_libre(uint32_t inicio_segmento, uint32_t tamanio_libre_segmento);
 void liberar_segmento(t_segmento* segmento_a_liberar) ;
 void verificar_compactacion(void);

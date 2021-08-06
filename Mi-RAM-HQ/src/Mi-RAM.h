@@ -87,9 +87,6 @@ sem_t* mutex_copia;
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_actualizar_estado;
 
-// Datos de tripulantes
-char** parser_posiciones;
-
 // Eleccion de algoritmos para la memoria
 void elegir_esquema_de_memoria(char* ESQUEMA);
 criterio_seleccion elegir_criterio_seleccion(char* criterio);
