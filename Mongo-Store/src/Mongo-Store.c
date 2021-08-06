@@ -20,7 +20,6 @@ int main(void) {
 
 		inicializar_file_system();
 		levantar_archivo_blocks();
-		inicio_protocolo_fsck();
 
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
@@ -940,11 +939,11 @@ void sincronizar(){
 			return;
 		}
 
-		memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
+	/*	memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
 		if(msync(super_bloque, 2*sizeof(uint32_t)+BLOCKS/8, MS_SYNC) < 0){
 			log_error(logger, "No se pudo sincronizar el super bloque.\n");
 			return;
-		}
+		}*/
 	}
 }
 

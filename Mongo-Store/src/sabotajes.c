@@ -35,7 +35,7 @@ void inicio_protocolo_fsck(void) {
 	t_list* recursos_disponibles = recursos_activos();
 	bool sabotaje = false;
 
-/*
+
 	// Sabotaje en SUPERBLOQUE: Modifica Cantidad de Bloques
 	if(sabotaje_superbloque_cantidad_bloques()){
 		log_info(logger, "Se realizó un Sabotaje en la Cantidad de Bloques del SuperBloque.\n");
@@ -43,7 +43,7 @@ void inicio_protocolo_fsck(void) {
 		reparacion_superBloque_cantidad_bloques();
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó la Cantidad de Bloques del SuperBloque.\n");
 	}
-*/
+
 
 
 	// Sabotaje en SUPERBLOQUE: Modifica el Bitmap
@@ -477,8 +477,10 @@ bool sabotaje_superBloque_bitmap(void) {
 
 	for(int i=0; i<BLOCKS; i++){
 
+		bool condicion1 = !esta_presente_en_lista(lista_bloques_en_uso, i) && bitarray_test_bit(bitmap_SB, i);
+		bool condicion2 = esta_presente_en_lista(lista_bloques_en_uso, i) && !bitarray_test_bit(bitmap_SB, i);
 			//Si cumple cualquiera de las dos condiciones, bitmap saboteado.
-			if((!esta_presente_en_lista(lista_bloques_en_uso, i) && bitarray_test_bit(bitmap_SB, i)) || (esta_presente_en_lista(lista_bloques_en_uso, i) && !bitarray_test_bit(bitmap_SB, i))){
+			if(condicion1 || condicion2){
 				bitarray_destroy(bitmap_SB);
 				list_destroy(lista_bloques_en_uso);
 				return true;
