@@ -5,7 +5,8 @@ int main(void) {
 
 	obtener_datos_de_config(config);
 
-	logger = crear_log("mongo-store.log", "Mongo Store");
+	//logger = crear_log("Mongo-Store.log", "Mongo Store");
+	logger = crear_log_sin_pantalla("Mongo-Store.log", "Mongo Store");
 	log_info(logger, "Servidor Mongo Store activo...");
 
 	inicializar_semaforos();
@@ -210,7 +211,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					printf("SE VA A GUARDAR EN BLOCKS\n");
 
-					guardar_en_blocks_recursos(path_completo, tarea_io->caracter_llenado);
+					guardar_en_blocks_recursos(path_completo, tarea_io->caracter_llenado, tarea_io->nombre_archivo);
 					log_info(logger, "Se generó %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
 					//semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), (void*)sem_post);
 				}
@@ -220,7 +221,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					printf("SE VA A GUARDAR EN BLOCKS\n");
 
-					guardar_en_blocks_recursos(path_completo, tarea_io->caracter_llenado);
+					guardar_en_blocks_recursos(path_completo, tarea_io->caracter_llenado, tarea_io->nombre_archivo);
 					log_info(logger, "Se generó %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
 					//semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), (void*)sem_post);
 				}
@@ -500,6 +501,7 @@ void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
 }
 
 
+/*
 void guardar_en_blocks_recursos(char* path_completo, char caracter_llenado) {
 
 	printf("A GUARDAR EN BLOCKS\n");
@@ -516,6 +518,7 @@ void guardar_en_blocks_recursos(char* path_completo, char caracter_llenado) {
 	//                                       posicionInicial+ size(cant ult bloque)
 	char* string_valor = armar_recurso(caracter_llenado, size_archivo);
 
+	sem_wait(mutex_blocks);
 	for(int i=0; i<cant_bloq_asig_nuevos-1; i++) {
 		uint32_t nro_bloque = atoi(bloques_asignados_nuevo[i]);
 		bitarray_set_bit(bitArraySB, nro_bloque);
@@ -526,16 +529,73 @@ void guardar_en_blocks_recursos(char* path_completo, char caracter_llenado) {
 		desplazamiento += BLOCK_SIZE;
 		//sem_post(mutex_blocks);
 	}
+	sem_post(mutex_blocks);
 
 	uint32_t nro_bloque = atoi(bloques_asignados_nuevo[cant_bloq_asig_nuevos-1]);
 	bitarray_set_bit(bitArraySB, nro_bloque);
 	uint32_t nro_ultimo_bloque = atoi((bloques_asignados_nuevo[cant_bloq_asig_nuevos-1]));
+
 	uint32_t espacio_libre_ultimo_bloque = (cant_bloq_asig_nuevos*BLOCK_SIZE - (size_archivo));
 	uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+
 	uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
 	//sem_wait(mutex_blocks);
 	memcpy(informacion_blocks + ubicacion_bloque, string_valor + desplazamiento, cant_necesaria_ultimo_bloque);
 	sem_post(mutex_blocks);
+}*/
+
+
+void guardar_en_blocks_recursos(char* path_completo, char caracter_llenado, char* nombre_recurso) {
+
+	printf("A GUARDAR EN BLOCKS\n");
+
+	int size_archivo = leer_size_archivo(path_completo, "SIZE");
+
+	char* caracter_a_guardar = armar_recurso(caracter_llenado, 1);
+
+	char** bloques_asignados_nuevo = leer_blocks_archivo(path_completo, "BLOCKS");
+	uint32_t cant_bloq_asig_nuevos = cantidad_elementos(bloques_asignados_nuevo);
+
+	int32_t desplazamiento = 0;
+
+	if(cant_bloq_asig_nuevos > 1) {
+		sem_wait(mutex_blocks);
+		for(int i=0; i<cant_bloq_asig_nuevos-1; i++) {
+			uint32_t nro_bloque = atoi(bloques_asignados_nuevo[i]);
+			bitarray_set_bit(bitArraySB, nro_bloque);
+			copiar_en_memoria_recurso(nro_bloque, caracter_a_guardar, BLOCK_SIZE);
+			desplazamiento += BLOCK_SIZE;
+		}
+		sem_post(mutex_blocks);
+
+		sem_wait(mutex_blocks);
+		uint32_t nro_bloque = atoi(bloques_asignados_nuevo[cant_bloq_asig_nuevos-1]);
+		bitarray_set_bit(bitArraySB, nro_bloque);
+		uint32_t espacio_libre_ultimo_bloque = (cant_bloq_asig_nuevos*BLOCK_SIZE - (size_archivo));
+		uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+		copiar_en_memoria_recurso(nro_bloque, caracter_a_guardar, cant_necesaria_ultimo_bloque);
+		sem_post(mutex_blocks);
+	}
+	else {
+		sem_wait(mutex_blocks);
+		uint32_t nro_bloque = atoi(bloques_asignados_nuevo[cant_bloq_asig_nuevos-1]);
+		bitarray_set_bit(bitArraySB, nro_bloque);
+		uint32_t espacio_libre_ultimo_bloque = (cant_bloq_asig_nuevos*BLOCK_SIZE - (size_archivo));
+		uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+		copiar_en_memoria_recurso(nro_bloque, caracter_a_guardar, cant_necesaria_ultimo_bloque);
+		sem_post(mutex_blocks);
+	}
+}
+
+
+void copiar_en_memoria_recurso(int nro_bloque, char* caracter_llenado, int cantidad) {
+
+	int32_t offset = 0;
+	for(int c=0; c<cantidad; c++) {
+		uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE + offset;
+		memcpy(informacion_blocks + ubicacion_bloque, caracter_llenado, strlen(caracter_llenado));
+		offset += strlen(caracter_llenado);
+	}
 }
 
 
@@ -819,12 +879,16 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 		guardar_nuevos_datos_en_archivo(path, cantidad_bloques_total, "BLOCK_COUNT");
 
 		char* string_hash = string_new();
-
-		asprintf(&string_hash, "%s", concatenar_contenido_blocks(metadata_recurso->bloques_asignados_anterior));
-
-		char* hash = hash_MD5(string_hash, nombre_recurso);
-		guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
-
+		if(cantidad_elementos(metadata_recurso->bloques_asignados_anterior) == 0){
+			string_hash = armar_recurso('0', 32);
+			char* hash = hash_MD5(string_hash, nombre_recurso);
+			guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
+		}
+		else {
+			asprintf(&string_hash, "%s", concatenar_contenido_blocks(metadata_recurso->bloques_asignados_anterior));
+			char* hash = hash_MD5(string_hash, nombre_recurso);
+			guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
+		}
 	}
 
 	sem_post(mutex_metadata);
@@ -962,6 +1026,8 @@ char* concatenar_contenido_blocks(char** lista_bloques){
     char* contenido_final = string_new();
 	contenido_final = string_substring_until(contenido_concatenado, tamanio_contenido);
 	strcat(contenido_final, "\0");
+
+	printf("HASH: %s\n", contenido_final);
 
     return contenido_concatenado;
 }

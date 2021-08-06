@@ -98,8 +98,9 @@ uint32_t cantidad_elementos(char** parser);
 
 
 // Funciones sobre Bloques
+void copiar_en_memoria_recurso(int nro_bloque, char* caracter_a_guardar, int cantidad);
 void guardar_en_blocks_bitacora(char* path_completo, char* valor, t_metadata* metadata_bitacora);
-void guardar_en_blocks_recursos(char* path_completo, char caracter_llenado);
+void guardar_en_blocks_recursos(char* path_completo, char caracter_llenado, char* nombre_recurso);
 void eliminar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
 void eliminar_cantidad_recurso(t_metadata* metadata_recurso, uint32_t cantidad_a_eliminar);
 void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso);

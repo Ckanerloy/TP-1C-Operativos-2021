@@ -432,8 +432,8 @@ void obtener_orden_input(){
 
 			// PRUEBAS PARA MONGO STORE
 			//  - PRUEBAS PARA FILE SYSTEM
-			// INICIAR_PATOTA 3 /home/utnso/tareas/FS_PatotaA.txt
-			// INICIAR_PATOTA 3 /home/utnso/tareas/FS_PatotaB.txt
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/FS_PatotaA.txt
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/FS_PatotaB.txt
 
 			//  - PRUEBAS PARA SABOTAJE
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/FSCK_PatotaA.txt 0|0
