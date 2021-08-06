@@ -23,7 +23,6 @@ int main(void) {
 		levantar_archivo_blocks();
 		//inicio_protocolo_fsck();
 
-
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
 
@@ -147,6 +146,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) {
 					log_error(logger, "No existe la bitacora del tripulante %u", tripulante_por_bitacora->id_tripulante);
+					free(path_completo);
 					break;
 				}
 
@@ -193,8 +193,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				}
 
 				free(path_completo);
-				cerrar_conexion(logger, conexion);
 				free(tripulante_por_bitacora);
+				cerrar_conexion(logger, conexion);
 				break;
 
 			case GENERAR_INSUMO:
@@ -252,6 +252,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					cerrar_conexion(logger, conexion);
 					free(tarea_io->nombre_archivo);
 					free(tarea_io);
+					free(path_completo);
 					break;
 				}
 				else {
@@ -274,6 +275,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						log_info(logger, "Se consumió %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
 					}
 					semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), (void*)sem_post);
+					limpiar_parser(metadata_recurso->bloques_asignados_anterior);
+					free(metadata_recurso);
 				}
 				//semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), (void*)sem_post);
 				//sem_post(mutex_recursos);
@@ -292,6 +295,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				path_completo = crear_ruta_recurso("Basura");
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
 					log_info(logger, "No existe el recurso %s.\n", "Basura.ims");
+					free(path_completo);
 					break;
 				}
 				else {
@@ -306,6 +310,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					eliminar_recurso_blocks(path_completo,  metadata_recurso); //pisa toda la data de los blocks con 0 y setea los bits vacios
 					remove(path_completo);
 					semaforo_recurso(mapeo_string_a_recurso("Basura"), (void*)sem_post);
+					limpiar_parser(metadata_recurso->bloques_asignados_anterior);
+					free(metadata_recurso);
 				}
 				sem_post(mutex_recursos);
 
@@ -326,11 +332,16 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					t_metadata* metadata_bitacora = actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
 					guardar_en_blocks_bitacora(path_completo, bitacora_tripu->accion, metadata_bitacora);
 					log_info(logger, "Se creó la Bitacora del Tripulante %u exitosamente.\n", bitacora_tripu->id_tripulante);
+					limpiar_parser(metadata_bitacora->bloques_asignados_anterior);
+					free(metadata_bitacora);
 				}
 				else {
 					t_metadata* metadata_bitacora = actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
 					guardar_en_blocks_bitacora(path_completo, bitacora_tripu->accion, metadata_bitacora);
 					log_info(logger, "Se actualizó la Bitacora del Tripulante %u exitosamente.\n", bitacora_tripu->id_tripulante);
+					limpiar_parser(metadata_bitacora->bloques_asignados_anterior);
+					free(metadata_bitacora);
+
 				}
 				sem_post(mutex_bitacora);
 
@@ -338,6 +349,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				cerrar_conexion(logger, conexion);
 				free(bitacora_tripu->accion);
 				free(bitacora_tripu);
+				free(path_completo);
 				break;
 
 			case REALIZAR_SABOTAJE:
@@ -581,6 +593,7 @@ void guardar_en_blocks_recursos(char* path_completo, char caracter_llenado, char
 	copiar_en_memoria_recurso(nro_bloque, caracter_a_guardar, cant_necesaria_ultimo_bloque);
 	sem_post(mutex_blocks);
 
+	limpiar_parser(bloques_asignados_nuevo);
 	printf("TERMINO DE GUARDAR\n");
 }
 
@@ -693,6 +706,7 @@ void guardar_en_blocks_bitacora(char* path_completo, char* valor, t_metadata* me
 		}
 	}
 	sem_post(mutex_blocks);
+	limpiar_parser(bloques_asignados_nuevo);
 }
 
 
@@ -750,6 +764,7 @@ char* hash_MD5(char* cadena_a_hashear, char* nombre_archivo){
 
 	free(valor_hash);
 	free(comando);
+	free(cadena_a_hashear);
 	free(path_inicial);
 	free(path_final);
 	free(path_archivo_hash_inicial);
@@ -891,6 +906,8 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 		asprintf(&string_hash, "%s", concatenar_contenido_blocks(metadata_recurso->bloques_asignados_anterior));
 		char* hash = hash_MD5(string_hash, nombre_recurso);
 		guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
+		free(cantidad_bloques_total);
+		limpiar_parser(bloques_asignados);
 	}
 
 
@@ -1154,8 +1171,7 @@ char* crear_ruta_bitacora(int32_t id_tripulante) {
 
     char* path_string = string_new();
 	string_append_with_format(&path_string, "/Files/Bitacoras/Tripulante%u.ims", id_tripulante);
-	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path_string) + 2);
-	path_completo = concatenar_path(path_string);
+	char* path_completo = concatenar_path(path_string);
 
 	free(path_string);
 	return path_completo;
