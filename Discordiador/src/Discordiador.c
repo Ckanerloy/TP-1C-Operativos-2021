@@ -603,6 +603,7 @@ void obtener_orden_input(){
 
 			// Libero la memoria usada
 			fclose(archivo_tareas);
+			free(respuesta_iniciar_patota->ids_tripu);
 			free(respuesta_iniciar_patota);
 
 			free(posiciones);
@@ -792,6 +793,7 @@ void obtener_orden_input(){
 
 		case TERMINAR_PROGRAMA:
 
+			SALIR = 1;
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") != -1){
 				enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
@@ -816,7 +818,6 @@ void obtener_orden_input(){
 			list_destroy_and_destroy_elements(tripulantes_exec_block, free);
 			list_destroy_and_destroy_elements(bloqueado_suspendido, free);
 			list_destroy_and_destroy_elements(bloqueado_suspendido_ready, free);
-			SALIR = 1;
 			limpiar_parser(parser_consola);
 			free(cadena_ingresada);
 			finalizar_semaforos();

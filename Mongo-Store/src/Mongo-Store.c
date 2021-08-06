@@ -334,6 +334,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				}
 				sem_post(mutex_bitacora);
 
+				free(path_completo);
 				cerrar_conexion(logger, conexion);
 				free(bitacora_tripu->accion);
 				free(bitacora_tripu);
@@ -343,10 +344,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				cerrar_conexion(logger, conexion);
 
 				log_info(logger, "\n        ╔═════════════════════════════════════════════════════════╗\n        ║     Inicio del Protocolo FSCK para resolver Sabotajes   ║\n        ╚═════════════════════════════════════════════════════════╝");
-
-				//log_info(logger, "        ║     Inicio del Protocolo FSCK para resolver Sabotajes   ║\n");
-				//log_info(logger, "        ╚═════════════════════════════════════════════════════════╝\n");
-
 				inicio_protocolo_fsck();
 
 				break;
@@ -842,11 +839,11 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 	}
 	else{
 
-		uint32_t fragmentacion_interna = cantidad_bloques_usados*BLOCK_SIZE - metadata_recurso->size;
+		uint32_t fragmentacion_interna = cantidad_bloques_usados * BLOCK_SIZE - metadata_recurso->size;
 
 		t_list* lista_posiciones;
-		if(nuevo_valor_size>fragmentacion_interna){
-			lista_posiciones = obtener_array_bloques_a_usar(nuevo_valor_size-fragmentacion_interna);// 10 frag de 4  entocnes falta guardar 6
+		if(tamanio_recurso > fragmentacion_interna){
+			lista_posiciones = obtener_array_bloques_a_usar(tamanio_recurso - fragmentacion_interna);// 10 frag de 4  entocnes falta guardar 6
 		}else{
 			lista_posiciones = obtener_array_bloques_a_usar(0);
 		}
