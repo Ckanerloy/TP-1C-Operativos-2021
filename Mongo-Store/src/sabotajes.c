@@ -33,14 +33,6 @@ void iniciar_sabotaje(void){
 
 
 /*
-SABOTAJE EN SUPERBLOQUE:
-- CANTIDAD DE BLOQUES:
-	. Cambiar el valor del campo Blocks del SuperBloque.ims
-	. Como se resuelve? Constatar contra el tamaño de Blocks.ims y corregir el valor en caso que no concuerde
-- BITMAP:
-	. Cambiar el valor de algun bit del campo Bitmap (0 por 1 o 1 por 0)
-	. Como se resuelve? Recorrer todos los archivos dentro de Files y Files/Bitacoras y obtener de todos los archivos los bloques usados
-
 
 SABOTAJE EN FILES
 - SIZE:
@@ -79,11 +71,8 @@ void inicio_protocolo_fsck(void) {
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Bitmap del SuperBloque.\n");
 	}
 
-/*
+
 	// Sabotaje en directorio FILES
-	 *
-	 *
-	 *
 	for(int i=0; i<list_size(recursos_disponibles); i++) {
 		recursos_archivos recurso = (recursos_archivos)list_get(recursos_disponibles, i);
 
@@ -99,10 +88,10 @@ void inicio_protocolo_fsck(void) {
 		if(!mismo_block_count_archivo(recurso)){
 			log_info(logger, "Se realizó un Sabotaje en el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 			sabotaje = true;
-			reparar_block_count(recurso);
+			reparar_block_count
 			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
-
+/*
 		// Sabotaje en FILES: Modifica el Orden de los Bloques
 		if(!bloques_ordenados_archivo(recurso)) {
 			log_info(logger, "Se realizó un Sabotaje en el Orden de los Bloques del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
@@ -197,12 +186,188 @@ int calcular_tamanio_archivo(char* path_archivo){
 
 
 
-bool mismo_size_archivo(recurso){
+bool mismo_size_archivo(recursos_archivos recurso){
+
+	int tamanio_en_blocks = 0;
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int tamanio = leer_size_archivo(path_archivo_recurso, "SIZE");
+	char* caracter_recurso = leer_caracter_archivo(path_archivo_recurso, "CARACTER_LLENADO");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+
+	for(int i=0; i<cantidad_blocks_ocupados; i++){
+			int nro_bloque = list_get(bloques_usados, i);
+
+			for(int c=0; c<BLOCK_SIZE; c++){
+
+				char* caracter_copia = malloc(sizeof(char));
+				int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+				char* caracter = string_substring(caracter_copia, 0, 1);
+
+				memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
+
+				if(strcmp(caracter, caracter_recurso)==0){
+
+					tamanio_en_blocks++;
+
+				}
+				free(caracter_copia);
+				free(caracter);
+			}
+
+	}
+
+	free(path_recurso);
+	free(path_archivo_recurso);
+
+	if(tamanio_en_blocks == tamanio){
+		return true;
+	} else{
+		return false;
+	}
+}
+
+void reparar_size(recursos_archivos recurso){
+
+	int tamanio_en_blocks = 0;
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	char* caracter_recurso = leer_caracter_archivo(path_archivo_recurso, "CARACTER_LLENADO");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+
+	for(int i=0; i<cantidad_blocks_ocupados; i++){
+				int nro_bloque = list_get(bloques_usados, i);
+
+				for(int c=0; c<BLOCK_SIZE; c++){
+
+					char* caracter_copia = malloc(sizeof(char));
+					int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+					char* caracter = string_substring(caracter_copia, 0, 1);
+
+					memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
+
+					if(strcmp(caracter, caracter_recurso)==0){
+
+						tamanio_en_blocks++;
+
+					}
+					free(caracter_copia);
+					free(caracter);
+				}
+
+		}
+
+
+	char* valor_string = string_new();
+	asprintf(&valor_string, "%d", tamanio_en_blocks);
+	guardar_nuevos_datos_en_archivo(path_archivo_recurso, valor_string, "SIZE");
+
+	free(path_recurso);
+	free(path_archivo_recurso);
+	free(valor_string);
+}
+
+
+bool mismo_block_count_archivo(recursos_archivos recurso){
+
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+	int cantidad_blocks_archivo = leer_size_archivo(path_archivo_recurso, "BLOCK_COUNT");
+
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
+
+	if(cantidad_blocks_ocupados == cantidad_blocks_archivo){
+		return true;
+	} else{
+		return false;
+	}
+}
+
+void reparar_block_count(recursos_archivos recurso){
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+
+	char* cantidad_bloques_total = string_new();
+	asprintf(&cantidad_bloques_total, "%d", cantidad_blocks_ocupados);
+	guardar_nuevos_datos_en_archivo(path_archivo_recurso, cantidad_bloques_total, "BLOCK_COUNT");
+
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
+}
+
+/*
+- BLOCKS:
+	. El valor de la lista de BLOCKS fue alterado y los bloques no están en orden
+	. Validar con el valor de MD5_ARCHIVO y restaurar el archivo
+	(escribir en archivo tantos caracteres de llenado como hagan falta hasta completar el size)
+
+
+	1, 2, 3
+	MD5 ORIGINAL asfasd6ad54a3d24
+
+	1, 3, 2
+	MD5 NUEVO adsd5a4w354534
+
+
+ */
+
+bool bloques_ordenados_archivo(recursos_archivos recurso){
+
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char* md5_original = leer_caracter_archivo(path_archivo_recurso , "MD5_ARCHIVO");
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	char* string_hash = concatenar_contenido_blocks(bloques_usados);
+	char* md5_a_validar = hash_MD5(string_hash, path_recurso);
+
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
+	free(string_hash);
+
+	if(md5_original == md5_a_validar){
+		free(md5_original);
+		free(md5_a_validar);
+		return true;
+	}
+	else {
+		free(md5_original);
+		free(md5_a_validar);
+		return false;
+	}
+}
+
+void reparar_orden_bloques(recursos_archivos recurso){
+
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	int tamanio = leer_size_archivo(path_archivo_recurso, "SIZE");
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+	int cantidad_blocks_archivo = leer_size_archivo(path_archivo_recurso, "BLOCK_COUNT");
+
+
+
+	// Pueden darse 2 situaciones: que el sabotaje implique un cambio del orden de BLOCKS
+	//que saquen un bloque de la lista de BLOCKS
 
 
 
 
 }
+
+
+
+
 
 void reparacion_superBloque_cantidad_bloques(void) {
 
@@ -215,7 +380,7 @@ void reparacion_superBloque_cantidad_bloques(void) {
 
 }
 
-t_list* obtener_blocks_ocupados(){
+t_list* obtener_blocks_ocupados_total(){
 	int posicion;
 	t_list* lista_recursos = recursos_activos();
 	t_list* lista_bloques_ocupados = list_create();
@@ -253,19 +418,15 @@ t_list* obtener_blocks_ocupados(){
 
 	return lista_bloques_ocupados;
 }
- /*
- *
- * - BITMAP:
-	. Cambiar el valor de algun bit del campo Bitmap (0 por 1 o 1 por 0)
-	. Como se resuelve? Recorrer todos los archivos dentro de Files y Files/Bitacoras y obtener de todos los archivos los bloques usados
- */
+
+
 
 bool sabotaje_superBloque_bitmap(void) {
 
 	char* bitmap_aux = malloc(BLOCKS/8);
 	memcpy(bitmap_aux, super_bloque + 2*sizeof(uint32_t), BLOCKS/8);
 	t_bitarray* bitmap_SB = bitarray_create_with_mode(bitmap_aux, BLOCKS/8, LSB_FIRST);
-	t_list* lista_bloques_en_uso = obtener_blocks_ocupados();
+	t_list* lista_bloques_en_uso = obtener_blocks_ocupados_total();
 
 	for(int i=0; i<BLOCKS; i++){
 
@@ -302,13 +463,14 @@ bool esta_presente_en_lista(t_list* lista, int valor) {
 void reparacion_superBloque_bitmap(void) {
 
 	vaciarBitArray(bitArraySB);
-	t_list* lista_bloques_usados = obtener_blocks_ocupados();
+	t_list* lista_bloques_usados = obtener_blocks_ocupados_total();
+	int cantidad_lista_bloques_usados = list_size(lista_bloques_usados);
 
-	for(int i=0; i<BLOCKS; i++){
+	for(int i=0; i<cantidad_lista_bloques_usados; i++){
 		bitarray_set_bit(bitArraySB, list_get(lista_bloques_usados, i));
 	}
 
-	memcpy(super_bloque+sizeof(uint32_t)*2, bitArraySB, BLOCKS/8);
+	memcpy(super_bloque+2*sizeof(uint32_t), bitmap, BLOCKS/8);
 
 }
 
