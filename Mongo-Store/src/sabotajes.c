@@ -88,7 +88,7 @@ void inicio_protocolo_fsck(void) {
 		if(!mismo_block_count_archivo(recurso)){
 			log_info(logger, "Se realizó un Sabotaje en el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 			sabotaje = true;
-			reparar_block_count
+			reparar_block_count(recurso);
 			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
 /*

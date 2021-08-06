@@ -92,14 +92,14 @@ void inicializar_semaforos(void) {
 	mutex_blocks = malloc(sizeof(sem_t));
 	sem_init(mutex_blocks, 0, 1);
 
-	mutex_map = malloc(sizeof(sem_t));
-	sem_init(mutex_map, 0, 1);
-
 	mutex_config = malloc(sizeof(sem_t));
 	sem_init(mutex_config, 0, 1);
+
+	mutex_bitacora = malloc(sizeof(sem_t));
+	sem_init(mutex_bitacora, 0, 1);
 }
 
-void semaforo_recurso(char* recurso, void(*funcion)(void*)) {
+void semaforo_recurso(recursos_archivos recurso, void(*funcion)(void*)) {
 
     if(recurso == OXIGENO) {
         funcion(sem_oxigeno);
@@ -143,8 +143,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				else {
 					mensaje_bitacora* mensaje = malloc(sizeof(mensaje_bitacora));
 
+					sem_wait(mutex_bitacora);
 					int size_bitacora = leer_size_archivo(path_completo, "SIZE");
 					char** bloques = leer_blocks_archivo(path_completo, "BLOCKS");
+					sem_post(mutex_bitacora);
 					char* bitacora = malloc(size_bitacora);
 
 					uint32_t cant_bloques = cantidad_elementos(bloques);
@@ -154,8 +156,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						uint32_t nro_bloque = atoi(bloques[i]);
 						uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
-
+						sem_wait(mutex_blocks);
 						memcpy(bitacora + desplazamiento, informacion_blocks + ubicacion_bloque, BLOCK_SIZE);
+						sem_post(mutex_blocks);
 						desplazamiento += BLOCK_SIZE;
 					}
 
@@ -164,7 +167,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
 					uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
 
+					sem_wait(mutex_blocks);
 					memcpy(bitacora + desplazamiento, informacion_blocks + ubicacion_bloque, cant_necesaria_ultimo_bloque);
+					sem_post(mutex_blocks);
 
 					mensaje->tamanio_bitacora = size_bitacora;
 					mensaje->bitacora = string_substring(bitacora, 0, size_bitacora);
@@ -199,14 +204,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					log_info(logger, "No existe el recurso %s , se procede a crearlo.\n", tarea_io->nombre_archivo);
 
 					crear_archivo_metadata_recurso(path_completo);
+					semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), sem_wait);
 					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io->caracter_llenado, tarea_io->cantidad, tarea_io->nombre_archivo);
+					semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), sem_post);
+					sem_wait(mutex_blocks);
 					guardar_en_blocks(path_completo, recurso, metadata_recurso);
+					sem_post(mutex_blocks);
 					concatenar_contenido_blocks(metadata_recurso->bloques_asignados_anterior);
 					log_info(logger, "Se generó %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
 				}
 				else {
+					semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), sem_wait);
 					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io->caracter_llenado, tarea_io->cantidad, tarea_io->nombre_archivo);
+					semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), sem_post);
+					sem_wait(mutex_blocks);
 					guardar_en_blocks(path_completo, recurso, metadata_recurso);
+					sem_post(mutex_blocks);
 					concatenar_contenido_blocks(metadata_recurso->bloques_asignados_anterior);
 					log_info(logger, "Se generó %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
 				}
@@ -243,17 +256,23 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				}
 				else {
 					if(tarea_io->cantidad >= metadata_recurso->size) {
-
+						sem_wait(mutex_blocks);
 						eliminar_recurso_blocks(path_completo, metadata_recurso);
+						sem_wait(mutex_blocks);
 						log_info(logger, "Se consumió %d cantidades de %s, y el Archivo quedó vacío.\n", metadata_recurso->size, tarea_io->nombre_archivo);
 					}
 					else {
+						semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), sem_wait);
 						eliminar_cantidad_recurso(metadata_recurso, tarea_io->cantidad);
+						semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), sem_post);
 						log_info(logger, "Se consumió %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
 					}
-
+					semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), sem_wait);
 					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io->caracter_llenado, -(tarea_io->cantidad), tarea_io->nombre_archivo);
+					semaforo_recurso(mapeo_string_a_recurso(tarea_io->nombre_archivo), sem_post);
+					sem_wait(mutex_blocks);
 					eliminar_en_blocks(path_completo, recurso, metadata_recurso);
+					sem_post(mutex_blocks);
 					log_info(logger, "Se consumió %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
 
 					/*
@@ -296,7 +315,9 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					metadata_recurso->bloques_asignados_anterior = bloques;
 					metadata_recurso->size = size_recurso;
 					printf("Entra a eliminar recurso \n");
+					sem_wait(mutex_blocks);
 					eliminar_recurso_blocks(path_completo,  metadata_recurso); //pisa toda la data de los blocks con 0 y setea los bits vacios
+					sem_post(mutex_blocks);
 					remove(path_completo);
 				}
 				printf("Fuera del if \n");
@@ -316,13 +337,21 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					log_info(logger, "No existe la bitacora del tripulante %u , se procede a crearla.\n",bitacora_tripu->id_tripulante);
 
 					crear_archivo_metadata_bitacora(path_completo);
+					sem_wait(mutex_bitacora);
 					t_metadata* metadata_bitacora = actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
+					sem_post(mutex_bitacora);
+					sem_wait(mutex_blocks);
 					guardar_en_blocks(path_completo, bitacora_tripu->accion, metadata_bitacora);
+					sem_post(mutex_blocks);
 					log_info(logger, "Se creó la Bitacora del Tripulante %u exitosamente.\n", bitacora_tripu->id_tripulante);
 				}
 				else {
+					sem_wait(mutex_bitacora);
 					t_metadata* metadata_bitacora = actualizar_archivo_metadata_bitacora(path_completo, bitacora_tripu->tamanio_accion);
+					sem_post(mutex_bitacora);
+					sem_wait(mutex_blocks);
 					guardar_en_blocks(path_completo, bitacora_tripu->accion, metadata_bitacora);
+					sem_post(mutex_blocks);
 					log_info(logger, "Se actualizó la Bitacora del Tripulante %u exitosamente.\n", bitacora_tripu->id_tripulante);
 				}
 
@@ -365,6 +394,22 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			}
 }
 
+recursos_archivos mapeo_string_a_recurso(char* recurso) {
+
+    recursos_archivos recurso_enum;
+
+    if(strcmp(recurso, "Oxigeno") == 0) {
+        recurso_enum = OXIGENO;
+    }
+    if(strcmp(recurso, "Comida") == 0) {
+        recurso_enum = COMIDA;
+    }
+    if(strcmp(recurso, "Basura") == 0) {
+        recurso_enum = BASURA;
+    }
+
+    return recurso_enum;
+}
 
 bool existe_archivo(char* path){
 	FILE* archivo = fopen(path, "r");

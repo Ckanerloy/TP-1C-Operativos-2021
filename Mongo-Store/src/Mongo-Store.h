@@ -64,10 +64,9 @@ typedef struct{
 
 //semaforos
 sem_t* mutex_blocks;
-sem_t* mutex_map;
 sem_t* mutex_config;
-sem_t* mutex_copia;
 sem_t* mutex_bitacora;
+sem_t* mutex_copia;
 sem_t* sem_oxigeno;
 sem_t* sem_comida;
 sem_t* sem_basura;
@@ -111,7 +110,9 @@ void guardar_nuevos_datos_en_archivo(char* path_archivo, void* valor, char* clav
 void activar_semaforo_recurso(char* recurso);
 void liberar_semaforo_recurso(char* recurso);
 void inicializar_semaforos(void);
+void semaforo_recurso(recursos_archivos recurso, void(*funcion)(void*));
 
+recursos_archivos mapeo_string_a_recurso(char* recurso);
 char* armar_recurso(char caracter_llenado, uint32_t cantidad);
 void loggear_liberacion_archivo(char* nombre, int nro_bloque);
 char* crear_ruta_recurso(char* nombre_recurso);

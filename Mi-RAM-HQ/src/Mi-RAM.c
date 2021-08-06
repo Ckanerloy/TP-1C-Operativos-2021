@@ -551,9 +551,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					list_replace(patota_buscada->segmentos, indice, segmento_buscado);
 					sem_post(mutex_segmentos);
 
-					respuesta_actualizar_estado->id_tripulante = tripulante_buscado_por_estado->id_tripulante;
-					respuesta_actualizar_estado->respuesta = 1;
-
 				}
 				else if(esquema_elegido  == 'P') {
 					sem_wait(mutex_paginas);
@@ -576,11 +573,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					actualizar_tripulante_memoria(tripulante_buscado_por_estado, direccion_fisica, tabla_patota_buscada);
 					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 					sem_post(mutex_paginas);
-
-					respuesta_actualizar_estado->id_tripulante = tripulante_buscado_por_estado->id_tripulante;
-					respuesta_actualizar_estado->respuesta = 1;
 				}
 
+				respuesta_actualizar_estado->id_tripulante = tripulante_buscado_por_estado->id_tripulante;
+				respuesta_actualizar_estado->respuesta = 1;
 
 				log_info(logger, "El Tripulante %u de la Patota %u cambió del Estado %c al Estado %c.\n", tripulante_buscado_por_estado->id_tripulante, tripulante_por_estado->id_patota, estado_anterior, tripulante_buscado_por_estado->estado_tripulante);
 
