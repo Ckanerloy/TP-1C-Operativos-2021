@@ -4,7 +4,6 @@
 t_tabla_segmentos_patota* crear_tabla_segmentos(void){
 
 	t_tabla_segmentos_patota* tabla = malloc(sizeof(t_tabla_segmentos_patota));
-	//tabla->patota = malloc(sizeof(t_pcb));
 	tabla->patota = crear_pcb();
 	tabla->segmentos = list_create();
 	tabla->direccion_tareas = list_create();

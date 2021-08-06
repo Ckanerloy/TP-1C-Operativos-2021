@@ -211,7 +211,7 @@ int32_t aplicar_CLOCK() {
 	t_pagina* pagina_victima = NULL;
 	t_pagina* pagina_aux = NULL;
 
-	t_list* lista_a_iterar = list_create();
+	lista_a_iterar = list_create();
 
 	sem_wait(sem_clock);
 	for(int i=0; i<list_size(tablas_paginas); i++){
@@ -219,8 +219,9 @@ int32_t aplicar_CLOCK() {
 
 		for(int j=0; j<list_size(tabla->paginas); j++){
 			t_pagina* pagina = list_get(tabla->paginas, j);
-
-			list_add(lista_a_iterar, pagina);
+			if(pagina->P == 1) {
+				list_add(lista_a_iterar, pagina);
+			}
 		}
 	}
 	sem_post(sem_clock);
@@ -239,34 +240,30 @@ int32_t aplicar_CLOCK() {
 	}
 
 
-	bool esta_en_memoria(void* pagina) {
+	/*bool esta_en_memoria(void* pagina) {
 		return ((t_pagina*)pagina)->P == 1;
-	}
+	}*/
 
 	sem_wait(sem_clock);
-	t_list* lista_en_memoria = list_filter(lista_a_iterar, esta_en_memoria);
-	list_sort(lista_en_memoria, menor_a_mayor_por_frame_en_clock);
+	//t_list* lista_en_memoria = list_filter(lista_a_iterar, esta_en_memoria);
+	//list_sort(lista_en_memoria, menor_a_mayor_por_frame_en_clock);
+	list_sort(lista_a_iterar, menor_a_mayor_por_frame_en_clock);
 
 	int salir = 1;
 	while(salir == 1){
-		for(int i=0; i<list_size(lista_en_memoria); i++){
-
-			pagina_aux = list_get(lista_en_memoria, i);
-
+		for(int i=0; i<list_size(lista_a_iterar); i++){
+			pagina_aux = list_get(lista_a_iterar, i);
 			if(pagina_aux->U == 0){
 				pagina_victima = pagina_aux;
 				salir = 0;
 				break;
 			}
 		}
-
 		if(salir == 0){
 			break;
 		}
-
-		for(int j=0; j<list_size(lista_en_memoria); j++){
-			pagina_aux = list_get(lista_en_memoria, j);
-
+		for(int j=0; j<list_size(lista_a_iterar); j++){
+			pagina_aux = list_get(lista_a_iterar, j);
 			if(pagina_aux->U == 0){
 				pagina_victima = pagina_aux;
 				salir = 0;
@@ -277,7 +274,6 @@ int32_t aplicar_CLOCK() {
 				log_info(logger, "FRAME %d, BIT DE USO: %d, PAGINA: %d",pagina_aux->numero_de_frame, pagina_aux->U, pagina_aux->numero_de_pagina);
 			}
 		}
-
 		if(salir == 0){
 			break;
 		}
@@ -307,6 +303,8 @@ int32_t aplicar_CLOCK() {
 	liberar_frame(frame_a_buscar);
 
 	frame_libre = frame_a_buscar;
+
+	//list_destroy_and_destroy_elements(lista_a_iterar, free);
 
 	return frame_libre;
 }
