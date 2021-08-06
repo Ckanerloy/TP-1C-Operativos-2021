@@ -83,15 +83,15 @@ void inicio_protocolo_fsck(void) {
 			reparar_size(recurso);
 			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
-/*
+
 		// Sabotaje en FILES: Modifica el Block_Count
 		if(!mismo_block_count_archivo(recurso)){
 			log_info(logger, "Se realizó un Sabotaje en el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 			sabotaje = true;
-			reparar_block_count(recurso);
+			reparar_block_count
 			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
-
+/*
 		// Sabotaje en FILES: Modifica el Orden de los Bloques
 		if(!bloques_ordenados_archivo(recurso)) {
 			log_info(logger, "Se realizó un Sabotaje en el Orden de los Bloques del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
@@ -269,10 +269,83 @@ void reparar_size(recursos_archivos recurso){
 	free(valor_string);
 }
 
-/*- BLOCK_COUNT y BLOCKS:
-	. El valor de BLOCK_COUNT y BLOCKS son inconsistentes
-	. Actualizar el valor de BLOCK_COUNT en base a la lista de BLOCKS*/
 
+bool mismo_block_count_archivo(recursos_archivos recurso){
+
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+	int cantidad_blocks_archivo = leer_size_archivo(path_archivo_recurso, "BLOCK_COUNT");
+
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
+
+	if(cantidad_blocks_ocupados == cantidad_blocks_archivo){
+		return true;
+	} else{
+		return false;
+	}
+}
+
+void reparar_block_count(recursos_archivos recurso){
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+
+	char* cantidad_bloques_total = string_new();
+	asprintf(&cantidad_bloques_total, "%d", cantidad_blocks_ocupados);
+	guardar_nuevos_datos_en_archivo(path_archivo_recurso, cantidad_bloques_total, "BLOCK_COUNT");
+
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
+}
+
+/*
+- BLOCKS:
+	. El valor de la lista de BLOCKS fue alterado y los bloques no están en orden
+	. Validar con el valor de MD5_ARCHIVO y restaurar el archivo
+	(escribir en archivo tantos caracteres de llenado como hagan falta hasta completar el size)
+
+
+	1, 2, 3
+	MD5 ORIGINAL asfasd6ad54a3d24
+
+	1, 3, 2
+	MD5 NUEVO adsd5a4w354534
+
+ */
+
+bool bloques_ordenados_archivo(recursos_archivos recurso){
+
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char* md5_original = leer_caracter_archivo(path_archivo_recurso , "MD5_ARCHIVO");
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	char* string_hash = concatenar_contenido_blocks(bloques_usados);
+	char* md5_a_validar = hash_MD5(string_hash, path_recurso);
+
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
+	free(string_hash);
+
+	if(md5_original == md5_a_validar){
+		free(md5_original);
+		free(md5_a_validar);
+		return true;
+	}
+	else {
+		free(md5_original);
+		free(md5_a_validar);
+		return false;
+	}
+}
+
+reparar_orden_bloques(recurso)
 
 
 
