@@ -34,8 +34,8 @@ bool mismo_block_count_archivo(recursos_archivos recurso);
 void reparar_block_count(recursos_archivos recurso);
 bool bloques_ordenados_archivo(recursos_archivos recurso);
 void reparar_orden_bloques(recursos_archivos recurso);
-
-
+void agregar_bloque_faltante(char** bloques, char* path, char* caracter, int size);
+void reordenar_bloques(char** bloques, char* path, char* caracter, int size);
 
 
 //Funciones auxiliares
