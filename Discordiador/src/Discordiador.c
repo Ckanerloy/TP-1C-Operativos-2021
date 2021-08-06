@@ -430,6 +430,17 @@ void obtener_orden_input(){
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaB.txt 3|3
 			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaC.txt 5|5
 
+			// PRUEBAS PARA MONGO STORE
+			//  - PRUEBAS PARA FILE SYSTEM
+			// INICIAR_PATOTA 3 /home/utnso/tareas/FS_PatotaA.txt
+			// INICIAR_PATOTA 3 /home/utnso/tareas/FS_PatotaB.txt
+
+			//  - PRUEBAS PARA SABOTAJE
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/FSCK_PatotaA.txt 0|0
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/FSCK_PatotaB.txt 8|0
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/FSCK_PatotaC.txt 8|8
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/FSCK_PatotaD.txt 0|8
+
 
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
 				log_error(logger_on, "Faltan argumentos. Debe iniciarse de la forma: INICIAR_PATOTA <CantidadTripulantes> >Ubicación txt Tareas>.");
