@@ -68,7 +68,9 @@ sem_t* mutex_map;
 sem_t* mutex_config;
 sem_t* mutex_copia;
 sem_t* mutex_bitacora;
-sem_t* mutex_config;
+sem_t* sem_oxigeno;
+sem_t* sem_comida;
+sem_t* sem_basura;
 
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_sincronizador;
@@ -93,6 +95,7 @@ uint32_t cantidad_elementos(char** parser);
 // Funciones sobre Bloques
 void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
 void eliminar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bitacora);
+void eliminar_cantidad_recurso(t_metadata* metadata_recurso, uint32_t cantidad_a_eliminar);
 void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso);
 char* concatenar_contenido_blocks(char** lista_bloques);
 
@@ -103,6 +106,11 @@ char** leer_blocks_archivo(char* path_archivo, char* clave);
 char* leer_caracter_archivo(char* path_archivo, char* clave);
 void guardar_nuevos_datos_en_archivo(char* path_archivo, void* valor, char* clave);
 
+//funcion semaforos
+
+void activar_semaforo_recurso(char* recurso);
+void liberar_semaforo_recurso(char* recurso);
+void inicializar_semaforos(void);
 
 char* armar_recurso(char caracter_llenado, uint32_t cantidad);
 void loggear_liberacion_archivo(char* nombre, int nro_bloque);
