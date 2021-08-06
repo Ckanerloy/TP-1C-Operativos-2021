@@ -20,10 +20,8 @@ int main(void) {
 
 		inicializar_file_system();
 		levantar_archivo_blocks();
-<<<<<<< HEAD
-=======
 		//inicio_protocolo_fsck();
->>>>>>> 747f1ef3914d1c4311431fa27abc4c4e4e982935
+
 
 		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
 		//Hacer lo mismo con el FS existente
@@ -532,6 +530,8 @@ t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar){
 		int posicion_bit_libre = posicionBitLibre();
 		list_add(posiciones, posicion_bit_libre);
 		bitarray_set_bit(bitArraySB, posicion_bit_libre);
+		memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
+		msync(super_bloque+sizeof(uint32_t)*2, BLOCKS/8, MS_SYNC);
 	}
 	return posiciones;
 }
@@ -558,7 +558,9 @@ void guardar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_bi
 		for(int i=0; i<cant_bloq_asig_nuevos-1; i++) { //accion mas grande que el bloque
 
 			uint32_t nro_bloque = atoi(bloques_asignados_nuevo[i]);
-			uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+
+
+		    uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
 			memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
 			desplazamiento += BLOCK_SIZE;
 		}
@@ -636,6 +638,10 @@ void eliminar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_b
 		uint32_t espacio_libre_ultimo_bloque = (cant_bloq_asig_nuevos * BLOCK_SIZE - size_archivo);
 		uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE + tamanio_restante;
 
+		bitarray_clean_bit(bitArraySB, nro_ultimo_bloque);
+		memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
+		msync(super_bloque+sizeof(uint32_t)*2, BLOCKS/8, MS_SYNC);
+
 		memcpy(informacion_blocks + ubicacion_bloque, "0", tamanio_valor);
 	}
 	else {
@@ -645,6 +651,10 @@ void eliminar_en_blocks(char* path_completo, char* valor, t_metadata* metadata_b
 		uint32_t espacio_libre_ultimo_bloque = (cant_bloq_asig_nuevos * BLOCK_SIZE - size_archivo);
 
 		uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+
+		bitarray_clean_bit(bitArraySB, nro_ultimo_bloque);
+		memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
+		msync(super_bloque+sizeof(uint32_t)*2, BLOCKS/8, MS_SYNC);
 
 		memcpy(informacion_blocks + ubicacion_bloque, "0", size_archivo);
 	}
