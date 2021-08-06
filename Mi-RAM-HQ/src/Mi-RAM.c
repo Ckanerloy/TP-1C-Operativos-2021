@@ -4,8 +4,8 @@ int main(void) {
 
 	config = crear_config(CONFIG_PATH);
 	obtener_datos_de_config(config);
-	logger = crear_log("Mi-RAM-HQ.log", "Mi-RAM HQ");
-	//logger = crear_log_sin_pantalla("Mi-RAM-HQ.log", "Mi-RAM HQ");
+	//logger = crear_log("Mi-RAM-HQ.log", "Mi-RAM HQ");
+	logger = crear_log_sin_pantalla("Mi-RAM-HQ.log", "Mi-RAM HQ");
 
 	// Recibe la señal para hacer el Dump de Memoria
 	signal(SIGUSR1, (void*)iniciar_dump_memoria);
@@ -617,6 +617,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					respuesta_con_tarea_tripulante->id_tripulante = tripulante_con_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
+
+					printf("ID TRIPULANTE: %d\n", respuesta_con_tarea_tripulante->id_tripulante);
 
 					if(id_tarea_a_buscar_del_tripu < list_size(patota_buscada->direccion_tareas)) {
 

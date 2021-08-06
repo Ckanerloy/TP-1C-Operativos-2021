@@ -5,8 +5,8 @@ int main(void) {
 
 	obtener_datos_de_config(config);
 
-	//logger = crear_log("Mongo-Store.log", "Mongo Store");
-	logger = crear_log_sin_pantalla("Mongo-Store.log", "Mongo Store");
+	logger = crear_log("Mongo-Store.log", "Mongo Store");
+	//logger = crear_log_sin_pantalla("Mongo-Store.log", "Mongo Store");
 	log_info(logger, "Servidor Mongo Store activo...");
 
 	inicializar_semaforos();
@@ -342,9 +342,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 			case REALIZAR_SABOTAJE:
 				cerrar_conexion(logger, conexion);
 
-				log_info(logger, "        ╔═════════════════════════════════════════════════════════╗\n");
-				log_info(logger, "        ║     Inicio del Protocolo FSCK para resolver Sabotajes   ║\n");
-				log_info(logger, "        ╚═════════════════════════════════════════════════════════╝\n");
+				log_info(logger, "\n        ╔═════════════════════════════════════════════════════════╗\n        ║     Inicio del Protocolo FSCK para resolver Sabotajes   ║\n        ╚═════════════════════════════════════════════════════════╝");
+
+				//log_info(logger, "        ║     Inicio del Protocolo FSCK para resolver Sabotajes   ║\n");
+				//log_info(logger, "        ╚═════════════════════════════════════════════════════════╝\n");
 
 				inicio_protocolo_fsck();
 
@@ -473,32 +474,36 @@ void eliminar_cantidad_recurso(t_metadata* metadata_recurso, uint32_t cantidad_a
 
 
 void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
-	sem_wait(mutex_blocks);
+
 	uint32_t cant_bloques = cantidad_elementos(metadata_recurso->bloques_asignados_anterior);
 
 	int32_t desplazamiento = 0;  //[5,8,4,1] ultimo bloque posicion inicial  y lo que guardas en el ultimo bloque
 	//                                       posicionInicial+ size(cant ult bloque)
 
+	sem_wait(mutex_blocks);
 	for(int i=0; i<cant_bloques-1; i++) {
 		uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[i]);
 		bitarray_clean_bit(bitArraySB, nro_bloque);
-		char* valor = armar_recurso('0', BLOCK_SIZE);
-
-		uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
-		memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
-
+		//char* valor = armar_recurso('0', BLOCK_SIZE);
+		//uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+		//memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
+		copiar_en_memoria_recurso(nro_bloque, "0", BLOCK_SIZE);
 		desplazamiento += BLOCK_SIZE;
 	}
+	sem_post(mutex_blocks);
 
+	sem_wait(mutex_blocks);
 	uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[cant_bloques-1]);
 	bitarray_clean_bit(bitArraySB, nro_bloque);
 	uint32_t nro_ultimo_bloque = atoi((metadata_recurso->bloques_asignados_anterior[cant_bloques-1]));
 	uint32_t espacio_libre_ultimo_bloque = (cant_bloques*BLOCK_SIZE - (metadata_recurso->size));
 	uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
-	char* valor_restante = armar_recurso('0', cant_necesaria_ultimo_bloque);
+	//char* valor_restante = armar_recurso('0', cant_necesaria_ultimo_bloque);
 
-	uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
-	memcpy(informacion_blocks+ubicacion_bloque, valor_restante + desplazamiento, cant_necesaria_ultimo_bloque);
+	//uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+	//memcpy(informacion_blocks+ubicacion_bloque, valor_restante + desplazamiento, cant_necesaria_ultimo_bloque);
+
+	copiar_en_memoria_recurso(nro_bloque, "0", cant_necesaria_ultimo_bloque);
 
 	sem_post(mutex_blocks);
 }

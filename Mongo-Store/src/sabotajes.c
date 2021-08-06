@@ -185,6 +185,7 @@ bool mismo_size_archivo(recursos_archivos recurso){
 			for(int c=0; c<BLOCK_SIZE; c++){
 
 				char* caracter_copia = malloc(sizeof(char));
+				caracter_copia = caracter_recurso;
 				int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
 				char* caracter = string_substring(caracter_copia, 0, 1);
 
