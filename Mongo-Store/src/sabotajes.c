@@ -31,23 +31,6 @@ void iniciar_sabotaje(void){
 }
 
 
-
-/*
-
-SABOTAJE EN FILES
-- SIZE:
-	. Cambiar el valor del campo SIZE del archivo
-	. Como se resuelve? Reocrrer todos los bloques del archivo y obtener y asumir como correcto el tamaño encontrado dentro de los bloques recorriéndolos en orden
-		cuando se consuma oxigeno, hay que poner una marca para avisar hasta donde es
-- BLOCK_COUNT y BLOCKS:
-	. El valor de BLOCK_COUNT y BLOCKS son inconsistentes
-	. Actualizar el valor de BLOCK_COUNT en base a la lista de BLOCKS
-- BLOCKS:
-	. El valor de la lista de BLOCKS fue alterado y los bloques no están en orden
-	. Validar con el valor de MD5_ARCHIVO y restaurar el archivo (escribir en archivo tantos caracteres de llenado como hagan falta hasta completar el size)
- */
-
-
 void inicio_protocolo_fsck(void) {
 	t_list* recursos_disponibles = recursos_activos();
 	bool sabotaje = false;
@@ -91,16 +74,16 @@ void inicio_protocolo_fsck(void) {
 			reparar_block_count(recurso);
 			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
-/*
+
 		// Sabotaje en FILES: Modifica el Orden de los Bloques
 		if(!bloques_ordenados_archivo(recurso)) {
 			log_info(logger, "Se realizó un Sabotaje en el Orden de los Bloques del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 			sabotaje = true;
 			reparar_orden_bloques(recurso);
-			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el ORden de los Bloques del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
+
 		}
 	}
-*/
+
 
 	if(sabotaje == false) {
 		log_info(logger, "¡Falsa Alarma! No hubo sabotaje.\n");
@@ -304,21 +287,6 @@ void reparar_block_count(recursos_archivos recurso){
 	free(path_archivo_recurso);
 }
 
-/*
-- BLOCKS:
-	. El valor de la lista de BLOCKS fue alterado y los bloques no están en orden
-	. Validar con el valor de MD5_ARCHIVO y restaurar el archivo
-	(escribir en archivo tantos caracteres de llenado como hagan falta hasta completar el size)
-
-
-	1, 2, 3
-	MD5 ORIGINAL asfasd6ad54a3d24
-
-	1, 3, 2
-	MD5 NUEVO adsd5a4w354534
-
-
- */
 
 bool bloques_ordenados_archivo(recursos_archivos recurso){
 
@@ -354,18 +322,97 @@ void reparar_orden_bloques(recursos_archivos recurso){
 	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
 	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
 	int cantidad_blocks_archivo = leer_size_archivo(path_archivo_recurso, "BLOCK_COUNT");
+	char* caracter_recurso = leer_caracter_archivo(path_archivo_recurso, "CARACTER_LLENADO");
 
+	if(cantidad_blocks_ocupados != cantidad_blocks_archivo){
+		agregar_bloque_faltante(bloques_usados, path_archivo_recurso, caracter_recurso, tamanio);
+		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Bloque faltante del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 
+	}
+	else {
+		reordenar_bloques(bloques_usados, path_archivo_recurso, caracter_recurso, tamanio);
+		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Orden de los Bloques del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 
-	// Pueden darse 2 situaciones: que el sabotaje implique un cambio del orden de BLOCKS
-	//que saquen un bloque de la lista de BLOCKS
-
-
-
+	}
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
 
 }
 
+void agregar_bloque_faltante(char** bloques, char* path, char* caracter, int size){
 
+	int bloque_faltante;
+
+	for(int i=0; i<BLOCKS; i++){
+		if(!esta_presente_en_lista(bloques, i) && bitarray_test_bit(bitArraySB, i)){
+			bloque_faltante = i;
+		}
+	}
+
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques);
+	bloques[cantidad_blocks_ocupados] = bloque_faltante;
+
+    char* lista_bloques = string_new();
+    string_append_with_format(&lista_bloques,"[");
+
+    for(int i=0; i<cantidad_blocks_ocupados+1; i++){
+	   int posicion = atoi(bloques[i]);
+
+	   if(i == atoi(bloques[i])-1)
+		   string_append_with_format(&lista_bloques,"%u", posicion);
+	   else{
+		   string_append_with_format(&lista_bloques,"%u,", posicion);
+	   }
+    }
+    string_append_with_format(&lista_bloques ,"]");
+	guardar_nuevos_datos_en_archivo(path, lista_bloques, "BLOCKS");
+
+	uint32_t desplazamiento = 0;
+	for(int i=0; i<cantidad_blocks_ocupados; i++) {
+		char* valor = armar_recurso(caracter, BLOCK_SIZE);
+		uint32_t nro_bloque = atoi(bloques[i]);
+        uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+        memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
+        desplazamiento += BLOCK_SIZE;
+	 }
+
+	 uint32_t nro_ultimo_bloque = atoi(bloques[cantidad_blocks_ocupados]);
+	 uint32_t espacio_libre_ultimo_bloque = (cantidad_blocks_ocupados * BLOCK_SIZE - size);
+	 uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+	 char* valor = armar_recurso(caracter, cant_necesaria_ultimo_bloque);
+	 uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+	 memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, cant_necesaria_ultimo_bloque);
+	 desplazamiento += cant_necesaria_ultimo_bloque;
+	 valor = armar_recurso("0", espacio_libre_ultimo_bloque);
+	 ubicacion_bloque += desplazamiento;
+	 memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, espacio_libre_ultimo_bloque);
+
+}
+
+void reordenar_bloques(char** bloques, char* path, char* caracter, int size){
+
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques);
+	uint32_t desplazamiento = 0;
+
+	for(int i=0; i<cantidad_blocks_ocupados - 1; i++) {
+		char* valor = armar_recurso(caracter, BLOCK_SIZE);
+		uint32_t nro_bloque = atoi(bloques[i]);
+        uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+        memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
+        desplazamiento += BLOCK_SIZE;
+	 }
+	 uint32_t nro_ultimo_bloque = atoi(bloques[cantidad_blocks_ocupados - 1]);
+	 uint32_t espacio_libre_ultimo_bloque = (cantidad_blocks_ocupados * BLOCK_SIZE - size);
+	 uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+	 char* valor = armar_recurso(caracter, cant_necesaria_ultimo_bloque);
+	 uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+	 memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, cant_necesaria_ultimo_bloque);
+	 desplazamiento += cant_necesaria_ultimo_bloque;
+	 valor = armar_recurso("0", espacio_libre_ultimo_bloque);
+	 ubicacion_bloque += desplazamiento;
+	 memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, espacio_libre_ultimo_bloque);
+}
 
 
 
@@ -430,12 +477,8 @@ bool sabotaje_superBloque_bitmap(void) {
 
 	for(int i=0; i<BLOCKS; i++){
 
-			//Valida si se cambió el bitmap de 1 a 0
-			bool bitmapSaboteadoDe1a0= esta_presente_en_lista(lista_bloques_en_uso, i) && !bitarray_test_bit(bitmap_SB, i);
-			//Valida si se cambió el bitmap de 0 a 1
-			bool bitmapSaboteadoDe0a1 = !esta_presente_en_lista(lista_bloques_en_uso, i) && bitarray_test_bit(bitmap_SB, i);
 			//Si cumple cualquiera de las dos condiciones, bitmap saboteado.
-			if(bitmapSaboteadoDe0a1 || bitmapSaboteadoDe1a0){
+			if((!esta_presente_en_lista(lista_bloques_en_uso, i) && bitarray_test_bit(bitmap_SB, i)) || (esta_presente_en_lista(lista_bloques_en_uso, i) && !bitarray_test_bit(bitmap_SB, i))){
 				bitarray_destroy(bitmap_SB);
 				list_destroy(lista_bloques_en_uso);
 				return true;
