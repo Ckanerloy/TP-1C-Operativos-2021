@@ -8,21 +8,11 @@ int main(void) {
 	logger = crear_log("mongo-store.log", "Mongo Store");
 	log_info(logger, "Servidor Mongo Store activo...");
 
-	mutex_blocks = malloc(sizeof(sem_t));
-	sem_init(mutex_blocks, 0, 1);
-
-	mutex_map = malloc(sizeof(sem_t));
-	sem_init(mutex_map, 0, 1);
-
-	mutex_config = malloc(sizeof(sem_t));
-	sem_init(mutex_config, 0, 1);
+	inicializar_semaforos();
 
 	num_sabotaje = 0;
 	// Recibe la señal para enviar sabotaje
 	signal(SIGUSR1, (void*)iniciar_sabotaje);
-
-	//char* un_bitarray = malloc(BLOCKS/8);
-	//bitArraySB = crear_bitarray(un_bitarray);
 
 	if (existe_file_system() == -1) {
 
@@ -86,6 +76,40 @@ void obtener_datos_de_config(t_config* config) {
 	BLOCK_SIZE = config_get_int_value(config, "BLOCK_SIZE");
 	BLOCKS = config_get_int_value(config, "BLOCKS");
 
+}
+
+void inicializar_semaforos(void) {
+
+	sem_oxigeno = malloc(sizeof(sem_t));
+	sem_init(sem_oxigeno, 0, 1);
+
+	sem_comida = malloc(sizeof(sem_t));
+	sem_init(sem_comida, 0, 1);
+
+	sem_basura = malloc(sizeof(sem_t));
+	sem_init(sem_basura, 0, 1);
+
+	mutex_blocks = malloc(sizeof(sem_t));
+	sem_init(mutex_blocks, 0, 1);
+
+	mutex_map = malloc(sizeof(sem_t));
+	sem_init(mutex_map, 0, 1);
+
+	mutex_config = malloc(sizeof(sem_t));
+	sem_init(mutex_config, 0, 1);
+}
+
+void semaforo_recurso(char* recurso, void(*funcion)(void*)) {
+
+    if(recurso == OXIGENO) {
+        funcion(sem_oxigeno);
+    }
+    else if(recurso == COMIDA) {
+        funcion(sem_comida);
+    }
+    else {
+        funcion(sem_basura);
+    }
 }
 
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
@@ -203,10 +227,12 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				path_completo = crear_ruta_recurso(tarea_io->nombre_archivo);
 				recurso = armar_recurso(tarea_io->caracter_llenado, tarea_io->cantidad);
 
-				/*path = string_new();
-				string_append_with_format(&path, "/Files/%s.ims", tarea_io->nombre_archivo);
-			    path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
-				path_completo = concatenar_path(path);*/
+				int size_recurso = leer_size_archivo(path_completo, "SIZE");
+				char** bloques = leer_blocks_archivo(path_completo, "BLOCKS");
+
+				t_metadata*	metadata_recurso = malloc(sizeof(t_metadata));
+				metadata_recurso->bloques_asignados_anterior = bloques;
+				metadata_recurso->size = size_recurso;
 
 				if(open(path_completo, O_RDWR, S_IRUSR|S_IWUSR) < 0) { //si me devuelve 0 es por que existe el doc y tengo que escribirlo
 					log_info(logger, "No existe el recurso %s.\n", tarea_io->nombre_archivo);
@@ -216,6 +242,15 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					break;
 				}
 				else {
+					if(tarea_io->cantidad >= metadata_recurso->size) {
+
+						eliminar_recurso_blocks(path_completo, metadata_recurso);
+						log_info(logger, "Se consumió %d cantidades de %s, y el Archivo quedó vacío.\n", metadata_recurso->size, tarea_io->nombre_archivo);
+					}
+					else {
+						eliminar_cantidad_recurso(metadata_recurso, tarea_io->cantidad);
+						log_info(logger, "Se consumió %d cantidades de %s.\n", tarea_io->cantidad, tarea_io->nombre_archivo);
+					}
 
 					t_metadata* metadata_recurso = actualizar_archivo_metadata_recurso(path_completo, tarea_io->caracter_llenado, -(tarea_io->cantidad), tarea_io->nombre_archivo);
 					eliminar_en_blocks(path_completo, recurso, metadata_recurso);
@@ -343,13 +378,81 @@ bool existe_archivo(char* path){
 	}
 }
 
+//[5,8,4,1] ultimo bloque posicion inicial  y lo que guardas en el ultimo bloque
+//  posicionInicial+ size(cant ult bloque)
 
+void eliminar_cantidad_recurso(t_metadata* metadata_recurso, uint32_t cantidad_a_eliminar) {
+	uint32_t cant_bloques = cantidad_elementos(metadata_recurso->bloques_asignados_anterior);
+
+	char* valor = armar_recurso('0', 1);
+
+	uint32_t espacio_libre_ultimo_bloque = (cant_bloques*BLOCK_SIZE - (metadata_recurso->size));
+	uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+	uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[cant_bloques-1]);
+	uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+
+	uint32_t ultimo_caracter = ubicacion_bloque + cant_necesaria_ultimo_bloque;
+	//ultimo bloque
+	for(int i=0; i<cant_necesaria_ultimo_bloque; i++){ //CCCCC000
+		if (cantidad_a_eliminar !=0){
+			if(cant_necesaria_ultimo_bloque !=0){
+				memcpy(informacion_blocks + ultimo_caracter, valor, strlen(valor));
+				ultimo_caracter --;
+				cantidad_a_eliminar --;
+				cant_necesaria_ultimo_bloque --;
+			}
+			else {
+				bitarray_clean_bit(bitArraySB, cant_bloques-1);
+				break;
+			}
+		}
+		else{
+			if(cant_necesaria_ultimo_bloque == 0 ){
+				bitarray_clean_bit(bitArraySB, nro_bloque);
+			}
+			free(valor);
+			return;
+		}
+	}
+	for(int i=cant_bloques-2; i>=0; i--) {
+		uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[i]);
+
+		uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+		uint32_t ultimo_caracter = ubicacion_bloque + BLOCK_SIZE;
+
+		uint32_t tamanio_bloque = BLOCK_SIZE;
+
+		for(int j=0; j<BLOCK_SIZE; j++){ //CCCCC000
+			if (cantidad_a_eliminar !=0){
+				if(tamanio_bloque !=0){
+					memcpy(informacion_blocks + ultimo_caracter, valor , strlen(valor));
+					ultimo_caracter --;
+					cantidad_a_eliminar --;
+					tamanio_bloque --;
+				}
+				else {
+					bitarray_clean_bit(bitArraySB, nro_bloque);
+					break;
+				}
+			}
+			else{
+				if(cant_necesaria_ultimo_bloque == 0 ){
+					bitarray_clean_bit(bitArraySB, nro_bloque);
+				}
+				free(valor);
+				return;
+			}
+		}
+	}
+	free(valor);
+}
 
 void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
 
 	uint32_t cant_bloques = cantidad_elementos(metadata_recurso->bloques_asignados_anterior);
 
-	int32_t desplazamiento = 0;
+	int32_t desplazamiento = 0;  //[5,8,4,1] ultimo bloque posicion inicial  y lo que guardas en el ultimo bloque
+	//                                       posicionInicial+ size(cant ult bloque)
 
 	for(int i=0; i<cant_bloques-1; i++) {
 		uint32_t nro_bloque = atoi(metadata_recurso->bloques_asignados_anterior[i]);
