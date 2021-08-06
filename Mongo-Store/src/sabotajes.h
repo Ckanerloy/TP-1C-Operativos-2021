@@ -1,14 +1,13 @@
 #ifndef SABOTAJES_H_
 #define SABOTAJES_H_
 
-#include "Mongo-Store.h"
-
 typedef enum{
 	OXIGENO,
 	COMIDA,
 	BASURA
 } recursos_archivos;
 
+#include "Mongo-Store.h"
 
 char** POSICIONES_SABOTAJE;
 int32_t num_sabotaje;
