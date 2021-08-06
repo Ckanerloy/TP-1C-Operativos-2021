@@ -317,6 +317,7 @@ void reparar_block_count(recursos_archivos recurso){
 	1, 3, 2
 	MD5 NUEVO adsd5a4w354534
 
+
  */
 
 bool bloques_ordenados_archivo(recursos_archivos recurso){
@@ -345,7 +346,26 @@ bool bloques_ordenados_archivo(recursos_archivos recurso){
 	}
 }
 
-reparar_orden_bloques(recurso)
+void reparar_orden_bloques(recursos_archivos recurso){
+
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	int tamanio = leer_size_archivo(path_archivo_recurso, "SIZE");
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+	int cantidad_blocks_archivo = leer_size_archivo(path_archivo_recurso, "BLOCK_COUNT");
+
+
+
+	// Pueden darse 2 situaciones: que el sabotaje implique un cambio del orden de BLOCKS
+	//que saquen un bloque de la lista de BLOCKS
+
+
+
+
+}
+
+
 
 
 
