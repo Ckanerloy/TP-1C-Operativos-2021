@@ -62,8 +62,6 @@ int main(void) {
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
 		pthread_detach(hilo_recibir_mensajes);
 	}
-	free(bitmap);
-
 	return EXIT_SUCCESS;
 }
 
@@ -576,15 +574,12 @@ t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar){
 		int posicion_bit_libre = posicionBitLibre();
 		bitarray_set_bit(bitArraySB, posicion_bit_libre);
 		list_add(posiciones, posicion_bit_libre);
-		memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
+		memcpy(super_bloque+sizeof(uint32_t)*2, bitArraySB->bitarray, BLOCKS/8);
 		//msync(super_bloque+sizeof(uint32_t)*2, BLOCKS/8, MS_SYNC);
 	}
 	sem_post(mutex_bitarray);
 	return posiciones;
 }
-
-
-
 
 void guardar_en_blocks_bitacora(char* path_completo, char* valor, t_metadata* metadata_bitacora){
 
@@ -1020,11 +1015,6 @@ void sincronizar(){
 		if(SALIR == 1) {
 			break;
 		}
-	/*	memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
-		if(msync(super_bloque, 2*sizeof(uint32_t)+BLOCKS/8, MS_SYNC) < 0){
-			log_error(logger, "No se pudo sincronizar el super bloque.\n");
-			return;
-		}*/
 	}
 }
 
@@ -1118,5 +1108,3 @@ char* crear_ruta_bitacora(int32_t id_tripulante) {
 	free(path_string);
 	return path_completo;
 }
-
-

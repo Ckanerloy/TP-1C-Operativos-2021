@@ -63,7 +63,7 @@ void iniciar_superbloque(void){
 
 	char *direccion_superBloque = concatenar_path("/SuperBloque.ims");
 	struct stat statbuf;
-	bitmap = malloc(BLOCKS/8);
+	char* bitmap = malloc(BLOCKS/8);
 
 	//Metadata para el superbloque
 	bloque_t* superBloqueFile = malloc(sizeof(bloque_t));
@@ -71,7 +71,6 @@ void iniciar_superbloque(void){
 	superBloqueFile->cantidadBloques = BLOCKS;
 
 	//Creo bitmap y lo inicializo en 0
-	bitArraySB = malloc(sizeof(t_bitarray));
 	bitArraySB = crear_bitarray(bitmap);
 	vaciarBitArray(bitArraySB);
 
@@ -89,18 +88,13 @@ void iniciar_superbloque(void){
 
 	//Mediante PROT_READ Y PROT_WRITE permitimos leer y escribir. MAP_SHARED permite uqe las operaciones realizadas en el área de mapeo se reflejen en el disco
 	super_bloque = mmap(NULL, statbuf.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
-
 	if(super_bloque == MAP_FAILED){
 		perror("Error mapping \n");
 		exit(1);
 	}
-			//Creo que este msync no hace falta
-			//msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC);
-
-			//bitarray_set_bit(bitArraySB, 1);
 			memcpy(super_bloque, &(superBloqueFile->tamanioBloque), sizeof(uint32_t));
 			memcpy(super_bloque+sizeof(uint32_t), &(superBloqueFile->cantidadBloques), sizeof(uint32_t));
-			memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, superBloqueFile->cantidadBloques/8);
+			memcpy(super_bloque+sizeof(uint32_t)*2, bitArraySB->bitarray, superBloqueFile->cantidadBloques/8);
 
 			if(msync(super_bloque, 2*sizeof(uint32_t)+superBloqueFile->cantidadBloques/8, MS_SYNC) < 0) {
 				log_error(logger, "[msync] Error al sincronizar SuperBloque.ims.\n");
@@ -108,7 +102,6 @@ void iniciar_superbloque(void){
 
 				log_info(logger,"[msync] SuperBloque.ims sincronizado correctamente.\n");
 			}
-	//free(un_bitarray);
 }
 
 
@@ -124,15 +117,12 @@ void levantar_archivo_blocks(void){
 	}
 }
 
-
 void levantar_archivo_superBloque(void){
 
-	bitmap = malloc(BLOCKS/8);
-	bitArraySB = malloc(sizeof(t_bitarray));
+	char* bitmap = malloc(BLOCKS/8);
 	bitArraySB = crear_bitarray(bitmap);
-	memcpy(bitmap, super_bloque+sizeof(uint32_t)*2, BLOCKS/8);
+	memcpy(bitArraySB->bitarray, super_bloque+sizeof(uint32_t)*2, BLOCKS/8);
 }
-
 
 void crear_archivo_blocks(void){
 

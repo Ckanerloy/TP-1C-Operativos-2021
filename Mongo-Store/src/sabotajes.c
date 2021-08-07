@@ -47,13 +47,12 @@ void inicio_protocolo_fsck(void) {
 
 
 	// Sabotaje en SUPERBLOQUE: Modifica el Bitmap
-	if(sabotaje_superBloque_bitmap()){
+	/*if(sabotaje_superBloque_bitmap()){
 		log_info(logger, "Se realizó un Sabotaje en el Bitmap del SuperBloque.\n");
 		sabotaje = true;
 		reparacion_superBloque_bitmap();
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Bitmap del SuperBloque.\n");
-	}
-
+	}*/
 
 	// Sabotaje en directorio FILES
 	for(int i=0; i<list_size(recursos_disponibles); i++) {
@@ -66,7 +65,7 @@ void inicio_protocolo_fsck(void) {
 			reparar_size(recurso);
 			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
-
+/*
 		// Sabotaje en FILES: Modifica el Block_Count
 		if(!mismo_block_count_archivo(recurso)){
 			log_info(logger, "Se realizó un Sabotaje en el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
@@ -81,7 +80,7 @@ void inicio_protocolo_fsck(void) {
 			sabotaje = true;
 			reparar_orden_bloques(recurso);
 
-		}
+		}*/
 	}
 
 
@@ -180,16 +179,20 @@ bool mismo_size_archivo(recursos_archivos recurso){
 	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
 
 	for(int i=0; i<cantidad_blocks_ocupados; i++){
-			int nro_bloque = list_get(bloques_usados, i);
+			int nro_bloque = atoi(bloques_usados[i]);
 
 			for(int c=0; c<BLOCK_SIZE; c++){
 
-				char* caracter_copia = malloc(sizeof(char));
-				caracter_copia = caracter_recurso;
+				//char* caracter_copia = malloc(sizeof(char));
+				//caracter_copia = caracter_recurso;
+				char* caracter_copia = string_new();
 				int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
-				char* caracter = string_substring(caracter_copia, 0, 1);
 
+
+				//TODO
 				memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
+
+				char* caracter = string_substring(caracter_copia, 0, sizeof(char));
 
 				if(strcmp(caracter, caracter_recurso)==0){
 
@@ -222,26 +225,26 @@ void reparar_size(recursos_archivos recurso){
 	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
 
 	for(int i=0; i<cantidad_blocks_ocupados; i++){
-				int nro_bloque = list_get(bloques_usados, i);
+		int nro_bloque = atoi(bloques_usados[i]);
 
-				for(int c=0; c<BLOCK_SIZE; c++){
+		for(int c=0; c<BLOCK_SIZE; c++){
 
-					char* caracter_copia = malloc(sizeof(char));
-					int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
-					char* caracter = string_substring(caracter_copia, 0, 1);
+			//char* caracter_copia = malloc(sizeof(char));
+			char* caracter_copia = string_new();
+			int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
 
-					memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
+			memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
 
-					if(strcmp(caracter, caracter_recurso)==0){
+			char* caracter = string_substring(caracter_copia, 0, 1);
 
-						tamanio_en_blocks++;
-
-					}
-					free(caracter_copia);
-					free(caracter);
-				}
-
+			if(strcmp(caracter, caracter_recurso)==0){
+				tamanio_en_blocks++;
+			}
+			free(caracter_copia);
+			free(caracter);
 		}
+
+	}
 
 
 	char* valor_string = string_new();
@@ -442,7 +445,7 @@ t_list* obtener_blocks_ocupados_total(){
 
 		posicion = 0;
 		while(bloques_usados[posicion] != NULL){
-			list_add(lista_bloques_ocupados, atoi(bloques_usados[posicion]));
+			list_add(lista_bloques_ocupados, (int) atoi(bloques_usados[posicion]));
 			posicion++;
 		}
 		free(path_recurso);
@@ -456,7 +459,7 @@ t_list* obtener_blocks_ocupados_total(){
 
 		posicion = 0;
 		while(bloques_usados_bitacora[posicion] != NULL){
-			list_add(lista_bloques_ocupados, atoi(bloques_usados_bitacora[posicion]));
+			list_add(lista_bloques_ocupados, (int) atoi(bloques_usados_bitacora[posicion]));
 			posicion++;
 		}
 	free(path_archivo_bitacora);
@@ -477,7 +480,6 @@ bool sabotaje_superBloque_bitmap(void) {
 	t_list* lista_bloques_en_uso = obtener_blocks_ocupados_total();
 
 	for(int i=0; i<BLOCKS; i++){
-
 		bool condicion1 = !esta_presente_en_lista(lista_bloques_en_uso, i) && bitarray_test_bit(bitmap_SB, i);
 		bool condicion2 = esta_presente_en_lista(lista_bloques_en_uso, i) && !bitarray_test_bit(bitmap_SB, i);
 			//Si cumple cualquiera de las dos condiciones, bitmap saboteado.
@@ -506,8 +508,6 @@ bool esta_presente_en_lista(t_list* lista, int valor) {
 }
 
 
-
-
 void reparacion_superBloque_bitmap(void) {
 
 	vaciarBitArray(bitArraySB);
@@ -517,7 +517,7 @@ void reparacion_superBloque_bitmap(void) {
 	for(int i=0; i<cantidad_lista_bloques_usados; i++){
 		bitarray_set_bit(bitArraySB, list_get(lista_bloques_usados, i));
 	}
-	memcpy(super_bloque+2*sizeof(uint32_t), bitmap, BLOCKS/8);
+	memcpy(super_bloque+2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 }
 
 
