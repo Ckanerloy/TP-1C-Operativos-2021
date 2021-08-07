@@ -301,18 +301,14 @@ bool bloques_ordenados_archivo(recursos_archivos recurso){
 	limpiar_parser(bloques_usados);
 	free(path_recurso);
 	free(path_archivo_recurso);
-	//free(string_hash);
-
-	printf("hash: %s \n",md5_original);
-	printf("otro hash: %s\n",md5_a_validar);
 
 	if(strcmp(md5_original,md5_a_validar) == 0){
-		free(md5_original);
+		//free(md5_original);
 		free(md5_a_validar);
 		return true;
 	}
 	else {
-		free(md5_original);
+		//free(md5_original);
 		free(md5_a_validar);
 		return false;
 	}
