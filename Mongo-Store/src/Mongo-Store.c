@@ -6,8 +6,8 @@ int main(void) {
 	obtener_datos_de_config(config);
 
 	logger = crear_log("Mongo-Store.log", "Mongo Store");
-	logger = crear_log_sin_pantalla("Mongo-Store.log", "Mongo Store");
-	//log_info(logger, "Servidor Mongo Store activo...");
+	//logger = crear_log_sin_pantalla("Mongo-Store.log", "Mongo Store");
+	log_info(logger, "Servidor Mongo Store activo...");
 
 	inicializar_semaforos();
 
