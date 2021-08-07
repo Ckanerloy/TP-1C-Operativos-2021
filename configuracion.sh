@@ -31,7 +31,7 @@ sleep 2
 echo 7) Compilar la libreria LibUtils
 make clean
 make all
-sudo cp libmagi-library.so /usr/lib
+sudo cp libutils.so /usr/lib
 sleep 2
 
 echo 8) Volviendo a la carpeta principal...

@@ -180,16 +180,20 @@ bool mismo_size_archivo(recursos_archivos recurso){
 	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
 
 	for(int i=0; i<cantidad_blocks_ocupados; i++){
-			int nro_bloque = list_get(bloques_usados, i);
+			int nro_bloque = atoi(bloques_usados[i]);
 
 			for(int c=0; c<BLOCK_SIZE; c++){
 
-				char* caracter_copia = malloc(sizeof(char));
-				caracter_copia = caracter_recurso;
+				//char* caracter_copia = malloc(sizeof(char));
+				//caracter_copia = caracter_recurso;
+				char* caracter_copia = string_new();
 				int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
-				char* caracter = string_substring(caracter_copia, 0, 1);
 
+
+				//TODO
 				memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
+
+				char* caracter = string_substring(caracter_copia, 0, sizeof(char));
 
 				if(strcmp(caracter, caracter_recurso)==0){
 
@@ -222,26 +226,26 @@ void reparar_size(recursos_archivos recurso){
 	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
 
 	for(int i=0; i<cantidad_blocks_ocupados; i++){
-				int nro_bloque = list_get(bloques_usados, i);
+		int nro_bloque = atoi(bloques_usados[i]);
 
-				for(int c=0; c<BLOCK_SIZE; c++){
+		for(int c=0; c<BLOCK_SIZE; c++){
 
-					char* caracter_copia = malloc(sizeof(char));
-					int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
-					char* caracter = string_substring(caracter_copia, 0, 1);
+			//char* caracter_copia = malloc(sizeof(char));
+			char* caracter_copia = string_new();
+			int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
 
-					memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
+			memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
 
-					if(strcmp(caracter, caracter_recurso)==0){
+			char* caracter = string_substring(caracter_copia, 0, 1);
 
-						tamanio_en_blocks++;
-
-					}
-					free(caracter_copia);
-					free(caracter);
-				}
-
+			if(strcmp(caracter, caracter_recurso)==0){
+				tamanio_en_blocks++;
+			}
+			free(caracter_copia);
+			free(caracter);
 		}
+
+	}
 
 
 	char* valor_string = string_new();
@@ -445,7 +449,7 @@ t_list* obtener_blocks_ocupados_total(){
 
 		posicion = 0;
 		while(bloques_usados[posicion] != NULL){
-			list_add(lista_bloques_ocupados, atoi(bloques_usados[posicion]));
+			list_add(lista_bloques_ocupados, (int) atoi(bloques_usados[posicion]));
 			posicion++;
 		}
 		free(path_recurso);
@@ -459,7 +463,7 @@ t_list* obtener_blocks_ocupados_total(){
 
 		posicion = 0;
 		while(bloques_usados_bitacora[posicion] != NULL){
-			list_add(lista_bloques_ocupados, atoi(bloques_usados_bitacora[posicion]));
+			list_add(lista_bloques_ocupados, (int) atoi(bloques_usados_bitacora[posicion]));
 			posicion++;
 		}
 	free(path_archivo_bitacora);

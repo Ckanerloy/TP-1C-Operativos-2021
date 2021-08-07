@@ -6,14 +6,14 @@ make clean
 make all
 cd ../..
 sleep 2
-echo Arranca: Mongo-Store
-cd Mongo-Store/Debug
+echo Arranca: Mi-RAM
+cd Mi-RAM/Debug
 make clean
 make all
 cd ../..
 sleep 2
-echo Arranca: Mi-RAM
-cd Mi-RAM/Debug
+echo Arranca: Mongo-Store
+cd Mongo-Store/Debug
 make clean
 make all
 cd ../..
