@@ -44,7 +44,6 @@ int BLOCK_SIZE;
 int BLOCKS;
 void* blocks;
 int archivo_blocks;
-char* bitmap;
 t_bitarray* bitArraySB;
 int archivo;
 void *super_bloque;

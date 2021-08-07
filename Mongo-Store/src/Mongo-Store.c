@@ -21,10 +21,6 @@ int main(void) {
 
 		inicializar_file_system();
 		levantar_archivo_blocks();
-		//inicio_protocolo_fsck();
-
-		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
-		//Hacer lo mismo con el FS existente
 
 	}
 		else{
@@ -48,7 +44,6 @@ int main(void) {
 			fstat(archivo, &statbuf_2);
 			super_bloque = mmap(NULL, statbuf_2.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
 			levantar_archivo_superBloque();
-			//inicio_protocolo_fsck();
 		}
 
 	pthread_create(&hilo_sincronizador, NULL, (void*)sincronizar, NULL);
@@ -62,8 +57,6 @@ int main(void) {
 		pthread_create(&hilo_recibir_mensajes, NULL, (void*)escuchar_conexion, (int32_t*)conexion_cliente);
 		pthread_detach(hilo_recibir_mensajes);
 	}
-	free(bitmap);
-
 	return EXIT_SUCCESS;
 }
 
@@ -349,7 +342,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				cerrar_conexion(logger, conexion);
 				free(bitacora_tripu->accion);
 				free(bitacora_tripu);
-				free(path_completo);
 				break;
 
 			case REALIZAR_SABOTAJE:
@@ -433,12 +425,14 @@ void eliminar_cantidad_recurso(t_metadata* metadata_recurso, uint32_t cantidad_a
 			}
 			else {
 				bitarray_clean_bit(bitArraySB, cant_bloques-1);
+				//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 				break;
 			}
 		}
 		else{
 			if(cant_necesaria_ultimo_bloque == 0 ){
 				bitarray_clean_bit(bitArraySB, nro_bloque);
+				//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 			}
 			free(valor);
 			sem_post(mutex_blocks);
@@ -464,12 +458,14 @@ void eliminar_cantidad_recurso(t_metadata* metadata_recurso, uint32_t cantidad_a
 				}
 				else {
 					bitarray_clean_bit(bitArraySB, nro_bloque);
+					//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 					break;
 				}
 			}
 			else{
 				if(cant_necesaria_ultimo_bloque == 0 ){
 					bitarray_clean_bit(bitArraySB, nro_bloque);
+					//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 				}
 				free(valor);
 				sem_post(mutex_blocks);
@@ -507,6 +503,8 @@ void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
 	uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
 
 	copiar_en_memoria_recurso(nro_ultimo_bloque, "0", cant_necesaria_ultimo_bloque);
+
+	//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 
 	sem_post(mutex_blocks);
 }
@@ -587,11 +585,14 @@ void guardar_en_blocks_recursos(char* path_completo, char caracter_llenado, char
 	sem_wait(mutex_blocks);
 	uint32_t nro_bloque = atoi(bloques_asignados_nuevo[cant_bloq_asig_nuevos-1]);
 	bitarray_set_bit(bitArraySB, nro_bloque);
+
 	uint32_t espacio_libre_ultimo_bloque = (cant_bloq_asig_nuevos * BLOCK_SIZE - size_archivo);
 	uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
 	printf("CANTIDAD A GUARDAR ULTIMO BLOQUE: %u\n", cant_necesaria_ultimo_bloque);
 	copiar_en_memoria_recurso(nro_bloque, caracter_a_guardar, cant_necesaria_ultimo_bloque);
 	sem_post(mutex_blocks);
+
+	//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 
 	limpiar_parser(bloques_asignados_nuevo);
 	printf("TERMINO DE GUARDAR\n");
@@ -631,17 +632,16 @@ t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar){
 		if(bitarray_test_bit(bitArraySB, posicion_bit_libre) == 0){
 			bitarray_set_bit(bitArraySB, posicion_bit_libre);
 			list_add(posiciones, posicion_bit_libre);
-			memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
+
+			t_list* bloques_ocupados = obtener_blocks_ocupados_total();
+			memcpy(super_bloque+sizeof(uint32_t)*2 , bitArraySB->bitarray , list_size(bloques_ocupados));
+
 			//msync(super_bloque+sizeof(uint32_t)*2, BLOCKS/8, MS_SYNC);
 		}
-
 	}
 	sem_post(mutex_bitarray);
 	return posiciones;
 }
-
-
-
 
 void guardar_en_blocks_bitacora(char* path_completo, char* valor, t_metadata* metadata_bitacora){
 
@@ -900,13 +900,12 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 		char* string_hash = string_new();
 		char* cantidad_bloques_total = string_new();
 		char** bloques_asignados = leer_blocks_archivo(path, "BLOCKS");
-		asprintf(&cantidad_bloques_total, "%d", cantidad_elementos(bloques_asignados));
+		string_append_with_format(&cantidad_bloques_total, "%d", cantidad_elementos(bloques_asignados));
 		guardar_nuevos_datos_en_archivo(path, cantidad_bloques_total, "BLOCK_COUNT");
 
-		asprintf(&string_hash, "%s", concatenar_contenido_blocks(metadata_recurso->bloques_asignados_anterior));
+		string_append_with_format(&string_hash, "%s", concatenar_contenido_blocks(metadata_recurso->bloques_asignados_anterior));
 		char* hash = hash_MD5(string_hash, nombre_recurso);
 		guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
-		free(cantidad_bloques_total);
 		limpiar_parser(bloques_asignados);
 	}
 
@@ -1074,12 +1073,6 @@ void sincronizar(){
 			log_error(logger, "No se pudo sincronizar blocks.\n");
 			return;
 		}
-
-	/*	memcpy(super_bloque+sizeof(uint32_t)*2, bitmap, BLOCKS/8);
-		if(msync(super_bloque, 2*sizeof(uint32_t)+BLOCKS/8, MS_SYNC) < 0){
-			log_error(logger, "No se pudo sincronizar el super bloque.\n");
-			return;
-		}*/
 	}
 }
 
@@ -1095,7 +1088,6 @@ int leer_size_archivo(char* path_archivo, char* clave){
 
 	config_destroy(datos_archivo);
 
-
 	return size;
 }
 
@@ -1108,7 +1100,6 @@ char* leer_caracter_archivo(char* path_archivo, char* clave) {
     char* caracter = config_get_string_value(datos_archivo, clave);
 
     config_destroy(datos_archivo);
-
 
     return caracter;
 }

@@ -66,7 +66,7 @@ void inicio_protocolo_fsck(void) {
 			reparar_size(recurso);
 			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
-
+/*
 		// Sabotaje en FILES: Modifica el Block_Count
 		if(!mismo_block_count_archivo(recurso)){
 			log_info(logger, "Se realizó un Sabotaje en el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
@@ -81,7 +81,7 @@ void inicio_protocolo_fsck(void) {
 			sabotaje = true;
 			reparar_orden_bloques(recurso);
 
-		}
+		}*/
 	}
 
 
@@ -506,8 +506,6 @@ bool esta_presente_en_lista(t_list* lista, int valor) {
 }
 
 
-
-
 void reparacion_superBloque_bitmap(void) {
 
 	vaciarBitArray(bitArraySB);
@@ -517,7 +515,7 @@ void reparacion_superBloque_bitmap(void) {
 	for(int i=0; i<cantidad_lista_bloques_usados; i++){
 		bitarray_set_bit(bitArraySB, list_get(lista_bloques_usados, i));
 	}
-	memcpy(super_bloque+2*sizeof(uint32_t), bitmap, BLOCKS/8);
+	memcpy(super_bloque+2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 }
 
 
