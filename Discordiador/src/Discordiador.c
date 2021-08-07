@@ -392,54 +392,54 @@ void obtener_orden_input(){
 
 		case INICIAR_PATOTA:
 			//TODO
-			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 1|1
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota4.txt 1|1
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 5|5 5|5
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
+			// Ej: INICIAR_PATOTA 5 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota5.txt 5|5 5|5 5|5
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota5.txt 1|1
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota4.txt 1|1
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota1.txt 5|5 5|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota1.txt 7|1
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota1.txt 7|1
 
 			//	ESTABILIDAD GENERAL:
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota1.txt 9|9 0|0 5|5
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota2.txt 4|0 2|6 8|2
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota3.txt 2|3 5|8 5|3
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota4.txt 0|9 4|4 9|0
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota5.txt 0|2 9|6 3|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/ES3_Patota1.txt 9|9 0|0 5|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/ES3_Patota2.txt 4|0 2|6 8|2
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/ES3_Patota3.txt 2|3 5|8 5|3
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/ES3_Patota4.txt 0|9 4|4 9|0
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/ES3_Patota5.txt 0|2 9|6 3|5
 
 			// PRUEBAS PARA DISCORDIADOR
 			//	- USO cpu
-			// INICIAR_PATOTA 2 /home/utnso/tareas/CPU_Patota1.txt 1|1
-			// INICIAR_PATOTA 1 /home/utnso/tareas/CPU_Patota2.txt 1|0
-			// INICIAR_PATOTA 1 /home/utnso/tareas/CPU_Patota3.txt 0|1
+			// INICIAR_PATOTA 2 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/CPU_Patota1.txt 1|1
+			// INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/CPU_Patota2.txt 1|0
+			// INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/CPU_Patota3.txt 0|1
 			// 	- I/O
-			// INICIAR_PATOTA 2 /home/utnso/tareas/IO_Patota1.txt 1|1
-			// INICIAR_PATOTA 1 /home/utnso/tareas/IO_Patota2.txt 1|0
-			// INICIAR_PATOTA 1 /home/utnso/tareas/IO_Patota3.txt 0|1
+			// INICIAR_PATOTA 2 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/IO_Patota1.txt 1|1
+			// INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/IO_Patota2.txt 1|0
+			// INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/IO_Patota3.txt 0|1
 
 			// PRUEBAS PARA MI RAM
 			// 	- PRUEBAS PARA SEGMENTACION
-			// Ej: INICIAR_PATOTA 4 /home/utnso/tareas/SEG_PatotaA.txt
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/SEG_PatotaB.txt
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/SEG_PatotaC.txt
-			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
-			// Ej: INICIAR_PATOTA 6 /home/utnso/tareas/persa.txt
+			// Ej: INICIAR_PATOTA 4 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/SEG_PatotaA.txt
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/SEG_PatotaB.txt
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/SEG_PatotaC.txt
+			// Ej: INICIAR_PATOTA 10 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/espartana.txt
+			// Ej: INICIAR_PATOTA 6 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/persa.txt
 
 			// 	- PRUEBAS PARA PAGINACIÓN
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaA.txt 1|1
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaB.txt 3|3
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaC.txt 5|5
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/PAG_PatotaA.txt 1|1
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/PAG_PatotaB.txt 3|3
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/PAG_PatotaC.txt 5|5
 
 			// PRUEBAS PARA MONGO STORE
 			//  - PRUEBAS PARA FILE SYSTEM
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/FS_PatotaA.txt
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/FS_PatotaB.txt
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FS_PatotaA.txt
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FS_PatotaB.txt
 
 			//  - PRUEBAS PARA SABOTAJE
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/FSCK_PatotaA.txt 0|0
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/FSCK_PatotaB.txt 8|0
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/FSCK_PatotaC.txt 8|8
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/FSCK_PatotaD.txt 0|8
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FSCK_PatotaA.txt 0|0
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FSCK_PatotaB.txt 8|0
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FSCK_PatotaC.txt 8|8
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FSCK_PatotaD.txt 0|8
 
 
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){

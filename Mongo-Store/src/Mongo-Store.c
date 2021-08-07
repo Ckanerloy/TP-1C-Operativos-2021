@@ -6,8 +6,8 @@ int main(void) {
 	obtener_datos_de_config(config);
 
 	logger = crear_log("Mongo-Store.log", "Mongo Store");
-	logger = crear_log_sin_pantalla("Mongo-Store.log", "Mongo Store");
-	//log_info(logger, "Servidor Mongo Store activo...");
+	//logger = crear_log_sin_pantalla("Mongo-Store.log", "Mongo Store");
+	log_info(logger, "Servidor Mongo Store activo...");
 
 	inicializar_semaforos();
 
@@ -21,6 +21,10 @@ int main(void) {
 
 		inicializar_file_system();
 		levantar_archivo_blocks();
+		//inicio_protocolo_fsck();
+
+		//Abrir el blocks.ims, hacer copia, escribir esa copia y sincronizar cada TIEMPO_SINCRONIZACION (15 segs)
+		//Hacer lo mismo con el FS existente
 
 	}
 		else{
@@ -44,6 +48,7 @@ int main(void) {
 			fstat(archivo, &statbuf_2);
 			super_bloque = mmap(NULL, statbuf_2.st_size, PROT_WRITE | PROT_READ, MAP_SHARED, archivo,0);
 			levantar_archivo_superBloque();
+			//inicio_protocolo_fsck();
 		}
 
 	pthread_create(&hilo_sincronizador, NULL, (void*)sincronizar, NULL);
@@ -426,14 +431,12 @@ void eliminar_cantidad_recurso(t_metadata* metadata_recurso, uint32_t cantidad_a
 			}
 			else {
 				bitarray_clean_bit(bitArraySB, cant_bloques-1);
-				//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 				break;
 			}
 		}
 		else{
 			if(cant_necesaria_ultimo_bloque == 0 ){
 				bitarray_clean_bit(bitArraySB, nro_bloque);
-				//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 			}
 			free(valor);
 			sem_post(mutex_blocks);
@@ -460,14 +463,12 @@ void eliminar_cantidad_recurso(t_metadata* metadata_recurso, uint32_t cantidad_a
 				}
 				else {
 					bitarray_clean_bit(bitArraySB, nro_bloque);
-					//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 					break;
 				}
 			}
 			else{
 				if(cant_necesaria_ultimo_bloque == 0 ){
 					bitarray_clean_bit(bitArraySB, nro_bloque);
-					//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 				}
 				free(valor);
 				sem_post(mutex_blocks);
@@ -505,8 +506,6 @@ void eliminar_recurso_blocks(char* path_completo, t_metadata* metadata_recurso){
 
 	copiar_en_memoria_recurso(nro_ultimo_bloque, "0", cant_necesaria_ultimo_bloque);
 
-	//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
-
 	sem_post(mutex_blocks);
 }
 
@@ -534,13 +533,10 @@ void guardar_en_blocks_recursos(char* path_completo, char caracter_llenado, char
 	sem_wait(mutex_blocks);
 	uint32_t nro_bloque = atoi(bloques_asignados_nuevo[cant_bloq_asig_nuevos-1]);
 	bitarray_set_bit(bitArraySB, nro_bloque);
-
 	uint32_t espacio_libre_ultimo_bloque = (cant_bloq_asig_nuevos * BLOCK_SIZE - size_archivo);
 	uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
 	copiar_en_memoria_recurso(nro_bloque, caracter_a_guardar, cant_necesaria_ultimo_bloque);
 	sem_post(mutex_blocks);
-
-	//memcpy(super_bloque + 2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
 
 	limpiar_parser(bloques_asignados_nuevo);
 }
@@ -576,15 +572,10 @@ t_list* obtener_array_bloques_a_usar(uint32_t tamanio_a_guardar){
 	sem_wait(mutex_bitarray);
 	for(int i=0; i<cantidad_bloques; i++){
 		int posicion_bit_libre = posicionBitLibre();
-		if(bitarray_test_bit(bitArraySB, posicion_bit_libre) == 0){
-			bitarray_set_bit(bitArraySB, posicion_bit_libre);
-			list_add(posiciones, posicion_bit_libre);
-
-			t_list* bloques_ocupados = obtener_blocks_ocupados_total();
-			memcpy(super_bloque+sizeof(uint32_t)*2 , bitArraySB->bitarray , list_size(bloques_ocupados));
-
-			//msync(super_bloque+sizeof(uint32_t)*2, BLOCKS/8, MS_SYNC);
-		}
+		bitarray_set_bit(bitArraySB, posicion_bit_libre);
+		list_add(posiciones, posicion_bit_libre);
+		memcpy(super_bloque+sizeof(uint32_t)*2, bitArraySB->bitarray, BLOCKS/8);
+		//msync(super_bloque+sizeof(uint32_t)*2, BLOCKS/8, MS_SYNC);
 	}
 	sem_post(mutex_bitarray);
 	return posiciones;
@@ -750,66 +741,127 @@ void crear_archivo_metadata_recurso(char* path_archivo){
 }
 
 
-t_metadata* actualizar_archivo_metadata_bitacora(char* path, uint32_t tamanio_accion){
+t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenado, int32_t tamanio_recurso, char* nombre_recurso) {
 	sem_wait(mutex_metadata);
-	t_metadata* metadata_bitacora = malloc(sizeof(t_metadata));
-	metadata_bitacora->size = leer_size_archivo(path, "SIZE");
-	int nuevo_valor_size = metadata_bitacora->size + tamanio_accion;
-	char* valor_string;
-	asprintf(&valor_string, "%d", nuevo_valor_size);
+
+	t_metadata* metadata_recurso = malloc(sizeof(t_metadata));
+	metadata_recurso->size = leer_size_archivo(path, "SIZE");
+	int nuevo_valor_size = metadata_recurso->size + tamanio_recurso;
+
+	// TODO validar, si nuevo_valor_size == 0, entonces no tiene bloques
+	// si tenia bloques, los tengo que liberar
+
+	char* valor_string = string_new();
+	string_append_with_format(&valor_string, "%d", nuevo_valor_size);
 	guardar_nuevos_datos_en_archivo(path, valor_string, "SIZE");
-	metadata_bitacora->bloques_asignados_anterior = leer_blocks_archivo(path, "BLOCKS");
-	uint32_t cantidad_bloques_usados = cantidad_elementos(metadata_bitacora->bloques_asignados_anterior);
-	if(cantidad_bloques_usados == 0){
-		t_list* lista_posiciones = obtener_array_bloques_a_usar(tamanio_accion);
-		char* bloques = string_new();
-		string_append_with_format(&bloques,"[");
-		for(int i=0; i<list_size(lista_posiciones); i++){
-			int posicion = (int) list_get(lista_posiciones, i);
-			if(i == list_size(lista_posiciones)-1)
-				string_append_with_format(&bloques,"%u", posicion);
-			else{
-				string_append_with_format(&bloques,"%u,", posicion);
-			}
-		}
-		string_append_with_format(&bloques,"]");
-		guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
+
+	char* caracter_string = string_new();
+	string_append_with_format(&caracter_string, "%c", caracter_llenado);
+	guardar_nuevos_datos_en_archivo(path, caracter_string, "CARACTER_LLENADO");
+
+	metadata_recurso->bloques_asignados_anterior = leer_blocks_archivo(path, "BLOCKS");
+
+	uint32_t cantidad_bloques_usados = cantidad_elementos(metadata_recurso->bloques_asignados_anterior);
+
+	if(nuevo_valor_size <= 0) {
+		char* cantidad_bloques_total = string_new();
+		string_append_with_format(&cantidad_bloques_total,"[]");
+		guardar_nuevos_datos_en_archivo(path, cantidad_bloques_total, "BLOCKS");
+		char* bloques_vacios = "0";
+		guardar_nuevos_datos_en_archivo(path, bloques_vacios, "BLOCK_COUNT");
+
+		char* string_hash = armar_recurso('0', 32);
+		char* hash = hash_MD5(string_hash, nombre_recurso);
+		guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
 	}
-	else{
-		uint32_t fragmentacion_interna = cantidad_bloques_usados*BLOCK_SIZE - metadata_bitacora->size;
-		t_list* lista_posiciones;
-		if(tamanio_accion>fragmentacion_interna){
-			lista_posiciones = obtener_array_bloques_a_usar(tamanio_accion-fragmentacion_interna);// 10 frag de 4  entocnes falta guardar 6
-		}else{
-			lista_posiciones = obtener_array_bloques_a_usar(0);
+	else {
+		if(cantidad_bloques_usados == 0){
+
+			t_list* lista_posiciones = obtener_array_bloques_a_usar(nuevo_valor_size);
+			char* bloques = string_new();
+			string_append_with_format(&bloques,"[");
+
+			for(int i=0; i<list_size(lista_posiciones); i++){
+				int posicion = (int) list_get(lista_posiciones, i);
+
+				if(i == list_size(lista_posiciones)-1)
+					string_append_with_format(&bloques,"%u", posicion);
+				else{
+					string_append_with_format(&bloques,"%u,", posicion);
+				}
+			}
+			string_append_with_format(&bloques,"]");
+			guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
 		}
-		char* bloques = string_new();
-		string_append_with_format(&bloques,"[");
-		int recorrido=0;
-		while(metadata_bitacora->bloques_asignados_anterior[recorrido] != NULL){
-			if(recorrido == cantidad_bloques_usados-1 && list_size(lista_posiciones)==0){
-				string_append_with_format(&bloques,metadata_bitacora->bloques_asignados_anterior[recorrido]);
+		else{
+
+			uint32_t fragmentacion_interna = cantidad_bloques_usados * BLOCK_SIZE - metadata_recurso->size;
+
+			t_list* lista_posiciones;
+			if(tamanio_recurso > fragmentacion_interna){
+				lista_posiciones = obtener_array_bloques_a_usar(tamanio_recurso - fragmentacion_interna);// 10 frag de 4  entocnes falta guardar 6
 			}else{
-				string_append_with_format(&bloques,metadata_bitacora->bloques_asignados_anterior[recorrido]);
-				string_append_with_format(&bloques,",");
+				lista_posiciones = obtener_array_bloques_a_usar(0);
 			}
-			recorrido++;
-		}
-		for(int i=0; i<list_size(lista_posiciones); i++){
-			int posicion = (int) list_get(lista_posiciones, i);
-			if(i == list_size(lista_posiciones)-1)
-				string_append_with_format(&bloques,"%u", posicion);
-			else{
-				string_append_with_format(&bloques,"%u,", posicion);
+
+			char* bloques = string_new();
+			string_append_with_format(&bloques,"[");
+			int recorrido=0;
+			while(metadata_recurso->bloques_asignados_anterior[recorrido] != NULL){
+				if(recorrido == cantidad_bloques_usados-1 && list_size(lista_posiciones)==0){
+					string_append_with_format(&bloques, metadata_recurso->bloques_asignados_anterior[recorrido]);
+
+				}else{
+					string_append_with_format(&bloques, metadata_recurso->bloques_asignados_anterior[recorrido]);
+					string_append_with_format(&bloques,",");
+				}
+				recorrido++;
 			}
+			for(int i=0; i<list_size(lista_posiciones); i++){
+				int posicion = (int) list_get(lista_posiciones, i);
+				if(i == list_size(lista_posiciones)-1)
+					string_append_with_format(&bloques,"%u", posicion);
+				else{
+					string_append_with_format(&bloques,"%u,", posicion);
+				}
+			}
+			string_append_with_format(&bloques,"]");
+
+			log_info(logger, "Se ocuparon los bloques %s\n", bloques);
+			guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
 		}
-		string_append_with_format(&bloques,"]");
-		log_info(logger, "Se ocuparon los bloques %s\n", bloques);
-		guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
+
+
+		char* cantidad_bloques_total = string_new();
+		char** bloques_asignados = leer_blocks_archivo(path, "BLOCKS");
+		string_append_with_format(&cantidad_bloques_total, "%d", cantidad_elementos(bloques_asignados));
+		guardar_nuevos_datos_en_archivo(path, cantidad_bloques_total, "BLOCK_COUNT");
+
+		char* string_hash = string_new();
+		char* hash = string_new();
+		if(cantidad_elementos(bloques_asignados) == 0) {
+			string_hash = armar_recurso(caracter_llenado, 32);
+			hash = hash_MD5(string_hash, nombre_recurso);
+			guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
+			//free(string_hash);
+			free(hash);
+		}
+		else {
+			string_append_with_format(&string_hash, "%s", concatenar_contenido_blocks(bloques_asignados));
+			hash = hash_MD5(string_hash, nombre_recurso);
+			guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
+			//free(string_hash);
+			free(hash);
+			limpiar_parser(bloques_asignados);
+		}
 	}
+
+
+	free(valor_string);
 	sem_post(mutex_metadata);
-	return metadata_bitacora;
+	return metadata_recurso;
 }
+
 
 void crear_archivo_metadata_bitacora(char* path_completo){
 
@@ -959,6 +1011,7 @@ void sincronizar(){
 			log_error(logger, "No se pudo sincronizar blocks.\n");
 			return;
 		}
+
 		if(SALIR == 1) {
 			break;
 		}
@@ -1055,5 +1108,3 @@ char* crear_ruta_bitacora(int32_t id_tripulante) {
 	free(path_string);
 	return path_completo;
 }
-
-
