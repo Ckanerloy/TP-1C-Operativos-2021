@@ -47,13 +47,12 @@ void inicio_protocolo_fsck(void) {
 
 
 	// Sabotaje en SUPERBLOQUE: Modifica el Bitmap
-	if(sabotaje_superBloque_bitmap()){
+	/*if(sabotaje_superBloque_bitmap()){
 		log_info(logger, "Se realizó un Sabotaje en el Bitmap del SuperBloque.\n");
 		sabotaje = true;
 		reparacion_superBloque_bitmap();
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Bitmap del SuperBloque.\n");
-	}
-
+	}*/
 
 	// Sabotaje en directorio FILES
 	for(int i=0; i<list_size(recursos_disponibles); i++) {
@@ -477,7 +476,6 @@ bool sabotaje_superBloque_bitmap(void) {
 	t_list* lista_bloques_en_uso = obtener_blocks_ocupados_total();
 
 	for(int i=0; i<BLOCKS; i++){
-
 		bool condicion1 = !esta_presente_en_lista(lista_bloques_en_uso, i) && bitarray_test_bit(bitmap_SB, i);
 		bool condicion2 = esta_presente_en_lista(lista_bloques_en_uso, i) && !bitarray_test_bit(bitmap_SB, i);
 			//Si cumple cualquiera de las dos condiciones, bitmap saboteado.
