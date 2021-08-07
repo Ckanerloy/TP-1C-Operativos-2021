@@ -78,6 +78,7 @@ sem_t* sem_basura;
 pthread_t hilo_recibir_mensajes;
 pthread_t hilo_sincronizador;
 
+int SALIR;
 
 void obtener_datos_de_config(t_config* config);
 void procesar_mensajes(codigo_operacion operacion, int32_t conexion);
