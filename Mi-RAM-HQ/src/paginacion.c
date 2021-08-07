@@ -91,12 +91,10 @@ t_pagina* obtener_pagina_disponible(t_list* paginas) {
 }
 
 
-t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* nueva_patota, int32_t tamanio_total, int32_t cantidad_tripulantes) {
+t_tabla_paginas_patota* crear_tabla_paginas(int32_t tamanio_total, int32_t cantidad_tripulantes) {
 
 	t_tabla_paginas_patota* tabla = malloc(sizeof(t_tabla_paginas_patota));
-	tabla->patota = malloc(sizeof(t_pcb));
-	tabla->patota->pid = nueva_patota->pid;
-	tabla->patota->tareas = nueva_patota->tareas;
+	tabla->patota = crear_pcb();
 	tabla->paginas = list_create();
 	tabla->direccion_tripulantes = list_create();
 	tabla->direccion_tareas = list_create();
@@ -593,28 +591,21 @@ void* obtener_tareas_de_memoria(uint32_t direccion_fisica, uint32_t id_tarea_bus
 		faltante = TAMANIO_PAGINA - offset_frame;
 		inicio = (void*)memoria_principal + direccion_fisica_nueva;
 
+		//sem_wait(mutex_copia);
 		if(lectura_tarea >= faltante){
 			lectura_tarea -= faltante;
-
-			sem_wait(mutex_copia);
 			memcpy(buffer + offset_buffer, inicio, faltante);
-			sem_post(mutex_copia);
-
 			direccion_logica_tarea += faltante;
 			offset_buffer += faltante;
 			direccion_fisica_nueva = obtener_direc_fisica_con_direccion_logica(direccion_logica_tarea, tabla_patota);
 			offset_frame = direccion_fisica_nueva % TAMANIO_PAGINA;
-
 		}
 		else{
-
-			sem_wait(mutex_copia);
 			memcpy(buffer + offset_buffer, inicio, lectura_tarea);
-			sem_post(mutex_copia);
-
 			direccion_logica_tarea += lectura_tarea;
 			offset_buffer += lectura_tarea;
 		}
+		//sem_post(mutex_copia);
 	}
 
 	sem_post(mutex_tripulante_swap);
@@ -677,12 +668,13 @@ tarea* encontrar_tarea_en_memoria(uint32_t direccion_fisica, uint32_t id_tarea_b
 
 	t_dl_tarea* direccion_logica_tarea = list_find(direccion_tarea, mismo_id_tarea);
 
+	sem_wait(mutex_copia);
 	void* buffer = obtener_tareas_de_memoria(direccion_fisica, id_tarea_buscada, tabla_patota_buscada);
-
-	tarea_recuperada->tamanio_tarea = direccion_logica_tarea->tamanio_tarea;
-	tarea_recuperada->tarea = malloc(tarea_recuperada->tamanio_tarea);
+	sem_post(mutex_copia);
 
 	sem_wait(mutex_copia);
+	tarea_recuperada->tamanio_tarea = direccion_logica_tarea->tamanio_tarea;
+	tarea_recuperada->tarea = malloc(tarea_recuperada->tamanio_tarea);
 	memcpy(tarea_recuperada->tarea, buffer, tarea_recuperada->tamanio_tarea);
 	sem_post(mutex_copia);
 

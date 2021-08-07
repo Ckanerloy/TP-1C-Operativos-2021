@@ -160,7 +160,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				tareas_de_la_patota = list_create();
 				tamanio_tareas = 0;
 
-				parser_posiciones = string_split(patota_recibida->posiciones, "|");
+				char** parser_posiciones = string_split(patota_recibida->posiciones, "|");
 
 				// Junta los IDs de los tripulantes de la Patota
 				char* ids_enviar = string_new();
@@ -189,7 +189,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 //													   SEGMENTACION
 				if(esquema_elegido == 'S') {
 					t_tabla_segmentos_patota* tabla_patota;
-					t_pcb* nueva_patota;
+					//t_pcb* nueva_patota;
 
 					// Verifica si hay espacio para guardar en memoria
 					if(validar_espacio_por_patota_segmentacion(tamanio_total) == 0) {
@@ -203,18 +203,18 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 					else { // Hay suficiente espacio en memoria, puedo guardarlo y envio una respuesta a Discordiador
 
-						nueva_patota = crear_pcb();
+						//nueva_patota = crear_pcb();
 
-						tabla_patota = crear_tabla_segmentos(nueva_patota);
+						tabla_patota = crear_tabla_segmentos();
 
 						sem_wait(mutex_segmentos);
-						t_segmento* segmento_patota = administrar_guardar_segmento(nueva_patota, PATOTA, sizeof(t_pcb), tabla_patota);
+						t_segmento* segmento_patota = administrar_guardar_segmento(tabla_patota->patota, PATOTA, sizeof(t_pcb), tabla_patota);
 						list_add(tabla_patota->segmentos, segmento_patota);
 						sem_post(mutex_segmentos);
 
 						uint32_t direccion_pcb = segmento_patota->inicio;
 
-						log_info(logger, "Se inició la Patota %u con %u tripulante/s.\n", nueva_patota->pid, patota_recibida->cantidad_tripulantes);
+						log_info(logger, "Se inició la Patota %u con %u tripulante/s.\n", tabla_patota->patota->pid, patota_recibida->cantidad_tripulantes);
 
 						sem_wait(crear_segmento_sem);
 
@@ -226,7 +226,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						tabla_patota->patota->tareas = segmento_tareas->inicio;
 						tabla_patota->tamanio_tareas = tamanio_tareas;
 
-						log_info(logger, "Se guardaron las tareas de la Patota %u, las cuales son: \n%s\n", nueva_patota->pid, patota_recibida->tareas_de_patota);
+						log_info(logger, "Se guardaron las tareas de la Patota %u, las cuales son: \n%s\n", tabla_patota->patota->pid, patota_recibida->tareas_de_patota);
 
 						sem_wait(crear_segmento_sem);
 
@@ -264,7 +264,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 						strcat(ids_enviar,"\0");
 
-						respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
+						respuesta_iniciar_patota->numero_de_patota = tabla_patota->patota->pid;
 						respuesta_iniciar_patota->respuesta = 1;
 						respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
 						respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
@@ -273,7 +273,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						contador_id_patota++;
 
 						log_info(logger, "La patota iniciada tiene un peso de %d bytes.\n", tamanio_total);
-						log_info(logger, "Se ha guardado en memoria la Patota %u y su/s %u Tripulante/s.\n", nueva_patota->pid, patota_recibida->cantidad_tripulantes);
+						log_info(logger, "Se ha guardado en memoria la Patota %u y su/s %u Tripulante/s.\n", tabla_patota->patota->pid, patota_recibida->cantidad_tripulantes);
 					}
 
 
@@ -282,7 +282,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 //													   PAGINACION
 				else if(esquema_elegido  == 'P') {
-					t_pcb* nueva_patota;
+					//t_pcb* nueva_patota;
 					t_tabla_paginas_patota* tabla_patota;
 
 					// Verifica si hay espacio para guardar en memoria
@@ -297,21 +297,21 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					}
 					else {
 
-						nueva_patota = crear_pcb();
-						tabla_patota = crear_tabla_paginas(nueva_patota, tamanio_total, patota_recibida->cantidad_tripulantes);
+						//nueva_patota = crear_pcb();
+						tabla_patota = crear_tabla_paginas(tamanio_total, patota_recibida->cantidad_tripulantes);
 
 						sem_wait(mutex_paginas);
-						guardar_estructura_en_memoria(nueva_patota, PATOTA, tabla_patota, sizeof(t_pcb));
+						guardar_estructura_en_memoria(tabla_patota->patota, PATOTA, tabla_patota, sizeof(t_pcb));
 						sem_post(mutex_paginas);
 						uint32_t direccion_pcb = tabla_patota->direccion_patota;
-						log_info(logger, "Se inició la Patota %u con %u tripulante/s.\n", nueva_patota->pid, patota_recibida->cantidad_tripulantes);
+						log_info(logger, "Se inició la Patota %u con %u tripulante/s.\n", tabla_patota->patota->pid, patota_recibida->cantidad_tripulantes);
 						sem_wait(crear_pagina_sem);
 
 						sem_wait(mutex_paginas);
 						guardar_estructura_en_memoria(tareas_de_la_patota, TAREAS, tabla_patota, tamanio_tareas);
 						sem_post(mutex_paginas);
 						tabla_patota->tamanio_tareas = tamanio_tareas;
-						log_info(logger, "Se guardaron las tareas de la Patota %u, las cuales son: \n%s\n", nueva_patota->pid, patota_recibida->tareas_de_patota);
+						log_info(logger, "Se guardaron las tareas de la Patota %u, las cuales son: \n%s\n", tabla_patota->patota->pid, patota_recibida->tareas_de_patota);
 						sem_wait(crear_pagina_sem);
 
 						int posicion = 0;
@@ -356,7 +356,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						sem_post(mutex_paginas);
 						strcat(ids_enviar,"\0");
 
-						respuesta_iniciar_patota->numero_de_patota = nueva_patota->pid;
+						respuesta_iniciar_patota->numero_de_patota = tabla_patota->patota->pid;
 						respuesta_iniciar_patota->respuesta = 1;
 						respuesta_iniciar_patota->tamanio_ids = strlen(ids_enviar);
 						respuesta_iniciar_patota->ids_tripu = malloc(respuesta_iniciar_patota->tamanio_ids+1);
@@ -365,7 +365,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						contador_id_patota++;
 
 						log_info(logger, "La patota iniciada tiene un peso de %d bytes.\n", tamanio_total);
-						log_info(logger, "Se ha guardado en memoria la Patota %u y su/s %u Tripulante/s.\n", nueva_patota->pid, patota_recibida->cantidad_tripulantes);
+						log_info(logger, "Se ha guardado en memoria la Patota %u y su/s %u Tripulante/s.\n", tabla_patota->patota->pid, patota_recibida->cantidad_tripulantes);
 					}
 
 					enviar_mensaje(respuesta_iniciar_patota, RESPUESTA_INICIAR_PATOTA, conexion);
@@ -374,7 +374,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 				cerrar_conexion(logger, conexion);
 
 				free(ids_enviar);
-				free(parser_posiciones);
+				limpiar_parser(parser_posiciones);
 				free(respuesta_iniciar_patota->ids_tripu);
 				free(respuesta_iniciar_patota);
 				free(patota_recibida->tareas_de_patota);
@@ -551,9 +551,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					list_replace(patota_buscada->segmentos, indice, segmento_buscado);
 					sem_post(mutex_segmentos);
 
-					respuesta_actualizar_estado->id_tripulante = tripulante_buscado_por_estado->id_tripulante;
-					respuesta_actualizar_estado->respuesta = 1;
-
 				}
 				else if(esquema_elegido  == 'P') {
 					sem_wait(mutex_paginas);
@@ -576,11 +573,10 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					actualizar_tripulante_memoria(tripulante_buscado_por_estado, direccion_fisica, tabla_patota_buscada);
 					actualizar_referencia(tabla_patota_buscada->paginas, direccion_logica);
 					sem_post(mutex_paginas);
-
-					respuesta_actualizar_estado->id_tripulante = tripulante_buscado_por_estado->id_tripulante;
-					respuesta_actualizar_estado->respuesta = 1;
 				}
 
+				respuesta_actualizar_estado->id_tripulante = tripulante_buscado_por_estado->id_tripulante;
+				respuesta_actualizar_estado->respuesta = 1;
 
 				log_info(logger, "El Tripulante %u de la Patota %u cambió del Estado %c al Estado %c.\n", tripulante_buscado_por_estado->id_tripulante, tripulante_por_estado->id_patota, estado_anterior, tripulante_buscado_por_estado->estado_tripulante);
 
@@ -619,7 +615,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					sem_post(mutex_segmentos);
 					id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
 
-					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
+					respuesta_con_tarea_tripulante->id_tripulante = tripulante_con_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
 
 					if(id_tarea_a_buscar_del_tripu < list_size(patota_buscada->direccion_tareas)) {
@@ -679,7 +675,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					sem_post(mutex_paginas);
 					id_tarea_a_buscar_del_tripu = tripulante_con_tarea->id_tarea_a_realizar;
 
-					respuesta_con_tarea_tripulante->id_tripulante = tripulante_para_tarea->id_tripulante;
+					respuesta_con_tarea_tripulante->id_tripulante = tripulante_con_tarea->id_tripulante;
 					respuesta_con_tarea_tripulante->respuesta = 1;
 
 					if(id_tarea_a_buscar_del_tripu < list_size(tabla_patota_buscada->direccion_tareas)) {
@@ -884,7 +880,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 						memoria_libre_total += patota_buscada->tamanio_tareas;
 
 					}
-
 				}
 
 				log_info(logger, "Se ha expulsado al Tripulante %u de la Patota %u de la nave.\n", tripulante_a_eliminar->id_tripulante, tripulante_a_eliminar->id_patota);
@@ -899,7 +894,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 				log_info(logger, "Terminando programa... \n");
 
-				//finalizar_mapa(amongOs);
+				finalizar_mapa(amongOs);
 
 				sleep(1);
 				printf("-------------------------------------------------------------------------------------------------------------------------------------------------- \n");
@@ -915,8 +910,8 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					for(int i=0; i<list_size(tablas_segmentos); i++) {
 
 						t_tabla_segmentos_patota* tabla_patota = list_remove(tablas_segmentos, i);
-
 						list_destroy_and_destroy_elements(tabla_patota->segmentos, free);
+						free(tabla_patota->patota);
 						free(tabla_patota);
 					}
 					free(tablas_segmentos);
@@ -931,7 +926,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 
 					for(int i=0; i<list_size(tablas_paginas); i++) {
 						t_tabla_paginas_patota* tabla_patota = list_remove(tablas_paginas, i);
-
 						list_destroy_and_destroy_elements(tabla_patota->direccion_tareas, free);
 						list_destroy_and_destroy_elements(tabla_patota->direccion_tripulantes, free);
 						list_destroy_and_destroy_elements(tabla_patota->paginas, free);
@@ -950,7 +944,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 					for(int i=0; i<cantidad_paginas_swap; i++){
 						free(frames_swap[i]);
 					}
-					free(paginas_swap);
+					list_destroy_and_destroy_elements(paginas_swap, free);
 				}
 
 				log_info(logger, "Se ha cerrado el programa de forma exitosa.\n");

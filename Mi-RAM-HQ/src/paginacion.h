@@ -55,7 +55,7 @@ frame** frames;
 frame_swap** frames_swap;
 
 // Inicio de Paginación
-t_tabla_paginas_patota* crear_tabla_paginas(t_pcb* patota, int32_t tamanio_total, int32_t cantidad_tripulantes);
+t_tabla_paginas_patota* crear_tabla_paginas(int32_t tamanio_total, int32_t cantidad_tripulantes);
 void guardar_estructura_en_memoria(void* estructura, tipo_estructura tipo, t_tabla_paginas_patota* tabla_patota, int32_t tamanio_estructura);
 
 

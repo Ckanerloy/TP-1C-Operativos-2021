@@ -182,7 +182,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 
 	enviar_mensaje(tripulante_estado, ACTUALIZAR_ESTADO_TRIPULANTE, conexion);
 
-	if(validacion_envio(conexion) == 1) {
+	/*if(validacion_envio(conexion) == 1) {
 		recibir_mensaje(respuesta_estado, RESPUESTA_OK_ESTADO, conexion);
 
 		if(respuesta_estado->respuesta != 1) {
@@ -197,7 +197,7 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 	else {
 		log_error(logger, "No se pudo enviar el mensaje a Mi-RAM. \n");
 		abort();
-	}
+	}*/
 
 	sem_post(tripu->mutex_peticion);
 
@@ -211,7 +211,6 @@ void actualizar_estado(tripulante_plani* tripu, char estado) {
 void obtener_siguiente_tarea(tripulante_plani* tripu, uint32_t id_tripulante, uint32_t numero_patota){
 
 	sem_wait(tripu->mutex_peticion);
-
 	uint32_t conexion;
 
 	t_tripulante* tripulante_consulta = malloc(sizeof(t_tripulante));
@@ -269,6 +268,7 @@ void obtener_siguiente_tarea(tripulante_plani* tripu, uint32_t id_tripulante, ui
 	free(respuesta_tarea);
 
 	if(tripu->tarea_a_realizar->operacion == TAREA_VACIA) {
+		free(tripu->tarea_a_realizar);
 		tripu->tarea_a_realizar = NULL;
 		return;
 	}
@@ -366,8 +366,16 @@ void esperandoIo_bloqueado(void){
 		sem_wait(planificacion_on_io);
 		sem_wait(bloqueado_disponible);
 
+		if(SALIR == 1){
+			break;
+		}
 
 		sem_wait(mutex_io);
+
+		if(SALIR == 1){
+			break;
+		}
+
 		if(esperando_bloqueado){
 			sem_post(mutex_io);
 

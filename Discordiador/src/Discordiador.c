@@ -140,6 +140,40 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 			list_add_all(bloqueado_suspendido,bloqueado_suspendido_ready);
 
 			//cuidado sin la lista esta vacia
+
+			if(list_size(bloqueado_suspendido)==0){
+				log_error(logger,"No hay nadie para resolver el sabotaje");
+				for(int i=0;i<largo;i++){
+					tripulante = list_get(lista_tripulantes,i);
+					if(tripulante->estado == 'B'){
+						tripulante->estado_anterior = 'B';
+						if(tripulante->puedo_ejecutar_io == 1){
+							tripulante->puedo_ejecutar_io = 0;
+							sem_post(bloqueado_disponible);
+						}
+						list_add(bloqueado_suspendido,tripulante);
+						actualizar_estado(tripulante, 'S');
+						log_info(logger,"El Tripulante con ID: %d de la Patota %d pasó de Block a Block Suspended.\n",tripulante->id_tripulante,tripulante->numero_patota);
+					}
+				}
+
+				largo = list_size(bloqueado_suspendido);
+
+				for(int i=0;i<largo;i++){
+					tripulante = list_get(bloqueado_suspendido,i);
+					tripulante->cantidad_realizada = 0;
+					suspendido_ready(tripulante);
+				}
+
+
+				list_clean(bloqueado_suspendido);
+
+				list_clean(bloqueado_suspendido_ready);
+
+				free(posicion_recibida);
+
+			}else{
+
 			tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
 			log_info(logger, "El Tripulante con ID: %u, corre en pánico hacia el sabotaje.\n",tripu_mas_cercano->id_tripulante);
@@ -243,6 +277,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 		//	valor_sabotaje=0;
 		//	sem_post(mutex_sabotaje);
 		//}
+		}
 		break;
 
 		default:
@@ -392,43 +427,54 @@ void obtener_orden_input(){
 
 		case INICIAR_PATOTA:
 			//TODO
-			// Ej: INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota5.txt 5|5 5|5 5|5
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota5.txt 1|1
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota4.txt 1|1
-			// Ej: INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 5|5 5|5
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 7|1
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/tareasPatota1.txt 7|1
+			// Ej: INICIAR_PATOTA 5 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota5.txt 1|1 5|5 1|1 2|0
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota5.txt 5|5 5|5 5|5
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota5.txt 1|1
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota4.txt 1|1
+			// Ej: INICIAR_PATOTA 2 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota1.txt 5|5 5|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota1.txt 7|1
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/tareasPatota1.txt 7|1
 
 			//	ESTABILIDAD GENERAL:
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota1.txt 9|9 0|0 5|5
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota2.txt 4|0 2|6 8|2
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota3.txt 2|3 5|8 5|3
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota4.txt 0|9 4|4 9|0
-			// Ej: INICIAR_PATOTA 3 /home/utnso/tareas/ES3_Patota5.txt 0|2 9|6 3|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/ES3_Patota1.txt 9|9 0|0 5|5
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/ES3_Patota2.txt 4|0 2|6 8|2
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/ES3_Patota3.txt 2|3 5|8 5|3
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/ES3_Patota4.txt 0|9 4|4 9|0
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/ES3_Patota5.txt 0|2 9|6 3|5
 
 			// PRUEBAS PARA DISCORDIADOR
 			//	- USO cpu
-			// INICIAR_PATOTA 2 /home/utnso/tareas/CPU_Patota1.txt 1|1
-			// INICIAR_PATOTA 1 /home/utnso/tareas/CPU_Patota2.txt 1|0
-			// INICIAR_PATOTA 1 /home/utnso/tareas/CPU_Patota3.txt 0|1
+			// INICIAR_PATOTA 2 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/CPU_Patota1.txt 1|1
+			// INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/CPU_Patota2.txt 1|0
+			// INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/CPU_Patota3.txt 0|1
 			// 	- I/O
-			// INICIAR_PATOTA 2 /home/utnso/tareas/IO_Patota1.txt 1|1
-			// INICIAR_PATOTA 1 /home/utnso/tareas/IO_Patota2.txt 1|0
-			// INICIAR_PATOTA 1 /home/utnso/tareas/IO_Patota3.txt 0|1
+			// INICIAR_PATOTA 2 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/IO_Patota1.txt 1|1
+			// INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/IO_Patota2.txt 1|0
+			// INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/IO_Patota3.txt 0|1
 
 			// PRUEBAS PARA MI RAM
 			// 	- PRUEBAS PARA SEGMENTACION
-			// Ej: INICIAR_PATOTA 4 /home/utnso/tareas/SEG_PatotaA.txt
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/SEG_PatotaB.txt
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/SEG_PatotaC.txt
-			// Ej: INICIAR_PATOTA 10 /home/utnso/tareas/espartana.txt
-			// Ej: INICIAR_PATOTA 6 /home/utnso/tareas/persa.txt
+			// Ej: INICIAR_PATOTA 4 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/SEG_PatotaA.txt
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/SEG_PatotaB.txt
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/SEG_PatotaC.txt
+			// Ej: INICIAR_PATOTA 10 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/espartana.txt
+			// Ej: INICIAR_PATOTA 6 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/persa.txt
 
 			// 	- PRUEBAS PARA PAGINACIÓN
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaA.txt 1|1
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaB.txt 3|3
-			// Ej: INICIAR_PATOTA 1 /home/utnso/tareas/PAG_PatotaC.txt 5|5
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/PAG_PatotaA.txt 1|1
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/PAG_PatotaB.txt 3|3
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/PAG_PatotaC.txt 5|5
+
+			// PRUEBAS PARA MONGO STORE
+			//  - PRUEBAS PARA FILE SYSTEM
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FS_PatotaA.txt
+			// Ej: INICIAR_PATOTA 3 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FS_PatotaB.txt
+
+			//  - PRUEBAS PARA SABOTAJE
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FSCK_PatotaA.txt 0|0
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FSCK_PatotaB.txt 8|0
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FSCK_PatotaC.txt 8|8
+			// Ej: INICIAR_PATOTA 1 /home/utnso/tp-2021-1c-UTNIX/Discordiador/tareas/FSCK_PatotaD.txt 0|8
 
 
 			if(parser_consola[1] == NULL || parser_consola[2] == NULL){
@@ -592,6 +638,7 @@ void obtener_orden_input(){
 
 			// Libero la memoria usada
 			fclose(archivo_tareas);
+			free(respuesta_iniciar_patota->ids_tripu);
 			free(respuesta_iniciar_patota);
 
 			free(posiciones);
@@ -642,6 +689,7 @@ void obtener_orden_input(){
 
 			t_tripulante* id_tripulante_x_bitacora = malloc(sizeof(t_tripulante));
 			id_tripulante_x_bitacora->id_tripulante = atoi(parser_consola[1]);
+			id_tripulante_x_bitacora->id_patota = 0;
 
 			bool mismo_id_bitacora(tripulante_plani* tripu) {
 				return tripu->id_tripulante == id_tripulante_x_bitacora->id_tripulante;
@@ -780,6 +828,7 @@ void obtener_orden_input(){
 
 		case TERMINAR_PROGRAMA:
 
+			SALIR = 1;
 			conexion_mi_ram = crear_conexion(IP_MI_RAM, PUERTO_MI_RAM);
 			if(resultado_conexion(conexion_mi_ram, logger, "Mi-RAM HQ") != -1){
 				enviar_mensaje("", CERRAR_MODULO, conexion_mi_ram);
@@ -804,7 +853,6 @@ void obtener_orden_input(){
 			list_destroy_and_destroy_elements(tripulantes_exec_block, free);
 			list_destroy_and_destroy_elements(bloqueado_suspendido, free);
 			list_destroy_and_destroy_elements(bloqueado_suspendido_ready, free);
-			SALIR = 1;
 			limpiar_parser(parser_consola);
 			free(cadena_ingresada);
 			finalizar_semaforos();

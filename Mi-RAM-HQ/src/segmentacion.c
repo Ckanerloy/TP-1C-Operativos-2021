@@ -1,11 +1,10 @@
 #include "segmentacion.h"
 
 
-t_tabla_segmentos_patota* crear_tabla_segmentos(t_pcb* nueva_patota){
+t_tabla_segmentos_patota* crear_tabla_segmentos(void){
 
 	t_tabla_segmentos_patota* tabla = malloc(sizeof(t_tabla_segmentos_patota));
-	tabla->patota = malloc(sizeof(t_pcb));
-	tabla->patota = nueva_patota;
+	tabla->patota = crear_pcb();
 	tabla->segmentos = list_create();
 	tabla->direccion_tareas = list_create();
 	tabla->direccion_tripulantes = list_create();
@@ -400,12 +399,10 @@ tarea* encontrar_tarea(t_segmento* segmento, t_tabla_segmentos_patota* tabla_pat
 
 	t_dl_tarea* direccion_logica_tarea = list_find(direccion_tarea, mismo_id_tarea);
 
+	sem_wait(mutex_copia);
 	tarea_recuperada->tamanio_tarea = direccion_logica_tarea->tamanio_tarea;
 	tarea_recuperada->tarea = malloc(tarea_recuperada->tamanio_tarea);
-
 	int32_t inicio = segmento->inicio + direccion_logica_tarea->direccion_logica;
-
-	sem_wait(mutex_copia);
 	memcpy(tarea_recuperada->tarea, memoria_principal + inicio, tarea_recuperada->tamanio_tarea);
 	sem_post(mutex_copia);
 

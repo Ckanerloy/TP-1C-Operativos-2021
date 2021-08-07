@@ -31,52 +31,58 @@ void iniciar_sabotaje(void){
 }
 
 
-
-/*
-SABOTAJE EN SUPERBLOQUE:
-- CANTIDAD DE BLOQUES:
-	. Cambiar el valor del campo Blocks del SuperBloque.ims
-	. Como se resuelve? Constatar contra el tamaño de Blocks.ims y corregir el valor en caso que no concuerde
-- BITMAP:
-	. Cambiar el valor de algun bit del campo Bitmap (0 por 1 o 1 por 0)
-	. Como se resuelve? Recorrer todos los archivos dentro de Files y Files/Bitacoras y obtener de todos los archivos los bloques usados
-
-
-SABOTAJE EN FILES
-- SIZE:
-	. Cambiar el valor del campo SIZE del archivo
-	. Como se resuelve? Reocrrer todos los bloques del archivo y obtener y asumir como correcto el tamaño encontrado dentro de los bloques recorriéndolos en orden
-		cuando se consuma oxigeno, hay que poner una marca para avisar hasta donde es
-- BLOCK_COUNT y BLOCKS:
-	. El valor de BLOCK_COUNT y BLOCKS son inconsistentes
-	. Actualizar el valor de BLOCK_COUNT en base a la lista de BLOCKS
-- BLOCKS:
-	. El valor de la lista de BLOCKS fue alterado y los bloques no están en orden
-	. Validar con el valor de MD5_ARCHIVO y restaurar el archivo (escribir en archivo tantos caracteres de llenado como hagan falta hasta completar el size)
- */
-
-
 void inicio_protocolo_fsck(void) {
 	t_list* recursos_disponibles = recursos_activos();
 	bool sabotaje = false;
 
-/*
+
 	// Sabotaje en SUPERBLOQUE: Modifica Cantidad de Bloques
 	if(sabotaje_superbloque_cantidad_bloques()){
 		log_info(logger, "Se realizó un Sabotaje en la Cantidad de Bloques del SuperBloque.\n");
 		sabotaje = true;
-		reparacion_superbloque_cantidad_bloques();
+		reparacion_superBloque_cantidad_bloques();
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó la Cantidad de Bloques del SuperBloque.\n");
 	}
 
+
+
 	// Sabotaje en SUPERBLOQUE: Modifica el Bitmap
-	if(sabotaje_superbloque_bitmap()){
+	/*if(sabotaje_superBloque_bitmap()){
 		log_info(logger, "Se realizó un Sabotaje en el Bitmap del SuperBloque.\n");
 		sabotaje = true;
-		reparacion_superbloque_bitmap();
+		reparacion_superBloque_bitmap();
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Bitmap del SuperBloque.\n");
-	}
+	}*/
+
+	// Sabotaje en directorio FILES
+	for(int i=0; i<list_size(recursos_disponibles); i++) {
+		recursos_archivos recurso = (recursos_archivos)list_get(recursos_disponibles, i);
+/*
+		// Sabotaje en FILES: Modifica el Size
+		if(!mismo_size_archivo(recurso)){
+			log_info(logger, "Se realizó un Sabotaje en el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
+			sabotaje = true;
+			reparar_size(recurso);
+			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
+		}
 */
+		// Sabotaje en FILES: Modifica el Block_Count
+		//TODO
+		if(!mismo_block_count_archivo(recurso)){
+			log_info(logger, "Se realizó un Sabotaje en el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
+			sabotaje = true;
+			reparar_block_count(recurso);
+			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
+		}
+
+		// Sabotaje en FILES: Modifica el Orden de los Bloques
+		if(!bloques_ordenados_archivo(recurso)) {
+			log_info(logger, "Se realizó un Sabotaje en el Orden de los Bloques del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
+			sabotaje = true;
+			reparar_orden_bloques(recurso);
+
+		}
+	}
 
 
 	if(sabotaje == false) {
@@ -117,13 +123,13 @@ char* mapeo_recurso_a_string(recursos_archivos recurso) {
 
 	switch(recurso) {
 		case OXIGENO:
-			string_append_with_format(&recurso_string, "%s", "Oxigeno.ims");
+			string_append_with_format(&recurso_string, "%s", "Oxigeno");
 			break;
 		case COMIDA:
-			string_append_with_format(&recurso_string, "%s", "Comida.ims");
+			string_append_with_format(&recurso_string, "%s", "Comida");
 			break;
 		case BASURA:
-			string_append_with_format(&recurso_string, "%s", "Basura.ims");
+			string_append_with_format(&recurso_string, "%s", "Basura");
 			break;
 		default:
 			break;
@@ -133,28 +139,389 @@ char* mapeo_recurso_a_string(recursos_archivos recurso) {
 }
 
 
-/*
+
 bool sabotaje_superbloque_cantidad_bloques(void) {
 
-	int BLOCK_SIZE * BLOCKS;
+	char* path_blocks = concatenar_path("/Blocks.ims");
+	int tamanio_archivo = calcular_tamanio_archivo(path_blocks);
+	int cantidad_blocks_real;
+	uint32_t cantidad_blocks_metadata;
 
-	int lengthOfFile = tamanioFile(rutaBlocks());
-	uint32_t cantidadBloquesMetadata;
-	memcpy(&cantidadBloquesMetadata, superbloqueMapeadoAMemoria + sizeof(uint32_t), sizeof(uint32_t));
-	int cantidadBloquesCalculada = lengthOfFile/tamanioBloques;
+	memcpy(&cantidad_blocks_metadata, super_bloque + sizeof(uint32_t), sizeof(uint32_t));
+	cantidad_blocks_real = tamanio_archivo/BLOCK_SIZE;
 
-	return cantidadBloquesCalculada != cantidadBloquesMetadata;
-}*/
+	//Retorna true si las cantidades son distintas. Sabotaje hecho.
+	return cantidad_blocks_real != cantidad_blocks_metadata;
+}
 
-void reparacion_superbloque_cantidad_bloques(void) {
+
+int calcular_tamanio_archivo(char* path_archivo){
+
+	int tamanio_archivo;
+	FILE* archivo = fopen(path_archivo, "rb");
+	fseek(archivo, 0, SEEK_END);
+	tamanio_archivo = (int)ftell(archivo);
+	fclose(archivo);
+	return tamanio_archivo;
 
 }
 
 
-bool sabotaje_superbloque_bitmap(void) {
+
+
+bool mismo_size_archivo(recursos_archivos recurso){
+
+	int tamanio_en_blocks = 0;
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int tamanio = leer_size_archivo(path_archivo_recurso, "SIZE");
+	char* caracter_recurso = leer_caracter_archivo(path_archivo_recurso, "CARACTER_LLENADO");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+
+	for(int i=0; i<cantidad_blocks_ocupados; i++){
+			int nro_bloque = atoi(bloques_usados[i]);
+
+			for(int c=0; c<BLOCK_SIZE; c++){
+
+				//char* caracter_copia = malloc(sizeof(char));
+				//caracter_copia = caracter_recurso;
+				char* caracter_copia = string_new();
+				int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+
+
+				//TODO
+				memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
+
+				char* caracter = string_substring(caracter_copia, 0, sizeof(char));
+
+				if(strcmp(caracter, caracter_recurso)==0){
+
+					tamanio_en_blocks++;
+
+				}
+				free(caracter_copia);
+				free(caracter);
+			}
+
+	}
+
+	free(path_recurso);
+	free(path_archivo_recurso);
+
+	if(tamanio_en_blocks == tamanio){
+		return true;
+	} else{
+		return false;
+	}
+}
+
+void reparar_size(recursos_archivos recurso){
+
+	int tamanio_en_blocks = 0;
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	char* caracter_recurso = leer_caracter_archivo(path_archivo_recurso, "CARACTER_LLENADO");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+
+	for(int i=0; i<cantidad_blocks_ocupados; i++){
+		int nro_bloque = atoi(bloques_usados[i]);
+
+		for(int c=0; c<BLOCK_SIZE; c++){
+
+			//char* caracter_copia = malloc(sizeof(char));
+			char* caracter_copia = string_new();
+			int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+
+			memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
+
+			char* caracter = string_substring(caracter_copia, 0, 1);
+
+			if(strcmp(caracter, caracter_recurso)==0){
+				tamanio_en_blocks++;
+			}
+			free(caracter_copia);
+			free(caracter);
+		}
+
+	}
+
+
+	char* valor_string = string_new();
+	asprintf(&valor_string, "%d", tamanio_en_blocks);
+	guardar_nuevos_datos_en_archivo(path_archivo_recurso, valor_string, "SIZE");
+
+	free(path_recurso);
+	free(path_archivo_recurso);
+	free(valor_string);
+}
+
+
+bool mismo_block_count_archivo(recursos_archivos recurso){
+
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+	int cantidad_blocks_archivo = leer_size_archivo(path_archivo_recurso, "BLOCK_COUNT");
+
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
+
+	if(cantidad_blocks_ocupados == cantidad_blocks_archivo){
+		return true;
+	} else{
+		return false;
+	}
+}
+
+void reparar_block_count(recursos_archivos recurso){
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+
+	char* cantidad_bloques_total = string_new();
+	asprintf(&cantidad_bloques_total, "%d", cantidad_blocks_ocupados);
+	guardar_nuevos_datos_en_archivo(path_archivo_recurso, cantidad_bloques_total, "BLOCK_COUNT");
+
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
+}
+
+
+bool bloques_ordenados_archivo(recursos_archivos recurso){
+
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	char* md5_original = leer_caracter_archivo(path_archivo_recurso , "MD5_ARCHIVO");
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	char* string_hash = concatenar_contenido_blocks(bloques_usados);
+	char* md5_a_validar = hash_MD5(string_hash, path_recurso);
+
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
+	//free(string_hash);
+
+	printf("hash: %s \n",md5_original);
+	printf("otro hash: %s\n",md5_a_validar);
+
+	if(strcmp(md5_original,md5_a_validar) == 0){
+		free(md5_original);
+		free(md5_a_validar);
+		return true;
+	}
+	else {
+		free(md5_original);
+		free(md5_a_validar);
+		return false;
+	}
+}
+
+void reparar_orden_bloques(recursos_archivos recurso){
+
+	char* path_recurso = mapeo_recurso_a_string(recurso);
+	char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+	int tamanio = leer_size_archivo(path_archivo_recurso, "SIZE");
+	char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques_usados);
+	int cantidad_blocks_archivo = leer_size_archivo(path_archivo_recurso, "BLOCK_COUNT");
+	char* caracter_recurso = leer_caracter_archivo(path_archivo_recurso, "CARACTER_LLENADO");
+
+	if(cantidad_blocks_ocupados != cantidad_blocks_archivo){
+		agregar_bloque_faltante(bloques_usados, path_archivo_recurso, caracter_recurso, tamanio);
+		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Bloque faltante del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
+
+	}
+	else {
+		reordenar_bloques(bloques_usados, path_archivo_recurso, caracter_recurso, tamanio);
+		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Orden de los Bloques del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
+
+	}
+	limpiar_parser(bloques_usados);
+	free(path_recurso);
+	free(path_archivo_recurso);
 
 }
 
-void reparacion_superbloque_bitmap(void) {
+void agregar_bloque_faltante(char** bloques, char* path, char* caracter, int size){
+
+	int bloque_faltante;
+
+	for(int i=0; i<BLOCKS; i++){
+		if(!esta_presente_en_lista(bloques, i) && bitarray_test_bit(bitArraySB, i)){
+			bloque_faltante = i;
+		}
+	}
+
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques);
+	bloques[cantidad_blocks_ocupados] = bloque_faltante;
+
+    char* lista_bloques = string_new();
+    string_append_with_format(&lista_bloques,"[");
+
+    for(int i=0; i<cantidad_blocks_ocupados+1; i++){
+	   int posicion = atoi(bloques[i]);
+
+	   if(i == atoi(bloques[i])-1)
+		   string_append_with_format(&lista_bloques,"%u", posicion);
+	   else{
+		   string_append_with_format(&lista_bloques,"%u,", posicion);
+	   }
+    }
+    string_append_with_format(&lista_bloques ,"]");
+	guardar_nuevos_datos_en_archivo(path, lista_bloques, "BLOCKS");
+
+	uint32_t desplazamiento = 0;
+	for(int i=0; i<cantidad_blocks_ocupados-1; i++) {
+		char* valor = armar_recurso(caracter, BLOCK_SIZE);
+		uint32_t nro_bloque = atoi(bloques[i]);
+        uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+        memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
+        desplazamiento += BLOCK_SIZE;
+	 }
+
+	 uint32_t nro_ultimo_bloque = atoi(bloques[cantidad_blocks_ocupados]);
+	 uint32_t espacio_libre_ultimo_bloque = (cantidad_blocks_ocupados * BLOCK_SIZE - size);
+	 uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+	 char* valor = armar_recurso(caracter, cant_necesaria_ultimo_bloque);
+	 uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+	 memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, cant_necesaria_ultimo_bloque);
+	 desplazamiento += cant_necesaria_ultimo_bloque;
+	 valor = armar_recurso("0", espacio_libre_ultimo_bloque);
+	 ubicacion_bloque += desplazamiento;
+	 memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, espacio_libre_ultimo_bloque);
 
 }
+
+void reordenar_bloques(char** bloques, char* path, char* caracter, int size){
+
+	int cantidad_blocks_ocupados = cantidad_elementos(bloques);
+	uint32_t desplazamiento = 0;
+
+	for(int i=0; i<cantidad_blocks_ocupados - 1; i++) {
+		char* valor = armar_recurso(caracter, BLOCK_SIZE);
+		uint32_t nro_bloque = atoi(bloques[i]);
+        uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;
+        memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, BLOCK_SIZE);
+        desplazamiento += BLOCK_SIZE;
+	 }
+	 uint32_t nro_ultimo_bloque = atoi(bloques[cantidad_blocks_ocupados - 1]);
+	 uint32_t espacio_libre_ultimo_bloque = (cantidad_blocks_ocupados * BLOCK_SIZE - size);
+	 uint32_t cant_necesaria_ultimo_bloque = BLOCK_SIZE - espacio_libre_ultimo_bloque;
+	 char* valor = armar_recurso(caracter, cant_necesaria_ultimo_bloque);
+	 uint32_t ubicacion_bloque = nro_ultimo_bloque * BLOCK_SIZE;
+	 memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, cant_necesaria_ultimo_bloque);
+	 desplazamiento += cant_necesaria_ultimo_bloque;
+	 valor = armar_recurso("0", espacio_libre_ultimo_bloque);
+	 ubicacion_bloque += desplazamiento;
+	 memcpy(informacion_blocks + ubicacion_bloque, valor + desplazamiento, espacio_libre_ultimo_bloque);
+}
+
+
+
+void reparacion_superBloque_cantidad_bloques(void) {
+
+	int cantidad_blocks_real;
+	char* path_blocks = concatenar_path("/Blocks.ims");
+	int tamanio_archivo = calcular_tamanio_archivo(path_blocks);
+	cantidad_blocks_real = tamanio_archivo/BLOCK_SIZE;
+
+	memcpy(super_bloque + sizeof(uint32_t), &cantidad_blocks_real, sizeof(uint32_t));
+
+}
+
+t_list* obtener_blocks_ocupados_total(){
+	int posicion;
+	t_list* lista_recursos = recursos_activos();
+	t_list* lista_bloques_ocupados = list_create();
+
+	for(int i=0; i<list_size(lista_recursos); i++){
+
+		recursos_archivos recurso = (recursos_archivos) list_get(lista_recursos, i);
+		char* path_recurso = mapeo_recurso_a_string(recurso);
+		char* path_archivo_recurso = crear_ruta_recurso(path_recurso);
+		char** bloques_usados = leer_blocks_archivo(path_archivo_recurso, "BLOCKS");
+
+		posicion = 0;
+		while(bloques_usados[posicion] != NULL){
+			list_add(lista_bloques_ocupados, (int) atoi(bloques_usados[posicion]));
+			posicion++;
+		}
+		free(path_recurso);
+		free(path_archivo_recurso);
+		limpiar_parser(bloques_usados);
+	}
+
+	for(int c=1; c<=contador_tripulantes; c++){
+		char* path_archivo_bitacora = crear_ruta_bitacora(c);
+		char** bloques_usados_bitacora = leer_blocks_archivo(path_archivo_bitacora, "BLOCKS");
+
+		posicion = 0;
+		while(bloques_usados_bitacora[posicion] != NULL){
+			list_add(lista_bloques_ocupados, (int) atoi(bloques_usados_bitacora[posicion]));
+			posicion++;
+		}
+	free(path_archivo_bitacora);
+	limpiar_parser(bloques_usados_bitacora);
+
+	}
+
+	return lista_bloques_ocupados;
+}
+
+
+
+bool sabotaje_superBloque_bitmap(void) {
+
+	char* bitmap_aux = malloc(BLOCKS/8);
+	memcpy(bitmap_aux, super_bloque + 2*sizeof(uint32_t), BLOCKS/8);
+	t_bitarray* bitmap_SB = bitarray_create_with_mode(bitmap_aux, BLOCKS/8, LSB_FIRST);
+	t_list* lista_bloques_en_uso = obtener_blocks_ocupados_total();
+
+	for(int i=0; i<BLOCKS; i++){
+		bool condicion1 = !esta_presente_en_lista(lista_bloques_en_uso, i) && bitarray_test_bit(bitmap_SB, i);
+		bool condicion2 = esta_presente_en_lista(lista_bloques_en_uso, i) && !bitarray_test_bit(bitmap_SB, i);
+			//Si cumple cualquiera de las dos condiciones, bitmap saboteado.
+			if(condicion1 || condicion2){
+				bitarray_destroy(bitmap_SB);
+				list_destroy(lista_bloques_en_uso);
+				free(bitmap_aux);
+				return true;
+			}
+		}
+		bitarray_destroy(bitmap_SB);
+		list_destroy(lista_bloques_en_uso);
+		free(bitmap_aux);
+		return false;
+}
+
+bool esta_presente_en_lista(t_list* lista, int valor) {
+
+
+	for(int i = 0; i<list_size(lista); i++) {
+		if((int) list_get(lista, i) == valor) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+void reparacion_superBloque_bitmap(void) {
+
+	vaciarBitArray(bitArraySB);
+	t_list* lista_bloques_usados = obtener_blocks_ocupados_total();
+	int cantidad_lista_bloques_usados = list_size(lista_bloques_usados);
+
+	for(int i=0; i<cantidad_lista_bloques_usados; i++){
+		bitarray_set_bit(bitArraySB, list_get(lista_bloques_usados, i));
+	}
+	memcpy(super_bloque+2*sizeof(uint32_t), bitArraySB->bitarray, BLOCKS/8);
+}
+
+

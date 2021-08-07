@@ -15,6 +15,8 @@ void* area_swap;
 void* contenido_swap;
 
 t_list* paginas_swap;
+t_list* lista_a_iterar;
+//t_list* lista_en_memoria;
 
 int32_t cantidad_paginas_swap;
 
