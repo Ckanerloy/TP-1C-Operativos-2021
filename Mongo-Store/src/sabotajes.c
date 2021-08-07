@@ -57,7 +57,7 @@ void inicio_protocolo_fsck(void) {
 	// Sabotaje en directorio FILES
 	for(int i=0; i<list_size(recursos_disponibles); i++) {
 		recursos_archivos recurso = (recursos_archivos)list_get(recursos_disponibles, i);
-
+/*
 		// Sabotaje en FILES: Modifica el Size
 		if(!mismo_size_archivo(recurso)){
 			log_info(logger, "Se realizó un Sabotaje en el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
@@ -65,8 +65,9 @@ void inicio_protocolo_fsck(void) {
 			reparar_size(recurso);
 			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
-/*
+*/
 		// Sabotaje en FILES: Modifica el Block_Count
+		//TODO
 		if(!mismo_block_count_archivo(recurso)){
 			log_info(logger, "Se realizó un Sabotaje en el Block_Count del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 			sabotaje = true;
@@ -80,7 +81,7 @@ void inicio_protocolo_fsck(void) {
 			sabotaje = true;
 			reparar_orden_bloques(recurso);
 
-		}*/
+		}
 	}
 
 
@@ -300,9 +301,12 @@ bool bloques_ordenados_archivo(recursos_archivos recurso){
 	limpiar_parser(bloques_usados);
 	free(path_recurso);
 	free(path_archivo_recurso);
-	free(string_hash);
+	//free(string_hash);
 
-	if(md5_original == md5_a_validar){
+	printf("hash: %s \n",md5_original);
+	printf("otro hash: %s\n",md5_a_validar);
+
+	if(strcmp(md5_original,md5_a_validar) == 0){
 		free(md5_original);
 		free(md5_a_validar);
 		return true;
@@ -369,7 +373,7 @@ void agregar_bloque_faltante(char** bloques, char* path, char* caracter, int siz
 	guardar_nuevos_datos_en_archivo(path, lista_bloques, "BLOCKS");
 
 	uint32_t desplazamiento = 0;
-	for(int i=0; i<cantidad_blocks_ocupados; i++) {
+	for(int i=0; i<cantidad_blocks_ocupados-1; i++) {
 		char* valor = armar_recurso(caracter, BLOCK_SIZE);
 		uint32_t nro_bloque = atoi(bloques[i]);
         uint32_t ubicacion_bloque = nro_bloque * BLOCK_SIZE;

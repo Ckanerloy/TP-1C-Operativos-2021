@@ -140,6 +140,40 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 			list_add_all(bloqueado_suspendido,bloqueado_suspendido_ready);
 
 			//cuidado sin la lista esta vacia
+
+			if(list_size(bloqueado_suspendido)==0){
+				log_error(logger,"No hay nadie para resolver el sabotaje");
+				for(int i=0;i<largo;i++){
+					tripulante = list_get(lista_tripulantes,i);
+					if(tripulante->estado == 'B'){
+						tripulante->estado_anterior = 'B';
+						if(tripulante->puedo_ejecutar_io == 1){
+							tripulante->puedo_ejecutar_io = 0;
+							sem_post(bloqueado_disponible);
+						}
+						list_add(bloqueado_suspendido,tripulante);
+						actualizar_estado(tripulante, 'S');
+						log_info(logger,"El Tripulante con ID: %d de la Patota %d pasó de Block a Block Suspended.\n",tripulante->id_tripulante,tripulante->numero_patota);
+					}
+				}
+
+				largo = list_size(bloqueado_suspendido);
+
+				for(int i=0;i<largo;i++){
+					tripulante = list_get(bloqueado_suspendido,i);
+					tripulante->cantidad_realizada = 0;
+					suspendido_ready(tripulante);
+				}
+
+
+				list_clean(bloqueado_suspendido);
+
+				list_clean(bloqueado_suspendido_ready);
+
+				free(posicion_recibida);
+
+			}else{
+
 			tripu_mas_cercano = list_fold1(bloqueado_suspendido, (void*) mas_cercano);
 
 			log_info(logger, "El Tripulante con ID: %u, corre en pánico hacia el sabotaje.\n",tripu_mas_cercano->id_tripulante);
@@ -243,6 +277,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 		//	valor_sabotaje=0;
 		//	sem_post(mutex_sabotaje);
 		//}
+		}
 		break;
 
 		default:
