@@ -780,30 +780,6 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 		guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
 	}
 	else {
-
-		char* cantidad_bloques_total = string_new();
-		char** bloques_asignados = leer_blocks_archivo(path, "BLOCKS");
-		string_append_with_format(&cantidad_bloques_total, "%d", cantidad_elementos(bloques_asignados));
-		guardar_nuevos_datos_en_archivo(path, cantidad_bloques_total, "BLOCK_COUNT");
-
-		char* string_hash = string_new();
-		char* hash = string_new();
-		if(cantidad_elementos(bloques_asignados) == 0) {
-			string_hash = armar_recurso(caracter_llenado, 32);
-			hash = hash_MD5(string_hash, nombre_recurso);
-			guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
-			//free(string_hash);
-			free(hash);
-		}
-		else {
-			string_append_with_format(&string_hash, "%s", concatenar_contenido_blocks(bloques_asignados));
-			hash = hash_MD5(string_hash, nombre_recurso);
-			guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
-			//free(string_hash);
-			free(hash);
-			limpiar_parser(bloques_asignados);
-		}
-
 		if(cantidad_bloques_usados == 0){
 
 			t_list* lista_posiciones = obtener_array_bloques_a_usar(nuevo_valor_size);
@@ -858,6 +834,30 @@ t_metadata* actualizar_archivo_metadata_recurso(char* path, char caracter_llenad
 
 			log_info(logger, "Se ocuparon los bloques %s\n", bloques);
 			guardar_nuevos_datos_en_archivo(path, bloques, "BLOCKS");
+		}
+
+
+		char* cantidad_bloques_total = string_new();
+		char** bloques_asignados = leer_blocks_archivo(path, "BLOCKS");
+		string_append_with_format(&cantidad_bloques_total, "%d", cantidad_elementos(bloques_asignados));
+		guardar_nuevos_datos_en_archivo(path, cantidad_bloques_total, "BLOCK_COUNT");
+
+		char* string_hash = string_new();
+		char* hash = string_new();
+		if(cantidad_elementos(bloques_asignados) == 0) {
+			string_hash = armar_recurso(caracter_llenado, 32);
+			hash = hash_MD5(string_hash, nombre_recurso);
+			guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
+			//free(string_hash);
+			free(hash);
+		}
+		else {
+			string_append_with_format(&string_hash, "%s", concatenar_contenido_blocks(bloques_asignados));
+			hash = hash_MD5(string_hash, nombre_recurso);
+			guardar_nuevos_datos_en_archivo(path, hash, "MD5_ARCHIVO");
+			//free(string_hash);
+			free(hash);
+			limpiar_parser(bloques_asignados);
 		}
 	}
 
