@@ -1,0 +1,1082 @@
+[INFO] 23:37:34:382 Discordiador/(9644:9644): Se eligió el algoritmo Round Robin con un Quantum de 5. 
+
+[INFO] 23:40:54:829 Discordiador/(9644:9652): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 23:41:01:159 Discordiador/(9644:9652): Iniciando Planificacion.......
+
+[INFO] 23:43:15:218 Discordiador/(9644:10393): Se expulsó al Tripulante 1.
+
+[INFO] 23:43:25:216 Discordiador/(9644:10394): Se expulsó al Tripulante 2.
+
+[INFO] 23:43:35:216 Discordiador/(9644:10395): Se expulsó al Tripulante 3.
+
+[INFO] 01:18:19:369 Discordiador/(24032:24032): Se eligió el algoritmo Round Robin con un Quantum de 5. 
+
+[INFO] 01:23:56:096 Discordiador/(24032:24039): Se inició la Patota 0 con 3 tripulantes.
+
+[INFO] 13:24:03:077 Discordiador/(4029:4029): Se eligió el algoritmo Round Robin con un Quantum de 5. 
+
+[INFO] 13:25:01:842 Discordiador/(4029:4033): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 13:25:13:012 Discordiador/(4029:4033): Iniciando Planificacion.......
+
+[INFO] 13:25:15:028 Discordiador/(4029:4432): Se expulsó al Tripulante 3.
+
+[INFO] 13:25:15:089 Discordiador/(4029:4433): Se expulsó al Tripulante 4.
+
+[INFO] 14:45:04:880 Discordiador/(4362:4362): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 14:46:03:263 Discordiador/(4362:4373): Se inició la Patota 1 con 5 tripulantes.
+
+[ERROR] 14:46:21:886 Discordiador/(4362:4373): El archivo /home/utnso/tareas/tareasPatota1.txt no existe. 
+
+[INFO] 14:46:33:111 Discordiador/(4362:4373): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 14:46:44:033 Discordiador/(4362:4373): Iniciando Planificacion.......
+
+[INFO] 14:46:47:111 Discordiador/(4362:4723): Se expulsó al Tripulante 1.
+
+[INFO] 14:46:47:384 Discordiador/(4362:4725): Se expulsó al Tripulante 3.
+
+[INFO] 14:46:47:440 Discordiador/(4362:4726): Se expulsó al Tripulante 4.
+
+[INFO] 14:46:47:856 Discordiador/(4362:4727): Se expulsó al Tripulante 5.
+
+[INFO] 14:46:48:285 Discordiador/(4362:4724): Se expulsó al Tripulante 2.
+
+[INFO] 14:46:52:554 Discordiador/(4362:4789): Se expulsó al Tripulante 8.
+
+[INFO] 14:46:52:634 Discordiador/(4362:4787): Se expulsó al Tripulante 6.
+
+[INFO] 14:46:52:718 Discordiador/(4362:4788): Se expulsó al Tripulante 7.
+
+[INFO] 15:47:28:345 Discordiador/(13830:13830): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 15:51:58:773 Discordiador/(14553:14553): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 16:00:58:480 Discordiador/(15682:15682): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 16:02:17:356 Discordiador/(16010:16010): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 16:06:21:007 Discordiador/(16823:16823): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 16:07:22:949 Discordiador/(17023:17023): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 16:27:50:978 Discordiador/(19711:19711): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 16:28:24:784 Discordiador/(19856:19856): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 16:28:47:829 Discordiador/(19856:19860): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 16:29:05:320 Discordiador/(19856:19860): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 16:29:16:539 Discordiador/(19856:19860): Se inició la Patota 3 con 3 tripulantes.
+
+[INFO] 16:29:27:128 Discordiador/(19856:19860): Se inició la Patota 4 con 3 tripulantes.
+
+[INFO] 16:29:36:073 Discordiador/(19856:19860): Se inició la Patota 5 con 3 tripulantes.
+
+[INFO] 16:29:49:286 Discordiador/(19856:19860): Iniciando Planificacion.......
+
+[ERROR] 16:29:53:688 Discordiador/(19856:19955): No se pudo lograr la conexion con Mongo Store.
+
+[ERROR] 16:29:53:697 Discordiador/(19856:19986): No se pudo lograr la conexion con Mongo Store.
+
+[INFO] 23:28:55:221 Discordiador/(4682:4682): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 23:30:57:233 Discordiador/(4682:4686): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 23:31:04:256 Discordiador/(4682:4686): Iniciando Planificacion.......
+
+[ERROR] 23:31:05:074 Discordiador/(4682:4999): La respuesta fue negativa.
+
+[INFO] 23:41:30:625 Discordiador/(6318:6318): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 23:41:38:273 Discordiador/(6318:6322): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 23:41:44:555 Discordiador/(6318:6322): Iniciando Planificacion.......
+
+[INFO] 23:41:45:351 Discordiador/(6318:6343): Se expulsó al Tripulante 1.
+
+[INFO] 23:41:45:405 Discordiador/(6318:6345): Se expulsó al Tripulante 3.
+
+[INFO] 23:41:45:458 Discordiador/(6318:6346): Se expulsó al Tripulante 4.
+
+[INFO] 23:41:45:509 Discordiador/(6318:6347): Se expulsó al Tripulante 5.
+
+[INFO] 23:41:45:605 Discordiador/(6318:6344): Se expulsó al Tripulante 2.
+
+[INFO] 00:43:06:360 Discordiador/(13888:13888): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 00:43:29:370 Discordiador/(13888:13892): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 00:44:21:605 Discordiador/(14056:14056): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 00:44:27:848 Discordiador/(14056:14057): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 00:44:44:437 Discordiador/(14056:14057): Iniciando Planificacion.......
+
+[ERROR] 00:44:45:305 Discordiador/(14056:14060): La respuesta fue negativa.
+
+[INFO] 01:05:13:826 Discordiador/(17407:17407): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:05:18:956 Discordiador/(17407:17408): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:07:26:420 Discordiador/(17759:17759): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:07:57:696 Discordiador/(17759:17760): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:08:05:470 Discordiador/(17759:17760): Iniciando Planificacion.......
+
+[ERROR] 01:08:07:202 Discordiador/(17759:17828): No se pudo lograr la conexion con Mongo Store.
+
+[ERROR] 01:08:07:221 Discordiador/(17759:17829): No se pudo lograr la conexion con Mongo Store.
+
+[INFO] 01:18:51:219 Discordiador/(19530:19530): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:19:08:627 Discordiador/(19530:19535): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:19:18:764 Discordiador/(19530:19535): Iniciando Planificacion.......
+
+[ERROR] 01:19:21:876 Discordiador/(19530:19575): No se pudo lograr la conexion con Mongo Store.
+
+[INFO] 01:26:06:560 Discordiador/(20910:20910): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:26:23:298 Discordiador/(20910:20916): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:26:34:017 Discordiador/(20910:20916): Iniciando Planificacion.......
+
+[INFO] 01:26:38:219 Discordiador/(20910:20951): Se expulsó al Tripulante 3.
+
+[INFO] 01:26:38:318 Discordiador/(20910:20949): Se expulsó al Tripulante 1.
+
+[INFO] 01:26:38:371 Discordiador/(20910:20950): Se expulsó al Tripulante 2.
+
+[INFO] 01:31:30:179 Discordiador/(22465:22465): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:31:49:908 Discordiador/(22465:22475): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:31:56:154 Discordiador/(22465:22475): Iniciando Planificacion.......
+
+[INFO] 01:32:00:009 Discordiador/(22465:22527): Se expulsó al Tripulante 3.
+
+[INFO] 01:32:00:139 Discordiador/(22465:22525): Se expulsó al Tripulante 1.
+
+[INFO] 01:32:00:177 Discordiador/(22465:22526): Se expulsó al Tripulante 2.
+
+[INFO] 01:33:32:272 Discordiador/(23384:23384): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:33:38:546 Discordiador/(23384:23386): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:33:43:949 Discordiador/(23384:23386): Iniciando Planificacion.......
+
+[INFO] 01:33:49:116 Discordiador/(23384:23410): Se expulsó al Tripulante 3.
+
+[INFO] 01:33:49:213 Discordiador/(23384:23408): Se expulsó al Tripulante 1.
+
+[INFO] 01:33:49:274 Discordiador/(23384:23409): Se expulsó al Tripulante 2.
+
+[INFO] 01:42:28:036 Discordiador/(25202:25202): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:42:35:047 Discordiador/(25202:25203): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:42:40:818 Discordiador/(25202:25203): Iniciando Planificacion.......
+
+[INFO] 01:42:45:634 Discordiador/(25202:25227): Se expulsó al Tripulante 3.
+
+[INFO] 01:42:45:747 Discordiador/(25202:25225): Se expulsó al Tripulante 1.
+
+[INFO] 01:42:45:796 Discordiador/(25202:25226): Se expulsó al Tripulante 2.
+
+[INFO] 01:44:38:035 Discordiador/(26343:26343): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:44:44:375 Discordiador/(26343:26348): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:45:03:497 Discordiador/(26343:26348): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 01:45:08:974 Discordiador/(26343:26348): Iniciando Planificacion.......
+
+[INFO] 01:45:17:924 Discordiador/(26343:26368): Se expulsó al Tripulante 3.
+
+[INFO] 01:45:17:986 Discordiador/(26343:26420): Se expulsó al Tripulante 4.
+
+[INFO] 01:45:18:204 Discordiador/(26343:26367): Se expulsó al Tripulante 2.
+
+[INFO] 01:45:18:246 Discordiador/(26343:26421): Se expulsó al Tripulante 5.
+
+[INFO] 01:45:18:326 Discordiador/(26343:26366): Se expulsó al Tripulante 1.
+
+[INFO] 01:45:18:403 Discordiador/(26343:26422): Se expulsó al Tripulante 6.
+
+[INFO] 01:50:48:591 Discordiador/(28822:28822): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:50:58:838 Discordiador/(28847:28847): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:51:30:891 Discordiador/(28847:28855): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:51:41:120 Discordiador/(28847:28855): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 01:51:49:153 Discordiador/(28847:28855): Iniciando Planificacion.......
+
+[INFO] 01:51:58:445 Discordiador/(28847:28942): Se expulsó al Tripulante 4.
+
+[INFO] 01:51:58:559 Discordiador/(28847:28925): Se expulsó al Tripulante 3.
+
+[INFO] 01:51:58:679 Discordiador/(28847:28943): Se expulsó al Tripulante 5.
+
+[INFO] 01:51:58:874 Discordiador/(28847:28924): Se expulsó al Tripulante 2.
+
+[INFO] 01:51:58:910 Discordiador/(28847:28923): Se expulsó al Tripulante 1.
+
+[INFO] 01:51:58:930 Discordiador/(28847:28944): Se expulsó al Tripulante 6.
+
+[INFO] 01:53:45:550 Discordiador/(30671:30671): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:53:53:848 Discordiador/(30671:30674): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:54:02:315 Discordiador/(30671:30674): Iniciando Planificacion.......
+
+[INFO] 01:54:07:202 Discordiador/(30671:30693): Se expulsó al Tripulante 3.
+
+[INFO] 01:54:07:403 Discordiador/(30671:30692): Se expulsó al Tripulante 2.
+
+[INFO] 01:54:07:428 Discordiador/(30671:30691): Se expulsó al Tripulante 1.
+
+[INFO] 01:55:32:070 Discordiador/(31631:31631): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:55:46:789 Discordiador/(31631:31632): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:56:11:411 Discordiador/(31703:31703): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 01:56:25:018 Discordiador/(31703:31704): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 01:56:37:863 Discordiador/(31703:31704): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 01:56:45:974 Discordiador/(31703:31704): Se inició la Patota 3 con 3 tripulantes.
+
+[INFO] 01:56:53:847 Discordiador/(31703:31704): Se inició la Patota 4 con 3 tripulantes.
+
+[INFO] 01:57:02:231 Discordiador/(31703:31704): Se inició la Patota 5 con 3 tripulantes.
+
+[INFO] 01:57:09:783 Discordiador/(31703:31704): Iniciando Planificacion.......
+
+[INFO] 01:57:10:450 Discordiador/(31703:31822): Se expulsó al Tripulante 13.
+
+[INFO] 01:57:10:532 Discordiador/(31703:31824): Se expulsó al Tripulante 15.
+
+[INFO] 01:57:10:611 Discordiador/(31703:31823): Se expulsó al Tripulante 14.
+
+[INFO] 01:57:10:626 Discordiador/(31703:31789): Se expulsó al Tripulante 7.
+
+[INFO] 01:57:10:671 Discordiador/(31703:31791): Se expulsó al Tripulante 9.
+
+[INFO] 01:57:10:686 Discordiador/(31703:31805): Se expulsó al Tripulante 10.
+
+[INFO] 01:57:10:688 Discordiador/(31703:31806): Se expulsó al Tripulante 11.
+
+[INFO] 01:57:10:690 Discordiador/(31703:31807): Se expulsó al Tripulante 12.
+
+[INFO] 01:57:10:715 Discordiador/(31703:31790): Se expulsó al Tripulante 8.
+
+[INFO] 01:57:10:728 Discordiador/(31703:31744): Se expulsó al Tripulante 3.
+
+[INFO] 01:57:10:737 Discordiador/(31703:31765): Se expulsó al Tripulante 4.
+
+[INFO] 01:57:10:757 Discordiador/(31703:31743): Se expulsó al Tripulante 2.
+
+[INFO] 01:57:10:759 Discordiador/(31703:31766): Se expulsó al Tripulante 5.
+
+[INFO] 01:57:10:760 Discordiador/(31703:31742): Se expulsó al Tripulante 1.
+
+[INFO] 01:57:10:761 Discordiador/(31703:31767): Se expulsó al Tripulante 6.
+
+[INFO] 04:09:12:906 Discordiador/(17660:17660): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 04:09:22:109 Discordiador/(17660:17661): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 04:10:07:384 Discordiador/(17799:17799): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 04:10:27:514 Discordiador/(17799:17800): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 04:10:37:968 Discordiador/(17799:17800): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 04:10:49:341 Discordiador/(17799:17800): Se inició la Patota 3 con 3 tripulantes.
+
+[INFO] 04:10:59:059 Discordiador/(17799:17800): Se inició la Patota 4 con 3 tripulantes.
+
+[INFO] 04:11:14:243 Discordiador/(17799:17800): Se inició la Patota 5 con 3 tripulantes.
+
+[INFO] 04:11:24:785 Discordiador/(17799:17800): Iniciando Planificacion.......
+
+[INFO] 04:11:25:415 Discordiador/(17799:17949): Se expulsó al Tripulante 13.
+
+[INFO] 04:11:25:508 Discordiador/(17799:17951): Se expulsó al Tripulante 15.
+
+[INFO] 04:11:25:582 Discordiador/(17799:17950): Se expulsó al Tripulante 14.
+
+[INFO] 04:11:25:596 Discordiador/(17799:17878): Se expulsó al Tripulante 7.
+
+[INFO] 04:11:25:637 Discordiador/(17799:17880): Se expulsó al Tripulante 9.
+
+[INFO] 04:11:25:643 Discordiador/(17799:17899): Se expulsó al Tripulante 11.
+
+[INFO] 04:11:25:659 Discordiador/(17799:17898): Se expulsó al Tripulante 10.
+
+[INFO] 04:11:25:667 Discordiador/(17799:17900): Se expulsó al Tripulante 12.
+
+[INFO] 04:11:25:682 Discordiador/(17799:17879): Se expulsó al Tripulante 8.
+
+[INFO] 04:11:25:703 Discordiador/(17799:17841): Se expulsó al Tripulante 3.
+
+[INFO] 04:11:25:718 Discordiador/(17799:17855): Se expulsó al Tripulante 4.
+
+[INFO] 04:11:25:726 Discordiador/(17799:17839): Se expulsó al Tripulante 1.
+
+[INFO] 04:11:25:730 Discordiador/(17799:17840): Se expulsó al Tripulante 2.
+
+[INFO] 04:11:25:732 Discordiador/(17799:17856): Se expulsó al Tripulante 5.
+
+[INFO] 04:11:25:734 Discordiador/(17799:17857): Se expulsó al Tripulante 6.
+
+[INFO] 14:24:55:037 Discordiador/(3916:3916): Se eligió el algoritmo FIFO.
+
+[INFO] 14:26:10:482 Discordiador/(3916:3922): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 14:26:26:085 Discordiador/(3916:3922): Iniciando Planificacion.......
+
+[ERROR] 14:26:29:241 Discordiador/(3916:4353): La respuesta fue negativa.
+
+[INFO] 14:36:58:923 Discordiador/(6565:6565): Se eligió el algoritmo FIFO.
+
+[INFO] 14:37:29:433 Discordiador/(6565:6570): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 14:37:38:414 Discordiador/(6565:6570): Iniciando Planificacion.......
+
+[ERROR] 14:37:39:797 Discordiador/(6565:6755): La respuesta fue negativa.
+
+[INFO] 14:41:18:243 Discordiador/(7553:7553): Se eligió el algoritmo FIFO.
+
+[INFO] 14:41:26:120 Discordiador/(7553:7561): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 14:41:32:816 Discordiador/(7553:7561): Iniciando Planificacion.......
+
+[INFO] 14:41:34:793 Discordiador/(7553:7584): Se expulsó al Tripulante 2.
+
+[INFO] 14:41:34:947 Discordiador/(7553:7583): Se expulsó al Tripulante 1.
+
+[INFO] 14:41:35:036 Discordiador/(7553:7585): Se expulsó al Tripulante 3.
+
+[INFO] 14:42:51:765 Discordiador/(8315:8315): Se eligió el algoritmo FIFO.
+
+[INFO] 14:43:09:332 Discordiador/(8315:8316): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 14:43:14:618 Discordiador/(8315:8316): Iniciando Planificacion.......
+
+[INFO] 14:43:20:609 Discordiador/(8315:8316): Pausando Planificacion........
+
+[INFO] 14:44:52:870 Discordiador/(8624:8624): Se eligió el algoritmo FIFO.
+
+[INFO] 14:44:59:441 Discordiador/(8624:8627): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 14:45:03:695 Discordiador/(8624:8627): Iniciando Planificacion.......
+
+[INFO] 14:45:11:479 Discordiador/(8624:8627): Pausando Planificacion........
+
+[INFO] 16:02:49:363 Discordiador/(16969:16969): Se eligió el algoritmo FIFO.
+
+[INFO] 16:02:55:593 Discordiador/(16969:16974): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 16:03:08:239 Discordiador/(16969:16974): Iniciando Planificacion.......
+
+[INFO] 16:03:10:158 Discordiador/(16969:16999): Se expulsó al Tripulante 2.
+
+[INFO] 16:03:10:289 Discordiador/(16969:16998): Se expulsó al Tripulante 1.
+
+[INFO] 16:03:10:381 Discordiador/(16969:17000): Se expulsó al Tripulante 3.
+
+[INFO] 16:03:12:859 Discordiador/(16969:16974): Pausando Planificacion........
+
+[INFO] 16:06:35:164 Discordiador/(18032:18032): Se eligió el algoritmo FIFO.
+
+[INFO] 16:07:27:752 Discordiador/(18130:18130): Se eligió el algoritmo FIFO.
+
+[INFO] 16:08:10:153 Discordiador/(18130:18131): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 16:08:17:649 Discordiador/(18130:18131): Iniciando Planificacion.......
+
+[INFO] 16:08:18:818 Discordiador/(18130:18214): Se expulsó al Tripulante 1.
+
+[INFO] 16:08:18:823 Discordiador/(18130:18215): Se expulsó al Tripulante 2.
+
+[INFO] 16:10:22:007 Discordiador/(18933:18933): Se eligió el algoritmo FIFO.
+
+[INFO] 16:10:32:532 Discordiador/(18933:18934): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 16:10:40:683 Discordiador/(18933:18934): Iniciando Planificacion.......
+
+[INFO] 16:10:55:661 Discordiador/(18933:18934): Pausando Planificacion........
+
+[INFO] 16:40:17:756 Discordiador/(22359:22359): Se eligió el algoritmo FIFO.
+
+[INFO] 16:41:16:988 Discordiador/(22359:22360): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 16:41:27:089 Discordiador/(22359:22360): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 16:42:00:285 Discordiador/(22667:22667): Se eligió el algoritmo FIFO.
+
+[INFO] 16:42:32:264 Discordiador/(22730:22730): Se eligió el algoritmo FIFO.
+
+[INFO] 16:42:42:848 Discordiador/(22730:22731): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 16:42:58:326 Discordiador/(22730:22731): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 16:43:15:419 Discordiador/(22730:22731): Iniciando Planificacion.......
+
+[INFO] 16:44:47:430 Discordiador/(22730:22795): Se expulsó al Tripulante 4.
+
+[INFO] 16:44:52:431 Discordiador/(22730:22796): Se expulsó al Tripulante 5.
+
+[INFO] 16:45:01:431 Discordiador/(22730:22760): Se expulsó al Tripulante 1.
+
+[INFO] 16:45:02:432 Discordiador/(22730:22797): Se expulsó al Tripulante 6.
+
+[INFO] 16:45:06:432 Discordiador/(22730:22761): Se expulsó al Tripulante 2.
+
+[INFO] 16:45:11:432 Discordiador/(22730:22762): Se expulsó al Tripulante 3.
+
+[INFO] 16:52:48:366 Discordiador/(24336:24336): Se eligió el algoritmo FIFO.
+
+[INFO] 16:53:13:719 Discordiador/(24336:24337): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 16:53:23:526 Discordiador/(24336:24337): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 16:53:29:285 Discordiador/(24336:24337): Iniciando Planificacion.......
+
+[INFO] 16:55:06:297 Discordiador/(24336:24384): Se expulsó al Tripulante 2.
+
+[INFO] 16:55:11:298 Discordiador/(24336:24383): Se expulsó al Tripulante 1.
+
+[INFO] 16:55:16:298 Discordiador/(24336:24385): Se expulsó al Tripulante 3.
+
+[INFO] 16:55:20:299 Discordiador/(24336:24401): Se expulsó al Tripulante 4.
+
+[INFO] 16:55:25:299 Discordiador/(24336:24402): Se expulsó al Tripulante 5.
+
+[INFO] 16:55:30:300 Discordiador/(24336:24403): Se expulsó al Tripulante 6.
+
+[INFO] 18:00:32:586 Discordiador/(31240:31240): Se eligió el algoritmo FIFO.
+
+[INFO] 18:00:55:491 Discordiador/(31240:31241): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:01:19:570 Discordiador/(31240:31241): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:02:01:227 Discordiador/(31437:31437): Se eligió el algoritmo FIFO.
+
+[INFO] 18:02:40:858 Discordiador/(31437:31438): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:02:53:946 Discordiador/(31437:31438): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:03:00:194 Discordiador/(31437:31438): Iniciando Planificacion.......
+
+[INFO] 18:04:37:223 Discordiador/(31437:31516): Se expulsó al Tripulante 2.
+
+[INFO] 18:04:42:224 Discordiador/(31437:31515): Se expulsó al Tripulante 1.
+
+[INFO] 18:04:47:225 Discordiador/(31437:31517): Se expulsó al Tripulante 3.
+
+[INFO] 18:04:51:226 Discordiador/(31437:31540): Se expulsó al Tripulante 4.
+
+[INFO] 18:04:56:227 Discordiador/(31437:31541): Se expulsó al Tripulante 5.
+
+[INFO] 18:05:01:229 Discordiador/(31437:31542): Se expulsó al Tripulante 6.
+
+[INFO] 18:05:43:120 Discordiador/(32262:32262): Se eligió el algoritmo FIFO.
+
+[INFO] 18:06:00:855 Discordiador/(32262:32263): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:06:13:055 Discordiador/(32262:32263): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:06:20:655 Discordiador/(32262:32263): Iniciando Planificacion.......
+
+[INFO] 18:06:20:773 Discordiador/(32262:32305): Se expulsó al Tripulante 2.
+
+[INFO] 18:06:20:780 Discordiador/(32262:32304): Se expulsó al Tripulante 1.
+
+[INFO] 18:06:20:781 Discordiador/(32262:32329): Se expulsó al Tripulante 4.
+
+[INFO] 18:06:20:783 Discordiador/(32262:32306): Se expulsó al Tripulante 3.
+
+[INFO] 18:06:20:783 Discordiador/(32262:32331): Se expulsó al Tripulante 6.
+
+[INFO] 18:06:20:805 Discordiador/(32262:32330): Se expulsó al Tripulante 5.
+
+[INFO] 18:07:02:276 Discordiador/(347:347): Se eligió el algoritmo FIFO.
+
+[INFO] 18:07:48:793 Discordiador/(434:434): Se eligió el algoritmo FIFO.
+
+[INFO] 18:08:05:376 Discordiador/(434:437): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:08:13:540 Discordiador/(434:437): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:08:25:595 Discordiador/(434:437): Iniciando Planificacion.......
+
+[INFO] 18:08:26:623 Discordiador/(434:480): Se expulsó al Tripulante 1.
+
+[INFO] 18:08:26:779 Discordiador/(434:481): Se expulsó al Tripulante 2.
+
+[INFO] 18:08:26:837 Discordiador/(434:499): Se expulsó al Tripulante 5.
+
+[INFO] 18:08:26:841 Discordiador/(434:482): Se expulsó al Tripulante 3.
+
+[INFO] 18:08:26:884 Discordiador/(434:498): Se expulsó al Tripulante 4.
+
+[INFO] 18:08:26:886 Discordiador/(434:500): Se expulsó al Tripulante 6.
+
+[INFO] 18:09:08:632 Discordiador/(991:991): Se eligió el algoritmo FIFO.
+
+[INFO] 18:09:16:896 Discordiador/(991:992): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:09:27:372 Discordiador/(991:992): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:09:38:149 Discordiador/(991:992): Iniciando Planificacion.......
+
+[ERROR] 18:09:39:170 Discordiador/(991:1021): La respuesta fue negativa.
+
+[INFO] 18:09:55:615 Discordiador/(1346:1346): Se eligió el algoritmo FIFO.
+
+[INFO] 18:10:28:096 Discordiador/(1407:1407): Se eligió el algoritmo FIFO.
+
+[INFO] 18:10:34:959 Discordiador/(1407:1408): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:10:45:199 Discordiador/(1407:1408): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:10:58:303 Discordiador/(1407:1408): Iniciando Planificacion.......
+
+[INFO] 18:10:58:470 Discordiador/(1407:1427): Se expulsó al Tripulante 3.
+
+[INFO] 18:10:58:476 Discordiador/(1407:1425): Se expulsó al Tripulante 1.
+
+[INFO] 18:10:58:476 Discordiador/(1407:1444): Se expulsó al Tripulante 5.
+
+[INFO] 18:11:36:617 Discordiador/(1946:1946): Se eligió el algoritmo FIFO.
+
+[INFO] 18:11:54:946 Discordiador/(1977:1977): Se eligió el algoritmo FIFO.
+
+[INFO] 18:12:08:681 Discordiador/(1977:1978): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:12:21:802 Discordiador/(1977:1978): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:12:29:665 Discordiador/(1977:1978): Iniciando Planificacion.......
+
+[INFO] 18:12:29:817 Discordiador/(1977:2013): Se expulsó al Tripulante 2.
+
+[INFO] 18:12:29:820 Discordiador/(1977:2043): Se expulsó al Tripulante 4.
+
+[INFO] 18:12:29:825 Discordiador/(1977:2012): Se expulsó al Tripulante 1.
+
+[INFO] 18:12:54:836 Discordiador/(2516:2516): Se eligió el algoritmo FIFO.
+
+[INFO] 18:13:05:519 Discordiador/(2516:2517): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:13:14:436 Discordiador/(2516:2517): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:13:23:811 Discordiador/(2516:2517): Iniciando Planificacion.......
+
+[INFO] 18:13:23:983 Discordiador/(2516:2544): Se expulsó al Tripulante 2.
+
+[INFO] 18:13:23:993 Discordiador/(2516:2562): Se expulsó al Tripulante 5.
+
+[INFO] 18:13:24:007 Discordiador/(2516:2545): Se expulsó al Tripulante 3.
+
+[INFO] 18:13:24:015 Discordiador/(2516:2561): Se expulsó al Tripulante 4.
+
+[INFO] 18:13:24:016 Discordiador/(2516:2563): Se expulsó al Tripulante 6.
+
+[INFO] 18:13:24:017 Discordiador/(2516:2543): Se expulsó al Tripulante 1.
+
+[INFO] 18:14:17:358 Discordiador/(3182:3182): Se eligió el algoritmo FIFO.
+
+[INFO] 18:14:26:151 Discordiador/(3182:3183): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:14:39:329 Discordiador/(3182:3183): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:14:51:858 Discordiador/(3182:3183): Se inició la Patota 3 con 3 tripulantes.
+
+[INFO] 18:15:03:066 Discordiador/(3182:3183): Se inició la Patota 4 con 3 tripulantes.
+
+[INFO] 18:15:17:346 Discordiador/(3182:3183): Se inició la Patota 5 con 3 tripulantes.
+
+[INFO] 18:15:27:318 Discordiador/(3182:3183): Iniciando Planificacion.......
+
+[INFO] 18:15:27:788 Discordiador/(3182:3227): Se expulsó al Tripulante 6.
+
+[INFO] 18:15:27:795 Discordiador/(3182:3226): Se expulsó al Tripulante 5.
+
+[INFO] 18:15:27:852 Discordiador/(3182:3225): Se expulsó al Tripulante 4.
+
+[INFO] 18:15:27:859 Discordiador/(3182:3299): Se expulsó al Tripulante 14.
+
+[INFO] 18:15:27:868 Discordiador/(3182:3300): Se expulsó al Tripulante 15.
+
+[INFO] 18:15:27:870 Discordiador/(3182:3298): Se expulsó al Tripulante 13.
+
+[INFO] 18:15:27:995 Discordiador/(3182:3201): Se expulsó al Tripulante 2.
+
+[INFO] 18:15:27:997 Discordiador/(3182:3200): Se expulsó al Tripulante 1.
+
+[INFO] 18:15:27:998 Discordiador/(3182:3202): Se expulsó al Tripulante 3.
+
+[INFO] 18:15:28:143 Discordiador/(3182:3249): Se expulsó al Tripulante 7.
+
+[INFO] 18:15:28:144 Discordiador/(3182:3250): Se expulsó al Tripulante 8.
+
+[INFO] 18:15:28:160 Discordiador/(3182:3273): Se expulsó al Tripulante 10.
+
+[INFO] 18:15:28:162 Discordiador/(3182:3251): Se expulsó al Tripulante 9.
+
+[INFO] 18:15:28:163 Discordiador/(3182:3274): Se expulsó al Tripulante 11.
+
+[INFO] 18:15:28:166 Discordiador/(3182:3275): Se expulsó al Tripulante 12.
+
+[INFO] 18:18:18:275 Discordiador/(5415:5415): Se eligió el algoritmo FIFO.
+
+[INFO] 18:18:30:771 Discordiador/(5415:5416): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:18:48:715 Discordiador/(5415:5416): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:19:01:371 Discordiador/(5415:5416): Se inició la Patota 3 con 3 tripulantes.
+
+[INFO] 18:19:11:316 Discordiador/(5415:5416): Se inició la Patota 4 con 3 tripulantes.
+
+[INFO] 18:19:20:356 Discordiador/(5415:5416): Se inició la Patota 5 con 3 tripulantes.
+
+[INFO] 18:19:25:891 Discordiador/(5415:5416): Iniciando Planificacion.......
+
+[INFO] 18:19:26:303 Discordiador/(5415:5476): Se expulsó al Tripulante 6.
+
+[INFO] 18:19:26:321 Discordiador/(5415:5475): Se expulsó al Tripulante 5.
+
+[INFO] 18:19:26:355 Discordiador/(5415:5474): Se expulsó al Tripulante 4.
+
+[INFO] 18:19:26:386 Discordiador/(5415:5533): Se expulsó al Tripulante 15.
+
+[INFO] 18:19:26:392 Discordiador/(5415:5531): Se expulsó al Tripulante 13.
+
+[INFO] 18:19:26:405 Discordiador/(5415:5532): Se expulsó al Tripulante 14.
+
+[INFO] 18:19:26:534 Discordiador/(5415:5441): Se expulsó al Tripulante 2.
+
+[INFO] 18:19:26:549 Discordiador/(5415:5442): Se expulsó al Tripulante 3.
+
+[INFO] 18:19:26:552 Discordiador/(5415:5440): Se expulsó al Tripulante 1.
+
+[INFO] 18:19:26:789 Discordiador/(5415:5494): Se expulsó al Tripulante 7.
+
+[INFO] 18:19:26:797 Discordiador/(5415:5496): Se expulsó al Tripulante 9.
+
+[INFO] 18:19:26:798 Discordiador/(5415:5495): Se expulsó al Tripulante 8.
+
+[INFO] 18:19:26:799 Discordiador/(5415:5513): Se expulsó al Tripulante 10.
+
+[INFO] 18:19:26:814 Discordiador/(5415:5514): Se expulsó al Tripulante 11.
+
+[INFO] 18:19:26:855 Discordiador/(5415:5515): Se expulsó al Tripulante 12.
+
+[INFO] 18:19:52:141 Discordiador/(7495:7495): Se eligió el algoritmo FIFO.
+
+[INFO] 18:20:19:357 Discordiador/(7495:7496): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:20:27:462 Discordiador/(7569:7569): Se eligió el algoritmo FIFO.
+
+[INFO] 18:20:34:133 Discordiador/(7569:7570): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 18:20:43:541 Discordiador/(7569:7570): Se inició la Patota 2 con 3 tripulantes.
+
+[INFO] 18:20:51:842 Discordiador/(7569:7570): Se inició la Patota 3 con 3 tripulantes.
+
+[INFO] 18:21:00:222 Discordiador/(7569:7570): Se inició la Patota 4 con 3 tripulantes.
+
+[INFO] 18:21:13:718 Discordiador/(7569:7570): Se inició la Patota 5 con 3 tripulantes.
+
+[INFO] 18:21:18:222 Discordiador/(7569:7570): Iniciando Planificacion.......
+
+[INFO] 18:21:18:658 Discordiador/(7569:7607): Se expulsó al Tripulante 5.
+
+[INFO] 18:21:18:674 Discordiador/(7569:7608): Se expulsó al Tripulante 6.
+
+[INFO] 18:21:18:723 Discordiador/(7569:7606): Se expulsó al Tripulante 4.
+
+[INFO] 18:21:18:735 Discordiador/(7569:7676): Se expulsó al Tripulante 15.
+
+[INFO] 18:21:18:752 Discordiador/(7569:7675): Se expulsó al Tripulante 14.
+
+[INFO] 18:21:18:753 Discordiador/(7569:7674): Se expulsó al Tripulante 13.
+
+[INFO] 18:21:18:880 Discordiador/(7569:7588): Se expulsó al Tripulante 1.
+
+[INFO] 18:21:18:881 Discordiador/(7569:7590): Se expulsó al Tripulante 3.
+
+[INFO] 18:21:18:889 Discordiador/(7569:7589): Se expulsó al Tripulante 2.
+
+[INFO] 18:21:19:153 Discordiador/(7569:7623): Se expulsó al Tripulante 7.
+
+[INFO] 18:21:19:155 Discordiador/(7569:7624): Se expulsó al Tripulante 8.
+
+[INFO] 18:21:19:156 Discordiador/(7569:7625): Se expulsó al Tripulante 9.
+
+[INFO] 18:21:19:157 Discordiador/(7569:7646): Se expulsó al Tripulante 10.
+
+[INFO] 18:21:19:158 Discordiador/(7569:7647): Se expulsó al Tripulante 11.
+
+[INFO] 18:21:19:161 Discordiador/(7569:7648): Se expulsó al Tripulante 12.
+
+[INFO] 18:27:23:256 Discordiador/(10126:10126): Se eligió el algoritmo FIFO.
+
+[INFO] 18:27:55:208 Discordiador/(10126:10127): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 18:28:01:575 Discordiador/(10126:10127): Iniciando Planificacion.......
+
+[INFO] 18:28:01:633 Discordiador/(10126:10184): Se expulsó al Tripulante 3.
+
+[INFO] 18:28:01:635 Discordiador/(10126:10182): Se expulsó al Tripulante 1.
+
+[INFO] 18:28:01:635 Discordiador/(10126:10185): Se expulsó al Tripulante 4.
+
+[INFO] 18:28:01:639 Discordiador/(10126:10186): Se expulsó al Tripulante 5.
+
+[INFO] 18:28:01:639 Discordiador/(10126:10183): Se expulsó al Tripulante 2.
+
+[INFO] 18:28:19:858 Discordiador/(10370:10370): Se eligió el algoritmo FIFO.
+
+[INFO] 18:28:32:618 Discordiador/(10370:10371): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 18:28:50:617 Discordiador/(10370:10371): Iniciando Planificacion.......
+
+[INFO] 18:28:50:658 Discordiador/(10370:10396): Se expulsó al Tripulante 1.
+
+[INFO] 18:28:50:662 Discordiador/(10370:10398): Se expulsó al Tripulante 3.
+
+[INFO] 18:28:50:663 Discordiador/(10370:10400): Se expulsó al Tripulante 5.
+
+[INFO] 18:28:50:663 Discordiador/(10370:10397): Se expulsó al Tripulante 2.
+
+[INFO] 18:28:50:663 Discordiador/(10370:10399): Se expulsó al Tripulante 4.
+
+[INFO] 18:31:40:137 Discordiador/(10870:10870): Se eligió el algoritmo FIFO.
+
+[INFO] 18:32:15:927 Discordiador/(10870:10871): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 18:32:22:214 Discordiador/(10870:10871): Iniciando Planificacion.......
+
+[INFO] 18:32:22:274 Discordiador/(10870:10933): Se expulsó al Tripulante 1.
+
+[INFO] 18:32:22:276 Discordiador/(10870:10935): Se expulsó al Tripulante 3.
+
+[INFO] 18:32:22:292 Discordiador/(10870:10934): Se expulsó al Tripulante 2.
+
+[INFO] 18:32:22:293 Discordiador/(10870:10936): Se expulsó al Tripulante 4.
+
+[INFO] 18:32:22:294 Discordiador/(10870:10937): Se expulsó al Tripulante 5.
+
+[INFO] 18:34:59:917 Discordiador/(11395:11395): Se eligió el algoritmo FIFO.
+
+[INFO] 18:35:07:548 Discordiador/(11395:11396): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 18:35:14:235 Discordiador/(11395:11396): Iniciando Planificacion.......
+
+[INFO] 18:35:14:297 Discordiador/(11395:11418): Se expulsó al Tripulante 3.
+
+[INFO] 18:35:14:297 Discordiador/(11395:11416): Se expulsó al Tripulante 1.
+
+[INFO] 18:35:14:314 Discordiador/(11395:11420): Se expulsó al Tripulante 5.
+
+[INFO] 18:35:14:316 Discordiador/(11395:11419): Se expulsó al Tripulante 4.
+
+[INFO] 18:35:14:316 Discordiador/(11395:11417): Se expulsó al Tripulante 2.
+
+[INFO] 18:36:51:481 Discordiador/(11798:11798): Se eligió el algoritmo FIFO.
+
+[INFO] 18:36:56:280 Discordiador/(11798:11799): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 18:37:02:080 Discordiador/(11798:11799): Iniciando Planificacion.......
+
+[INFO] 18:37:02:126 Discordiador/(11798:11816): Se expulsó al Tripulante 1.
+
+[INFO] 18:37:02:128 Discordiador/(11798:11817): Se expulsó al Tripulante 2.
+
+[INFO] 18:37:02:128 Discordiador/(11798:11820): Se expulsó al Tripulante 5.
+
+[INFO] 18:37:02:129 Discordiador/(11798:11818): Se expulsó al Tripulante 3.
+
+[INFO] 18:37:02:129 Discordiador/(11798:11819): Se expulsó al Tripulante 4.
+
+[INFO] 18:37:53:515 Discordiador/(12093:12093): Se eligió el algoritmo FIFO.
+
+[INFO] 18:38:27:620 Discordiador/(12093:12094): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 18:38:32:243 Discordiador/(12093:12094): Iniciando Planificacion.......
+
+[INFO] 18:38:32:331 Discordiador/(12093:12167): Se expulsó al Tripulante 1.
+
+[INFO] 18:38:32:331 Discordiador/(12093:12169): Se expulsó al Tripulante 3.
+
+[INFO] 18:38:32:334 Discordiador/(12093:12171): Se expulsó al Tripulante 5.
+
+[INFO] 18:38:32:334 Discordiador/(12093:12170): Se expulsó al Tripulante 4.
+
+[INFO] 18:38:32:336 Discordiador/(12093:12168): Se expulsó al Tripulante 2.
+
+[INFO] 18:39:23:800 Discordiador/(12474:12474): Se eligió el algoritmo FIFO.
+
+[INFO] 18:39:31:067 Discordiador/(12474:12475): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 18:39:37:647 Discordiador/(12474:12475): Iniciando Planificacion.......
+
+[INFO] 18:39:37:703 Discordiador/(12474:12494): Se expulsó al Tripulante 3.
+
+[INFO] 18:39:37:708 Discordiador/(12474:12493): Se expulsó al Tripulante 2.
+
+[INFO] 18:39:37:709 Discordiador/(12474:12495): Se expulsó al Tripulante 4.
+
+[INFO] 18:39:37:709 Discordiador/(12474:12492): Se expulsó al Tripulante 1.
+
+[INFO] 18:39:37:728 Discordiador/(12474:12496): Se expulsó al Tripulante 5.
+
+[INFO] 18:53:39:242 Discordiador/(14095:14095): Se eligió el algoritmo FIFO.
+
+[INFO] 18:54:33:141 Discordiador/(14178:14178): Se eligió el algoritmo FIFO.
+
+[INFO] 18:54:50:334 Discordiador/(14178:14179): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 18:54:56:913 Discordiador/(14178:14179): Iniciando Planificacion.......
+
+[INFO] 18:54:56:966 Discordiador/(14178:14214): Se expulsó al Tripulante 1.
+
+[INFO] 18:54:56:967 Discordiador/(14178:14216): Se expulsó al Tripulante 3.
+
+[INFO] 18:54:56:969 Discordiador/(14178:14218): Se expulsó al Tripulante 5.
+
+[INFO] 18:54:56:969 Discordiador/(14178:14215): Se expulsó al Tripulante 2.
+
+[INFO] 18:54:56:969 Discordiador/(14178:14217): Se expulsó al Tripulante 4.
+
+[INFO] 18:56:21:771 Discordiador/(14545:14545): Se eligió el algoritmo FIFO.
+
+[INFO] 18:56:38:362 Discordiador/(14545:14546): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 18:56:49:980 Discordiador/(14545:14546): Iniciando Planificacion.......
+
+[ERROR] 18:56:50:824 Discordiador/(14545:14579): La respuesta fue negativa.
+
+[INFO] 18:57:18:551 Discordiador/(14797:14797): Se eligió el algoritmo FIFO.
+
+[INFO] 18:57:28:614 Discordiador/(14797:14798): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 18:57:44:246 Discordiador/(14797:14798): Iniciando Planificacion.......
+
+[INFO] 18:57:44:290 Discordiador/(14797:14830): Se expulsó al Tripulante 3.
+
+[INFO] 18:57:44:290 Discordiador/(14797:14831): Se expulsó al Tripulante 4.
+
+[INFO] 21:07:13:865 Discordiador/(3681:3681): Se eligió el algoritmo FIFO.
+
+[INFO] 21:08:34:396 Discordiador/(3681:3682): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 21:08:40:907 Discordiador/(3681:3682): Iniciando Planificacion.......
+
+[INFO] 21:09:11:181 Discordiador/(3681:3682): Pausando Planificacion........
+
+[INFO] 21:17:47:619 Discordiador/(5528:5528): Se eligió el algoritmo FIFO.
+
+[INFO] 21:18:24:369 Discordiador/(5528:5529): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 21:18:30:187 Discordiador/(5528:5529): Iniciando Planificacion.......
+
+[INFO] 21:19:16:800 Discordiador/(5528:5529): Pausando Planificacion........
+
+[INFO] 21:19:48:850 Discordiador/(5528:5529): Iniciando Planificacion.......
+
+[INFO] 21:20:48:859 Discordiador/(6310:6310): Se eligió el algoritmo FIFO.
+
+[INFO] 21:20:58:075 Discordiador/(6310:6311): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 21:21:10:097 Discordiador/(6310:6311): Iniciando Planificacion.......
+
+[INFO] 21:23:03:133 Discordiador/(6310:6348): Se expulsó al Tripulante 1.
+
+[INFO] 21:23:12:134 Discordiador/(6310:6349): Se expulsó al Tripulante 2.
+
+[INFO] 21:23:13:134 Discordiador/(6310:6350): Se expulsó al Tripulante 3.
+
+[INFO] 21:26:44:786 Discordiador/(7766:7766): Se eligió el algoritmo FIFO.
+
+[INFO] 21:27:16:866 Discordiador/(7766:7767): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 21:27:25:626 Discordiador/(7766:7767): Iniciando Planificacion.......
+
+[INFO] 21:27:30:930 Discordiador/(7766:7767): Pausando Planificacion........
+
+[ERROR] 21:30:09:697 Discordiador/(7766:7847): No se pudo lograr la conexion con Mongo Store.
+
+[INFO] 21:32:54:416 Discordiador/(8755:8755): Se eligió el algoritmo FIFO.
+
+[INFO] 21:33:31:037 Discordiador/(8755:8756): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 21:33:38:171 Discordiador/(8755:8756): Iniciando Planificacion.......
+
+[ERROR] 21:33:39:172 Discordiador/(8755:8848): No se pudo lograr la conexion con Mongo Store.
+
+[ERROR] 21:33:39:172 Discordiador/(8755:8847): No se pudo lograr la conexion con Mongo Store.
+
+[INFO] 21:33:53:565 Discordiador/(8915:8915): Se eligió el algoritmo FIFO.
+
+[INFO] 21:34:04:396 Discordiador/(8915:8916): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 21:34:09:234 Discordiador/(8915:8916): Iniciando Planificacion.......
+
+[INFO] 21:34:15:210 Discordiador/(8915:8916): Pausando Planificacion........
+
+[INFO] 21:35:09:760 Discordiador/(8915:8916): Pausando Planificacion........
+
+[INFO] 21:38:44:058 Discordiador/(9619:9619): Se eligió el algoritmo FIFO.
+
+[INFO] 21:38:52:568 Discordiador/(9619:9620): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 21:38:57:912 Discordiador/(9619:9620): Iniciando Planificacion.......
+
+[INFO] 21:39:05:064 Discordiador/(9619:9620): Pausando Planificacion........
+
+[INFO] 21:40:05:249 Discordiador/(9619:9620): Pausando Planificacion........
+
+[INFO] 22:22:39:197 Discordiador/(15046:15046): Se eligió el algoritmo Round Robin con un Quantum de 5. 
+
+[INFO] 22:24:03:216 Discordiador/(15203:15203): Se eligió el algoritmo Round Robin con un Quantum de 5. 
+
+[ERROR] 22:24:14:583 Discordiador/(15203:15204): No hay espacio para almacenar la patota con sus tripulantes. 
+
+[INFO] 22:25:11:940 Discordiador/(15433:15433): Se eligió el algoritmo Round Robin con un Quantum de 5. 
+
+[ERROR] 22:25:17:680 Discordiador/(15433:15434): No hay espacio para almacenar la patota con sus tripulantes. 
+
+[INFO] 22:27:31:303 Discordiador/(15788:15788): Se eligió el algoritmo Round Robin con un Quantum de 5. 
+
+[INFO] 22:28:39:446 Discordiador/(15788:15789): Se inició la Patota 1 con 3 tripulantes.
+
+[INFO] 22:28:47:012 Discordiador/(15788:15789): Iniciando Planificacion.......
+
+[INFO] 22:28:48:285 Discordiador/(15788:15921): Se expulsó al Tripulante 2.
+
+[INFO] 22:28:48:302 Discordiador/(15788:15922): Se expulsó al Tripulante 3.
+
+[INFO] 22:28:48:331 Discordiador/(15788:15920): Se expulsó al Tripulante 1.
+
+[INFO] 03:25:05:411 Discordiador/(9194:9194): Se eligió el algoritmo Round Robin con un Quantum de 5. 
+
+[INFO] 03:35:23:309 Discordiador/(10573:10573): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 03:36:21:222 Discordiador/(10573:10574): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 03:36:31:589 Discordiador/(10573:10574): Iniciando Planificacion.......
+
+[INFO] 03:36:41:464 Discordiador/(10573:10574): Pausando Planificacion........
+
+[INFO] 03:38:36:305 Discordiador/(10573:10574): Iniciando Planificacion.......
+
+[INFO] 03:38:59:433 Discordiador/(10573:10574): Pausando Planificacion........
+
+[INFO] 03:44:32:677 Discordiador/(11567:11567): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 03:44:39:965 Discordiador/(11567:11568): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 03:44:47:996 Discordiador/(11567:11568): Iniciando Planificacion.......
+
+[INFO] 03:45:22:749 Discordiador/(11567:11568): Pausando Planificacion........
+
+[INFO] 03:46:57:448 Discordiador/(11567:11568): Iniciando Planificacion.......
+
+[INFO] 03:47:37:641 Discordiador/(11567:11568): Pausando Planificacion........
+
+[INFO] 04:03:22:848 Discordiador/(13472:13472): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 04:03:57:472 Discordiador/(13472:13473): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 04:04:06:045 Discordiador/(13472:13473): Iniciando Planificacion.......
+
+[INFO] 04:04:33:310 Discordiador/(13472:13473): Pausando Planificacion........
+
+[ERROR] 04:05:59:906 Discordiador/(13472:13544): No se pudo lograr la conexion con Mongo Store.
+
+[INFO] 04:09:07:815 Discordiador/(14219:14219): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 04:10:18:263 Discordiador/(14219:14220): Iniciando Planificacion.......
+
+[INFO] 04:10:37:066 Discordiador/(14219:14220): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 04:11:01:400 Discordiador/(14219:14220): Pausando Planificacion........
+
+[INFO] 04:11:50:532 Discordiador/(14622:14622): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 04:12:08:044 Discordiador/(14622:14623): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 04:12:15:074 Discordiador/(14622:14623): Iniciando Planificacion.......
+
+[INFO] 04:12:28:939 Discordiador/(14622:14623): Pausando Planificacion........
+
+[INFO] 04:13:49:901 Discordiador/(14622:14623): Iniciando Planificacion.......
+
+[INFO] 04:14:14:126 Discordiador/(14622:14623): Pausando Planificacion........
+
+[INFO] 04:15:11:980 Discordiador/(15141:15141): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 04:15:41:974 Discordiador/(15141:15148): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 04:15:48:689 Discordiador/(15141:15148): Iniciando Planificacion.......
+
+[INFO] 04:16:07:545 Discordiador/(15141:15148): Pausando Planificacion........
+
+[INFO] 04:28:57:330 Discordiador/(16519:16519): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 04:29:27:734 Discordiador/(16519:16526): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 04:29:43:074 Discordiador/(16519:16526): Iniciando Planificacion.......
+
+[INFO] 04:29:56:835 Discordiador/(16519:16526): Pausando Planificacion........
+
+[INFO] 04:32:54:759 Discordiador/(17013:17013): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 04:33:13:839 Discordiador/(17013:17014): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 04:33:20:725 Discordiador/(17013:17014): Iniciando Planificacion.......
+
+[INFO] 04:33:40:838 Discordiador/(17013:17014): Pausando Planificacion........
+
+[INFO] 04:44:25:934 Discordiador/(18013:18013): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 04:44:59:481 Discordiador/(18013:18018): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 04:45:04:205 Discordiador/(18013:18018): Iniciando Planificacion.......
+
+[INFO] 04:45:19:277 Discordiador/(18013:18018): Pausando Planificacion........
+
+[INFO] 04:45:43:806 Discordiador/(18013:18018): Iniciando Planificacion.......
+
+[INFO] 04:45:52:231 Discordiador/(18013:18018): Pausando Planificacion........
+
+[INFO] 04:49:19:159 Discordiador/(18537:18537): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[ERROR] 04:49:51:004 Discordiador/(18537:18538): ¡Error! No se ha podido conectar a Mi-RAM HQ. 
+
+[INFO] 04:49:58:231 Discordiador/(18537:18538): Se inició la Patota 1 con 5 tripulantes.
+
+[INFO] 04:50:12:613 Discordiador/(18537:18538): Iniciando Planificacion.......
+
+[INFO] 04:50:27:798 Discordiador/(18537:18538): Pausando Planificacion........
+
+[INFO] 04:51:01:494 Discordiador/(18537:18538): Iniciando Planificacion.......
+
+[INFO] 04:51:06:227 Discordiador/(18537:18538): Pausando Planificacion........
+
+[INFO] 08:46:03:792 Discordiador/(4724:4724): Se eligió el algoritmo Round Robin con un Quantum de 1. 
+
+[INFO] 08:53:43:121 Discordiador/(6581:6581): Se eligió el algoritmo FIFO.
+

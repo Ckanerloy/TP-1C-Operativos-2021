@@ -1091,8 +1091,7 @@ char* crear_ruta_recurso(char* nombre_recurso) {
 
 	char* path = string_new();
 	string_append_with_format(&path, "/Files/%s.ims", nombre_recurso);
-	char* path_completo = malloc(strlen(PUNTO_MONTAJE) + strlen(path) + 2);
-	path_completo = concatenar_path(path);
+	char* path_completo = concatenar_path(path);
 
 	free(path);
 	return path_completo;

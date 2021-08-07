@@ -1,0 +1,131 @@
+[INFO] 20:44:23:662 Discordiador/(6464:6474): Se inicializo al tripulante con id: 1, correspondiente a la patato 1 
+
+[INFO] 20:44:23:739 Discordiador/(6464:6474): Se inicializo al tripulante con id: 2, correspondiente a la patato 1 
+
+[INFO] 20:44:23:741 Discordiador/(6464:6474): Se inicializo al tripulante con id: 3, correspondiente a la patato 1 
+
+[INFO] 20:45:20:347 Discordiador/(6464:6474): Iniciando Planificacion....... 
+
+[INFO] 20:45:20:433 Discordiador/(6464:6475): El tripulante con id 1 de la patato 1 paso de new a ready
+[INFO] 20:45:20:478 Discordiador/(6464:6475): El tripulante con id 2 de la patato 1 paso de new a ready
+[INFO] 20:45:20:504 Discordiador/(6464:6475): El tripulante con id 3 de la patato 1 paso de new a ready
+[INFO] 21:05:26:381 Discordiador/(9569:9576): Se inicializo al tripulante con id: 1, correspondiente a la patota 1 en el estado New 
+
+[INFO] 21:05:26:470 Discordiador/(9569:9576): Se inicializo al tripulante con id: 2, correspondiente a la patota 1 en el estado New 
+
+[INFO] 21:05:26:472 Discordiador/(9569:9576): Se inicializo al tripulante con id: 3, correspondiente a la patota 1 en el estado New 
+
+[INFO] 21:05:34:380 Discordiador/(9569:9576): Iniciando Planificacion....... 
+
+[INFO] 21:05:34:457 Discordiador/(9569:9577): El tripulante con id 1 de la patota 1 paso de New a Ready
+[INFO] 21:05:34:484 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:05:34:485 Discordiador/(9569:9577): El tripulante con id 2 de la patota 1 paso de New a Ready
+[INFO] 21:05:34:513 Discordiador/(9569:9577): El tripulante con id 3 de la patota 1 paso de New a Ready
+[INFO] 21:05:34:514 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:05:40:422 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Ready
+[INFO] 21:05:40:424 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Ready
+[INFO] 21:05:40:427 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:05:40:431 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:05:47:426 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Ready
+[INFO] 21:05:47:428 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:05:49:454 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Ready
+[INFO] 21:05:49:462 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:05:54:437 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Ready
+[INFO] 21:05:54:439 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:05:58:441 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Ready
+[INFO] 21:05:58:443 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:03:444 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:03:446 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:07:459 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:07:461 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:09:443 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:09:447 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:13:440 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:13:443 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:15:445 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:15:462 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:22:442 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Block
+[INFO] 21:06:22:463 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:24:443 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Block
+[INFO] 21:06:27:466 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Block a Ready
+[INFO] 21:06:27:471 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:31:446 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Block
+[INFO] 21:06:32:458 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:32:459 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Block a Ready
+[INFO] 21:06:32:461 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:32:463 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:36:456 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Block
+[INFO] 21:06:37:497 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Block a Ready
+[INFO] 21:06:37:502 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:37:514 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:37:519 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:41:451 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Block
+[INFO] 21:06:42:462 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:42:463 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Block a Ready
+[INFO] 21:06:42:465 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:42:468 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:46:451 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Block
+[INFO] 21:06:47:457 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Block a Ready
+[INFO] 21:06:47:460 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:50:470 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:50:475 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:51:453 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Block
+[INFO] 21:06:52:489 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Block a Ready
+[INFO] 21:06:52:499 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:55:479 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:55:481 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:56:454 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Block
+[INFO] 21:06:57:462 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Block a Ready
+[INFO] 21:06:57:469 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:58:477 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Ready
+[INFO] 21:06:58:482 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:06:59:456 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Block
+[INFO] 21:07:00:467 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:00:480 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:01:459 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Block
+[INFO] 21:07:02:476 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Block a Ready
+[INFO] 21:07:02:478 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:03:495 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Block a Ready
+[INFO] 21:07:03:499 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:03:505 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:03:514 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:04:469 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Block
+[INFO] 21:07:08:474 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Block a Ready
+[INFO] 21:07:08:476 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:09:510 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:09:516 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Block a Ready
+[INFO] 21:07:09:517 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:10:469 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Block
+[INFO] 21:07:10:471 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:11:476 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Block a Ready
+[INFO] 21:07:15:483 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:15:485 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:22:484 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:22:487 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:23:477 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Block
+[INFO] 21:07:23:482 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:24:483 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Block
+[INFO] 21:07:24:490 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Block a Ready
+[INFO] 21:07:24:504 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:25:491 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Block a Ready
+[INFO] 21:07:27:498 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:27:500 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:30:482 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:30:484 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:31:480 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Block
+[INFO] 21:07:31:483 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:31:486 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:31:488 Discordiador/(9569:9578): El tripulante con id 2 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:32:516 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Block a Ready
+[INFO] 21:07:32:522 Discordiador/(9569:9589): El tripulante con id 2 de la patota 1 paso de Running a Exit
+[INFO] 21:07:32:556 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:33:484 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:33:486 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:33:487 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:33:498 Discordiador/(9569:9578): El tripulante con id 3 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:34:496 Discordiador/(9569:9591): El tripulante con id 3 de la patota 1 paso de Running a Exit
+[INFO] 21:07:38:490 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:38:492 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:38:494 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Execute a Ready
+[INFO] 21:07:38:498 Discordiador/(9569:9578): El tripulante con id 1 de la patota 1 paso de Ready a Execute
+[INFO] 21:07:39:487 Discordiador/(9569:9586): El tripulante con id 1 de la patota 1 paso de Running a Exit
