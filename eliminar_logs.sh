@@ -3,6 +3,7 @@ sleep 1
 echo Eliminando: Discordiador.log
 cd Discordiador/Debug
 rm Discordiador.log
+rm DiscordiadorOn.log
 cd ../..
 sleep 1
 echo Eliminando: Mi-RAM-HQ.log

@@ -3,7 +3,7 @@
 int main(void) {
 
 	logger = crear_log_sin_pantalla("Discordiador.log", "Discordiador");
-	//logger_on = crear_log("DiscordiadorOn.log", "Discordiador");
+	logger_on = crear_log("DiscordiadorOn.log", "Discordiador");
 	SALIR = 0;
 
 	config = crear_config(CONFIG_PATH);
