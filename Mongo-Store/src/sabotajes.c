@@ -47,17 +47,17 @@ void inicio_protocolo_fsck(void) {
 
 
 	// Sabotaje en SUPERBLOQUE: Modifica el Bitmap
-	/*if(sabotaje_superBloque_bitmap()){
+	if(sabotaje_superBloque_bitmap()){
 		log_info(logger, "Se realizó un Sabotaje en el Bitmap del SuperBloque.\n");
 		sabotaje = true;
 		reparacion_superBloque_bitmap();
 		log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Bitmap del SuperBloque.\n");
-	}*/
+	}
 
 	// Sabotaje en directorio FILES
 	for(int i=0; i<list_size(recursos_disponibles); i++) {
 		recursos_archivos recurso = (recursos_archivos)list_get(recursos_disponibles, i);
-/*
+
 		// Sabotaje en FILES: Modifica el Size
 		if(!mismo_size_archivo(recurso)){
 			log_info(logger, "Se realizó un Sabotaje en el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
@@ -65,7 +65,7 @@ void inicio_protocolo_fsck(void) {
 			reparar_size(recurso);
 			log_info(logger, "[SABOTAJE SOLUCIONADO] Se reparó el Size del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 		}
-*/
+
 		// Sabotaje en FILES: Modifica el Block_Count
 		//TODO
 		if(!mismo_block_count_archivo(recurso)){
