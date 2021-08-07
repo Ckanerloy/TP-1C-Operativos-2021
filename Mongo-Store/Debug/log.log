@@ -1,0 +1,6 @@
+[INFO] 23:45:24:851 Servidor/(9033:9033): Servidor listo para recibir al cliente
+[INFO] 23:45:48:119 Servidor/(9033:9033): Se conecto un cliente!
+[ERROR] 23:45:54:142 Servidor/(9033:9033): el cliente se desconecto. Terminando servidor
+[INFO] 21:33:51:875 Servidor/(6230:6230): Servidor listo para recibir al cliente
+[INFO] 21:33:55:144 Servidor/(6230:6230): Se conecto un cliente!
+[ERROR] 21:34:09:976 Servidor/(6230:6230): el cliente se desconecto. Terminando servidor
