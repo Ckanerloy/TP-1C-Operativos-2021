@@ -76,12 +76,12 @@ void inicio_protocolo_fsck(void) {
 		}
 
 		// Sabotaje en FILES: Modifica el Orden de los Bloques
-		if(!bloques_ordenados_archivo(recurso)) {
+		/*if(!bloques_ordenados_archivo(recurso)) {
 			log_info(logger, "Se realizó un Sabotaje en el Orden de los Bloques del Archivo %s.ims.\n", mapeo_recurso_a_string(recurso));
 			sabotaje = true;
 			reparar_orden_bloques(recurso);
 
-		}
+		}*/
 	}
 
 
