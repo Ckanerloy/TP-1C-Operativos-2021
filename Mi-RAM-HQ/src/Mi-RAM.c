@@ -257,7 +257,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 							free(nuevo_tripulante);
 							posicion += 2;
 
-							caracter_personaje++;
+							//caracter_personaje++;
 						}
 
 						list_add(tablas_segmentos, tabla_patota);
@@ -338,7 +338,7 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion) {
 							contador_id_tripu++;
 							free(nuevo_tripulante);
 							posicion += 2;
-							caracter_personaje++;
+							//caracter_personaje++;
 						}
 
 						t_pagina* ultima_pagina = list_get(tabla_patota->paginas, list_size(tabla_patota->paginas)-1);
