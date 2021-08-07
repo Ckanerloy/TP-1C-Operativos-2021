@@ -188,8 +188,6 @@ bool mismo_size_archivo(recursos_archivos recurso){
 				//caracter_copia = caracter_recurso;
 				char* caracter_copia = string_new();
 				int ubicacion_bloque = nro_bloque * BLOCK_SIZE;
-
-
 				//TODO
 				memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
 
@@ -198,12 +196,10 @@ bool mismo_size_archivo(recursos_archivos recurso){
 				if(strcmp(caracter, caracter_recurso)==0){
 
 					tamanio_en_blocks++;
-
 				}
 				free(caracter_copia);
 				free(caracter);
 			}
-
 	}
 
 	free(path_recurso);
@@ -236,7 +232,7 @@ void reparar_size(recursos_archivos recurso){
 
 			memcpy(caracter_copia , informacion_blocks + ubicacion_bloque + c, sizeof(char));
 
-			char* caracter = string_substring(caracter_copia, 0, 1);
+			char* caracter = string_substring(caracter_copia, 0, sizeof(char));
 
 			if(strcmp(caracter, caracter_recurso)==0){
 				tamanio_en_blocks++;
