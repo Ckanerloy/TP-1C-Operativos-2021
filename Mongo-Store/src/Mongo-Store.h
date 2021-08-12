@@ -34,6 +34,7 @@
 
 
 #define IP "127.0.0.1"
+#define IP_DISCORDIADOR "127.0.0.1"
 #define CONFIG_PATH "/home/utnso/tp-2021-1c-UTNIX/Mongo-Store/Mongo-Store.config"
 
 // Datos del Config

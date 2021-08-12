@@ -1,10 +1,4 @@
-/*#include "mapa.h"
 #include "mapa.h"
-
-#include <stdlib.h>
-#include <curses.h>
-#include <commons/collections/list.h>
-
 
 void iniciar_mapa(void) {
 
@@ -37,5 +31,5 @@ void eliminar_tripulante(NIVEL* nivel, int caracter_personaje) {
 void finalizar_mapa(NIVEL* nivel) {
 	nivel_destruir(nivel);
 	nivel_gui_terminar();
-}*/
+}
 

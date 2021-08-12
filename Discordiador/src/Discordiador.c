@@ -139,8 +139,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 
 			list_add_all(bloqueado_suspendido,bloqueado_suspendido_ready);
 
-			//cuidado sin la lista esta vacia
-
 			if(list_size(bloqueado_suspendido)==0){
 				log_error(logger,"No hay nadie para resolver el sabotaje");
 				for(int i=0;i<largo;i++){
@@ -164,7 +162,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 					tripulante->cantidad_realizada = 0;
 					suspendido_ready(tripulante);
 				}
-
 
 				list_clean(bloqueado_suspendido);
 
@@ -217,8 +214,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 
 			if(tripu_mas_cercano->estado_anterior == 'R'){
 				sem_post(tripu_mas_cercano->sem_planificacion);
-			}else{
-				//sem_post(tripu_mas_cercano->sem_tripu);
 			}
 
 			sem_wait(termine_sabotaje);
@@ -226,8 +221,6 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 			queue_clean(cola_ready);
 
 			tripu_mas_cercano->estado_anterior = 'R';
-		//	sem_wait(tripu_mas_cercano->sem_tripu);
-
 			largo = list_size(bloqueado_suspendido);
 
 			for(int i=0;i<largo;i++){
@@ -236,47 +229,17 @@ void procesar_mensajes(codigo_operacion operacion, int32_t conexion_cliente) {
 				suspendido_ready(tripulante);
 			}
 
-
 			list_clean(bloqueado_suspendido);
 
 			list_clean(bloqueado_suspendido_ready);
 
 			//Vuelve a activar los hilos de planificacion
-	/*
-			sem_wait(mutex_new_ready);
-			new_ready_off = 0;
-			sem_post(mutex_new_ready);
-
-			if(new_ready_off==0){
-				sem_post(planificacion_on);
-			}
-
-
-			sem_wait(mutex_ready_running);
-			ready_running_off = 0;
-			sem_post(mutex_ready_running);
-
-			if(ready_running_off==0){
-				sem_post(planificacion_on_ready_running);
-			}
-	*/
 			sem_wait(mutex_rafaga);
 			dar_pulsos_off = 1;
 			sem_post(mutex_rafaga);
 
-	//		if(dar_pulsos_off==0){
-	//			sem_post(planificion_rafaga);
-	//		}
-
-		//	tripu_mas_cercano->estado='E';
-
 			free(tarea_sabotaje);
 			free(posicion_recibida);
-			//FINAL
-		//	sem_wait(mutex_sabotaje);
-		//	valor_sabotaje=0;
-		//	sem_post(mutex_sabotaje);
-		//}
 		}
 		break;
 

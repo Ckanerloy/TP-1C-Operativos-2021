@@ -4,8 +4,8 @@
 	<comment></comment>
 	<projects>
 		<project>utils</project>
-		<project>LibMap</project>
 		<project>commons</project>
+		<project>LibMap</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
